@@ -1,4 +1,10 @@
+<img src="bandeau-readme.png" alt="NEO VANGUARD — 4 secteurs, 4 générations graphiques : Game Boy, 8 bits, 16 bits, HD" width="100%">
+
 # NEO VANGUARD — shoot them up vertical à moteur graphique évolutif
+
+**▶ [Jouer en ligne](https://jacquesbv.github.io/Neo-vanguard/)** · un seul fichier HTML (798 Ko), aucun CDN,
+clavier / souris / doigt · fiche des codes triches : [PDF](neo-vanguard-codes-triches.pdf)
+
 
 Jeu complet dans **un seul fichier `index.html`** — aucun asset externe, aucune requête réseau :
 **tous les sprites, décors, palettes, musiques et bruitages sont générés par le code** au démarrage

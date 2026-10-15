@@ -1,0 +1,26 @@
+NEO VANGUARD — complément : ce qui manque encore sur le dépôt
+=============================================================
+1) index.html (797 967 o, 7 881 lignes)
+   Remplace l'ancien, qui garde une ligne parasite injectée par un proxy
+   Cloudflare (4 erreurs 404 /cdn-cgi dans la console du navigateur).
+   -> https://github.com/JacquesBV/Neo-vanguard/upload/main
+      Glisser ce fichier puis "Commit changes".
+
+2) bandeau-readme.png + README.md
+   A téléverser ENSEMBLE : le README affiche le bandeau et le bouton
+   "Jouer en ligne" (l'actuel n'a ni l'un ni l'autre).
+
+3) banniere-neo-vanguard.png (1280x640)
+   N'est pas un fichier du dépôt : il se téléverse dans
+   Settings > General > Social preview.
+
+4) FICHE-DEPOT.md
+   La fiche à copier-coller : description, 20 sujets, notes de version v1.0,
+   licence, checklist.
+
+5) .nojekyll — facultatif, et INVISIBLE sous Windows.
+   Sans lui, tout fonctionne. Sinon : Add file > Create new file,
+   nommer exactement ".nojekyll", ne rien écrire, Commit.
+
+Dépôt : https://github.com/JacquesBV/Neo-vanguard
+Jeu   : https://jacquesbv.github.io/Neo-vanguard/
