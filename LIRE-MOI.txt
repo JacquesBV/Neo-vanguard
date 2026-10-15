@@ -1,0 +1,28 @@
+NEO VANGUARD — fichiers à publier
+=================================
+index.html                     le jeu (fichier unique, 798 Ko) — À LA RACINE DU DÉPÔT
+README.md                      documentation (s'affiche sur la page du dépôt)
+neo-vanguard-codes-triches.pdf la fiche imprimable des 8 codes
+pack-graphique-4-eres.png      aperçu des 4 générations
+secteur4-nouveau.png           aperçu du secteur 4
+.nojekyll                      Pages sert les fichiers tels quels
+pousser-vers-github.sh         pousse tout d'une commande (git déjà installé)
+
+Deux façons de publier
+----------------------
+1) À LA MAIN (2 minutes, sans terminal)
+   https://github.com/JacquesBV/Neo-vanguard/upload/main
+   Glisser le contenu de ce dossier (PAS le dossier), puis « Commit changes ».
+   GitHub Pages redéploie tout seul en ~1 minute.
+
+2) EN LIGNE DE COMMANDE
+   bash pousser-vers-github.sh
+   (clone le dépôt, copie les fichiers, commit et push)
+
+Le jeu est en ligne à l'adresse — respecter la majuscule :
+   https://jacquesbv.github.io/Neo-vanguard/
+
+IMPORTANT : ce zip est le moyen sûr de récupérer index.html. Un téléchargement
+direct de page HTML peut être réécrit par un proxy (Cloudflare y ajouta une
+723e ligne « /cdn-cgi/challenge-platform »), ce qui n'arrive pas aux archives .zip.
+Vérification rapide : index.html doit faire 797 967 octets et 7 881 lignes.
