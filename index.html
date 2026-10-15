@@ -12,7 +12,7 @@
    Le thème CSS suit lui aussi l'ère graphique active (--acc etc.)
    ============================================================ */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html,body{height:100%;overscroll-behavior:none}
 body{
   margin:0;background:#04060c;color:#dbe7ff;overflow:hidden;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace;
@@ -27,7 +27,11 @@ body.era-2{--acc:#38e0ff;--acc2:#ff4d6d;--bg1:rgba(5,7,18,.9);--bg2:rgba(14,20,4
 body.era-3{--acc:#4be7ff;--acc2:#ff5fa2;--bg1:rgba(4,6,14,.82);--bg2:rgba(10,14,30,.6);--glow:0 0 34px rgba(75,231,255,.5)}
 body.era-1,body.era-0{font-family:ui-monospace,"Courier New",monospace;letter-spacing:.5px}
 
-#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;
+  touch-action:none}   /* aucun geste du navigateur (défilement, zoom, tirer-pour-recharger) ne doit
+                          voler le pilotage au doigt : c'est la cause la plus fréquente d'un
+                          vaisseau qui « ne bouge pas » sur téléphone. */
+#stage canvas{touch-action:none}
 canvas#game{display:block;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
 canvas#game.smooth{image-rendering:auto}
 
@@ -163,6 +167,55 @@ kbd{background:var(--bg2);border:1px solid color-mix(in srgb,var(--acc) 55%,tran
   input[type=range]{width:130px}
   .card .cdesc{display:none}
 }
+
+/* ================= ÉCRAN TITRE & MENU (refonte) ========================= */
+.title-screen{align-items:stretch;justify-content:center;padding:0;background:none}
+.title-col{display:flex;flex-direction:column;justify-content:flex-end;width:100%;min-height:100%;
+  background:linear-gradient(180deg,rgba(2,3,9,0) 30%,rgba(2,3,9,.55) 62%,rgba(2,3,9,.92) 88%);
+  padding:0 12px 14px}
+.title-logo-zone{flex:1;min-height:34vh}
+.title-menu{width:min(1000px,96vw);margin:0 auto;
+  animation:menuIn .45s cubic-bezier(.2,.9,.2,1) both}
+@keyframes menuIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.menu-head{display:flex;align-items:center;gap:10px;margin:10px 2px 7px}
+.menu-kicker{font-size:10px;letter-spacing:.34em;color:var(--acc)}
+.menu-line{flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 70%,transparent),transparent)}
+.menu-main{display:grid;grid-template-columns:1.35fr 1fr;gap:9px}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btn.big{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px}
+.btn .bi{font-size:19px;line-height:1;color:var(--acc);flex:0 0 auto}
+.btn:hover .bi,.btn:focus-visible .bi{color:inherit}
+.btn .bl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.btn .bl b{font-size:14.5px;letter-spacing:.1em;font-weight:700}
+.btn .bl i{font-style:normal;font-size:10.5px;letter-spacing:.03em;opacity:.72;text-transform:none}
+.tile{appearance:none;cursor:pointer;font:inherit;text-align:left;color:#dfe9ff;
+  display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:0 9px;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 70%),var(--bg2);
+  border:1px solid color-mix(in srgb,var(--acc) 35%,transparent);
+  border-left:3px solid color-mix(in srgb,var(--acc) 80%,transparent);
+  padding:9px 11px;transition:transform .08s,box-shadow .12s,border-color .12s,background .12s}
+.tile:hover,.tile:focus-visible{outline:none;transform:translateY(-2px);border-color:var(--acc);
+  box-shadow:0 6px 20px rgba(0,0,0,.45),0 0 16px color-mix(in srgb,var(--acc) 35%,transparent)}
+.tile .ti{grid-row:1 / span 2;font-size:17px;color:var(--acc);align-self:center}
+.tile b{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+.tile i{font-style:normal;font-size:10px;color:#9fb2d4;letter-spacing:.02em}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;justify-content:center}
+.chip{font-size:10px;letter-spacing:.16em;color:#a9bcdd;background:rgba(8,12,22,.72);
+  border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:5px 12px}
+.chip b{color:var(--acc)}
+.chip.era{border-color:color-mix(in srgb,var(--acc) 55%,transparent);color:var(--acc)}
+@media (max-width:760px){
+  .menu-main{grid-template-columns:1fr}
+  .menu-grid{grid-template-columns:1fr 1fr}
+  .title-logo-zone{min-height:40vh}
+  .tile i{display:none}
+}
+/* ================= panneaux d'information (boutique, options…) ========== */
+.panel{border-width:1px;border-left:3px solid var(--acc);box-shadow:0 18px 60px rgba(0,0,0,.6),var(--glow),inset 0 0 60px rgba(0,0,0,.5)}
+.ptitle{letter-spacing:.18em}
+h1.logo{background:linear-gradient(180deg,#fff 22%,#bcd6f5 52%,#7fa4cc 78%,#e8f6ff);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.55)) drop-shadow(0 0 22px color-mix(in srgb,var(--acc) 55%,transparent))}
 </style>
 </head>
 <body class="era-3">
@@ -170,26 +223,42 @@ kbd{background:var(--bg2);border:1px solid color-mix(in srgb,var(--acc) 55%,tran
 <div id="toast"></div>
 
 <!-- ============ TITRE ============ -->
-<div class="screen on dim" id="scr-title">
-  <div class="panel">
-    <h1 class="logo">NEO VANGUARD</h1>
-    <div class="sub">Moteur graphique évolutif</div>
-    <span class="era-tag" id="titleEraTag">—</span>
-    <div class="menu">
-      <button class="btn prim" data-act="play">▶ Jouer</button>
-      <button class="btn" data-act="shop">⬢ Boutique</button>
-      <button class="btn" data-act="options">⚙ Options</button>
-      <button class="btn" data-act="help">? Commandes</button>
-      <button class="btn" data-act="credits">★ Crédits</button>
-      <button class="btn" data-act="cheats">☠ Menu cheat</button>
+<div class="screen on title-screen" id="scr-title">
+  <div class="title-col">
+    <!-- la zone haute est laissée libre : l'affiche est peinte par le moteur -->
+    <div class="title-logo-zone" aria-hidden="true"></div>
+    <div class="title-menu">
+      <div class="menu-head">
+        <span class="menu-kicker">CAMPAGNE</span>
+        <span class="menu-line"></span>
+      </div>
+      <div class="menu-main">
+        <button class="btn prim big" data-act="play">
+          <span class="bi">▶</span>
+          <span class="bl"><b>Commencer la campagne</b><i>Six secteurs, six consoles · l'histoire d'abord</i></span>
+        </button>
+        <button class="btn big" data-act="story">
+          <span class="bi">▤</span>
+          <span class="bl"><b>L'histoire</b><i>Le récit complet, page par page</i></span>
+        </button>
+      </div>
+      <div class="menu-head"><span class="menu-kicker">PRÉPARATION</span><span class="menu-line"></span></div>
+      <div class="menu-grid">
+        <button class="tile" data-act="shop"><span class="ti">⬢</span><b>Boutique</b><i>Vaisseaux, armes, livrées</i></button>
+        <button class="tile" data-act="options"><span class="ti">⚙</span><b>Options</b><i>Graphismes, son, aperçu d'ère</i></button>
+        <button class="tile" data-act="help"><span class="ti">?</span><b>Commandes</b><i>Clavier, souris, doigt</i></button>
+        <button class="tile" data-act="cheats"><span class="ti">☠</span><b>Codes</b><i>8 codes secrets à trouver</i></button>
+        <button class="tile" data-act="credits"><span class="ti">★</span><b>Crédits</b><i>Comment tout est fabriqué</i></button>
+        <button class="tile" data-act="fullscreen"><span class="ti">▣</span><b>Plein écran</b><i>Vraie borne, vrai confort</i></button>
+      </div>
+      <div class="chips">
+        <span class="chip">RECORD <b id="tBest">0</b></span>
+        <span class="chip">CRÉDITS <b id="tCredits">0</b></span>
+        <span class="chip">SECTEUR MAX <b id="tMax">1</b>/6</span>
+        <span class="chip">KILLS <b id="tKills">0</b></span>
+        <span class="chip era" id="titleEraTag">—</span>
+      </div>
     </div>
-    <div class="foot">
-      <span>SCORE MAX <b id="tBest">0</b></span>
-      <span>CRÉDITS <b id="tCredits">0</b></span>
-      <span>SECTEUR MAX <b id="tMax">1</b></span>
-      <span>KILLS <b id="tKills">0</b></span>
-    </div>
-    <div class="note" id="titleNote">Astuce : 4 secteurs, 4 générations graphiques. Chaque secteur réinvente le rendu : <b>Game Boy</b> → <b>8-bit+</b> → <b>16-bit</b> → <b>HD moderne</b>.</div>
   </div>
 </div>
 
@@ -236,7 +305,7 @@ kbd{background:var(--bg2);border:1px solid color-mix(in srgb,var(--acc) 55%,tran
     <table class="keys">
       <tr><td><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> / <kbd>ZQSD</kbd> / <kbd>WASD</kbd></td><td>Déplacer le vaisseau</td></tr>
       <tr><td><kbd>Espace</kbd> / <kbd>Clic</kbd></td><td>Tir (maintien)</td></tr>
-      <tr><td><kbd>B</kbd> / <kbd>Maj</kbd> / <kbd>Ctrl</kbd></td><td>Bombe intelligente (dégâts + efface les tirs)</td></tr>
+      <tr><td><kbd>B</kbd> / <kbd>Maj</kbd> / <kbd>Ctrl</kbd><br><span class="hint">au doigt : 2 doigts, double tap, ou bouton</span></td><td>Bombe intelligente (dégâts + efface les tirs)</td></tr>
       <tr><td><kbd>Échap</kbd> / <kbd>P</kbd></td><td>Pause</td></tr>
       <tr><td><kbd>M</kbd></td><td>Couper / remettre le son</td></tr>
       <tr><td><kbd>Souris</kbd></td><td>Pilotage (option « visée souris » ou toucher)</td></tr>
@@ -247,7 +316,8 @@ kbd{background:var(--bg2);border:1px solid color-mix(in srgb,var(--acc) 55%,tran
       <b>AU DOIGT (téléphone / tablette)</b><br>
       <b>Déplacer</b> : pose le doigt sur l'écran et fais-le glisser — le vaisseau suit, avec un décalage
       pour ne pas se cacher sous le pouce. Le tir est <b>automatique</b> tant que le doigt reste posé.<br>
-      <b>Bombe</b> : bouton <span class="pill">BOMBE</span> en bas à gauche, ou <b>deux doigts</b> n'importe où.<br>
+      <b>Bombe</b> : bouton <span class="pill">BOMBE</span> en bas à gauche, <b>deux doigts</b> n'importe où,
+      ou <b>double tap</b> rapide.<br>
       <b>Changer de set de tir</b> : bouton <span class="pill">ARME</span> en bas à droite (le chiffre entre
       parenthèses = nombre d'armes possédées) ; <kbd>◀</kbd> revient à la précédente.<br>
       Les deux boutons n'apparaissent que pendant la mission, et seulement sur écran tactile.
@@ -306,14 +376,14 @@ kbd{background:var(--bg2);border:1px solid color-mix(in srgb,var(--acc) 55%,tran
 <div class="screen dim" id="scr-victory">
   <div class="panel narrow" style="max-width:640px">
     <h1 class="logo" style="font-size:clamp(22px,5vw,38px)">SYSTÈME NEUTRALISÉ</h1>
-    <div class="sub" id="vicSub">4 secteurs · 4 générations graphiques</div>
+    <div class="sub" id="vicSub">6 secteurs · 6 générations graphiques</div>
     <div id="vicStats"></div>
     <div class="row">
       <button class="btn prim" data-act="vic-replay">↻ Nouvelle campagne</button>
       <button class="btn" data-act="vic-shop">⬢ Boutique</button>
       <button class="btn" data-act="vic-menu">⌂ Menu</button>
     </div>
-    <div class="note">Tu as traversé les quatre générations : <b>Game Boy</b>, <b>8-bit</b>, <b>16-bit</b> puis <b>HD</b>.
+    <div class="note">Tu as traversé les six générations : <b>Game Boy</b>, <b>8-bit</b>, <b>16-bit</b>, <b>Neo Geo</b>, <b>CD-ROM</b> puis <b>HD</b>.
       Rejoue en difficulté supérieure pour débloquer les records et financer les vaisseaux les plus rares.</div>
   </div>
 </div>
@@ -1560,10 +1630,11 @@ function loadSave() {
       S.opts = Object.assign(d.opts, o.opts || {});
       /* les cheats ont besoin d'une fusion profonde (objets imbriqués) */
       S.cheats = { found: {}, on: {}, startLevel: 1 };
+      if (o.aideVu) S.aideVu = true;
       if (o.cheats) {
         S.cheats.found = Object.assign({}, o.cheats.found || {});
         S.cheats.on = Object.assign({}, o.cheats.on || {});
-        S.cheats.startLevel = clamp(o.cheats.startLevel | 0 || 1, 1, 4);
+        S.cheats.startLevel = clamp(o.cheats.startLevel | 0 || 1, 1, 6);
         for (const k in S.cheats.on) if (!S.cheats.found[k]) delete S.cheats.on[k];  /* pas d'effet sans code */
       }
       for (const k of ['ships','weapons','liveries','trails','auras']) {
@@ -1596,24 +1667,51 @@ function lv(id) { return S.owned.upgrades[id] | 0; }
 
 /* ============================== CONTENU JOUABLE =========================== */
 
-/* Les 4 générations graphiques : chaque niveau change de moteur de rendu. */
+/* Les six générations graphiques : chaque secteur monte d'un cran dans
+   l'histoire des consoles et change de moteur de rendu. `sty` = style de rendu
+   (0 Game Boy, 1 huit bits, 2 seize bits, 3 vectoriel) ; `S` = résolution
+   interne (pixels de buffer par unité logique) ; `sq` = boîte de jeu.        */
 const ERAS = [
-  { id: 0, sys: 'DMG-01',  tag: '8-BIT · GAME BOY / NES / MASTER SYSTEM', name: 'CORE MEMORY',
-    VW: 160, VH: 144, intScale: true,  ramp: 3,  maxParts: 70,   starLayers: 2, trail: 0 },
-  { id: 1, sys: '8-BIT+',  tag: '8-BIT ÉTENDU · NES / MASTER SYSTEM',     name: 'WIREFRAME',
-    VW: 256, VH: 224, intScale: true,  ramp: 7,  maxParts: 420,  starLayers: 3, trail: 1 },
-  { id: 2, sys: '16-BIT',  tag: '16-BIT · SUPER NES / MEGA DRIVE',        name: 'NEON DRIVE',
-    VW: 320, VH: 240, intScale: false, ramp: 15, maxParts: 1500, starLayers: 4, trail: 2 },
-  { id: 3, sys: 'HD',      tag: 'HD · RENDU VECTORIEL TEMPS RÉEL',        name: 'SINGULARITY',
+  { id: 0, sty: 0, S: 1 / 4,  sq: 'gb',    sys: 'DMG-01',   tag: '8-BIT · GAME BOY',
+    name: 'CORE MEMORY',
+    VW: 160, VH: 144, intScale: true,  ramp: 3,   maxParts: 70,   starLayers: 2, trail: 0 },
+  { id: 1, sty: 1, S: 1 / 3,  sq: 'nes',   sys: '8-BIT+',   tag: '8-BIT ÉTENDU · NES / MASTER SYSTEM',
+    name: 'WIREFRAME',
+    VW: 256, VH: 224, intScale: true,  ramp: 7,   maxParts: 420,  starLayers: 3, trail: 1 },
+  { id: 2, sty: 2, S: 1 / 2,  sq: 'snes',  sys: '16-BIT',   tag: '16-BIT · SUPER NES / MEGA DRIVE',
+    name: 'NEON DRIVE',
+    VW: 320, VH: 240, intScale: false, ramp: 15,  maxParts: 1500, starLayers: 4, trail: 2 },
+  { id: 3, sty: 2, S: 0.58,   sq: 'neogeo', sys: 'MVS-AES',  tag: '24-BIT · NEO GEO / SALLE D\'ARCADE',
+    name: 'INSERT COIN',
+    VW: 320, VH: 224, intScale: false, ramp: 31,  maxParts: 2600, starLayers: 5, trail: 3,
+    arcade: true },
+  { id: 4, sty: 3, S: 0.74,   sq: 'psx',   sys: '32-BIT CD', tag: '32-BIT · CD-ROM · SATURN / PLAYSTATION',
+    name: 'POLYGON DAWN',
+    VW: 320, VH: 240, intScale: false, ramp: 63,  maxParts: 2200, starLayers: 4, trail: 2,
+    psx: true },
+  { id: 5, sty: 3, S: null,   sq: 'hd',    sys: 'HD',        tag: 'HD · RENDU VECTORIEL TEMPS RÉEL',
+    name: 'SINGULARITY',
     VW: 0,   VH: 0,   intScale: false, ramp: 255, maxParts: 3600, starLayers: 6, trail: 3 },
 ];
 
+/* abréviation affichée dans la frise du titre (les badges sont étroits) */
+const SYS_SHORT = { 'DMG-01': 'DMG-01', '8-BIT+': '8-BIT', '16-BIT': '16-BIT',
+  'MVS-AES': 'NEO GEO', '32-BIT CD': 'CD-ROM', 'HD': 'HD' };
 const ERALIST = [
-  { sys: 'DMG-01',  tag: '8-BIT · GAME BOY',        note: '4 teintes, 160×144, trames ordonnées, aucun dégradé.' },
-  { sys: '8-BIT+',  tag: '8-BIT+ · NES / SMS',      note: '16 couleurs, parallaxe 2 plans, sprites animés.' },
-  { sys: '16-BIT',  tag: '16-BIT · SNES / MD',      note: 'Palette étendue, rotation, transparences, particules.' },
-  { sys: 'HD',      tag: 'HD · TEMPS RÉEL',         note: 'Vectoriel lissé, bloom, aberration, 1000+ particules.' },
+  { sys: 'DMG-01',   tag: '8-BIT · GAME BOY',        note: '4 teintes, 160×144, trames ordonnées, aucun dégradé.' },
+  { sys: '8-BIT+',   tag: '8-BIT+ · NES / SMS',      note: '16 couleurs, parallaxe 2 plans, sprites animés.' },
+  { sys: '16-BIT',   tag: '16-BIT · SNES / MD',      note: 'Palette étendue, rotation, transparences, particules.' },
+  { sys: 'MVS-AES',  tag: '24-BIT · NEO GEO',        note: 'Palette arcade de 32 teintes, grosses sprites, bornes, monnayeur.' },
+  { sys: '32-BIT CD', tag: '32-BIT · CD-ROM',        note: 'Résolution réduite assumée, tramage ordonné, 3D filaire, brouillard.' },
+  { sys: 'HD',       tag: 'HD · TEMPS RÉEL',         note: 'Vectoriel lissé, bloom, aberration, 1000+ particules.' },
 ];
+/* style de rendu de chaque secteur, pour les rares endroits qui raisonnent en
+   « famille » (particules GPU, flou, tramage…). */
+const STY = ERAS.map(e => e.sty);
+/* une couleur d'accent et une couleur secondaire par secteur : elles habillent
+   les panneaux DOM, la frise des consoles et les illustrations du récit.    */
+const UIACC = [['#8bac0f', '#9bbc0f'], ['#4a90d9', '#f24fd9'], ['#38e0ff', '#ff4d6d'],
+               ['#ff9a3d', '#ff4fb0'], ['#8d9ec7', '#ffbe6b'], ['#4be7ff', '#ff5fa2']];
 
 /* Livrées : en ère 8-bit elles remplacent la palette DMG complète,
    en ères suivantes elles recolorisent la coque entière. */
@@ -1757,11 +1855,27 @@ const PAL1 = ['#000000','#080a1c','#0a1030','#16245c','#4a90d9','#8fd3ff','#ffff
               '#7a1f1f','#e04b3a','#ffb03a','#ffe680','#1f6b3a','#4fd97a','#a03ad9','#f24fd9'];
 const PAL2 = ['#05060f','#0c1230','#16205c','#2a3f9e','#3f6fe0','#38e0ff','#aef2ff','#ffffff',
               '#5c1030','#ff2e63','#ff8a3d','#ffd166','#0d5c3a','#3ff08b','#7a3cff','#e05cff'];
+/* --- secteur 4 : NEO GEO / salle d'arcade -------------------------------
+   L'arcade de 1990 ne connaissait pas la contrainte de taille : 32 teintes,
+   des néons saturés, un ciel de nuit indigo. C'est la génération la plus
+   « criarde » de la campagne, volontairement.                                */
+const PAL3 = ['#04030e','#0a0722','#140f3c','#241a66','#3b2a9e','#5a3fd9','#8a6bff','#c9b8ff',
+              '#0a1a2e','#0f3b52','#1c6f8c','#35c6d9','#8ff0ff','#ffffff','#ffd166','#ff9a3d',
+              '#3a0a2e','#8c0f5c','#d9218a','#ff4fb0','#ff8ad0','#ffd6f2','#ff5f3d','#ffb03a',
+              '#04220f','#0f6b2a','#3fd97a','#a8ffc9','#1a1240','#2f2a7a','#6b6bff','#d9e6ff'];
+/* --- secteur 5 : 32-BIT CD ---------------------------------------------
+   La génération CD : tout est plus sombre et plus désaturé, l'écran est
+   tramé, le brouillard masque la faible portée de la machine. Magenta et
+   ambre sont les deux lumières qui restent.                                  */
+const PAL4 = ['#05060a','#0b0e18','#141a2b','#232c45','#3a4666','#5a6a92','#8d9ec7','#d6e2ff',
+              '#0a1410','#123024','#1f5c40','#3fa878','#8affc9','#ffffff','#ffe0a8','#ffbe6b',
+              '#1a0a1e','#3d1240','#6a1f6b','#a83aa8','#e07ae0','#ffd0ff','#8a1030','#ff4d6d',
+              '#08121e','#123048','#1f5a80','#4fa8d9','#a8e6ff','#2a2440','#4a3f7a','#c9c0ff'];
 let TH = {}; /* thème courant (couleurs nommées) réévalué à chaque changement d'ère */
 
-function computeTheme(era, liveryId) {
+function computeTheme(sec, liveryId) {
   const lv_ = LIVERIES.find(l => l.id === liveryId) || LIVERIES[0];
-  if (era === 0) {
+  if (sec === 0) {
     const c = lv_.gb;
     TH = {
       bg: c[0], bg2: c[1], bg3: c[2], star: c[2], terrain: c[2], rail: c[1],
@@ -1771,7 +1885,7 @@ function computeTheme(era, liveryId) {
       danger: c[2], hull: c[3], shield: c[3], ui: c[3], dim: c[1],
       neb1: c[1], neb2: c[1], ring: c[2], livery: lv_, ramp: 3, glow: 0
     };
-  } else if (era === 1) {
+  } else if (sec === 1) {
     TH = {
       bg:PAL1[1], bg2:PAL1[2], bg3:PAL1[3], star:PAL1[5], terrain:PAL1[3], rail:PAL1[2],
       pMain:PAL1[4], pLite:PAL1[7], pDark:PAL1[3], pGlow:PAL1[5], pTrail:PAL1[5],
@@ -1780,7 +1894,7 @@ function computeTheme(era, liveryId) {
       danger:PAL1[9], hull:PAL1[13], shield:PAL1[7], ui:PAL1[5], dim:PAL1[2],
       neb1:PAL1[14], neb2:PAL1[15], ring:PAL1[5], livery:lv_, ramp:7, glow:0
     };
-  } else if (era === 2) {
+  } else if (sec === 2) {
     TH = {
       bg:PAL2[0], bg2:PAL2[1], bg3:PAL2[2], star:PAL2[6], terrain:PAL2[2], rail:PAL2[3],
       pMain:PAL2[5], pLite:PAL2[6], pDark:PAL2[4], pGlow:PAL2[5], pTrail:PAL2[5],
@@ -1788,6 +1902,26 @@ function computeTheme(era, liveryId) {
       pb:PAL2[7], eb:PAL2[11], acc:PAL2[15], gold:PAL2[11], green:PAL2[13], white:PAL2[7],
       danger:PAL2[9], hull:PAL2[13], shield:PAL2[6], ui:PAL2[5], dim:PAL2[2],
       neb1:PAL2[14], neb2:PAL2[9], ring:PAL2[5], livery:lv_, ramp:15, glow:1
+    };
+  } else if (sec === 3) {
+    /* --- NEO GEO : 32 teintes d'arcade, néons magenta et or ----------------- */
+    TH = {
+      bg:PAL3[0], bg2:PAL3[1], bg3:PAL3[2], star:PAL3[15], terrain:PAL3[3], rail:PAL3[4],
+      pMain:PAL3[12], pLite:PAL3[13], pDark:PAL3[9], pGlow:PAL3[11], pTrail:PAL3[12],
+      eMain:PAL3[19], eLite:PAL3[23], eDark:PAL3[16], eBoss:PAL3[30], eBossLite:PAL3[22],
+      pb:PAL3[12], eb:PAL3[23], acc:PAL3[15], gold:PAL3[14], green:PAL3[26], white:PAL3[13],
+      danger:PAL3[22], hull:PAL3[26], shield:PAL3[12], ui:PAL3[7], dim:PAL3[2],
+      neb1:PAL3[17], neb2:PAL3[29], ring:PAL3[12], livery:lv_, ramp:31, glow:1
+    };
+  } else if (sec === 4) {
+    /* --- 32-BIT CD : tout est terne, seul le tramage fait la lumière -------- */
+    TH = {
+      bg:PAL4[0], bg2:PAL4[1], bg3:PAL4[2], star:PAL4[21], terrain:PAL4[3], rail:PAL4[2],
+      pMain:PAL4[12], pLite:PAL4[13], pDark:PAL4[10], pGlow:PAL4[11], pTrail:PAL4[11],
+      eMain:PAL4[22], eLite:PAL4[23], eDark:PAL4[16], eBoss:PAL4[20], eBossLite:PAL4[21],
+      pb:PAL4[12], eb:PAL4[15], acc:PAL4[7], gold:PAL4[14], green:PAL4[11], white:PAL4[13],
+      danger:PAL4[22], hull:PAL4[11], shield:PAL4[12], ui:PAL4[7], dim:PAL4[2],
+      neb1:PAL4[29], neb2:PAL4[18], ring:PAL4[12], livery:lv_, ramp:63, glow:1
     };
   } else {
     const st = SHIPS.find(s => s.id === S.sel.ship) || SHIPS[0];
@@ -1834,7 +1968,10 @@ const FONT5 = {
   ' ':'00000','.':'00002',',':'00024',':':'02020','!':'22202','?':'21202','-':'00700','_':'00007',
   '+':'02720','=':'07070','/':'11244','\\':'44211','%':'51245','*':'52500','<':'12421','>':'42124',
   '(':'12221',')':'42224','[':'32223',']':'62226','#':'57575',"'":'22000','"':'55000','|':'22222','@':'24425',
-  '↑':'02027','↓':'72222','·':'00020','★':'52755'
+  '↑':'02027','↓':'72222','·':'00020','★':'52755',
+  /* l'écrin des ères suivantes affiche « $ » : sans cette ligne, le glyphe
+     tombait sur le « ? » de secours — le fameux carré à point d'interrogation */
+  '$':'27272'
 };
 function pixChar(g, ch, x, y, col, s) {
   const rows = FONT5[ch] || FONT5[ch.toUpperCase()] || FONT5['?'];
@@ -1872,6 +2009,7 @@ function hText(g, str, x, y, opt = {}) {
 }
 /* HUD : sélectionne automatiquement le style de texte de l'ère */
 function hudText(g, str, x, y, col, size, opt = {}) {
+  col = eraCol(col);
   if (TH.ramp >= 255) return hText(g, str, x, y, Object.assign({ color: col, size: size * 7 }, opt));
   return pixText(g, str, x, y, col, size, opt);
 }
@@ -1879,7 +2017,12 @@ function hudW(str, size) { return TH.ramp >= 255 ? String(str).length * size * 7
 
 /* ------------------------------- ENTRÉES ---------------------------------- */
 const keys = {}; let anyKey = false;
-const pointer = { x: 0.5, y: 0.8, active: false, down: false };
+const pointer = { x: 0.5, y: 0.8, active: false, down: false,
+  /* pilotage au doigt : commande RELATIVE. À la pose du doigt on retient la
+     position du vaisseau (grab) et celle du doigt (base) ; ensuite le vaisseau
+     se déplace exactement de ce que le doigt s'est déplacé. Poser le doigt
+     quelque part ne l'attire donc plus vers ce point. */
+  drag: false, baseX: 0, baseY: 0, grabX: 0, grabY: 0 };
 function initInput() {
   addEventListener('keydown', e => {
     const tg = e.target && e.target.tagName;
@@ -1919,7 +2062,7 @@ const SCALE = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26];
 const Audio2 = {
   ctx: null, master: null, musicGain: null, sfxGain: null, comp: null,
   rev: null, revGain: null, delay: null, delayGain: null, duck: null,
-  ok: false, muted: false, boss: false, era: 0, lv: 1, running: false,
+  ok: false, muted: false, boss: false, era: 0, sect: 0, lv: 1, running: false,
   step: 0, nextT: 0, barT: 0,
 
   init() {
@@ -2156,7 +2299,35 @@ const Audio2 = {
       arp: [[12,16,19,24, 12,16,19,24, 17,21,24,29, 17,21,24,29]],
       drum: [1,0,2,0, 1,0,2,0, 1,0,2,0, 1,0,2,3],
     },
-    { /* ---- ère 3 : HD : super-saw, sub, nappes filtrées, réverbe --------- */
+    { /* ---- secteur 4 : NEO GEO / arcade : basse en croches, cuivres, 16es --
+         La musique de salle d'arcade : ça doit s'entendre à travers le bruit
+         des autres bornes. Basse motrice, stabs sur les temps, batterie dense. */
+      bpm: 158, root: 92, key: 'G# mineur',
+      rootProg: [0, 0, 7, 7, 5, 5, 3, 3],
+      bass: [[0,0,12,0, 0,0,7,0, 0,0,12,0, 7,0,0,0],
+             [5,5,17,5, 5,5,12,5, 3,3,15,3, 3,3,10,3]],
+      lead: [[24,24,-1,22, 24,-1,19,-1, 22,22,-1,19, 22,-1,17,-1],
+             [29,-1,27,29, 27,-1,24,-1, 26,26,-1,24, 26,-1,22,24]],
+      harm: [[12,-1,19,-1, 12,-1,19,-1, 17,-1,24,-1, 17,-1,24,-1],
+             [15,-1,22,-1, 15,-1,22,-1, 14,-1,21,-1, 14,-1,21,-1]],
+      arp: [[0,7,12,16, 19,16,12,7, 5,12,17,21, 24,21,17,12]],
+      drum: [1,0,2,1, 1,2,1,0, 1,0,2,1, 1,2,3,3],
+    },
+    { /* ---- secteur 5 : 32-BIT CD : nappes filtrées, sub, batterie cassée --
+         La bande-son d'un jeu CD de 1995 : plus d'air, plus de réverbe, des
+         silences, et une ligne de basse qui porte tout le morceau.        */
+      bpm: 146, root: 78, key: 'D# mineur',
+      rootProg: [0, 0, 3, 3, -2, -2, 5, 5],
+      bass: [[0,-1,0,-1, 0,-1,12,-1, 3,-1,3,-1, 3,-1,15,-1],
+             [5,-1,5,-1, 5,-1,17,-1, -2,-1,-2,-1, -2,-1,10,-1]],
+      lead: [[31,-1,-1,29, -1,27,-1,-1, 26,-1,24,-1, 26,-1,-1,-1],
+             [26,-1,29,-1, 31,-1,-1,34, -1,31,-1,29, -1,27,26,-1]],
+      harm: [[12,-1,-1,-1, 15,-1,-1,-1, 10,-1,-1,-1, 14,-1,-1,-1],
+             [15,-1,-1,-1, 19,-1,-1,-1, 14,-1,-1,-1, 17,-1,-1,-1]],
+      arp: [[12,-1,19,-1, 24,-1,19,-1, 10,-1,17,-1, 22,-1,17,-1]],
+      drum: [1,0,0,2, 0,0,1,0, 1,0,3,0, 0,2,0,1],
+    },
+    { /* ---- secteur 6 : HD : super-saw, sub, nappes filtrées, réverbe ------ */
       bpm: 162, root: 82, key: 'E mineur',
       rootProg: [0, 0, 7, 7, 5, 5, 3, 3],
       bass: [[0,-1,0,0, 12,0,-1,0, 7,-1,7,7, 19,7,-1,7],
@@ -2169,9 +2340,13 @@ const Audio2 = {
       drum: [1,0,2,1, 1,0,2,0, 1,0,2,1, 1,2,3,2],
     },
   ],
-  startMusic(era, level) {
+  startMusic(sec, level) {
     this.init(); this.unlock(); if (!this.ok) return;
-    this.era = clamp(era, 0, 3); this.lv = level; this.step = 0;
+    /* `sec` est le SECTEUR (0-5) : chaque génération a désormais sa piste.
+       Le timbre des voix suit la famille de la machine (ERAS[].sty).        */
+    this.sect = clamp(sec, 0, 5);
+    this.era = ERAS[this.sect].sty;
+    this.lv = level; this.step = 0;
     this.nextT = this.ctx.currentTime + 0.15; this.running = true;
     this.applyEraFx();
   },
@@ -2179,7 +2354,7 @@ const Audio2 = {
   setEra(era) { this.era = clamp(era, 0, 3); this.step = 0; if (this.ok) { this.nextT = Math.max(this.nextT, this.ctx.currentTime + 0.08); this.applyEraFx(); } },
   musicTick() {
     if (!this.ok || !this.running || this.muted) return;
-    const T = this.TRACKS[this.era] || this.TRACKS[0];
+    const T = this.TRACKS[this.sect === undefined ? this.era : this.sect] || this.TRACKS[this.era] || this.TRACKS[0];
     const spb = 60 / (T.bpm * (this.boss ? 1.07 : 1));
     const sd = spb / 4;
     while (this.nextT < this.ctx.currentTime + 0.16) {
@@ -2294,6 +2469,7 @@ const R = {
   era: 3, S: 1.25, ppu: 1, smooth: true, frame: null, bufFar: null, bufMid: null,
   bufNear: null, bufC: null, bufL: null, bufCH: null, bufR: null, bufB: null, bufFG: null,
   vig: null, qual: 1, qualT: 0, fps: 60, ditherIdx: 0, boot: 0, lowRes: false,
+  sec: 0,          /* secteur (0-5) : la génération jouée. R.era en est le STYLE. */
   fog: null,
 };
 /* qualité adaptative : si la machine rame, on réduit les effets les plus lourds */
@@ -2312,6 +2488,7 @@ function autoQuality(dt) {
     const TIERS = [1, 0.78, 0.6];                 /* 1,60 / 1,25 / 0,96 */
     if (R.resTier < 2 && R.fps < 40) { R.resTier++; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
     else if (R.resTier > 0 && R.fps > 57) { R.resTier--; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
+    if (R.sec === 5) { R.S = eraS(5); }   /* seule la génération HD suit RES_SCALE */
   }
 }
 
@@ -2453,7 +2630,7 @@ function drawLights() {
   g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
 }
 function spawnPart(o) {
-  const cap = ERAS[R.era].maxParts * (0.45 + 0.55 * R.qual);
+  const cap = ERAS[R.sec].maxParts * (0.45 + 0.55 * R.qual);
   if (pCount > cap) return null;
   let p = null;
   for (let i = 0; i < PMAX; i++) { const q = parts[(pIdx + i) % PMAX]; if (!q.on) { p = q; pIdx = (pIdx + i + 1) % PMAX; break; } }
@@ -2512,7 +2689,16 @@ function drawParts() {
 /* --- textes flottants (popups) ------------------------------------------- */
 const FTs = []; let ftIdx = 0;
 for (let i = 0; i < 40; i++) FTs.push({ on: false, t: 0 });
+/* En Game Boy, RIEN ne peut sortir des quatre tons de la console : ce filtre
+   ramène toute couleur d'accent (rose, cyan, rouge…) au ton clair de la
+   livrée active. C'est ce qui empêchait le mot « BOMBE » de rester rose.   */
+function eraCol(col) {
+  if (R.era !== 0) return col;
+  const gb = (TH.livery && TH.livery.gb) || ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'];
+  return gb.indexOf(col) >= 0 ? col : TH.pLite;
+}
 function popText(x, y, txt, col, size) {
+  col = eraCol(col);
   const f = FTs[ftIdx++ % FTs.length];
   f.on = true; f.x = x; f.y = y; f.txt = txt; f.col = col; f.t = 1; f.size = size || 8;
   return f;
@@ -2540,7 +2726,7 @@ function initStars() {
 const SCROLL = { y: 0, speed: 95, boost: 1 };
 function drawStars(layer, idx, dt, speedMul) {
   const g = layer.g; PAINT = { g, K: layer.K };
-  const n = Math.min(ERAS[R.era].starLayers, STAT.layers.length);
+  const n = Math.min(ERAS[R.sec].starLayers, STAT.layers.length);
   const cols = [TH.bg2, TH.bg3, TH.star, TH.star, TH.pLite];
   for (let l = 0; l < n; l++) {
     if ((l + idx) % 2 === 0 && l > 0) continue;
@@ -2767,13 +2953,19 @@ function drawTerrain(layer) {
   }
 }
 /* --- configuration d'ère -------------------------------------------------- */
+/* résolution interne d'un secteur : celle du HD suit la qualité adaptative */
+function eraS(sec) {
+  const E = ERAS[clamp(sec | 0, 0, 5)] || ERAS[0];
+  return E.S === null || E.S === undefined ? 1.6 * (typeof RES_SCALE === 'number' ? RES_SCALE : 1) : E.S;
+}
 function setEra(era, silent) {
   R.era = clamp(era | 0, 0, 3);
-  const E = ERAS[R.era];
-  /* ère HD : 1,6 px de buffer par unité logique (768×1376). Le trait
-     vectoriel gagne 28 % de finesse — c'est le levier de netteté le plus
-     direct du moteur, et le seul qui ne coûte rien en style.            */
-  R.S = [1 / 4, 1 / 3, 1 / 2, 1.6 * (typeof RES_SCALE === 'number' ? RES_SCALE : 1)][R.era];
+  /* la résolution et la palette viennent du SECTEUR joué ; le style, lui,
+     décide de la façon de dessiner. Le secteur 32-bit partage ainsi le rendu
+     vectoriel du HD sans en prendre la finesse. */
+  if (R.sec === undefined || ERAS[R.sec] === undefined || ERAS[R.sec].sty !== R.era) R.sec = R.era;
+  const E = ERAS[R.sec];
+  R.S = eraS(R.sec);
   const w = Math.round(L_W * R.S), h = Math.round(L_H * R.S);
   R.bufNear = mkBuf(w, h);
   R.bufFar  = mkBuf(w * 0.5, h * 0.5);
@@ -2787,13 +2979,14 @@ function setEra(era, silent) {
   R.bufLight = mkBuf(w * 0.25, h * 0.25);   /* sources lumineuses */
   R.smooth  = !E.intScale && R.era >= 2;
   R.vig = null;
-  document.body.className = 'era-' + R.era + (S.opts.smooth && R.era >= 2 ? ' smooth' : '') +
+  document.body.className = 'era-' + R.era + ' sec-' + R.sec +
+    (S.opts.smooth && R.era >= 2 ? ' smooth' : '') +
     (IS_TOUCH ? ' touch' : '') + ((G.state === 'play' || G.state === 'intro') ? ' playing' : '');
   cv.classList.toggle('smooth', R.smooth && !S.opts.smooth ? false : R.smooth);
   /* variables CSS des panneaux DOM */
   const root = document.body.style;
-  root.setProperty('--acc', R.era === 0 ? '#8bac0f' : R.era === 1 ? '#4a90d9' : R.era === 2 ? '#38e0ff' : '#4be7ff');
-  root.setProperty('--acc2', R.era === 0 ? '#9bbc0f' : R.era === 1 ? '#f24fd9' : R.era === 2 ? '#ff4d6d' : '#ff5fa2');
+  const ua = UIACC[clamp(R.sec, 0, 5)];
+  root.setProperty('--acc', ua[0]); root.setProperty('--acc2', ua[1]);
   root.setProperty('--px', R.era === 0 ? '4px' : '2px');
   if (typeof BAKE !== 'undefined') BAKE.clear();   /* les sprites dépendent de l'ère et de la livrée */
   if (typeof DBake !== 'undefined') DBake.clear();  /* idem pour les décors pré-cuits */
@@ -3331,7 +3524,7 @@ function presentFrame() {
     /* ère HD : les calques lointains sont agrandis en lissé — la profondeur
        de champ se fait toute seule, le fond passe en douceur derrière
        l'action au lieu de crépiter pixel par pixel.                       */
-    const softFar = R.era >= 3;
+    const softFar = R.era >= 3 && !ERAS[R.sec].psx;
     blitTo(C, R.bufFar, 0, 0, C.w, C.h, 1, 'source-over', softFar);
     blitTo(C, R.bufMid, 0, 0, C.w, C.h, 1, 'source-over', softFar);
   }
@@ -3475,6 +3668,51 @@ function presentFrame() {
     ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
     ctx.globalAlpha = 1; ctx.restore();
   }
+  /* 6quater. LE REGARD DE LA MACHINE ----------------------------------------
+     · Neo Geo (secteur 4) : l'écran de la borne. Balayage CRT marqué, halo de
+       phosphore, et un soupçon de dominante magenta — l'arcade ne montrait
+       jamais un noir neutre.
+     · 32-BIT CD (secteur 5) : le tramage ordonné de la PlayStation. L'image
+       n'a pas assez de couleurs pour un dégradé : elle les fabrique en
+       quadrillant, et tout ce qui est loin part dans le brouillard.       */
+  if (R.sec === 3 && !onGpu) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(PF.x, PF.y, PF.w, PF.h); ctx.clip();
+    ctx.globalAlpha = 0.16; ctx.fillStyle = '#000';
+    for (let y = PF.y; y < PF.y + PF.h; y += 3) ctx.fillRect(PF.x, y, PF.w, 1);
+    ctx.globalAlpha = 0.10; ctx.fillStyle = PAL3[19];      /* magenta de phosphore */
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
+    ctx.globalAlpha = 1; ctx.restore();
+  }
+  if (R.sec === 4) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(PF.x, PF.y, PF.w, PF.h); ctx.clip();
+    if (!R.psxTile) {
+      /* une trame de Bayer 4×4 : la « saleté » caractéristique de l'époque */
+      const t4 = document.createElement('canvas'); t4.width = 4; t4.height = 4;
+      const tg = t4.getContext('2d');
+      const B = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+      for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        const v = Math.round((B[y][x] / 15) * 255);
+        tg.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; tg.fillRect(x, y, 1, 1);
+      }
+      R.psxTile = t4;
+      const pat = ctx.createPattern(t4, 'repeat');
+      R.psxPat = pat;
+    }
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = 0.34; ctx.fillStyle = R.psxPat;
+    ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
+    /* brouillard de fin de portée : la console ne dessinait pas si loin */
+    const fg = ctx.createLinearGradient(0, PF.y, 0, PF.y + PF.h);
+    fg.addColorStop(0, 'rgba(8,12,26,.34)');
+    fg.addColorStop(0.45, 'rgba(8,12,26,0)');
+    fg.addColorStop(1, 'rgba(10,6,22,.30)');
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    ctx.fillStyle = fg; ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
+    ctx.restore();
+  }
   /* 7. flash */
   if (FX.flash > 0.01) {
     ctx.globalAlpha = FX.flash; ctx.fillStyle = FX.flashCol;
@@ -3482,6 +3720,9 @@ function presentFrame() {
     ctx.globalAlpha = 1;
   }
   ctx.restore();
+  /* 7bis. calque d'annonce (boîte de jeu) : peint DANS l'image composée, il
+     est donc visible aussi bien en Canvas 2D qu'en WebGL.                   */
+  if (R.overlay) { const ov = R.overlay; R.overlay = null; try { ov(); } catch (err) {} }
   /* 8. composition finale + effets plein écran sur le GPU */
   gpuPresent();
 }
@@ -3917,6 +4158,28 @@ const SIL = {
     P([[-0.86,0.34],[-0.68,0.42],[-0.72,0.5],[-0.9,0.42]], MAT.DARK, 2),
     P([[0.86,0.34],[0.68,0.42],[0.72,0.5],[0.9,0.42]], MAT.DARK, 2),
     P([[-0.05,0.3],[0.05,0.3],[0.05,0.6],[-0.05,0.6]], MAT.ENGINE),
+  ]},
+  /* --- la mine : hexagone à pointes, cœur clignotant ---------------------- */
+  mine: { w: 1.0, parts: [
+    P([[0,-0.62],[0.54,-0.31],[0.54,0.31],[0,0.62],[-0.54,0.31],[-0.54,-0.31]], MAT.HULL),
+    P([[0,-0.62],[-0.16,-0.86],[0,-0.72],[0.16,-0.86]], MAT.DARK, 1),
+    P([[-0.54,-0.31],[-0.9,-0.52],[-0.62,-0.14]], MAT.DARK, 1),
+    P([[-0.54,0.31],[-0.9,0.52],[-0.62,0.14]], MAT.DARK, 1),
+    P([[0.54,-0.31],[0.9,-0.52],[0.62,-0.14]], MAT.DARK, 1),
+    P([[0.54,0.31],[0.9,0.52],[0.62,0.14]], MAT.DARK, 1),
+    P([[0,0.62],[-0.14,0.88],[0.14,0.88]], MAT.DARK, 1),
+    P([[-0.3,-0.18],[0.3,-0.18],[0.3,0.18],[-0.3,0.18]], MAT.DARK, 0),
+    P([[-0.2,-0.2],[0.2,-0.2],[0.2,0.2],[-0.2,0.2]], MAT.GLOW, 0),   /* le cœur qui dit « danger » */
+  ]},
+  /* --- le tireur : fusil long, crosse courte, appui d'épaule -------------- */
+  sniper: { w: 0.78, parts: [
+    P([[0,-0.94],[0.13,-0.2],[0.16,0.3],[0.08,0.62],[-0.08,0.62],[-0.16,0.3],[-0.13,-0.2]], MAT.HULL),
+    P([[0.13,-0.16],[0.72,0.24],[0.66,0.4],[0.2,0.24]], MAT.WING),
+    P([[-0.13,-0.16],[-0.72,0.24],[-0.66,0.4],[-0.2,0.24]], MAT.WING),
+    P([[-0.06,-0.86],[0.06,-0.86],[0.06,0.5],[-0.06,0.5]], MAT.ACCENT),   /* le canon */
+    P([[-0.1,-0.6],[0.1,-0.6],[0.1,-0.4],[-0.1,-0.4]], MAT.GLOW, 1),     /* la lunette */
+    P([[-0.34,0.34],[-0.22,0.36],[-0.22,0.6],[-0.34,0.6]], MAT.ENGINE, 1),
+    P([[0.34,0.34],[0.22,0.36],[0.22,0.6],[0.34,0.6]], MAT.ENGINE, 1),
   ]},
   stinger: { w: 0.86, parts: [
     P([[0,-0.86],[0.11,-0.3],[0.13,0.22],[0.07,0.5],[-0.07,0.5],[-0.13,0.22],[-0.11,-0.3]], MAT.HULL),
@@ -4685,6 +4948,7 @@ const SPRITE_H = {
   crate: 74, barrel: 78, pod: 82, pickupBox: 58,
   bTurret: 96, bArm: 150, bHead: 120, bPod: 70, bRingBar: 84,
 };
+SPRITE_H.mine = 58; SPRITE_H.sniper = 64;
 function spriteBox(id) { const d = SIL[id] || SIL.falcon; const h = SPRITE_H[id] || 60; return { w: h * d.w, h }; }
 function drawSpriteTo(g, K, id, x, y, opt = {}) {
   if (!SIL[id]) id = 'falcon';            /* garde-fou : jamais d'id inconnu */
@@ -5033,6 +5297,66 @@ const CHUNKS = [
       for (let i = 0; i < 3; i++) fr(x + 8 + i * 14, y + h * 0.5, 9, 9, i % 2 ? TH.gold : TH.bg3);
       antenna(x + w - 10, y, h * 0.5, TH.bg3, TH.white);
     }, anim(x, y, w, h, t, seed) { lightStrip(x + 6, y + h - 10, w - 12, 3, TH.acc, t, 3); } },
+  /* --- secteur 4 : la salle d'arcade ------------------------------------ */
+  { id: 'borne', sec: 3, statique(x, y, w, h, seed) {
+      bevel(x, y, w, h, TH.bg2, TH.bg3, TH.bg);
+      /* l'écran de la borne : il affiche un jeu… et il bouge */
+      fr(x + 8, y + 8, w - 16, h * 0.42, TH.bg);
+      fr(x + 11, y + 11, w - 22, h * 0.42 - 6, TH.bg3);
+      /* le bandeau publicitaire */
+      fr(x + 4, y, w - 8, 6, TH.gold);
+      /* les boutons, la manette, le monnayeur */
+      fr(x + w * 0.18, y + h * 0.62, 7, 7, TH.eMain);
+      fr(x + w * 0.34, y + h * 0.62, 7, 7, TH.acc);
+      fr(x + w * 0.26, y + h * 0.72, 24, 4, TH.bg3);
+      fr(x + 10, y + h - 12, 12, 7, TH.gold);
+    }, anim(x, y, w, h, t, seed) {
+      /* le jeu tourne sur l'écran : trois bandes qui défilent */
+      const off = (t * 26 + seed * 11) % 18;
+      for (let i = -1; i < 4; i++) {
+        const sy = y + 12 + i * 7 + off;
+        if (sy < y + 11 || sy > y + h * 0.42) continue;
+        fr(x + 13, sy, (w - 26) * (0.35 + 0.6 * (((i * 7 + seed) % 5) / 5)), 3, TH.acc);
+      }
+      lamp(x + w - 10, y + h - 10, TH.eMain, t, 3);
+    } },
+  { id: 'enseigne', sec: 3, statique(x, y, w, h, seed) {
+      /* une enseigne néon, le genre qui tient debout tout un quartier */
+      bevel(x, y, w, h, TH.bg2, TH.bg3, TH.bg);
+      fr(x + 3, y + 3, w - 6, h - 6, TH.bg);
+      for (let i = 0; i < 3; i++) fr(x + 10 + i * ((w - 20) / 3), y + h * 0.3, (w - 30) / 3, 6, i === 1 ? TH.eMain : TH.acc);
+      fr(x + 6, y + h * 0.62, w - 12, 4, TH.gold);
+    }, anim(x, y, w, h, t, seed) {
+      const on = Math.sin(t * 3 + seed) > -0.2;      /* néon qui hésite */
+      fr(x + 3, y + 3, w - 6, h - 6, on ? TH.bg : TH.bg2);
+      for (let i = 0; i < 3; i++) fr(x + 10 + i * ((w - 20) / 3), y + h * 0.3, (w - 30) / 3, 6, on ? (i === 1 ? TH.eMain : TH.acc) : TH.bg2);
+    } },
+  /* --- secteur 5 : les ruines de la génération CD ------------------------ */
+  { id: 'monolithe', sec: 4, statique(x, y, w, h, seed) {
+      bevel(x, y, w, h, TH.bg2, TH.bg3, TH.bg);
+      /* stries verticales : la 3D de 1995 adorait les arêtes droites */
+      for (let i = 0; i < 5; i++) fr(x + 4 + i * (w / 6), y + 6, 2, h - 12, TH.bg3);
+      fr(x + 6, y + h * 0.6, w - 12, 5, TH.acc);
+      for (let j = 0; j < h - 20; j += 22) fr(x + w - 12, y + 10 + j, 5, 9, TH.dim);
+    }, anim(x, y, w, h, t, seed) {
+      const p = (t * 9 + seed) % (h - 24);
+      fr(x + 8, y + 8 + p, w - 16, 2, TH.acc);       /* une donnée qui descend */
+      lamp(x + 6, y + 12, TH.ui, t, 2.4);
+    } },
+  { id: 'portail', sec: 4, statique(x, y, w, h, seed) {
+      bevel(x, y, w, h, TH.bg2, TH.bg3, TH.bg);
+      fr(x + 10, y + 10, w - 20, h - 20, TH.bg);
+      fr(x + 16, y + 16, w - 32, h - 32, TH.bg2);
+    }, anim(x, y, w, h, t, seed) {
+      /* l'anneau tourne : le seul objet clairement animé de la génération */
+      const a = t * 1.4 + seed, r = Math.min(w, h) * 0.3;
+      const cx = x + w / 2, cy = y + h / 2;
+      for (let i = 0; i < 12; i++) {
+        const ai = a + (i / 12) * TAU;
+        fr(cx + Math.cos(ai) * r - 2, cy + Math.sin(ai) * r * 0.9 - 2, 4, 4, i % 3 ? TH.acc : TH.gold);
+      }
+      ring(cx, cy, r * 0.55, 1.6, TH.dim);
+    } },
   /* 3 */ { id: 'paroi', statique(x, y, w, h, seed) {
       bevel(x, y, w, h, TH.bg2, TH.bg3, TH.bg);
       for (let j = 0; j < h; j += 36) { fr(x, y + j, w, 2, TH.bg); rivets(x, y + j + 2, w, 32, 14, TH.bg3); }
@@ -5172,6 +5496,10 @@ function decorInitLevel(level) {
     for (let i = 0; i < 6; i++) decorSpawn(DEC.far, rnd(L_H, -500), era, 'far');
   }
   if (era >= 1) for (let i = 0; i < 2; i++) decorSpawn(DEC.fore, rnd(L_H, -200), era, 'fore');
+  /* la salle d'arcade et les ruines CD sont plus meublées : le mobilier est le
+     sujet du décor, pas l'arrière-plan lointain. */
+  if (R.sec === 3) { for (let i = 0; i < 3; i++) decorSpawn(DEC.mid, rnd(L_H, -300), era, 'mid'); }
+  if (R.sec === 4) { for (let i = 0; i < 2; i++) decorSpawn(DEC.floor, rnd(L_H, -300), era, 'floor'); }
 }
 function decorReset() {
   DEC.floor.length = 0; DEC.mid.length = 0; DEC.far.length = 0; DEC.fore.length = 0;
@@ -5181,8 +5509,11 @@ const DEC_CAP = { floor: 11, mid: 6, far: 6, fore: 3 };
 function decorSpawn(list, y, era, layer) {
   if (list.length >= DEC_CAP[layer]) return;
   /* gabarits compatibles avec l'ère et le calque */
-  const pool = CHUNKS.map((c, i) => ({ c, i })).filter(o => (o.c.minE || 0) <= era
-    && (o.c.maxE === undefined || o.c.maxE >= era)          /* chaque génération a son mobilier */
+  const pool = CHUNKS.map((c, i) => ({ c, i })).filter(o => (
+      /* un mobilier peut être réservé à UN secteur (bornes d'arcade, monolithes
+         CD) ou à une famille de générations (minE/maxE).                     */
+      o.c.sec !== undefined ? o.c.sec === R.sec
+        : ((o.c.minE || 0) <= era && (o.c.maxE === undefined || o.c.maxE >= era)))
     && (layer === 'fore' ? !!o.c.fore : !o.c.fore));
   if (!pool.length) return;
   const picko = pool[Math.floor(Math.random() * pool.length)];
@@ -5199,6 +5530,10 @@ function decorSpawn(list, y, era, layer) {
   else if (id === 'passerelle') { inst.w = rnd(330, 240); inst.h = rnd(74, 48); }
   else if (id === 'megatour') { inst.w = rnd(140, 86); inst.h = rnd(430, 250); }
   else if (id === 'anneau') { inst.w = 200; inst.h = 200; }
+  else if (id === 'borne') { inst.w = rnd(120, 90); inst.h = rnd(150, 110); }
+  else if (id === 'enseigne') { inst.w = rnd(210, 140); inst.h = rnd(90, 60); }
+  else if (id === 'monolithe') { inst.w = rnd(120, 80); inst.h = rnd(420, 240); }
+  else if (id === 'portail') { inst.w = rnd(220, 160); inst.h = rnd(220, 160); }
   else if (id === 'holo') { inst.w = 128; inst.h = 86; }
   else if (id === 'poutrelle') { inst.w = L_W + 60; inst.h = rnd(52, 30); }
   else if (id === 'croiseur') { inst.w = rnd(360, 220); inst.h = rnd(150, 88); }
@@ -5350,9 +5685,22 @@ function updatePlayer(dt) {
   if (cheatOn('power')) P.power = 5;   /* cheat ARMEMENT MAXIMAL */
   const ax = axis();
   let dx = ax.x, dy = ax.y;
-  /* pilotage souris / tactile */
-  if ((S.opts.mouse || pointer.down) && pointer.active) {
-    const tx = (pointer.x * view.w - PF.x) / PF.s * 1, ty = (pointer.y * view.h - PF.y) / PF.s;
+  /* --- pilotage au doigt : RELATIF ------------------------------------------
+     Le doigt ne désigne pas un point où aller, il pousse le vaisseau. On
+     reprend donc la position mémorisée à la pose du doigt et on y ajoute le
+     déplacement du doigt, à l'échelle du jeu : un centimètre de doigt = un
+     centimètre de vaisseau, dans la même direction, sans attraction.        */
+  let tx = null, ty = null;
+  if (pointer.drag && pointer.down) {
+    const kx = view.w / PF.s, ky = view.h / PF.s;
+    tx = pointer.grabX + (pointer.x - pointer.baseX) * kx;
+    ty = pointer.grabY + (pointer.y - pointer.baseY) * ky;
+  } else if ((S.opts.mouse || pointer.down) && pointer.active) {
+    /* souris : visée absolue au curseur (comportement d'origine) */
+    tx = (pointer.x * view.w - PF.x) / PF.s;
+    ty = (pointer.y * view.h - PF.y) / PF.s;
+  }
+  if (tx !== null) {
     const ddx = tx - P.x, ddy = ty - P.y, dl = Math.hypot(ddx, ddy);
     if (dl > 2) { dx = ddx / Math.max(dl, 40); dy = ddy / Math.max(dl, 40); }
     else { dx = 0; dy = 0; }
@@ -5690,6 +6038,13 @@ const ETYPES = {
   swarmlet: { hp:1,  r:11, sc:30,  cr:[0,2],  mv:'charge', mvx:1,   fire:null, tiers:1 },
   carrier:  { hp:26, r:45, sc:420, cr:[8,16], mv:'patrol', mvx:0.45, fire:{ n:4, cd:2.7, sp:0.85, kind:'fan', arc:0.6 }, tiers:4, spawner:'swarmlet' },
   elite:    { hp:70, r:40, sc:900, cr:[18,30], mv:'patrol', mvx:0.5, fire:{ n:5, cd:1.5, sp:1.05, kind:'fan', arc:0.55 }, tiers:2, elite:true },
+  /* --- secteur 4 : la mine de l'arcade. Elle ne tire pas : elle BLOQUE, et
+     explose en couronne quand on la casse. C'est l'ennemi qui punit le
+     joueur qui avance trop vite dans un couloir.                          */
+  mine:     { hp:6,  r:26, sc:120, cr:[2,5],  mv:'hover', mvx:0.35, fire:null, tiers:3, ring:12 },
+  /* --- secteur 5 : le tireur embusqué. Il s'arrête, visse et lâche un trait
+     très rapide vers le vaisseau.                                         */
+  sniper:   { hp:8,  r:22, sc:190, cr:[3,7],  mv:'hover', mvx:0.5, fire:{ n:1, cd:1.5, sp:1.75, kind:'aimed' }, tiers:4 },
 };
 
 function eScale() {
@@ -5704,7 +6059,7 @@ function spawnEnemy(kind, x, y, opt = {}) {
     mv: T.mv, mvx: T.mvx * (s.bs * 0.5 + 0.5), fire: T.fire, fireT: rnd(1.6, 0.4),
     dir: opt.dir || (chance(0.5) ? -1 : 1), ty: opt.ty || rnd(200, 90), amp: opt.amp || rnd(70, 30),
     flash: 0, ang: 0, phase: rnd(TAU), split: T.split, spawner: T.spawner, elite: T.elite,
-    guard: !!T.guard, guardOn: false, offscreen: 0, seed: rnd(1000), spr: 0,
+    guard: !!T.guard, guardOn: false, offscreen: 0, seed: rnd(1000), spr: 0, ring: T.ring || 0,
   };
   e.maxHp = e.hp;
   if (opt.elite) { e.elite = true; e.sc = 900 + G.level * 120; }
@@ -5810,6 +6165,11 @@ function killEnemy(e) {
   G.score += Math.round(e.sc * mult());
   const big = e.elite || e.kind === 'carrier' || e.kind === 'splitter';
   explode(e.x, e.y, big ? 1.9 : e.r / 12, TH.eMain, TH.eLite);
+  /* la mine de l'arcade se venge : sa mort libère une couronne de tirs */
+  if (e.ring) {
+    for (let i = 0; i < e.ring; i++) eb(e.x, e.y, (i / e.ring) * TAU + rnd(0.2, -0.2), 118 * eScale().bs, 'orb', { r: 6 });
+    Audio2.sfx('ehit');
+  }
   Audio2.sfx('explode', { big });
   FX.addShake(big ? 7 : 2.4);
   if (big) FX.stop(0.03);
@@ -6067,10 +6427,14 @@ function formArc(kind, n, opt = {}) {
   for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i - (n - 1) / 2) * 0.42; spawnEnemy(kind, L_W / 2 + Math.cos(a) * 190, -30 + Math.sin(a) * 190, opt); }
 }
 function buildPlan(level) {
-  const pool = level === 1 ? ['drone', 'stinger']
-    : level === 2 ? ['drone', 'stinger', 'runner', 'turret']
-    : level === 3 ? ['drone', 'stinger', 'runner', 'turret', 'shielder', 'splitter']
-    : ['drone', 'stinger', 'runner', 'turret', 'shielder', 'splitter', 'carrier'];
+  const pool = [
+    ['drone', 'stinger'],
+    ['drone', 'stinger', 'runner', 'turret'],
+    ['drone', 'stinger', 'runner', 'turret', 'shielder', 'splitter'],
+    ['drone', 'stinger', 'mine', 'runner', 'shielder', 'turret'],            /* Neo Geo */
+    ['drone', 'sniper', 'stinger', 'mine', 'splitter', 'shielder'],          /* 32-bit CD */
+    ['drone', 'stinger', 'runner', 'turret', 'shielder', 'splitter', 'carrier', 'sniper'],  /* HD */
+  ][clamp(level - 1, 0, 5)];
   const R2 = () => pick(pool);
   const plan = [
     { t: 2.5,  fn: () => formV('drone', 4) },
@@ -6086,6 +6450,13 @@ function buildPlan(level) {
     { t: 49.0, fn: () => formArc(R2(), 5) },
     { t: 53.0, fn: () => { for (let i = 0; i < 2; i++) formLine(i === 1 ? 'carrier' : R2(), 2, { dy: i * 90 }); } },
   ];
+  /* à partir du secteur 4 (arcade), les vagues s'ajoutent aux mêmes instants :
+     le rythme de l'arcade est plus serré, sans devenir illisible.          */
+  if (level >= 4) plan.push(
+    { t: 57.0, fn: () => formArc(R2(), 5) },
+    { t: 60.5, fn: () => { formLine(R2(), 4); formSides(R2(), 3); } },
+    { t: 64.0, fn: () => { spawnEnemy('elite', L_W * 0.3, -90, { ty: 240 }); spawnEnemy('elite', L_W * 0.7, -150, { ty: 300 }); } },
+    { t: 72.0, fn: () => formStream(R2(), 5) });
   return plan;
 }
 /* objets destructibles : apparitions régulières dans le couloir */
@@ -6165,10 +6536,13 @@ const ETHEME = {
   splitter: { hue: 325, sat: 0.66, light: 0.5 },
   carrier:  { hue: 358, sat: 0.44, light: 0.44 },
   elite:    { hue: 285, sat: 0.62, light: 0.5 },
+  mine:     { hue: 92,  sat: 0.70, light: 0.46 },   /* vert arcade : « ne touche pas » */
+  sniper:   { hue: 205, sat: 0.62, light: 0.46 },
 };
 const PTHEME = { crate: { hue: 38, sat: 0.7, light: 0.5 }, barrel: { hue: 12, sat: 0.88, light: 0.5 }, pod: { hue: 192, sat: 0.62, light: 0.5 } };
 const EID = { drone: 'drone', stinger: 'stinger', runner: 'runner', swarmlet: 'swarmlet',
-  turret: 'turret', shielder: 'shielder', splitter: 'splitter', carrier: 'carrier', elite: 'elite' };
+  turret: 'turret', shielder: 'shielder', splitter: 'splitter', carrier: 'carrier', elite: 'elite',
+  mine: 'mine', sniper: 'sniper' };
 
 /* ------------------------------ joueur ------------------------------------ */
 function playerHull() { return liveryHull(TH.livery || LIVERIES[0]); }
@@ -6628,6 +7002,37 @@ function drawShocks() {
   g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
 }
 
+/* --------------------------- pièce Game Boy -------------------------------
+   Géométrie en pixels d'art (1 px d'art = 4 unités logiques, soit un pixel de
+   la DMG à l'échelle du secteur 1). La largeur suit la rotation : la pièce
+   s'amincit jusqu'à la tranche, puis s'ouvre à nouveau.                      */
+function drawCoinGB(g, K, x, y, pop, spin, kind, gb) {
+  const u = 4 * K;                                   /* un pixel d'art DMG */
+  const cx = x * K, cy = y * K;
+  const s = clamp(pop, 0, 1) * (0.26 + 0.74 * Math.abs(spin));   /* rotation */
+  /* octogone de n pixels d'art, centré, coins coupés : c'est ce qui distingue
+     une pièce d'une caisse, et ça tient en quatre teintes */
+  const octo = (n, col) => {
+    const cut = n >= 9 ? 3 : 2;
+    g.fillStyle = col;
+    for (let r = 0; r < n; r++) {
+      const ins = r < cut ? cut - r : (r >= n - cut ? cut - (n - 1 - r) : 0);
+      g.fillRect(cx + (-n / 2 + ins) * u * s, cy + (-n / 2 + r) * u, (n - 2 * ins) * u * s, u);
+    }
+  };
+  octo(10, gb[0]);                                   /* 1. contour noir */
+  octo(8, gb[2]);                                    /* 2. cerclage (ton moyen) */
+  if (s > 0.42) {                                    /* 3. face claire + marque */
+    octo(6, gb[3]);
+    g.fillStyle = gb[0];
+    const m = (dx, dy, w, h) => g.fillRect(cx + dx * u * s - (w * u * s) / 2, cy + dy * u - (h * u) / 2, Math.max(1, w * u * s), h * u);
+    if (kind === 'credit') { m(0, -1, 1, 1); m(0, 0, 1, 3); m(0, 2, 1, 1); m(-1.5, 1, 4, 1); }  /* pièce d'argent : le jeton barré */
+    else if (kind === 'power') { m(0, 0, 3, 3); }                          /* puissance : plein */
+    else if (kind === 'hull') { m(0, 0, 3, 1); m(0, 0, 1, 3); }            /* soin : croix */
+    else if (kind === 'shield') { m(0, 0, 3, 3); g.fillStyle = gb[3]; m(0, 0, 1.4, 1.4); }   /* bouclier : anneau */
+    else { m(0, 0, 1, 1); m(0, -1.5, 1, 1); m(0, 1.5, 1, 1); m(-1.5, 0, 1, 1); m(1.5, 0, 1, 1); }  /* bombe : éclat */
+  }
+}
 /* --------------------------------- bonus ----------------------------------
    L'écrin de bonus : collerette métallique, coque, verrière et cœur lumineux.
    Il tourne sur lui-même, projette son ombre au sol, scintille pour se faire
@@ -6658,13 +7063,13 @@ function drawPickups() {
       g.globalCompositeOperation = 'source-over';
     }
     if (e === 0) {
-      /* Game Boy : pod 8×8 (une case DMG) cerné de noir, glyphe 3×5 au centre */
-      const cx = x * K, cy = y * K, s2 = Math.max(3, Math.round(4 * pop));
-      g.fillStyle = gb[0]; g.fillRect(cx - s2 - 1, cy - s2 - 1, s2 * 2 + 2, s2 * 2 + 2);
-      g.fillStyle = gb[3]; g.fillRect(cx - s2, cy - s2, s2 * 2, s2 * 2);
-      g.fillStyle = gb[2]; g.fillRect(cx - s2, cy + s2 - Math.max(1, s2 * 0.5), s2 * 2, Math.max(1, s2 * 0.5));
-      g.fillStyle = gb[1]; g.fillRect(cx - s2, cy - s2, s2 * 2, 1);
-      if (spin > -0.2) { g.fillStyle = gb[0]; pixText(g, def.ch, cx - 1.5, cy - 2.5, gb[0], 1); }
+      /* ---- LA PIÈCE (Game Boy) -------------------------------------------
+         Un ramassable ne peut pas être une caisse à « ? » : la DMG n'a pas de
+         caractère « ? » lisible à cette taille, et le symbole s'affichait une
+         fois sur deux seulement. Une pièce de huit pixels d'art se lit à coup
+         sûr : bord noir, face claire, tranche ombrée, reflet sur la tranche
+         supérieure, et une marque au centre qui dit de quel bonus il s'agit. */
+      drawCoinGB(g, K, x, y, pop, spin, k.kind, gb);
     } else {
       drawSpriteTo(g, K, 'pickupBox', x, y, { kind: 'enemy', hue: def.hue, sat: def.sat, light: 0.5, scale: 0.86 * pop, sx: sx, frame: Math.floor(k.t * 7) & 3 });
       if (spin > 0.15) {              /* le glyphe disparaît quand l'écrin montre son dos */
@@ -6784,6 +7189,17 @@ function drawHUD() {
   const scl = e >= 2 ? 1 : Math.max(2, Math.round(w / 340));
   const baseline = y0 + barH * 0.68;
   hudText(ctx, 'SC ' + fmt(G.score), x0 + 8, y0 + 6, white, scl, { glow: acc });
+  /* --- le vocabulaire de chaque machine -----------------------------------
+     · salle d'arcade : on ne dit pas « vies » mais CREDIT, et la borne réclame
+       sa pièce quand on ne joue pas ;
+     · CD-ROM : on compte les pistes du disque.                            */
+  if (R.sec === 3 && G.state === 'play') {
+    hudText(ctx, 'CREDIT 01', x0 + w - 8 - hudW('CR 000000', scl) - 12, y0 + 6, TH.eMain, scl, { align: 'right' });
+    if (Math.floor(G.t * 1.6) % 4 < 2) hudText(ctx, 'PRESS START', x0 + w / 2, y0 + barH + 26, TH.gold, scl, { align: 'center', glow: TH.gold });
+  }
+  if (R.sec === 4 && G.state === 'play') {
+    hudText(ctx, 'DISQUE 01 · TRACK ' + String(G.level).padStart(2, '0'), x0 + w - 8 - hudW('CR 000000', scl) - 12, y0 + 6, TH.acc, scl, { align: 'right' });
+  }
   hudText(ctx, 'CR ' + fmt(G.credits + S.credits), x0 + w - 8, y0 + 6, TH.gold, scl, { align: 'right', glow: TH.gold });
   if (G.combo > 1) hudText(ctx, 'x' + mult().toFixed(2), x0 + w / 2, y0 + 6, TH.acc, scl, { align: 'center', glow: acc });
 
@@ -6847,11 +7263,37 @@ function drawHUD() {
   const b = G.boss;
   if (b && !b.dead) {
     const bw = w * 0.72, bx = x0 + (w - bw) / 2, by = y0 + barH + 14;
-    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(bx - 2, by - 2, bw + 4, 16);
-    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(bx, by, bw, 12);
-    const cols = ['#4be7ff', '#ffd166', '#ff5f6d'];
-    ctx.fillStyle = cols[b.ph];
-    ctx.fillRect(bx, by, bw * clamp(b.hp / b.maxHp, 0, 1), 12);
+    const frac = clamp(b.hp / b.maxHp, 0, 1);
+    if (e === 0) {
+      /* --- barre de vie à la Game Boy --------------------------------------
+         Cadre épais de 2 pixels d'art, fond au ton le plus sombre, remplissage
+         au ton clair ; la phase 2 se reconnaît aux hachures, la phase 3 au
+         clignotement. Aucun cyan : la DMG n'avait que quatre verts.        */
+      const u = 2;
+      ctx.fillStyle = TH.bg; ctx.fillRect(bx - u * 2, by - u * 2, bw + u * 4, 12 + u * 4);
+      ctx.fillStyle = TH.pLite;
+      ctx.fillRect(bx - u * 2, by - u * 2, bw + u * 4, u);
+      ctx.fillRect(bx - u * 2, by + 12 + u, bw + u * 4, u);
+      ctx.fillRect(bx - u * 2, by - u * 2, u, 12 + u * 4);
+      ctx.fillRect(bx + bw + u, by - u * 2, u, 12 + u * 4);
+      ctx.fillStyle = TH.dim; ctx.fillRect(bx, by, bw, 12);
+      const plein = b.ph >= 2 && Math.floor(b.t * 6) % 2;
+      if (!plein) {
+        ctx.fillStyle = b.ph === 0 ? TH.pLite : TH.pMain;
+        ctx.fillRect(bx, by, bw * frac, 12);
+        if (b.ph >= 1) {                       /* hachures : le boss faiblit */
+          ctx.fillStyle = TH.bg;
+          for (let hx = 0; hx < bw * frac; hx += 4)
+            for (let hy = 0; hy < 12; hy += 4) ctx.fillRect(bx + hx + ((hy / 4) % 2) * 2, by + hy, 2, 2);
+        }
+      }
+    } else {
+      ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(bx - 2, by - 2, bw + 4, 16);
+      ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(bx, by, bw, 12);
+      const cols = ['#4be7ff', '#ffd166', '#ff5f6d'];
+      ctx.fillStyle = cols[b.ph];
+      ctx.fillRect(bx, by, bw * frac, 12);
+    }
     hudText(ctx, b.name, x0 + w / 2, by + 20, TH.eBossLite, scl, { align: 'center', glow: TH.eBoss });
     if (b.parts.length) for (let i = 0; i < b.parts.length; i++) {
       const p = b.parts[i];
@@ -6903,7 +7345,7 @@ function drawSidePanels(sideRes) {
   }
   if (G.boss) { const mx = cx + (G.boss.x / L_W - 0.5) * rr * 2, my = cy + (G.boss.y / L_H - 0.5) * rr * 2; ctx.fillStyle = TH.eBoss; ctx.fillRect(mx - 4, my - 4, 8, 8); }
   if (G.player && G.player.alive) { const mx = cx + (G.player.x / L_W - 0.5) * rr * 2, my = cy + (G.player.y / L_H - 0.5) * rr * 2; ctx.fillStyle = TH.pLite; ctx.fillRect(mx - 3, my - 3, 6, 6); }
-  hudText(ctx, 'PALETTE ' + ERAS[R.era].sys, x + 8, y + 134, TH.ui, 1);
+  hudText(ctx, 'PALETTE ' + ERAS[R.sec].sys, x + 8, y + 134, TH.ui, 1);
   const sw = (panW - 16) / 4;
   const cols = R.era === 0 ? TH.livery.gb : [TH.bg, TH.pMain, TH.eMain, TH.white];
   for (let i = 0; i < 4; i++) { ctx.fillStyle = cols[i]; ctx.fillRect(x + 8 + i * sw, y + 142, sw - 2, 6); }
@@ -6927,7 +7369,7 @@ function drawSidePanels(sideRes) {
     ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fillRect(x + 8, by + 10, panW - 16, 5);
     ctx.fillStyle = i === 3 ? TH.gold : TH.acc; ctx.fillRect(x + 8, by + 10, (panW - 16) * clamp(v, 0, 1), 5);
   });
-  hudText(ctx, 'SECTEUR ' + G.level + ' · ' + ERAS[R.era].sys, x + 8, y + 178, TH.acc2, 1);
+  hudText(ctx, 'SECTEUR ' + G.level + ' · ' + ERAS[R.sec].sys, x + 8, y + 178, TH.acc2, 1);
   hudText(ctx, 'CRÉDITS ' + fmt(S.credits + G.credits), x + 8, y + 192, TH.gold, 1);
   hudText(ctx, 'KILLS ' + G.kills + '  BEST ' + fmt(S.best), x + 8, y + 204, TH.ui, 1);
   ctx.restore();
@@ -7067,7 +7509,7 @@ function buy(listKey, id, price) {
 /* ------------------------------ options ------------------------------------ */
 function buildOptions() {
   const o = S.opts, body = $('#optBody'); body.innerHTML = '';
-  $('#optEra').textContent = ERAS[R.era].sys;
+  $('#optEra').textContent = ERAS[R.sec].sys;
   const add = (html) => { const d = document.createElement('div'); d.className = 'opt'; d.innerHTML = html; body.appendChild(d); return d; };
   /* sliders */
   const slider = (key, label, hint, min, max, fmtFn) => {
@@ -7127,7 +7569,7 @@ function buildOptions() {
   });
   /* aperçu graphique */
   const d3 = add(`<div><label>Aperçu graphique<span class="hint">Moteur utilisé dans les menus</span></label></div><div class="ctl"><div class="seg"></div></div>`);
-  ['AUTO', 'GB', '8BIT', '16BIT', 'HD'].forEach((v, i) => {
+  ['AUTO', 'GB', '8BIT', '16BIT', 'NEOGEO', 'CD', 'HD'].forEach((v, i) => {
     const b = document.createElement('button');
     b.textContent = v; b.className = o.preview === i ? 'sel' : '';
     b.onclick = () => { o.preview = i; saveGame(); buildOptions(); if (G.state !== 'play') { D.forceEra(previewEra()); } };
@@ -7175,7 +7617,7 @@ function buildCheats() {
       else if (c.type === 'action') act = `<button class="sw" data-cheat-run="${c.id}">LANCER</button>`;
       else if (c.type === 'select') {
         const cur = clamp(S.cheats.startLevel | 0 || 1, 1, 8);
-        act = `<div class="seg">${[1, 2, 3, 4].map(n => `<button class="${n === cur ? 'sel' : ''}" data-cheat-lv="${n}">${n}</button>`).join('')}</div>`;
+        act = `<div class="seg">${[1, 2, 3, 4, 5, 6].map(n => `<button class="${n === cur ? 'sel' : ''}" data-cheat-lv="${n}">${n}</button>`).join('')}</div>`;
       }
       el.innerHTML = `<span class="badge own">DÉBLOQUÉ</span><div class="cname">${c.name}</div>
         <div class="cdesc">${c.desc}</div><div style="margin-top:8px">${act}</div>`;
@@ -7230,19 +7672,19 @@ function showVictoryScreen() {
   G.state = 'victory';
   bankRun();
   S.victories = (S.victories | 0) + 1;
-  const bonus = 5000 + G.level * 500;
+  const bonus = 6000 + G.level * 600;
   S.credits += bonus;
   saveGame();
   Audio2.stopMusic(); Audio2.sfx('levelup', {});
   FX.addFlash(0.7, TH.pGlow);
   speak('Système neutralisé. Félicitations, pilote.');
   const d = DIFFS[S.opts.diff];
-  $('#vicSub').textContent = '4 secteurs traversés · difficulté ' + d.name;
+  $('#vicSub').textContent = '6 secteurs traversés · difficulté ' + d.name;
   $('#vicStats').innerHTML = `
     <div class="opt"><label>Score final</label><b style="color:#ffe066">${fmt(G.score)}</b></div>
     <div class="opt"><label>Meilleur score</label><b>${fmt(S.best)}</b></div>
     <div class="opt"><label>Ennemis détruits</label><b>${fmt(G.kills)}</b></div>
-    <div class="opt"><label>Boss abattus</label><b>4</b></div>
+    <div class="opt"><label>Boss abattus</label><b>6</b></div>
     <div class="opt"><label>Aucune perte</label><b>${G.noDeath ? '<span style="color:#4dff9e">OUI</span>' : 'non'}</b></div>
     <div class="opt"><label>Prime de campagne</label><b style="color:#ffe066">+${fmt(bonus)} CR</b></div>
     <div class="opt"><label>Crédits disponibles</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>
@@ -7272,8 +7714,8 @@ function refreshUI() {
   $('#tCredits').textContent = fmt(S.credits);
   $('#tMax').textContent = S.maxLevel;
   $('#tKills').textContent = fmt(S.kills);
-  $('#titleEraTag').textContent = ERAS[R.era].tag;
-  $('#pauseEra').textContent = ERAS[R.era].sys;
+  $('#titleEraTag').textContent = ERAS[R.sec].tag;
+  $('#pauseEra').textContent = ERAS[R.sec].sys;
   $('#shopCredits').textContent = fmt(S.credits);
 }
 function toggleFullscreen() {
@@ -7284,15 +7726,359 @@ function toggleFullscreen() {
 
 /* ========================= 5. BOUCLE, ÉTATS & DÉMARRAGE =================== */
 const INTRO_DUR = 2.6;
-const MAX_LEVEL = 4;          /* la campagne compte quatre secteurs */
+const MAX_LEVEL = 6;          /* la campagne compte six secteurs, six consoles */
 let introT = 0, sideRes = 0, autoSaveT = 0;
 
 /* aperçu graphique choisi dans les options (0 auto) */
 function previewEra() {
   const p = S.opts.preview | 0;
-  return p === 0 ? 3 : p - 1;
+  return p === 0 ? 5 : clamp(p - 1, 0, 5);      /* 0 = auto (HD), sinon secteur */
 }
-D.forceEra = (i, silent) => { computeTheme(i, S.sel.livery); setEra(i, silent); };
+D.forceEra = (i, silent) => { R.sec = clamp(i | 0, 0, 5); computeTheme(R.sec, S.sel.livery); setEra(ERAS[R.sec].sty, silent); };
+
+
+/* ======================== L'HISTOIRE (introduction) ========================
+   Quatre pages, peintes par le moteur, écrites à la machine à écrire. Le récit
+   installe la règle du jeu : six secteurs, six générations, une cartouche qui
+   se souvient de tout — et une armée qui veut l'effacer.
+   --------------------------------------------------------------------------- */
+const STORY = [
+  { art: 'disque', kicker: '2049 — TERRE, ARCHIVES MORTES',
+    lines: [
+      "Il y a trente ans, on a cessé de fabriquer des consoles.",
+      "Ce qui restait du jeu vidéo a été entassé dans six cartouches,",
+      "puis enfermé dans un silo de béton, sous le désert."
+    ],
+    quote: "« On garde les cartouches. On oublie les machines. »" },
+  { art: 'kabrak', kicker: 'L\'EMPIRE KABRAK',
+    lines: [
+      "KABRAK n'a pas attaqué les villes : il a attaqué les archives.",
+      "Secteur après secteur, la mémoire est reformatée en gris.",
+      "Là où il passe, plus personne ne se souvient d'avoir joué."
+    ],
+    quote: "« Ce qui n'est pas conservé n'a jamais existé. »" },
+  { art: 'vanguard', kicker: 'PROGRAMME VANGUARD',
+    lines: [
+      "Dans la sixième cartouche dormait un dernier pilote.",
+      "Sa coque porte les couleurs de toutes les générations :",
+      "bande rouge pour l'escadrille, verrière cyan pour la vitesse."
+    ],
+    quote: "« Une cartouche peut sauver une mémoire. »" },
+  { art: 'coeur', kicker: 'ORDRE DE MISSION',
+    lines: [
+      "Traverse les six générations : Game Boy, huit bits, seize bits,",
+      "arcade, CD-ROM, haute définition. Abats leurs amiraux.",
+      "Au bout : le CŒUR, la salle où KABRAK réécrit l'histoire."
+    ],
+    quote: "« Pilote, tu es la dernière copie intacte. »" },
+];
+
+/* illustration de chaque page : peinte à la volée, dans la palette du moment */
+function drawStoryArt(g, x, y, w, h, kind, t) {
+  const gb = R.era === 0;
+  srand(4242 + kind.length * 13);
+  /* fond */
+  const gr = g.createLinearGradient(0, y, 0, y + h);
+  gr.addColorStop(0, gb ? TH.bg : 'rgba(8,12,26,1)');
+  gr.addColorStop(1, gb ? TH.bg2 : 'rgba(2,3,9,1)');
+  g.fillStyle = gr; g.fillRect(x, y, w, h);
+  /* étoiles de poussière */
+  for (let i = 0; i < 40; i++) {
+    g.fillStyle = gb ? TH.pDark : (i % 9 === 0 ? TH.acc : TH.ui);
+    g.globalAlpha = 0.12 + srandNext() * 0.4;
+    const sx = x + srandNext() * w, sy = y + srandNext() * h;
+    g.fillRect(sx, sy, 1.4, 1.4);
+  }
+  g.globalAlpha = 1;
+  const cx = x + w / 2, cy = y + h / 2;
+  if (kind === 'disque') {
+    /* les six cartouches alignées sur une étagère, et la poussière */
+    const bw = w * 0.1, bh = h * 0.34;
+    for (let i = 0; i < 6; i++) {
+      const bx = x + w * 0.12 + i * w * 0.135;
+      g.fillStyle = '#20242e'; g.fillRect(bx, cy - bh * 0.4, bw, bh);
+      g.fillStyle = ['#3a4a24', '#1c1f27', '#232a4c', '#1a1408', '#232733', '#1e2431'][i];
+      g.fillRect(bx + 2, cy - bh * 0.4 + 3, bw - 4, bh * 0.36);
+      g.fillStyle = UIACC[i][0]; g.globalAlpha = i === 5 ? 0.35 + 0.3 * Math.sin(t * 2) : 0.9;
+      g.fillRect(bx + 3, cy - bh * 0.4 + bh * 0.5, bw - 6, 4);
+      g.globalAlpha = 1;
+    }
+    g.fillStyle = '#0d1018'; g.fillRect(x + w * 0.08, cy + bh * 0.6, w * 0.84, h * 0.03);
+  } else if (kind === 'kabrak') {
+    /* la flotte KABRAK, et sous elle la corruption qui monte : le sol est
+       mangé par un bloc de données mortes, avec sa ligne de front dentelée. */
+    const front = y + h * (0.52 + 0.05 * Math.sin(t * 0.7));
+    /* les vaisseaux : longs, plats, sans grâce — ce ne sont pas des avions */
+    for (let i = 0; i < 4; i++) {
+      const cx2 = x + w * (0.18 + i * 0.22), cy2 = y + h * (0.2 + (i % 2) * 0.08) + Math.sin(t * 0.9 + i) * 3;
+      const sw = w * 0.16, sh = h * 0.1;
+      g.fillStyle = '#14171f';
+      g.beginPath();
+      g.moveTo(cx2 - sw, cy2); g.lineTo(cx2 + sw, cy2);
+      g.lineTo(cx2 + sw * 0.7, cy2 + sh); g.lineTo(cx2 + sw * 0.2, cy2 + sh * 0.6);
+      g.lineTo(cx2 - sw * 0.2, cy2 + sh * 0.6); g.lineTo(cx2 - sw * 0.7, cy2 + sh);
+      g.closePath(); g.fill();
+      g.fillStyle = '#2b313d'; g.fillRect(cx2 - sw * 0.5, cy2 + sh * 0.1, sw, sh * 0.16);
+      g.fillStyle = '#ff4d6d';
+      g.fillRect(cx2 - sw * 0.82, cy2 + sh * 0.3, sw * 0.2, sh * 0.14);
+      g.fillRect(cx2 + sw * 0.62, cy2 + sh * 0.3, sw * 0.2, sh * 0.14);
+    }
+    /* faisceaux de balayage */
+    g.globalAlpha = 0.18;
+    for (let i = 0; i < 3; i++) {
+      const cx2 = x + w * (0.3 + i * 0.2);
+      const gr2 = g.createLinearGradient(cx2, y + h * 0.25, cx2 + w * 0.05, front);
+      gr2.addColorStop(0, 'rgba(255,90,120,.5)'); gr2.addColorStop(1, 'rgba(255,90,120,0)');
+      g.fillStyle = gr2;
+      g.beginPath(); g.moveTo(cx2, y + h * 0.25); g.lineTo(cx2 + w * 0.08, front); g.lineTo(cx2 - w * 0.08, front); g.closePath(); g.fill();
+    }
+    g.globalAlpha = 1;
+    /* la corruption : d'abord le bloc mort, puis ce qui reste dessus — les
+       blocs de données, les trous, et la ligne de front dentelée. */
+    const cw = w * 0.92, cx0 = x + w * 0.04;
+    g.fillStyle = '#171a21'; g.fillRect(cx0, front, cw, y + h - front);
+    /* bandes horizontales : une mémoire reformatée est striée */
+    for (let i = 0; i * 7 < y + h - front; i++) {
+      g.fillStyle = i % 2 ? '#1d2129' : '#232833';
+      g.fillRect(cx0, front + i * 7, cw, 4);
+    }
+    for (let i = 0; i < 34; i++) {                  /* blocs arrachés */
+      const bx = cx0 + srandNext() * cw * 0.94, by = front + 4 + srandNext() * (y + h - front - 8);
+      g.fillStyle = ['#2b313d', '#11141a', '#3b4252'][i % 3];
+      g.fillRect(bx, by, 5 + srandNext() * 22, 3 + srandNext() * 6);
+      if (i % 5 === 0) { g.fillStyle = '#ff4d6d'; g.globalAlpha = 0.5; g.fillRect(bx, by, 8, 2); g.globalAlpha = 1; }
+    }
+    /* la ligne de front, en dents */
+    g.fillStyle = '#3f4657';
+    g.beginPath(); g.moveTo(cx0, front + h * 0.04);
+    for (let i = 0; i <= 20; i++) {
+      const gx = cx0 + (i / 20) * cw;
+      g.lineTo(gx, front - (i % 2 ? 0 : h * 0.022) - (i % 3 ? 0 : h * 0.013));
+    }
+    g.lineTo(cx0 + cw, front + h * 0.04); g.closePath(); g.fill();   /* seulement la lèvre dentelée */
+    g.fillStyle = '#ff4d6d'; g.globalAlpha = 0.5 + 0.4 * Math.sin(t * 3);
+    g.fillRect(cx0, front - 2, cw, 2); g.globalAlpha = 1;
+  } else if (kind === 'vanguard') {
+    /* le vaisseau, en plan large, feux allumés */
+    const sc = w * 0.23, sx = cx, sy = cy + h * 0.04;
+    const fl = g.createRadialGradient(sx, sy + sc * 0.6, 0, sx, sy + sc * 0.6, sc * 0.9);
+    fl.addColorStop(0, gb ? TH.pLite : 'rgba(120,230,255,.5)'); fl.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = fl; g.beginPath(); g.arc(sx, sy + sc * 0.6, sc * 0.9, 0, TAU); g.fill();
+    g.fillStyle = gb ? TH.ui : '#dfe9fb';
+    g.beginPath();
+    g.moveTo(sx, sy - sc * 1.1); g.lineTo(sx + sc * 0.26, sy - sc * 0.2);
+    g.lineTo(sx + sc * 1.05, sy + sc * 0.72); g.lineTo(sx + sc * 0.3, sy + sc * 0.55);
+    g.lineTo(sx, sy + sc * 0.86); g.lineTo(sx - sc * 0.3, sy + sc * 0.55);
+    g.lineTo(sx - sc * 1.05, sy + sc * 0.72); g.lineTo(sx - sc * 0.26, sy - sc * 0.2);
+    g.closePath(); g.fill();
+    g.fillStyle = gb ? TH.pDark : '#d2232a';
+    g.fillRect(sx - sc * 0.28, sy + sc * 0.1, sc * 0.56, sc * 0.14);
+    g.fillStyle = gb ? TH.pLite : '#3fd8ff';
+    g.beginPath(); g.moveTo(sx, sy - sc * 0.74); g.lineTo(sx + sc * 0.13, sy - sc * 0.24);
+    g.lineTo(sx, sy - sc * 0.02); g.lineTo(sx - sc * 0.13, sy - sc * 0.24); g.closePath(); g.fill();
+  } else {
+    /* le CŒUR : un noyau de données, entouré d'anneaux */
+    for (let k = 0; k < 3; k++) {
+      g.strokeStyle = k % 2 ? TH.acc : TH.eMain; g.globalAlpha = 0.5 - k * 0.1;
+      g.lineWidth = 2 + k;
+      g.beginPath(); g.ellipse(cx, cy, w * (0.16 + k * 0.09), h * (0.1 + k * 0.06), t * 0.2 * (k % 2 ? -1 : 1), 0, TAU); g.stroke();
+    }
+    g.globalAlpha = 1;
+    const rg = g.createRadialGradient(cx, cy, 0, cx, cy, w * 0.18);
+    rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.4, TH.acc); rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(cx, cy, w * 0.18, 0, TAU); g.fill();
+    for (let i = 0; i < 8; i++) {                     /* les six secteurs en orbite */
+      const a = t * 0.4 + (i / 8) * TAU;
+      g.fillStyle = i < 6 ? UIACC[i][0] : '#ffffff';
+      g.fillRect(cx + Math.cos(a) * w * 0.3 - 3, cy + Math.sin(a) * h * 0.2 - 3, 6, 6);
+    }
+  }
+  g.strokeStyle = TH.acc; g.globalAlpha = 0.55; g.lineWidth = 2;
+  g.strokeRect(x + 1, y + 1, w - 2, h - 2); g.globalAlpha = 1;
+}
+
+/* découpe un texte en lignes qui tiennent dans la largeur donnée : sans ça,
+   les phrases du récit débordaient du cadre sur les écrans étroits.        */
+function wrapH(g, str, maxW, size, weight) {
+  g.font = (weight || 500) + ' ' + size + 'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+  const words = String(str).split(' ');
+  const out = []; let cur = '';
+  for (const wd of words) {
+    const test = cur ? cur + ' ' + wd : wd;
+    if (g.measureText(test).width > maxW && cur) { out.push(cur); cur = wd; }
+    else cur = test;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+let storyI = 0, storyT = 0, storyFade = 0;
+function beginStory() {
+  storyI = 0; storyT = 0; storyFade = 0;
+  G.state = 'story';
+  hideScreens();
+  Audio2.stopMusic(); Audio2.sfx('warp');
+  SCROLL.boost = 1;
+}
+function storyNext() {
+  if (G.state !== 'story') return;
+  Audio2.sfx('ui');
+  storyI++; storyT = 0;
+  if (storyI >= STORY.length) { beginBox(1); return; }
+  speak(STORY[storyI].kicker);
+}
+function storyPrev() {
+  if (G.state !== 'story' || storyI === 0) return;
+  Audio2.sfx('back'); storyI--; storyT = 0;
+}
+function storyLines(pg, tw) {                /* lignes réellement affichées */
+  const scl = Math.max(1, Math.round(view.w / 500));
+  return pg.lines.flatMap(l => wrapH(ctx, l, tw, 15 * scl, 500));
+}
+function updateStory(dt) {
+  storyT += dt;
+  const pg = STORY[storyI]; if (!pg) return;
+  const wide = view.w > view.h * 1.15;
+  const tw = (wide ? Math.min(view.w * 0.4, 620) : view.w * 0.9) - 6;
+  const n = storyLines(pg, tw).join('').length;
+  const total = 2.2 + n * 0.016;
+  if (storyT > total + 2.6) storyNext();      /* avance toute seule */
+  updateParts(dt); updateFTs(dt); updateShocks(dt);
+}
+function drawStory() {
+  const pg = STORY[storyI]; if (!pg) return;
+  /* le récit occupe TOUT l'écran, pas seulement la fenêtre de jeu : sur un
+     ordinateur, l'illustration prend la moitié gauche et le texte la droite. */
+  const x = 0, y = 0, w = view.w, h = view.h;
+  ctx.save();
+  ctx.fillStyle = 'rgba(2,3,8,.93)'; ctx.fillRect(0, 0, w, h);
+  const wide = w > h * 1.15;
+  const aw = wide ? Math.min(w * 0.42, h * 0.62) : w * 0.9, ah = wide ? Math.min(h * 0.62, w * 0.42) : Math.min(h * 0.36, w * 0.7);
+  const ax = wide ? w * 0.06 : w * 0.05, ay = wide ? (h - ah) / 2 : h * 0.07;
+  drawStoryArt(ctx, ax, ay, aw, ah, pg.art, G.t);
+  /* texte */
+  const tx = wide ? ax + aw + w * 0.06 : ax;
+  const ty = wide ? ay + ah * 0.16 : ay + ah + h * 0.09;
+  const tw = wide ? Math.min(w * 0.4, 620) : w * 0.9, scl = Math.max(1, Math.round(w / 620));
+  hText(ctx, pg.kicker, tx, ty, { color: TH.acc, size: 13 * scl, weight: 700, glow: TH.acc });
+  /* machine à écrire : les lignes apparaissent l'une après l'autre, et elles
+     sont repliées pour ne jamais sortir du cadre */
+  const wrapped = wrapH(ctx, pg.lines.join(' '), tw - 6, 15 * scl, 500);
+  let typed = (storyT - 0.5) / 0.016;
+  let ly = ty + 26 * scl;
+  for (const line of wrapped) {
+    const show = Math.max(0, Math.min(line.length, typed));
+    if (show <= 0) break;
+    hText(ctx, line.slice(0, Math.floor(show)), tx, ly, { color: '#e6eeff', size: 15 * scl, weight: 500 });
+    ly += 24 * scl;
+    typed -= line.length;
+  }
+  if (typed > 0) {
+    const qs = wrapH(ctx, pg.quote, tw - 6, 13 * scl, 600);
+    qs.forEach((q, i2) => hText(ctx, q, tx, ly + (20 + i2 * 20) * scl, { color: TH.gold, size: 13 * scl, weight: 600, glow: TH.gold }));
+  }
+  /* pastilles de page + invite */
+  for (let i = 0; i < STORY.length; i++) {
+    ctx.fillStyle = i === storyI ? TH.acc : 'rgba(255,255,255,.22)';
+    ctx.fillRect(x + w / 2 - (STORY.length * 16) / 2 + i * 16, y + h - 44, 10, 4);
+  }
+  if (Math.floor(G.t * 1.4) % 2 === 0)
+    hText(ctx, IS_TOUCH ? 'TOUCHE POUR CONTINUER' : 'ESPACE / ENTRÉE POUR CONTINUER', x + w / 2, y + h - 16,
+      { color: 'rgba(200,214,238,.85)', size: 11 * scl, align: 'center' });
+  hText(ctx, (storyI + 1) + ' / ' + STORY.length, x + w - 14, y + 20, { color: 'rgba(200,214,238,.7)', size: 11 * scl, align: 'right' });
+  ctx.restore();
+}
+
+/* ============================= L'ÉCRAN TITRE ==============================
+   Le titre n'est plus un panneau : c'est une affiche peinte sur le canvas, en
+   chrome, avec la frise des six générations. Le menu DOM se pose dessous.   */
+let titleT = 0;
+function drawTitleArt() {
+  const x = PF.x, y = PF.y, w = PF.w, h = PF.h, t = titleT;
+  ctx.save();
+  /* bandeau sombre en haut pour détacher le logo */
+  const gr = ctx.createLinearGradient(0, y, 0, y + h * 0.62);
+  gr.addColorStop(0, 'rgba(2,4,12,.92)'); gr.addColorStop(0.62, 'rgba(2,4,12,.35)'); gr.addColorStop(1, 'rgba(2,4,12,0)');
+  ctx.fillStyle = gr; ctx.fillRect(x, y, w, h * 0.62);
+  const cxm = x + w / 2;
+  const sizeA = Math.max(18, Math.min(w * 0.075, h * 0.045));
+  const sizeB = Math.max(34, Math.min(w * 0.155, h * 0.095));
+  const lyA = y + h * 0.15, lyB = lyA + sizeB * 0.92;
+  /* --- le logo, lettre à lettre, en chrome --- */
+  const chrome = (txt, size, ly, spacing) => {
+    ctx.save();
+    ctx.font = '900 ' + size + 'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    let tw = 0;
+    for (const ch of txt) tw += ctx.measureText(ch).width + spacing;
+    tw -= spacing;
+    let cx2 = cxm - tw / 2;
+    const grad = ctx.createLinearGradient(0, ly - size, 0, ly + size * 0.16);
+    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.34, '#cfe6ff');
+    grad.addColorStop(0.52, '#5f7fa8'); grad.addColorStop(0.56, '#eaf6ff');
+    grad.addColorStop(1, '#96b4d8');
+    for (const ch of txt) {
+      /* aberration chromatique : la faute de goût devient une signature */
+      ctx.globalAlpha = 0.5; ctx.fillStyle = '#ff2f6d';
+      ctx.fillText(ch, cx2 - 2.2, ly + 1.2);
+      ctx.fillStyle = '#3fd8ff'; ctx.fillText(ch, cx2 + 2.2, ly - 1.2);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(ch, cx2 + 3, ly + 3);
+      ctx.fillStyle = grad; ctx.fillText(ch, cx2, ly);
+      ctx.strokeStyle = 'rgba(8,12,22,.9)'; ctx.lineWidth = 1.4; ctx.strokeText(ch, cx2, ly);
+      /* balayage de lumière : un reflet qui traverse le logo */
+      const sweep = ((t * 0.25) % 1.6) / 1.6;
+      const sw = cx2 - tw / 2 + sweep * tw * 2;
+      if (Math.abs(cx2 + ctx.measureText(ch).width / 2 - sw) < size * 0.35) {
+        ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillText(ch, cx2, ly);
+      }
+      cx2 += ctx.measureText(ch).width + spacing;
+    }
+    ctx.restore();
+    return tw;
+  };
+  chrome('NEO', sizeA, lyA, sizeA * 0.42);
+  chrome('VANGUARD', sizeB, lyB, sizeB * 0.03);
+  /* --- frise des six consoles --- */
+  const fy = lyB + sizeB * 0.62;
+  const bw = Math.min(w * 0.13, h * 0.075), gap = bw * 0.28;
+  const total = bw * 6 + gap * 5;
+  let bx = cxm - total / 2;
+  for (let i = 0; i < 6; i++) {
+    const E = ERAS[i], a = UIACC[i];
+    const hot = (i === R.sec);
+    const bob = Math.sin(t * 1.4 + i * 0.7) * 2;
+    ctx.globalAlpha = hot ? 1 : 0.72;
+    ctx.fillStyle = hot ? a[0] : 'rgba(10,16,28,.85)';
+    ctx.fillRect(bx, fy + bob, bw, bw * 0.62);
+    ctx.strokeStyle = a[0]; ctx.lineWidth = hot ? 2.4 : 1.2;
+    ctx.strokeRect(bx + 1, fy + bob + 1, bw - 2, bw * 0.62 - 2);
+    ctx.fillStyle = hot ? '#04060c' : a[0];
+    ctx.font = '800 ' + Math.max(7, bw * 0.19) + 'px ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(SYS_SHORT[E.sys] || E.sys, bx + bw / 2, fy + bob + bw * 0.4);
+    ctx.font = '600 ' + Math.max(6, bw * 0.15) + 'px ui-monospace, monospace';
+    ctx.fillText('SECTEUR ' + (i + 1), bx + bw / 2, fy + bob + bw * 0.56);
+    if (i < 5) {                                   /* la flèche de progression */
+      ctx.fillStyle = 'rgba(190,210,240,.55)';
+      ctx.font = '700 ' + Math.max(7, bw * 0.22) + 'px ui-monospace, monospace';
+      ctx.fillText('›', bx + bw + gap / 2, fy + bob + bw * 0.42);
+    }
+    bx += bw + gap;
+  }
+  ctx.globalAlpha = 1;
+  /* --- accroche, sous la frise --- */
+  const accroche = [
+    'SIX SECTEURS · SIX CONSOLES · UNE SEULE CARTOUCHE',
+    'LA MÉMOIRE DU JEU EST ATTAQUÉE. REPRENDS-LA.',
+    'TON VAISSEAU CHANGE D\'ÉPOQUE, PAS DE COCKPIT.'
+  ][Math.floor(t / 4.5) % 3];
+  hText(ctx, accroche, cxm, fy + bw * 0.62 + Math.max(20, h * 0.035), { color: TH.acc2, size: Math.max(10, w * 0.019), align: 'center', weight: 700, glow: 'rgba(0,0,0,0)' });
+  /* --- la fiche du jour, en bas --- */
+  if (S.best > 0)
+    hText(ctx, 'MEILLEUR SCORE ' + fmt(S.best) + '  ·  SECTEUR MAX ' + S.maxLevel + '/6', cxm, y + h * 0.955,
+      { color: 'rgba(190,205,230,.8)', size: Math.max(9, w * 0.014), align: 'center' });
+  ctx.restore();
+}
 
 /* ------------------------------ cycle de partie ---------------------------- */
 function newRun() {
@@ -7303,18 +8089,18 @@ function newRun() {
   G.noDeath = true; G.stats = computeStats();
   S.runs = (S.runs | 0) + 1;
   /* cheat SAUT DE SECTEUR : la mission peut démarrer plus loin */
-  const startAt = cheatFound('jump') ? clamp(S.cheats.startLevel | 0 || 1, 1, 4) : 1;
+  const startAt = cheatFound('jump') ? clamp(S.cheats.startLevel | 0 || 1, 1, MAX_LEVEL) : 1;
   /* départ cinématique : si l'écran n'est pas déjà dans l'ère demandée, on
      passe par une transition de génération (c'est le cœur du concept) */
-  if (R.era !== clamp(startAt - 1, 0, 3)) beginWarp(startAt);
-  else startLevel(startAt);
+  beginBox(startAt);
 }
 function startLevel(level) {
   level = clamp(Math.max(1, Math.round(level) || 1), 1, MAX_LEVEL);
   G.level = level;
-  G.eraIdx = clamp(level - 1, 0, 3);
+  G.eraIdx = clamp(level - 1, 0, 5);
+  R.sec = G.eraIdx;
   computeTheme(G.eraIdx, S.sel.livery);
-  setEra(G.eraIdx);
+  setEra(ERAS[G.eraIdx].sty);
   G.stats = computeStats();
   G.player = makePlayer();
   G.enemies.length = 0; G.bullets.length = 0; G.ebullets.length = 0; G.pickups.length = 0; G.beams.length = 0; SHOCK.length = 0; G.props.length = 0; G.propT = 6;
@@ -7322,6 +8108,10 @@ function startLevel(level) {
   G.boss = null; G.plan = buildPlan(level); G.waveIdx = 0; G.waveT = 0; G.phase = 'waves';
   buildTerrain(level);
   decorReset(); decorInitLevel(level);
+  if (IS_TOUCH && !S.aideVu) {           /* le geste n'est pas devinable : on le dit */
+    S.aideVu = true; saveGame();
+    setTimeout(() => { if (G.state === 'play' || G.state === 'intro') toast('Doigt : piloter · 2 doigts ou double tap : bombe'); }, 2600);
+  }
   SCROLL.y = 0;
   G.state = 'intro'; introT = 0;
   hideScreens();
@@ -7331,8 +8121,409 @@ function startLevel(level) {
 }
 function startNextLevel() {
   bankRun();
-  beginWarp(G.level + 1);
+  beginBox(G.level + 1);          /* la boîte du secteur suivant, puis la transition */
 }
+
+/* ==================== LA BOÎTE DE JEU (annonce de secteur) =================
+   Le moment où l'on sort la cartouche de sa boîte : un écran d'annonce de
+   trois secondes et demie, avant chaque secteur, qui présente le jeu dans le
+   emballage de SA console. Chaque boîte a sa forme, sa matière, son support et
+   sa jaquette — peinte à la main par le moteur, dans la palette de la machine.
+   --------------------------------------------------------------------------- */
+const BOX_DUR = 4.2;                      /* durée totale de l'annonce */
+
+/* matière et support de chaque boîte */
+const BOXKIND = {
+  gb:    { ratio: 0.88, mat: '#3a4a24', mat2: '#2a3618', edge: '#8bac0f', media: 'cart', msq: '#6b7a3a' },
+  nes:   { ratio: 0.74, mat: '#14161c', mat2: '#0b0d12', edge: '#e04b3a', media: 'cart', msq: '#1c1f27' },
+  snes:  { ratio: 0.80, mat: '#1b2340', mat2: '#111731', edge: '#8fd3ff', media: 'cart', msq: '#232a4c' },
+  neogeo:{ ratio: 0.72, mat: '#0d0b08', mat2: '#070604', edge: '#ffd166', media: 'cart', msq: '#1a1408' },
+  psx:   { ratio: 1.00, mat: '#1a1d24', mat2: '#101319', edge: '#c9d6ea', media: 'disc', msq: '#232733' },
+  hd:    { ratio: 0.90, mat: '#171b26', mat2: '#0e1119', edge: '#4be7ff', media: 'case', msq: '#1e2431' },
+};
+
+/* palette de la jaquette : elle suit la machine annoncée */
+function coverCol(sec) {
+  switch (sec) {
+    case 0: { const gb = (TH.livery && TH.livery.gb) || ['#0f380f','#306230','#8bac0f','#9bbc0f'];
+      return { sky: gb[3], sky2: gb[2], sky3: gb[1], far: gb[1], near: gb[0], hull: gb[3], ink: gb[0], acc: gb[0], glow: gb[3], flat: true }; }
+    case 1: return { sky: PAL1[2], sky2: PAL1[3], sky3: PAL1[4], far: PAL1[4], near: PAL1[1], hull: PAL1[7], ink: PAL1[0], acc: PAL1[15], glow: PAL1[10], flat: true };
+    case 2: return { sky: PAL2[2], sky2: PAL2[3], sky3: PAL2[5], far: PAL2[4], near: PAL2[1], hull: PAL2[7], ink: PAL2[0], acc: PAL2[15], glow: PAL2[6] };
+    case 3: return { sky: PAL3[1], sky2: PAL3[17], sky3: PAL3[19], far: PAL3[4], near: PAL3[0], hull: PAL3[13], ink: PAL3[0], acc: PAL3[23], glow: PAL3[12] };
+    case 4: return { sky: PAL4[1], sky2: PAL4[2], sky3: PAL4[29], far: PAL4[3], near: PAL4[0], hull: PAL4[7], ink: PAL4[0], acc: PAL4[23], glow: PAL4[12] };
+    default: return { sky: '#050a18', sky2: '#0d1730', sky3: '#2a1b5e', far: '#12224a', near: '#03040a', hull: '#dff6ff', ink: '#03040a', acc: '#ff5fa2', glow: '#4be7ff' };
+  }
+}
+
+/* ---------------------------------------------------------------- jaquette --
+   L'illustration de couverture : horizon, silhouette du vaisseau amiral, et
+   le VANGUARD au premier plan. Elle est peinte à la taille demandée, donc
+   lisible aussi bien sur une vignette que sur une pleine page.              */
+function drawCoverArt(g, x, y, w, h, sec) {
+  const C = coverCol(sec);
+  srand(1000 + sec * 77);
+  const gb = C.flat;                     /* Game Boy et NES : pas de dégradé */
+  /* 1. ciel, par bandes : les vieilles jaquettes étaient sérigraphiées */
+  if (gb) {
+    const bands = 5;
+    for (let i = 0; i < bands; i++) {
+      const t = i / (bands - 1);
+      const col = i === 0 ? C.sky : i === 1 ? C.sky2 : i === 2 ? C.sky2 : i === 3 ? C.sky3 : C.sky3;
+      g.fillStyle = col; g.fillRect(x, y + (h * i) / bands, w, h / bands + 1);
+      if (t > 0.2) {                     /* trame ordonnée entre les bandes */
+        g.fillStyle = C.far; g.globalAlpha = 0.5;
+        for (let py = y + (h * i) / bands; py < y + (h * (i + 1)) / bands; py += 4)
+          for (let px = x + ((i % 2) * 2); px < x + w; px += 4) g.fillRect(px, py, 2, 2);
+        g.globalAlpha = 1;
+      }
+    }
+  } else {
+    const gr = g.createLinearGradient(0, y, 0, y + h);
+    gr.addColorStop(0, C.sky); gr.addColorStop(0.45, C.sky2); gr.addColorStop(1, C.sky3);
+    g.fillStyle = gr; g.fillRect(x, y, w, h);
+  }
+  /* 2. étoiles */
+  const n = gb ? 26 : 60;
+  for (let i = 0; i < n; i++) {
+    const sx = x + srandNext() * w, sy = y + srandNext() * h * 0.72;
+    const sz = gb ? (i % 5 === 0 ? 2.4 : 1.6) : (srandNext() < 0.2 ? 2.2 : 1.2);
+    g.fillStyle = gb ? C.hull : (i % 7 === 0 ? C.acc : C.hull);
+    g.globalAlpha = gb ? 0.9 : (0.35 + srandNext() * 0.6);
+    g.fillRect(sx, sy, sz, sz);
+  }
+  g.globalAlpha = 1;
+  /* 3. astres : disque du soleil (arcade) ou planète annelée (CD, HD) */
+  if (sec === 3) {
+    const cx = x + w * 0.72, cy = y + h * 0.34, r = w * 0.26;
+    g.fillStyle = C.acc; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
+    g.fillStyle = C.glow; g.globalAlpha = 0.5; g.beginPath(); g.arc(cx, cy, r * 0.68, 0, TAU); g.fill(); g.globalAlpha = 1;
+    for (let i = 0; i < 7; i++) { g.fillStyle = C.ink; g.globalAlpha = 0.16; g.fillRect(cx - r, cy + i * (r / 5) - r * 0.3, r * 2, 2); }
+    g.globalAlpha = 1;
+  } else if (sec === 4 || sec === 5) {
+    const cx = x + w * 0.66, cy = y + h * 0.42, r = w * 0.34;
+    g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+    g.fillStyle = sec === 4 ? PAL4[17] : '#1b2a5e';
+    g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
+    /* la planète est bandée : la génération n'a pas assez de couleurs pour
+       un dégradé, elle le fabrique avec des tranches bien nettes */
+    for (let i = 0; i < 10; i++) {
+      g.fillStyle = i % 2 ? (sec === 4 ? PAL4[18] : '#24406e') : (sec === 4 ? PAL4[29] : '#16264d');
+      g.globalAlpha = 0.5;
+      g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
+      const yy = cy - r + (i + 1) * (2 * r / 11);
+      g.globalAlpha = 1; g.fillStyle = C.ink; g.fillRect(cx - r * 1.2, yy, r * 2.4, 3);
+    }
+    g.globalAlpha = 0.85; g.strokeStyle = sec === 4 ? PAL4[13] : '#8fd3ff'; g.lineWidth = Math.max(2, w * 0.012);
+    g.beginPath(); g.ellipse(cx, cy, r * 1.55, r * 0.34, -0.42, 0, TAU); g.stroke();
+    g.globalAlpha = 1; g.restore();
+  } else if (!gb) {
+    const cx = x + w * 0.3, cy = y + h * 0.3, r = w * 0.16;
+    const rg = g.createRadialGradient(cx, cy, 0, cx, cy, r);
+    rg.addColorStop(0, C.hull); rg.addColorStop(0.4, C.acc); rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
+  }
+  /* 4. l'horizon : montagnes, ou ville debout */
+  const hz = y + h * 0.78;
+  if (sec === 3 || sec === 4) {
+    /* une ville : la salle d'arcade et les ruines CD ont un horizon bâti */
+    for (let i = 0; i < 14; i++) {
+      const bw = w * (0.04 + srandNext() * 0.05), bx = x + (i / 14) * w;
+      const bh = h * (0.08 + srandNext() * 0.20);
+      g.fillStyle = C.near; g.fillRect(bx, hz - bh, bw, bh + h * 0.22);
+      for (let wy = hz - bh + 4; wy < hz - 4; wy += 7)
+        for (let wx = bx + 3; wx < bx + bw - 3; wx += 6) {
+          if (srandNext() < 0.45) continue;
+          g.fillStyle = srandNext() < 0.5 ? C.acc : C.glow; g.globalAlpha = 0.75;
+          g.fillRect(wx, wy, 2.4, 3.4);
+        }
+      g.globalAlpha = 1;
+    }
+  } else {
+    const pts = [];
+    for (let i = 0; i <= 12; i++) pts.push([x + (i / 12) * w, hz - h * (0.04 + srandNext() * 0.22)]);
+    g.fillStyle = C.far;
+    g.beginPath(); g.moveTo(x, y + h); g.lineTo(x, hz);
+    for (const pt of pts) g.lineTo(pt[0], pt[1]);
+    g.lineTo(x + w, y + h); g.closePath(); g.fill();
+    g.fillStyle = C.near;
+    for (let i = 0; i < 6; i++) {
+      const bx = x + srandNext() * w, bw = w * (0.06 + srandNext() * 0.12), bh = h * (0.05 + srandNext() * 0.1);
+      g.fillRect(bx, hz - bh * 0.6, bw, bh + h * 0.3);
+    }
+  }
+  /* 5. le vaisseau amiral, en ombre chinoise, derrière la scène */
+  const bx0 = x + w * 0.5, by0 = y + h * 0.30, bs = w * 0.30;
+  g.fillStyle = C.ink; g.globalAlpha = sec === 0 ? 1 : 0.85;
+  g.beginPath();
+  g.moveTo(bx0, by0 - bs * 0.5);
+  g.lineTo(bx0 + bs * 0.46, by0 - bs * 0.1);
+  g.lineTo(bx0 + bs * 0.72, by0 + bs * 0.34);
+  g.lineTo(bx0 + bs * 0.24, by0 + bs * 0.26);
+  g.lineTo(bx0 + bs * 0.12, by0 + bs * 0.6);
+  g.lineTo(bx0 - bs * 0.12, by0 + bs * 0.6);
+  g.lineTo(bx0 - bs * 0.24, by0 + bs * 0.26);
+  g.lineTo(bx0 - bs * 0.72, by0 + bs * 0.34);
+  g.lineTo(bx0 - bs * 0.46, by0 - bs * 0.1);
+  g.closePath(); g.fill();
+  for (let i = 0; i < 4; i++) {           /* ses feux : la menace se voit de loin */
+    g.fillStyle = i % 2 ? C.acc : C.glow; g.globalAlpha = 0.9;
+    g.fillRect(bx0 - bs * 0.5 + i * bs * 0.34, by0 + bs * 0.12, bs * 0.09, bs * 0.09);
+  }
+  g.globalAlpha = 1;
+  /* 6. le VANGUARD, au premier plan : la coque d'usine, la bande rouge,
+        la verrière cyan — la livrée de la planche, peinte pour la jaquette. */
+  const sx = x + w * 0.5, sy = y + h * 0.68, sc = w * 0.30;
+  if (!gb) {                              /* halo de réacteurs */
+    const fl = g.createRadialGradient(sx, sy + sc * 0.52, 0, sx, sy + sc * 0.52, sc * 0.5);
+    fl.addColorStop(0, 'rgba(255,240,200,.55)'); fl.addColorStop(1, 'rgba(255,180,90,0)');
+    g.fillStyle = fl; g.beginPath(); g.arc(sx, sy + sc * 0.52, sc * 0.5, 0, TAU); g.fill();
+  }
+  /* ailes */
+  g.fillStyle = gb ? C.sky2 : '#8e9bb3';
+  g.beginPath();
+  g.moveTo(sx - sc * 0.1, sy - sc * 0.1);
+  g.lineTo(sx - sc * 0.92, sy + sc * 0.44);
+  g.lineTo(sx - sc * 0.72, sy + sc * 0.62);
+  g.lineTo(sx - sc * 0.12, sy + sc * 0.34);
+  g.closePath(); g.fill();
+  g.beginPath();
+  g.moveTo(sx + sc * 0.1, sy - sc * 0.1);
+  g.lineTo(sx + sc * 0.92, sy + sc * 0.44);
+  g.lineTo(sx + sc * 0.72, sy + sc * 0.62);
+  g.lineTo(sx + sc * 0.12, sy + sc * 0.34);
+  g.closePath(); g.fill();
+  /* fuselage */
+  g.fillStyle = gb ? C.hull : '#eef3fb';
+  if (gb) { g.strokeStyle = C.ink; g.lineWidth = Math.max(1, sc * 0.03); }
+  g.beginPath();
+  g.moveTo(sx, sy - sc * 0.78);
+  g.lineTo(sx + sc * 0.2, sy - sc * 0.2);
+  g.lineTo(sx + sc * 0.17, sy + sc * 0.44);
+  g.lineTo(sx, sy + sc * 0.58);
+  g.lineTo(sx - sc * 0.17, sy + sc * 0.44);
+  g.lineTo(sx - sc * 0.2, sy - sc * 0.2);
+  g.closePath(); g.fill();
+  if (gb) { g.strokeStyle = C.ink; g.lineWidth = Math.max(1, sc * 0.03); g.stroke(); }
+  /* bande MARK rouge : elle ne change jamais */
+  g.fillStyle = gb ? C.ink : '#d2232a';
+  g.fillRect(sx - sc * 0.2, sy - sc * 0.06, sc * 0.4, sc * 0.11);
+  /* verrière cyan */
+  g.fillStyle = gb ? C.sky : '#3fd8ff';
+  g.beginPath();
+  g.moveTo(sx, sy - sc * 0.52);
+  g.lineTo(sx + sc * 0.1, sy - sc * 0.2);
+  g.lineTo(sx, sy - sc * 0.08);
+  g.lineTo(sx - sc * 0.1, sy - sc * 0.2);
+  g.closePath(); g.fill();
+  if (!gb) { g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(sx - sc * 0.06, sy - sc * 0.46, sc * 0.04, sc * 0.2); }
+  /* tuyères */
+  g.fillStyle = gb ? C.ink : '#2b3244';
+  g.fillRect(sx - sc * 0.14, sy + sc * 0.5, sc * 0.28, sc * 0.14);
+  if (!gb) {
+    g.fillStyle = '#ffd166'; g.fillRect(sx - sc * 0.1, sy + sc * 0.62, sc * 0.08, sc * 0.14);
+    g.fillRect(sx + sc * 0.02, sy + sc * 0.62, sc * 0.08, sc * 0.14);
+  }
+  /* 7. le titre, sur la jaquette */
+  const ty = y + h * 0.9;
+  if (gb) {
+    g.fillStyle = C.ink; g.fillRect(x, ty - h * 0.11, w, h * 0.17);
+    pixText(g, 'NEO VANGUARD', x + w * 0.5, ty - h * 0.045, C.hull, Math.max(2, Math.round(w / 62)), { align: 'center' });
+  } else {
+    hText(g, 'NEO VANGUARD', x + w * 0.5, ty, { color: '#ffffff', size: Math.max(12, w * 0.115), align: 'center', weight: 800, glow: C.glow, glowSize: Math.max(8, w * 0.06) });
+  }
+}
+
+/* ------------------------------------------------------------------ support -
+   La cartouche, le disque ou le boîtier qui accompagne la boîte.            */
+function drawBoxMedia(g, k, cx, cy, w, t, sec) {
+  const C = coverCol(sec), bob = Math.sin(t * 2.2) * 3;
+  cy += bob;
+  if (k.media === 'disc') {
+    const r = w * 0.5;
+    g.save(); g.translate(cx, cy);
+    g.rotate(Math.sin(t * 0.6) * 0.12);
+    g.fillStyle = '#cdd6e6'; g.beginPath(); g.arc(0, 0, r, 0, TAU); g.fill();
+    g.fillStyle = sec === 4 ? PAL4[20] : '#8fa0bb';
+    g.beginPath(); g.moveTo(-r, 0); g.arc(0, 0, r, Math.PI, 0); g.lineTo(r * 0.2, 0); g.arc(0, 0, r * 0.2, 0, Math.PI, true); g.closePath(); g.fill();
+    g.fillStyle = '#eef3fb'; g.fillRect(-r, -r * 0.06, r * 2, r * 0.12);
+    g.fillStyle = '#0b0e14'; g.beginPath(); g.arc(0, 0, r * 0.24, 0, TAU); g.fill();
+    g.fillStyle = '#cdd6e6'; g.beginPath(); g.arc(0, 0, r * 0.1, 0, TAU); g.fill();
+    g.fillStyle = '#f2f6ff'; g.globalAlpha = 0.5;
+    g.beginPath(); g.moveTo(-r * 0.7, -r * 0.7); g.lineTo(r * 0.2, -r * 0.9); g.lineTo(r * 0.5, -r * 0.5); g.closePath(); g.fill();
+    g.globalAlpha = 1; g.restore();
+  } else {
+    /* cartouche / boîtier : rectangle à coins coupés, avec étiquette */
+    const h2 = w * (k.media === 'case' ? 1.28 : 1.05), c = w * 0.12;
+    const x0 = cx - w / 2, y0 = cy - h2 / 2, x1 = cx + w / 2, y1 = cy + h2 / 2;
+    g.fillStyle = k.msq;
+    g.beginPath();
+    g.moveTo(x0 + c, y0); g.lineTo(x1, y0); g.lineTo(x1, y1 - c); g.lineTo(x1 - c, y1); g.lineTo(x0, y1); g.lineTo(x0, y0 + c);
+    g.closePath(); g.fill();
+    g.fillStyle = k.mat; g.fillRect(x0 + c * 0.6, y0 + h2 * 0.06, w - c * 1.2, h2 * 0.88);
+    /* l'étiquette imprimée */
+    g.fillStyle = k.mat2; g.fillRect(x0 + c * 0.8, y0 + h2 * 0.12, w - c * 1.6, h2 * 0.34);
+    for (let i = 0; i < 5; i++) { g.fillStyle = i % 2 ? C.acc : C.glow; g.fillRect(x0 + c * 0.8 + i * (w - c * 1.6) / 5, y0 + h2 * 0.12, (w - c * 1.6) / 10, h2 * 0.34); }
+    g.fillStyle = k.edge; g.fillRect(x0 + c, y0 + h2 * 0.55, w - c * 2, h2 * 0.05);
+    pixText(g, 'NEO VANGUARD', cx, y0 + h2 * 0.72, k.edge, Math.max(1, Math.round(w / 46)), { align: 'center' });
+    for (let i = 0; i < 6; i++) { g.fillStyle = k.msq; g.fillRect(x0 + c * 2 + i * (w - c * 4) / 6, y1 - h2 * 0.1, (w - c * 4) / 14, h2 * 0.03); }
+  }
+}
+
+/* ------------------------------------------------------------- la boîte ----
+   Face avant, tranche et dessus : trois faces suffisent à faire tourner une
+   boîte dans la tête du joueur. La jaquette est peinte sur la face avant.   */
+function drawBoxBody(g, cx, cy, w, h, sec, t, sweep) {
+  const k = BOXKIND[ERAS[sec].sq] || BOXKIND.hd;
+  const dx = w * 0.17, dy = -h * 0.055;                  /* profondeur */
+  const x = cx - w / 2, y = cy - h / 2;
+  /* ombre au sol */
+  g.fillStyle = 'rgba(0,0,0,.45)';
+  g.beginPath(); g.ellipse(cx + dx * 0.4, y + h + h * 0.06, w * 0.62, h * 0.05, 0, 0, TAU); g.fill();
+  /* dessus */
+  g.fillStyle = k.mat2;
+  g.beginPath(); g.moveTo(x, y); g.lineTo(x + w, y); g.lineTo(x + w + dx, y + dy); g.lineTo(x + dx, y + dy); g.closePath(); g.fill();
+  /* tranche : le papier des boîtes est plus clair sur le côté */
+  g.fillStyle = k.mat;
+  g.beginPath(); g.moveTo(x + w, y); g.lineTo(x + w + dx, y + dy); g.lineTo(x + w + dx, y + h + dy); g.lineTo(x + w, y + h); g.closePath(); g.fill();
+  g.fillStyle = k.edge; g.globalAlpha = 0.5;
+  g.beginPath(); g.moveTo(x + w + dx * 0.35, y + dy * 0.35); g.lineTo(x + w + dx * 0.35, y + h + dy * 0.35); g.lineTo(x + w + dx * 0.5, y + h + dy * 0.5); g.lineTo(x + w + dx * 0.5, y + dy * 0.5); g.closePath(); g.fill();
+  g.globalAlpha = 1;
+  /* face avant */
+  g.save();
+  g.beginPath(); g.rect(x, y, w, h); g.clip();
+  drawCoverArt(g, x, y, w, h, sec);
+  /* reflet qui balaie la jaquette : le geste commercial */
+  if (sweep > 0) {
+    g.globalCompositeOperation = 'lighter';
+    const bw = w * 0.36, bx = x - bw + (w + bw * 2) * sweep;
+    const gr = g.createLinearGradient(bx, y, bx + bw, y + h);
+    gr.addColorStop(0, 'rgba(255,255,255,0)');
+    gr.addColorStop(0.5, 'rgba(255,255,255,.34)');
+    gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = 'source-over';
+  }
+  g.restore();
+  /* bandeau de la console : ce que l'œil cherche en premier sur une boîte */
+  const bh = h * 0.11;
+  g.fillStyle = k.mat2; g.globalAlpha = 0.92; g.fillRect(x, y, w, bh); g.globalAlpha = 1;
+  g.fillStyle = k.edge; g.fillRect(x, y + bh - 2, w, 2);
+  const label = ERAS[sec].sq === 'gb' ? 'NINTENDO GAME BOY' : ERAS[sec].sq === 'nes' ? 'NINTENDO ENTERTAINMENT SYSTEM'
+    : ERAS[sec].sq === 'snes' ? '16-BIT SUPER SYSTEM' : ERAS[sec].sq === 'neogeo' ? 'NEO GEO · ADVANCED ENTERTAINMENT'
+    : ERAS[sec].sq === 'psx' ? '32-BIT CD-ROM SYSTEM' : 'NEO VANGUARD · EDITION HD';
+  pixText(g, label, x + w / 2, y + bh * 0.34, k.edge, Math.max(1, Math.round(w / 78)), { align: 'center' });
+  /* sceau « 1 JOUEUR » et code produit */
+  g.fillStyle = k.edge; g.globalAlpha = 0.85;
+  g.beginPath(); g.arc(x + w * 0.9, y + h * 0.94, w * 0.055, 0, TAU); g.fill(); g.globalAlpha = 1;
+  pixText(g, '1', x + w * 0.9, y + h * 0.92, k.mat2, Math.max(1, Math.round(w / 50)), { align: 'center' });
+  pixText(g, 'NV-' + (sec + 1) + '00', x + w * 0.06, y + h * 0.94, k.edge, Math.max(1, Math.round(w / 90)));
+  /* contour final : la boîte se détache du fond */
+  g.strokeStyle = 'rgba(0,0,0,.55)'; g.lineWidth = 2; g.strokeRect(x, y, w, h);
+}
+
+/* --------------------------------------------------------------- la scène --
+   Appelée par le calque d'annonce, juste avant l'envoi à l'écran.           */
+function drawBoxArt(t) {
+  const bx = G.box, sec = bx.next - 1;
+  const p = clamp(t / BOX_DUR, 0, 1);
+  const E = ERAS[sec];
+  /* 1. fond : mur sombre, sol, et le halo de la machine */
+  ctx.save();
+  const gr = ctx.createRadialGradient(view.w / 2, view.h * 0.44, 0, view.w / 2, view.h * 0.44, view.w * 0.85);
+  gr.addColorStop(0, 'rgba(18,22,38,.94)'); gr.addColorStop(1, 'rgba(2,3,8,.985)');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, view.w, view.h);
+  /* grille du sol, discrète, pour planter la boîte dans un espace */
+  ctx.globalAlpha = 0.16; ctx.strokeStyle = coverCol(sec).glow; ctx.lineWidth = 1;
+  const hy = view.h * 0.78;
+  for (let i = -8; i <= 8; i++) {
+    ctx.beginPath(); ctx.moveTo(view.w / 2 + i * view.w * 0.09, view.h); ctx.lineTo(view.w / 2 + i * view.w * 0.03, hy); ctx.stroke();
+  }
+  for (let i = 0; i < 5; i++) { const yy = hy + Math.pow(i / 5, 1.7) * (view.h - hy); ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(view.w, yy); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  /* 2. entrée : la boîte glisse depuis la droite, avec son sillage */
+  const ease = p < 0.16 ? 1 - Math.pow(1 - p / 0.16, 3) : 1;
+  const boxH = Math.min(view.h * 0.42, view.w * 0.38 / (BOXKIND[E.sq] ? BOXKIND[E.sq].ratio : 0.9));
+  const boxW = boxH * (BOXKIND[E.sq] ? BOXKIND[E.sq].ratio : 0.9);
+  const grow = p > 0.86 ? 1 + Math.pow((p - 0.86) / 0.14, 2.4) * 1.1 : 1;   /* elle fonce sur le joueur */
+  const alpha = p > 0.93 ? clamp(1 - (p - 0.93) / 0.07, 0, 1) : 1;
+  const cx = view.w * 0.44 + (1 - ease) * view.w * 0.45, cy = view.h * 0.45 + Math.sin(t * 1.6) * 6;
+  const sc = (0.86 + 0.14 * ease) * grow;
+  ctx.globalAlpha = alpha;
+  ctx.save();
+  ctx.translate(cx, cy); ctx.scale(sc, sc); ctx.translate(-cx, -cy);
+  if (p < 0.16) {                        /* sillage de l'arrivée */
+    ctx.globalAlpha = alpha * (1 - ease) * 0.6;
+    ctx.strokeStyle = coverCol(sec).glow; ctx.lineWidth = 3;
+    for (let i = 0; i < 7; i++) {
+      ctx.beginPath(); ctx.moveTo(cx + boxW * 0.5 + i * 14, cy - boxH * 0.4 + i * boxH * 0.12);
+      ctx.lineTo(cx + boxW * 0.5 + i * 14 + view.w * 0.2 * (1 - ease), cy - boxH * 0.4 + i * boxH * 0.12);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = alpha;
+  }
+  drawBoxBody(ctx, cx, cy, boxW, boxH, sec, t, ((t * 0.42) % 1.35) / 1.35);
+  /* le support (cartouche, disque, boîtier) : posé DEVANT, à droite, comme sur
+     une photo de produit — il complète la boîte au lieu de passer derrière.  */
+  if (p > 0.24) {
+    const mp = clamp((p - 0.24) / 0.2, 0, 1);
+    ctx.globalAlpha = alpha * mp;
+    ctx.save();
+    ctx.translate(cx, cy); ctx.scale(sc, sc); ctx.translate(-cx, -cy);
+    drawBoxMedia(ctx, BOXKIND[E.sq], cx + boxW * 0.86 + (1 - mp) * 110, cy + boxH * 0.16, boxW * 0.46, t - 0.4, sec);
+    ctx.restore();
+    ctx.globalAlpha = alpha;
+  }
+  ctx.restore();
+  /* 3. cartons d'information : secteur, machine, titre du secteur */
+  const fade = clamp((t - 0.35) / 0.5, 0, 1) * (p > 0.9 ? clamp(1 - (p - 0.9) / 0.1, 0, 1) : 1);
+  ctx.globalAlpha = fade;
+  const C = coverCol(sec);
+  hText(ctx, 'SECTEUR ' + bx.next, view.w / 2, view.h * 0.80, { color: C.glow, size: Math.max(14, view.w * 0.022), align: 'center', weight: 700, glow: C.glow });
+  hText(ctx, E.name, view.w / 2, view.h * 0.855, { color: '#ffffff', size: Math.max(20, view.w * 0.05), align: 'center', weight: 800, glow: C.glow, glowSize: 18 });
+  hText(ctx, E.tag, view.w / 2, view.h * 0.895, { color: C.acc, size: Math.max(10, view.w * 0.016), align: 'center', weight: 600, glow: 'rgba(0,0,0,0)' });
+  if (p > 0.35 && Math.floor(t * 1.6) % 2 === 0)
+    hText(ctx, IS_TOUCH ? 'TOUCHE L\'ÉCRAN POUR CONTINUER' : 'ESPACE OU CLIC POUR CONTINUER', view.w / 2, view.h * 0.955,
+      { color: 'rgba(190,205,230,.85)', size: Math.max(9, view.w * 0.013), align: 'center' });
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  /* 4. flash de sortie : la jaquette « s'allume » */
+  if (p > 0.93) { ctx.globalAlpha = (p - 0.93) / 0.07 * 0.5; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, view.w, view.h); ctx.globalAlpha = 1; }
+}
+
+/* ----------------------------------------------------------- enchaînement --
+   `beginBox(next)` ouvre l'annonce ; à la fin, on part soit vers la
+   transition de génération (le style change), soit directement dans le
+   secteur (même style, palette différente).                                 */
+function beginBox(next, after) {
+  next = clamp(Math.round(next) || 1, 1, MAX_LEVEL);
+  G.box = { t: 0, next, after: after || 'auto' };
+  G.state = 'box';
+  hideScreens();
+  Audio2.stopMusic(); Audio2.sfx('pick');
+  FX.slow = 1;
+  speak('Secteur ' + next + '. ' + ERAS[next - 1].name + '.');
+}
+function boxUpdate(dt) {
+  G.box.t += dt;
+  SCROLL.boost = lerp2(SCROLL.boost, 3.2, dt * 1.2);
+  if (G.box.t >= BOX_DUR) boxFinish();
+}
+function boxSkip() {
+  if (G.state !== 'box') return;
+  if (G.box.t < BOX_DUR - 0.55) { G.box.t = BOX_DUR - 0.55; Audio2.sfx('ui'); }
+  else boxFinish();
+}
+function boxFinish() {
+  if (G.state !== 'box') return;
+  const next = G.box.next;
+  const after = G.box.after === 'auto'
+    ? (R.sec !== clamp(next - 1, 0, 5) ? 'warp' : 'level') : G.box.after;
+  if (after === 'warp') { beginWarp(next); return; }
+  startLevel(next);
+  G.state = 'play'; G.waveT = 0; G.phase = 'waves';
+  FX.addFlash(0.22, TH.pGlow);
+}
+
 /* ---------------------------------------------------------------------------
    TRANSITION INTER-GÉNÉRATION
    Le monde actuel prend de la vitesse, l'écran est capturé, puis s'effeuille
@@ -7363,11 +8554,12 @@ function warpUpdate(dt) {
     if (w.t >= 1.0) {                       /* --- bascule de génération --- */
       w.shot = captureScreen();
       w.swapped = true;
-      const nextEra = clamp(w.next - 1, 0, 3);
+      const nextEra = clamp(w.next - 1, 0, 5);
       startLevel(w.next);                   /* reconstruit tout pour l'ère suivante */
       G.state = 'warp';
+      R.sec = nextEra;
       computeTheme(nextEra, S.sel.livery);  /* thème de la nouvelle ère */
-      setEra(nextEra);
+      setEra(ERAS[nextEra].sty);
       Audio2.startMusic(nextEra, w.next);
       Audio2.sfx('warpSwap');
       FX.addFlash(1.0, '#ffffff'); FX.addShake(16); FX.stop(0.10);
@@ -7478,7 +8670,7 @@ function makeAttractWorld() {
   G.plan = buildPlan(3);
   buildTerrain(3);
   decorReset(); decorInitLevel(3);
-  if (Audio2.ok && Audio2.ctx.state === 'running') Audio2.startMusic(R.era, 1);
+  if (Audio2.ok && Audio2.ctx.state === 'running') Audio2.startMusic(R.sec, 1);
 }
 function updateAttract(dt) {
   const P = G.player;
@@ -7548,7 +8740,7 @@ function update(dt) {
   SCROLL.boost = lerp2(SCROLL.boost, wantBoost, dt * (wantBoost > 1 ? 2.2 : 1.1));
   SCROLL.y += SCROLL.speed * SCROLL.boost * dt;
   const st = G.state;
-  if (st === 'title') { updateAttract(dt); return; }
+  if (st === 'title') { titleT += dt; updateAttract(dt); return; }
   if (st === 'warp') {
     warpUpdate(dt);
     if (G.state === 'warp') {
@@ -7556,6 +8748,13 @@ function update(dt) {
       updateEBullets(dt); updateBeams(dt); updatePickups(dt);
       updateParts(dt); updateFTs(dt); updateShocks(dt);
     }
+    return;
+  }
+  if (st === 'box') {
+    boxUpdate(dt);
+    updateParts(dt); updateFTs(dt); updateShocks(dt);
+    useBuf(R.bufNear);
+    collFreeUpdate(dt);
     return;
   }
   if (st === 'intro') {
@@ -7611,14 +8810,30 @@ function collFreeUpdate(dt) {
 /* ----------------------------------- rendu -------------------------------- */
 function render(dt) {
   drawBackdrop();
+  if (G.state === 'story') {
+    drawWorld(dt);
+    R.overlay = () => drawStory();
+    presentFrame();
+    return;                               /* le récit occupe tout l'écran */
+  }
+  if (G.state === 'box') {
+    /* le monde continue de vivre derrière l'annonce, puis la boîte est peinte
+       par-dessus — dans le flux d'image, pas en surimpression DOM. */
+    drawWorld(dt);
+    R.overlay = () => drawBoxArt(G.box.t);
+    presentFrame();
+    if (document.body.classList.contains('playing')) document.body.classList.remove('playing');
+    return;
+  }
   const showWorld = ['title', 'intro', 'play', 'pause', 'warp', 'clear', 'victory'].includes(G.state);
   if (showWorld) {
     drawWorld(dt);
+    if (G.state === 'title') R.overlay = () => drawTitleArt();
     presentFrame();
     if (G.state === 'intro') drawEraBanner(introT / INTRO_DUR);
     if (G.state === 'warp') drawWarp();
     if (G.state !== 'title' && G.state !== 'warp') drawHUD();
-    if (G.state === 'title') {
+    if (G.state === 'title' && !S.best) {
       const scl = Math.max(2, Math.round(PF.w / 340));
       hudText(ctx, 'DÉMONSTRATION — APPUIE SUR ENTRÉE', PF.x + PF.w / 2, PF.y + PF.h - 30, TH.acc, 1, { align: 'center', glow: TH.acc });
     }
@@ -7690,13 +8905,13 @@ function showClearScreen() {
   Audio2.stopMusic();
   G.state = 'clear';
   $('#clearSub').textContent = 'SECTEUR ' + G.level + ' — ' + ERAS[G.eraIdx].tag;
-  const nextEra = clamp(G.level, 0, 3);
+  const nextEra = clamp(G.level, 0, 5);
   $('#clearStats').innerHTML = `
     <div class="opt"><label>Bonus de secteur</label><b style="color:#ffe066">+${fmt(G.lastBonus || 0)} CR</b></div>
     <div class="opt"><label>Score</label><b>${fmt(G.score)}</b></div>
     <div class="opt"><label>Ennemis détruits</label><b>${fmt(G.kills)}</b></div>
     <div class="opt"><label>Aucune perte</label><b>${G.noDeath ? '<span style="color:#4dff9e">OUI (+350 CR)</span>' : 'non'}</b></div>
-    <div class="opt"><label>Prochain moteur graphique</label><b style="color:${['#8bac0f', '#4a90d9', '#38e0ff', '#4be7ff'][nextEra]}">${ERALIST[nextEra].tag}</b></div>
+    <div class="opt"><label>Prochain moteur graphique</label><b style="color:${UIACC[nextEra][0]}">${ERALIST[nextEra].tag}</b></div>
     <div class="opt"><label>Crédits disponibles</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>`;
   showScreen('clear');
   refreshUI();
@@ -7726,7 +8941,11 @@ function resumeGame() {
   G.state = 'play'; hideScreens();
   Audio2.startMusic(G.eraIdx, G.level);
 }
-function startFromTitle() { Audio2.unlock(); hideScreens(); newRun(); }
+function startFromTitle() {
+  Audio2.unlock(); hideScreens();
+  if (S.opts.story === false) { newRun(); return; }   /* le joueur l'a coupée */
+  beginStory();                                       /* sinon on la raconte */
+}
 
 /* ----------------------------------- boot ---------------------------------- */
 function wireButtons() {
@@ -7746,7 +8965,7 @@ function wireButtons() {
     if (rn) { Audio2.init(); Audio2.unlock(); runCheatAction(rn.dataset.cheatRun); return; }
     const lvb = e.target.closest('[data-cheat-lv]');
     if (lvb) {
-      S.cheats.startLevel = +lvb.dataset.cheatLv;
+      S.cheats.startLevel = clamp(+lvb.dataset.cheatLv | 0, 1, MAX_LEVEL);
       Audio2.sfx('ui'); saveGame(); buildCheats();
       flashCheatMsg('Prochaine mission : secteur ' + S.cheats.startLevel, 'ok');
       return;
@@ -7757,6 +8976,8 @@ function wireButtons() {
     btn.blur();
     switch (act) {
       case 'play': startFromTitle(); break;
+      case 'story': beginStory(); break;
+      case 'fullscreen': toggleFullscreen(); break;
       case 'touch-bomb': useBomb(); break;
       case 'touch-weapon': cycleWeapon(1); break;
       case 'touch-weapon-prev': cycleWeapon(-1); break;
@@ -7792,6 +9013,7 @@ function wireButtons() {
       case 'vic-shop': G.prevScreen = 'victory'; G.state = 'shop'; buildShop(); showScreen('shop'); break;
       case 'vic-menu': backToTitle(); break;
       case 'next': startNextLevel(); break;
+      case 'box-skip': boxSkip(); break;
       case 'clear-shop': G.prevScreen = 'clear'; G.state = 'shop'; buildShop(); showScreen('shop'); break;
     }
   });
@@ -7815,33 +9037,65 @@ function gotoReturn() {
   G.prevScreen = null;
   refreshUI();
 }
-/* pointeur (souris / tactile) */
+/* pointeur (souris / doigt) — un seul chemin d'entrée pour tous les appareils.
+   Les écouteurs sont posés sur la FENÊTRE, en phase de capture : peu importe
+   quel élément se trouve au-dessus (canvas masqué en WebGL, calque, écran de
+   menu), le geste est vu. Les commandes de l'interface sont simplement
+   écartées par le filtre `busy()`.                                          */
+const TOUCH_DY = 0.055;      /* le vaisseau se place au-dessus du doigt */
 function wirePointer() {
-  const upd = e => {
-    const t = e.touches ? e.touches[0] : e;
-    if (!t) return;
-    pointer.x = t.clientX / window.innerWidth; pointer.y = t.clientY / window.innerHeight;
+  const busy = t => !!(t && t.closest &&
+    t.closest('button, a, input, select, textarea, label, #touchui, .screen.on, #toast'));
+  const poser = e => {
+    const t = e.clientX !== undefined ? e : (e.touches && e.touches[0]);
+    if (!t || t.clientX === undefined) return;
+    pointer.x = t.clientX / window.innerWidth;
+    pointer.y = t.clientY / window.innerHeight;
     pointer.active = true;
   };
-  /* ---- pilotage souris / doigt ------------------------------------------
-     Les écouteurs sont posés sur le CONTENEUR de jeu, pas sur le canvas :
-     en mode WebGL le canvas du jeu passe en visibility:hidden (le canvas GPU
-     prend le relais), et un élément masqué ne reçoit plus aucun événement —
-     sur téléphone, le vaisseau devenait donc immobile, sans clavier pour
-     prendre la relève. Le conteneur, lui, est toujours là et laisse passer. */
-  const PAD = $('#stage') || cv;
-  PAD.addEventListener('mousemove', e => { upd(e); });
-  PAD.addEventListener('mousedown', e => { upd(e); pointer.down = true; Audio2.unlock(); if (G.state === 'warp') skipWarp(); });
-  addEventListener('mouseup', () => pointer.down = false);
-  const onTouchStart = e => {
-    upd(e); pointer.down = true; Audio2.unlock();
-    if (e.touches.length > 1 && (G.state === 'play')) { useBomb(); }
-    e.preventDefault();
+  let dernierTap = 0, doigts = 0;
+  const bas = (e, tactile) => {
+    poser(e); pointer.down = true;
+    pointer.offY = 0;
+    /* le doigt prend le vaisseau là où il est, pas là où on a tapé */
+    if (tactile) {
+      pointer.drag = true;
+      pointer.baseX = pointer.x; pointer.baseY = pointer.y;
+      if (G.player) { pointer.grabX = G.player.x; pointer.grabY = G.player.y; }
+    }
+    Audio2.unlock();
+    if (!tactile) { if (G.state === 'warp') skipWarp(); return; }
+    /* le chronomètre du double tap tourne AVANT la sortie « warp » : sinon un
+       tap pendant la transition cinématique était oublié et le geste suivant
+       ne comptait plus comme un double tap. */
+    const now = (window.performance || Date).now();
+    const doubleTap = now - dernierTap < 400;   /* 400 ms : tolérant au doigt */
+    dernierTap = doubleTap ? 0 : now;
+    if (G.state === 'warp') { skipWarp(); return; }
+    if (G.state === 'box') { boxSkip(); return; }
+    if (G.state === 'story') { storyNext(); return; }
+    doigts++;
+    if (doigts > 1 || (e.touches && e.touches.length > 1)) {   /* deux doigts = bombe */
+      if (G.state === 'play') useBomb();
+      return;
+    }
+    if (doubleTap && G.state === 'play') useBomb();            /* double tap = bombe */
   };
-  PAD.addEventListener('touchstart', onTouchStart, { passive: false });
-  PAD.addEventListener('touchmove', e => { upd(e); e.preventDefault(); }, { passive: false });
-  PAD.addEventListener('touchend', () => { pointer.down = false; });
-  PAD.addEventListener('touchcancel', () => { pointer.down = false; });
+  const haut = () => { pointer.down = false; doigts = 0; pointer.drag = false; };
+  if (window.PointerEvent) {
+    addEventListener('pointerdown', e => { if (!busy(e.target)) bas(e, e.pointerType === 'touch'); }, { capture: true });
+    addEventListener('pointermove', e => { if (!busy(e.target)) poser(e); }, { capture: true, passive: true });
+    addEventListener('pointerup', haut, { capture: true });
+    addEventListener('pointercancel', haut, { capture: true });
+  } else {
+    addEventListener('touchstart', e => { if (!busy(e.target)) { bas(e, true); e.preventDefault(); } }, { capture: true, passive: false });
+    addEventListener('touchmove', e => { if (!busy(e.target)) { poser(e); e.preventDefault(); } }, { capture: true, passive: false });
+    addEventListener('touchend', haut, { capture: true });
+    addEventListener('touchcancel', haut, { capture: true });
+    addEventListener('mousedown', e => { if (!busy(e.target)) bas(e, false); }, { capture: true });
+    addEventListener('mousemove', e => { if (!busy(e.target)) poser(e); }, { capture: true });
+    addEventListener('mouseup', haut, { capture: true });
+  }
   /* premier geste : débloque l'audio */
   const once = () => { Audio2.init(); Audio2.unlock(); removeEventListener('pointerdown', once); removeEventListener('keydown', once); };
   addEventListener('pointerdown', once); addEventListener('keydown', once);
@@ -7873,8 +9127,9 @@ function boot() {
   initStars();
   initInput();
   wireButtons(); wirePointer();
-  computeTheme(previewEra(), S.sel.livery);
-  setEra(previewEra(), true);
+  R.sec = previewEra();
+  computeTheme(R.sec, S.sel.livery);
+  setEra(ERAS[R.sec].sty, true);
   sideRes = resizeView().sideRes;
   buildTerrain(3);
   G.stats = computeStats();

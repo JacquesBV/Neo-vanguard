@@ -15,15 +15,17 @@ echo "→ dépôt  : https://github.com/${COMPTE}/${DEPOT}"
 echo "→ dossier : ${TMP}"
 git clone --depth 1 "https://github.com/${COMPTE}/${DEPOT}.git" "$TMP/repo"
 cp -f "$ICI/index.html" "$ICI/README.md" "$TMP/repo/"
-[ -f "$ICI/neo-vanguard-codes-triches.pdf" ] && cp -f "$ICI/neo-vanguard-codes-triches.pdf" "$TMP/repo/"
-[ -f "$ICI/pack-graphique-4-eres.png" ] && cp -f "$ICI/pack-graphique-4-eres.png" "$TMP/repo/"
-[ -f "$ICI/secteur4-nouveau.png" ] && cp -f "$ICI/secteur4-nouveau.png" "$TMP/repo/"
+for f in neo-vanguard-codes-triches.pdf bandeau-readme.png banniere-neo-vanguard.png \
+         pack-nouveautes.png nouveaux-secteurs.png pieces-level1.png \
+         pack-graphique-4-eres.png secteur4-nouveau.png; do
+  [ -f "$ICI/$f" ] && cp -f "$ICI/$f" "$TMP/repo/"
+done
 touch "$TMP/repo/.nojekyll"
 cd "$TMP/repo"
 git checkout -B "$BRANCHE"
 git add -A
 git -c user.name="${GIT_AUTHOR_NAME:-JacquesBV}" -c user.email="${GIT_AUTHOR_EMAIL:-jacquesbv@users.noreply.github.com}" \
-    commit -m "NEO VANGUARD — build $(date +%Y-%m-%d) : flash d'impact par génération" || echo "(rien à committer)"
+    commit -m "NEO VANGUARD — build $(date +%Y-%m-%d) : six secteurs, boîtes de jeu, récit, écran titre et menu refondus" || echo "(rien à committer)"
 git push origin "$BRANCHE"
 echo
 echo "✓ poussé. GitHub Pages redéploie en ~1 minute :"

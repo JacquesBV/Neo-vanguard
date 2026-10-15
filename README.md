@@ -1,8 +1,8 @@
-<img src="bandeau-readme.png" alt="NEO VANGUARD — 4 secteurs, 4 générations graphiques : Game Boy, 8 bits, 16 bits, HD" width="100%">
+<img src="bandeau-readme.png" alt="NEO VANGUARD — 6 secteurs, 6 générations graphiques : Game Boy, 8 bits, 16 bits, arcade Neo Geo, 32-BIT CD, HD" width="100%">
 
 # NEO VANGUARD — shoot them up vertical à moteur graphique évolutif
 
-**▶ [Jouer en ligne](https://jacquesbv.github.io/Neo-vanguard/)** · un seul fichier HTML (798 Ko), aucun CDN,
+**▶ [Jouer en ligne](https://jacquesbv.github.io/Neo-vanguard/)** · un seul fichier HTML (848 Ko), aucun CDN,
 clavier / souris / doigt · fiche des codes triches : [PDF](neo-vanguard-codes-triches.pdf)
 
 
@@ -44,11 +44,11 @@ partie GPU y est donc très pessimiste) :
 | Post-traitement GPU mesuré en SwiftShader | 207 ms (remplissage logiciel : ÷4 sur les pixels ⇒ ×3,5 de vitesse ; quelques ms sur un vrai GPU) |
 
 Autrement dit : **10,15 ms par image ont quitté le CPU**, et ce qui reste côté GPU est du remplissage
-d'écran, pas du JavaScript. La régression complète (7 vaisseaux × 4 secteurs, boss, fin de campagne)
+d'écran, pas du JavaScript. La régression complète (7 vaisseaux × 6 secteurs, boss, fin de campagne)
 passe par les deux chemins avec **0 exception de rendu et 0 erreur JS**, et le mode 2D reste
 strictement identique à la version précédente.
 
-## Le concept : 4 secteurs, 4 générations de consoles
+## Le concept : 6 secteurs, 6 générations de consoles
 
 Le moteur de rendu, les sprites, les décors **et la bande-son** changent complètement à chaque secteur.
 
@@ -57,9 +57,15 @@ Le moteur de rendu, les sprites, les décors **et la bande-son** changent compl�
 | **1** | **Game Boy / NES / Master System** | 160×144, **4 teintes strictes** de la DMG-01, gros pixels, silhouettes simplifiées, ombres portées pixel | Station en coupe vue de dessus : dalles, plaques rivetées, conduites, baies techniques, docks, grues, grilles de ventilation, bandes de danger, hublots, couloirs de descente à lèvre métallique | 124 BPM en **la mineur**, 2 canaux d'onde carrée + bruit blanc, zéro reverb |
 | **2** | **8-bit étendu (NES / SMS)** | 256×224, 16 couleurs, sprites plus détaillés (ailes, verrières, réacteurs), premières transparences | Station dense : panneaux éclairés, poutrelles de premier plan, champs d'astéroïdes | 140 BPM en **ré mineur**, triangle NES pour la basse, arpèges, batterie bruit, écho léger |
 | **3** | **16-bit (Super NES / Mega Drive)** | 320×240, palette large, ombrage lissé, lisérés néon, halos additifs | Espace profond : nébuleuses, mégatours éclairées, passerelles, anneaux orbitaux, hologrammes, cristaux, poutrelles floues au premier plan | 150 BPM en **fa# mineur**, basse FM, lead vibrato, nappes, arpèges 16es, delay |
-| **4** | **HD — rendu vectoriel temps réel** | Vectoriel lissé (polygones + dégradés), bloom double passe, aberration chromatique, vignette, ombres, 2000 particules, ondes de choc | Mégastructures néon complexes, anneaux géants en rotation, cristaux lumineux, profondeur de champ (premier plan flouté) | 162 BPM en **mi mineur**, super-saw, sub-basse, nappes filtrées, **réverbe à convolution**, sidechain, stéréo |
+| **4** | **Arcade Neo Geo (MVS / AES)** | 320×224, **32 teintes d'arcade**, grosses sprites, couleurs saturées. Balayage CRT et dominante magenta sur toute l'image | **La salle d'arcade** : bornes à écran allumé, enseignes néon qui hésitent, monnayeurs, ciel de nuit indigo, ville debout | 158 BPM en **sol# mineur**, basse en croches, cuivres sur les temps, batterie dense — ça doit s'entendre par-dessus les autres bornes |
+| **5** | **32-BIT CD (Saturn / PlayStation)** | 320×240 assumés, **résolution interne réduite et tramage ordonné 4×4**, 15 bits de couleur, brouillard de portée, aucune concession au lissage | Ruines de la génération CD : monolithes striés, portails à anneaux tournants, piliers de données, planète bandée à l'ancienne | 146 BPM en **ré# mineur**, sub-basse, nappes filtrées, batterie cassée, beaucoup d'air et de réverbe |
+| **6** | **HD — rendu vectoriel temps réel** | Vectoriel lissé (polygones + dégradés), bloom double passe, aberration chromatique, vignette, ombres, 2000 particules, ondes de choc | Mégastructures néon complexes, anneaux géants en rotation, cristaux lumineux, profondeur de champ (premier plan flouté) | 162 BPM en **mi mineur**, super-saw, sub-basse, nappes filtrées, **réverbe à convolution**, sidechain, stéréo |
 
-Chaque secteur apporte aussi **de vrais nouveaux sprites pour tout le monde** : vaisseaux, 9 types
+Deux ennemis n'existent que dans les nouvelles salles : la **mine** de l'arcade (elle ne tire pas,
+elle bloque, et sa mort libère une **couronne de 12 tirs**) et le **tireur embusqué** du CD, qui
+s'arrête, visse et lâche un trait très rapide.
+
+Chaque secteur apporte aussi **de vrais nouveaux sprites pour tout le monde** : vaisseaux, 11 types
 d'ennemis et les 4 boss sont re-dessinés d'un cran de détail à chaque ère (des plaques et des
 pièces apparaissent même à partir du secteur 2 et 3 : un même vaisseau gagne des ailerons, des
 canons, des halos en montant en génération).
@@ -75,11 +81,50 @@ par-dessus. Une touche ou un clic passe la transition.
 Elle est aussi utilisée **au lancement d'une partie** : depuis le menu titre en HD, appuyer sur
 « Jouer » déclenche le saut vers la Game Boy — le concept du jeu se montre dès la première seconde.
 
+## L'histoire : quatre pages de récit avant la première cartouche
+
+Le jeu s'ouvre maintenant sur une **vraie introduction** — quatre pages illustrées, écrites par le
+moteur, à la machine à écrire. Elle s'affiche au lancement d'une campagne (et se relit à tout
+moment depuis **L'histoire** dans le menu) :
+
+| Page | Titre | Texte | Signature |
+|---|---|---|---|
+| 1 | *2049 — TERRE, ARCHIVES MORTES* | Il y a trente ans, on a cessé de fabriquer des consoles. Ce qui restait du jeu vidéo a été entassé dans **six cartouches**, puis enfermé dans un silo de béton, sous le désert. | « On garde les cartouches. On oublie les machines. » |
+| 2 | *L'EMPIRE KABRAK* | KABRAK n'a pas attaqué les villes : il a attaqué les archives. Secteur après secteur, la mémoire est **reformatée en gris**. Là où il passe, plus personne ne se souvient d'avoir joué. | « Ce qui n'est pas conservé n'a jamais existé. » |
+| 3 | *PROGRAMME VANGUARD* | Dans la sixième cartouche dormait un dernier pilote. Sa coque porte les couleurs de toutes les générations : **bande rouge** pour l'escadrille, **verrière cyan** pour la vitesse. | « Une cartouche peut sauver une mémoire. » |
+| 4 | *ORDRE DE MISSION* | Traverse les six générations : Game Boy, huit bits, seize bits, arcade, CD-ROM, haute définition. Abats leurs amiraux. Au bout : **le CŒUR**, la salle où KABRAK réécrit l'histoire. | « Pilote, tu es la dernière copie intacte. » |
+
+Chaque page a son illustration peinte : les six cartouches dressées dans le noir, la flotte KABRAK
+— des vaisseaux longs et plats, sans grâce, avec la corruption qui monte et sa **ligne de front
+dentelée** striée comme une mémoire reformatée —, le VANGUARD en plan large feux allumés, puis le
+CŒUR entouré de ses anneaux avec les six secteurs en orbite. Le texte se déroule
+tout seul (≈ 6 s par page) ; un appui passe immédiatement à la suite.
+
+## La boîte de jeu : chaque secteur s'annonce dans SON emballage
+
+Avant chaque secteur — y compris le premier — **la boîte de jeu du niveau apparaît pendant quatre
+secondes** : la jaquette illustrée, sa matière, le bandeau de la console, le sceau « 1 joueur », le
+code produit, et à côté **le support** (cartouche, disque ou boîtier). Elle glisse depuis la droite
+avec son sillage, un reflet la balaie, puis elle **fonce vers le joueur** et le niveau commence.
+
+| Secteur | Boîte | Support |
+|---|---|---|
+| 1 | carton vert olive, bandeau **NINTENDO GAME BOY**, jaquette aux 4 verts de la DMG (elle suit la livrée choisie !) | cartouche grise |
+| 2 | boîte noire, étiquette **Nintendo Entertainment System** | cartouche NES |
+| 3 | boîte bleu nuit, **16-BIT SUPER SYSTEM**, halo violet | cartouche 16 bits |
+| 4 | grande boîte noire et or, **NEO GEO · ADVANCED ENTERTAINMENT**, jaquette arcade (ville, disque solaire) | cartouche arcade |
+| 5 | boîtier cristal carré, **32-BIT CD-ROM SYSTEM**, planète annelée et gratte-ciel | disque qui tourne |
+| 6 | boîtier moderne, **NEO VANGUARD · ÉDITION HD** | boîtier brossé |
+
+Chaque jaquette est **peinte par le moteur, dans la palette de sa machine** : horizon, astres, ville
+ou montagnes, silhouette du vaisseau amiral en ombre chinoise, puis le VANGUARD au premier plan avec
+sa coque d'usine, sa **bande MARK rouge** et sa verrière cyan. Un appui sur l'écran saute l'annonce.
+
 ## Contenu
 
-- **4 secteurs + 4 boss multi-phases** : Goliath-Prime, Warden-7 (bras rotatifs), Hydra-Nexus
-  (3 têtes destructibles), Omega-Vector (anneaux, téléportation, rayons). La campagne se termine
-  par l'écran **Système neutralisé**.
+- **6 secteurs + 4 boss multi-phases** (Goliath-Prime, Warden-7, Hydra-Nexus, Omega-Vector) :
+  les amiraux reviennent en **MK-2** dans les secteurs 5 et 6, plus rapides et plus épais.
+  La campagne se termine par l'écran **Système neutralisé**.
 - **Décor destructible** : caisses de fret, barils explosifs (réaction en chaîne qui endommage les
   ennemis proches) et modules de ravitaillement à butin garanti dérivent dans le couloir. Ils se
   détruisent au tir, rapportent score et crédits, et changent de sprite selon l'ère.
@@ -87,7 +132,7 @@ Elle est aussi utilisée **au lancement d'une partie** : depuis le menu titre en
   essaims, porteurs (qui libèrent des nuées), élites + un mini-boss à mi-secteur.
 - **7 chasseurs d'arcade** dessinés à l'école UN Squadron / Axelay / Alpha Mission II :
   nez effilé, verrière en goutte, voilures delta, **pods d'arme en bout d'aile**, canards,
-  dérives jumelles et tuyères cerclées. Chacun est **re-rastérisé pour les 4 générations**
+  dérives jumelles et tuyères cerclées. Chacun est **re-rastérisé pour les 6 générations**
   (voir `apercu-vaisseaux.png`) :
 
   | Vaisseau | Rôle | Prix | Signature |
@@ -107,10 +152,12 @@ Elle est aussi utilisée **au lancement d'une partie** : depuis le menu titre en
   puis la résolution interne — sans jamais casser le gameplay. Écran FPS activable dans les options.
 - **Sauvegarde automatique** (localStorage), avec migration depuis les versions précédentes.
 
-## Secteur 4 : rendu « animé japonais »
+## Secteur 6 : rendu « animé japonais »
 
 Le dernier secteur ne se contente pas d'être de la HD : il emprunte **le langage visuel de
-l'animation japonaise**, appliqué à un jeu entièrement procédural.
+l'animation japonaise**, appliqué à un jeu entièrement procédural. (Les repères de cette section
+citent les anciens numéros de secteur : le rendu vectoriel anime est passé du secteur 4 au
+**secteur 6** quand la campagne est montée à six générations.)
 
 - **Cel-shading à 3 valeurs** : l'éclairement de chaque pixel est mesuré, puis quantifié en
   bandes franches — ombre, valeur moyenne, lumière. Fini les dégradés 3D.
@@ -280,22 +327,48 @@ Trois chantiers, mesurés à l'image moteur (captures 1:1 dans les aperçus).
   en éclat). Corrigé au passage : la HD **n'affichait aucun flash** sur les ennemis (le
   chemin vectoriel n'implementait pas l'option), et les cœurs d'obus, de laser, de
   rayon et les flashs plein écran étaient peints en blanc codé en dur partout.
+- **Les bonus du secteur 1 sont des pièces.** La caisse à « ? » disparaît : en Game Boy,
+  les écrans montraient une **pièce** de dix pixels d'art — octogone à coins coupés, contour
+  noir, cerclage au ton moyen, face claire et une marque par bonus (plein carré pour la
+  puissance, anneau pour le bouclier, croix pour la coque, jeton barré pour les crédits,
+  éclat pour la bombe). Elle tourne sur elle-même en s'amincissant jusqu'à la tranche, ce
+  qu'une palette de quatre teintes suffit à lire. Au passage, le caractère `$` manquait dans
+  la police 5×5 : l'écrin des ères suivantes affichait donc lui aussi un « ? » — il est
+  désormais dessiné (`27272`).
 - **Coins de l'écran de triche.** Les carrés à « ? » sont remplacés par quatre **coins**
   dessinés en dégradés CSS : plus aucune dépendance à une police exotique, les carrés
   manquants ne peuvent plus revenir.
 - **Interface tactile.** La barre de commandes s'affiche vraiment en jeu (elle restait
   masquée : la classe `playing` était effacée au changement de génération) et les
   pastilles **ARME** et **BOMBE** se mettent à jour (arme courante, jeu d'armes, bombes).
+- **Pilotage au doigt fiabilisé.** Trois corrections en une :
+  1. les écouteurs d'entrée sont posés sur la **fenêtre, en phase de capture** — peu importe
+     l'élément survolé (le canvas est masqué en WebGL), le geste est vu ; un seul chemin
+     d'entrée (Pointer Events) remplace le mélange souris/tactile précédent ;
+  2. `touch-action:none` est verrouillé sur le conteneur de jeu : plus aucun geste du
+     navigateur (défilement, zoom, tirer-pour-recharger) ne peut voler le pilotage —
+     c'est la cause la plus fréquente d'un vaisseau qui « ne bouge pas » ;
+  3. le vaisseau se place **au-dessus** du doigt (`TOUCH_DY`) : sous le pouce, on ne le
+     voyait pas manœuvrer.
+- **Bombe au double tap.** L'aide la promettait depuis le premier jour, le code ne
+  l'implémentait pas : désormais **double tap** (fenêtre 400 ms), **deux doigts** ou
+  **bouton BOMBE** déclenchent la bombe. Mesuré au banc de test : glissement 213 px,
+  double tap ✅, deux doigts ✅, bouton ✅.
 
 ## Tutoriel tactile (téléphone)
+
+> Depuis cette passe, **le doigt commande en relatif** : poser le doigt n'attire plus le vaisseau.
+> Le doigt pousse le vaisseau — il se déplace de ce que le doigt se déplace, à l'échelle du jeu.
+> Un appui immobile ne déplace donc plus rien. C'est ce qui a été signalé et corrigé.
 
 Le jeu détecte l'écran tactile et affiche une barre de commandes en bas de l'écran.
 
 | Geste | Action |
 |---|---|
-| Glisser le doigt | Le vaisseau est **attiré** vers le doigt (il ne s'y téléporte pas) |
+| Glisser le doigt | Le vaisseau est **attiré** vers le doigt — et se place **au-dessus** de lui, pour ne pas disparaître sous le pouce |
 | Doigt posé | Tir automatique pendant tout le contact |
 | **Deux doigts** n'importe où | **Bombe** (écran nettoyé autour de toi) |
+| **Double tap** rapide | **Bombe** aussi — le geste le plus rapide quand la main est déjà occupée |
 | Bouton **Bombe · n** (en bas à gauche) | Bombe également — le compteur affiché se met à jour |
 | Bouton **Arme · NOM (n)** (en bas à droite) | **Change de jeu de tir** et fait le tour des armes possédées |
 | Bouton **◀** à côté | Jeu de tir précédent |
@@ -305,9 +378,39 @@ en ne montrant que les armes achetées en boutique (les deux premières sont acq
 d'office). Le numéro entre parenthèses indique la position dans le cycle. Garde le doigt
 **sous** le vaisseau plutôt que dessus : il ne masquera pas l'action.
 
+## Écran titre et menu
+
+Le titre n'est plus un panneau posé sur un fond : c'est une **affiche peinte par le moteur**.
+Le logo est dessiné lettre à lettre en **chrome** (dégradé à six arrêts, liseré sombre, reflet qui
+le traverse toutes les quatre secondes) et porte une **aberration chromatique** assumée — décalage
+rouge à gauche, cyan à droite. Sous lui, la **frise des six consoles** (DMG-01 › 8-BIT › 16-BIT ›
+NEO GEO › CD-ROM › HD) marque la progression, avec la machine en cours surlignée, et une accroche
+qui tourne. En fond, la **démonstration** : le vaisseau joue tout seul dans le secteur affiché.
+
+Le menu est passé d'une liste verticale à une **mise en page de jeu d'arcade** : deux grands
+boutons de campagne (Commencer / L'histoire), six tuiles de préparation (Boutique, Options,
+Commandes, Codes, Crédits, Plein écran) avec icône, titre et sous-titre, puis une barre de
+**jetons** (record, crédits, secteur max, kills, génération courante). Les panneaux d'information
+ont reçu le même traitement : bord gauche coloré, ombre portée, titre en dégradé.
+
+## Ce qui a été corrigé dans cette passe
+
+- **Pilotage au doigt : commande relative.** Poser le doigt n'attire plus le vaisseau vers ce
+  point — c'était le défaut signalé. Le doigt **pousse** désormais le vaisseau : on retient sa
+  position à la pose, et il se déplace **exactement de ce que le doigt se déplace**. Mesuré au
+  banc : appui immobile = **0 px** de déplacement ; glissement de 72 × 48 px à l'écran = **72 × 48 px**
+  pour le vaisseau. La souris garde la visée absolue.
+- **La barre de vie du boss suit la génération.** Au secteur Game Boy elle était bleu cyan (la
+  couleur du thème HD) : elle est maintenant **peinte aux quatre verts de la DMG**, cadre épais de
+  2 px d'art, **hachures** à la deuxième phase et **clignotement** à la troisième. Mesure : 0 pixel
+  hors palette sur les trois phases.
+- **Plus aucune couleur hors palette en Game Boy.** Un filtre (`eraCol`) ramène tout accent (rose,
+  cyan, rouge) au ton clair de la livrée : le mot **« BOMBE »** qui s'affichait en rose est
+  désormais vert — et il reste rose dans les générations couleur, où c'est sa place.
+
 ## Aperçus
 
-- `apercu-webgl.png` — les 4 secteurs rendus par la voie WebGL 2 (halo, aberration, vignette).
+- `apercu-webgl.png` — les premiers secteurs rendus par la voie WebGL 2 (halo, aberration, vignette) ; depuis, six générations passent par cette voie.
 - `couleur-vaisseau.png` — le vaisseau avant/après : vert Game Boy hors secteur 1 → coque de la planche.
 - `cmp-gpu-2d.png` — la même image au même instant en WebGL 2 et en canevas 2D (écart moyen 4,7/255).
 - `apercu-vaisseaux.png` — les **7 chasseurs** dans les 4 générations graphiques, en grand et à la taille de jeu.
@@ -329,6 +432,10 @@ d'office). Le numéro entre parenthèses indique la position dans le cycle. Gard
 - `secteur4-nouveau.png` — le fond du secteur 4 après reconquête : plus d'hélices ni de flaques.
 - `couleur-vaisseau.png` — le vaisseau en jeu, ancienne livrée verte par défaut face à la coque de
   la planche (secteurs 2 et 4).
+- `pieces-level1.png` — les bonus du secteur 1 : la pièce en situation, puis les cinq
+  variantes à leur taille d'écran.
+- `pack-nouveautes.png` — l'écran titre, une page du récit, et **les six boîtes de jeu**.
+- `nouveaux-secteurs.png` — les secteurs 4 (Neo Geo) et 5 (32-BIT CD) en jeu.
 - `flash-impact-ennemis.png` et `flash-impact-boss.png` — le flash d'impact dans les 4 générations,
   sprite au repos / touché avant / touché après (sprite recadré ×2, même instant).
 

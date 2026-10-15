@@ -14,13 +14,13 @@ Dépôt : <https://github.com/JacquesBV/Neo-vanguard> · Glisser-déposer :
 > Champ limité à **350 caractères**. Version courte (recommandée) :
 
 ```
-Shoot them up vertical rétro-évolutif : le moteur graphique change de génération à chaque secteur — Game Boy, 8 bits, 16 bits, HD WebGL. Un seul fichier HTML, jouable au clavier, à la souris ou au doigt.
+Shoot them up vertical rétro-évolutif : le moteur graphique change de génération à chaque secteur — Game Boy, 8 bits, 16 bits, arcade Neo Geo, CD-ROM, HD WebGL. Six secteurs, un seul fichier HTML, jouable au clavier, à la souris ou au doigt.
 ```
 
 *Variante plus factuelle, si tu préfères :*
 
 ```
-4 secteurs, 4 moteurs de rendu : Game Boy 160×144, 8 bits, 16 bits, HD WebGL temps réel. Moteur maison, pixel-art procédural, chiptune WebAudio. Fichier index.html unique, sans CDN.
+6 secteurs, 6 moteurs de rendu : Game Boy 160×144, 8 bits, 16 bits, arcade Neo Geo, CD-ROM 32 bits, HD WebGL temps réel. Moteur maison, pixel-art procédural, chiptune WebAudio. Fichier index.html unique, sans CDN.
 ```
 
 ## 2. Site web (About → Website)
@@ -58,7 +58,7 @@ Déjà installé : les deux premières lignes de `README.md` affichent
 - **Release title** :
 
 ```
-NEO VANGUARD v1.0 — 4 secteurs, 4 générations graphiques
+NEO VANGUARD v1.1 — 6 secteurs, 6 générations graphiques
 ```
 
 - **Describe this release** :
@@ -66,19 +66,28 @@ NEO VANGUARD v1.0 — 4 secteurs, 4 générations graphiques
 ```markdown
 Première version publiée du jeu complet.
 
-**Les 4 générations de rendu**
+**Les 6 générations de rendu**
 - **Secteur 1 — Game Boy (DMG-01)** : 160×144, 4 teintes imposées, trames ordonnées, aucun dégradé.
 - **Secteur 2 — 8 bits+ (NES / Master System)** : 16 couleurs, parallaxe sur deux plans, sprites animés.
 - **Secteur 3 — 16 bits (Super NES / Mega Drive)** : palette étendue, transparences, particules, boss à plusieurs phases.
-- **Secteur 4 — HD temps réel** : rendu WebGL 2, bloom, aberration chromatique, flou de mouvement,
+- **Secteur 4 — arcade Neo Geo (MVS / AES)** : 32 teintes, grosses sprites, salle d'arcade, monnayeurs,
+  balayage CRT et dérive de teinte magenta — le seul secteur qui « passe à la borne ».
+- **Secteur 5 — 32 bits CD-ROM (Saturn / PlayStation)** : résolution interne réduite, tramage ordonné
+  4×4, brouillard de portée, monolithes de données : la génération CD assumée, sans lissage.
+- **Secteur 6 — HD temps réel** : rendu WebGL 2, bloom, aberration chromatique, flou de mouvement,
   particules sur le GPU (4 000 max), poses cuites (4 par sprite), étalonnage par table de couleurs.
 
 **Le reste**
-- 7 chasseurs et 5 armes achetables en boutique, 4 boss, 6 livrées, 4 traînées, 5 auras.
-- Une seule page : `index.html`, 798 Ko, **aucun CDN, aucune requête réseau** — sprites, décors,
+- 7 chasseurs et 5 armes achetables en boutique, 4 boss (rejoués en MK-2 aux secteurs 5 et 6),
+  11 types d'ennemis dont la mine arcade et le tireur embusqué, 6 livrées, 4 traînées, 5 auras.
+- **Une introduction de quatre pages** au lancement d'une campagne, et **la boîte de jeu du secteur**
+  qui s'annonce quatre secondes avant chaque niveau (jaquette, cartouche, disque — selon la console).
+- 9 circuits musicaux, un par secteur et par fin, générés en WebAudio.
+- Une seule page : `index.html`, 848 Ko, **aucun CDN, aucune requête réseau** — sprites, décors,
   palettes, musiques et bruitages générés par le code au démarrage.
-- Clavier (flèches / ZQSD / WASD), souris et **tactile** (barre ARME / BOMBE, bombe à deux doigts).
-- 8 codes triches dans le MENU CHEAT — le maître est `kabrak77`.
+- Clavier (flèches / ZQSD / WASD), souris et **tactile** : le doigt **pousse** le vaisseau (commande
+  relative, aucune attraction vers le point touché), barre ARME / BOMBE, bombe à deux doigts.
+- 8 codes triches dans le panneau **CODES** — le maître est `kabrak77`.
 - Textes en français.
 
 **À vérifier**
