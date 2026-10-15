@@ -7823,12 +7823,25 @@ function wirePointer() {
     pointer.x = t.clientX / window.innerWidth; pointer.y = t.clientY / window.innerHeight;
     pointer.active = true;
   };
-  cv.addEventListener('mousemove', e => { upd(e); });
-  cv.addEventListener('mousedown', e => { upd(e); pointer.down = true; Audio2.unlock(); if (G.state === 'warp') skipWarp(); });
+  /* ---- pilotage souris / doigt ------------------------------------------
+     Les écouteurs sont posés sur le CONTENEUR de jeu, pas sur le canvas :
+     en mode WebGL le canvas du jeu passe en visibility:hidden (le canvas GPU
+     prend le relais), et un élément masqué ne reçoit plus aucun événement —
+     sur téléphone, le vaisseau devenait donc immobile, sans clavier pour
+     prendre la relève. Le conteneur, lui, est toujours là et laisse passer. */
+  const PAD = $('#stage') || cv;
+  PAD.addEventListener('mousemove', e => { upd(e); });
+  PAD.addEventListener('mousedown', e => { upd(e); pointer.down = true; Audio2.unlock(); if (G.state === 'warp') skipWarp(); });
   addEventListener('mouseup', () => pointer.down = false);
-  cv.addEventListener('touchstart', e => { upd(e); pointer.down = true; Audio2.unlock(); if (e.touches.length > 1 && (G.state === 'play')) { useBomb(); } e.preventDefault(); }, { passive: false });
-  cv.addEventListener('touchmove', e => { upd(e); e.preventDefault(); }, { passive: false });
-  cv.addEventListener('touchend', () => { pointer.down = false; });
+  const onTouchStart = e => {
+    upd(e); pointer.down = true; Audio2.unlock();
+    if (e.touches.length > 1 && (G.state === 'play')) { useBomb(); }
+    e.preventDefault();
+  };
+  PAD.addEventListener('touchstart', onTouchStart, { passive: false });
+  PAD.addEventListener('touchmove', e => { upd(e); e.preventDefault(); }, { passive: false });
+  PAD.addEventListener('touchend', () => { pointer.down = false; });
+  PAD.addEventListener('touchcancel', () => { pointer.down = false; });
   /* premier geste : débloque l'audio */
   const once = () => { Audio2.init(); Audio2.unlock(); removeEventListener('pointerdown', once); removeEventListener('keydown', once); };
   addEventListener('pointerdown', once); addEventListener('keydown', once);
