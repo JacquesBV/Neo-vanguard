@@ -5,15 +5,24 @@ Il n'y a **pas encore d'URL GitHub** : le jeu n'est pas encore publié. Ce dossi
 
 | Fichier | Rôle |
 |---|---|
-| `index.html` | **le jeu** (fichier unique, 848 Ko, tout est inliné : moteur PixiJS compris) |
+| `index.html` | **le jeu** (fichier unique, 3,7 Mo, tout est inliné : moteur PixiJS compris, images du pack comprises) — build du round 25 |
 | `README.md` | la documentation (concept, codes triches, tutoriel tactile…) |
 | `neo-vanguard-codes-triches.pdf` | la fiche imprimable des 8 codes |
 | `bandeau-readme.png` | le bandeau de tête du README (6 secteurs) |
 | `banniere-neo-vanguard.png` | l'aperçu social du dépôt |
 | `pack-nouveautes.png` | écran titre, récit et **les six boîtes de jeu** |
-| `nouveaux-secteurs.png` | les secteurs Neo Geo et CD-ROM en jeu |
+| `nouveaux-secteurs.png` | les secteurs Arcadia et CD-ROM en jeu |
 | `pack-graphique-4-eres.png` | aperçu des premières générations |
 | `secteur4-nouveau.png` | aperçu de l'ancien secteur 4 (désormais secteur 6) |
+| `boites-3d.png` | **la planche des sept emballages** à leurs cotes réelles — six constructeurs fictifs (round 25) |
+| `briefings-secteurs.png` | **les six briefings** de secteur, refaits après le débrandage (round 25) |
+| `planche-pack.png` | **le pack d'images** : dix-neuf images, trois déclinaisons chacune (round 24) |
+| `comparatif-explosion.png` | une grosse explosion **image par image, avant/après** le pack |
+| `captures-secteur-4.png` | le **secteur 4 en jeu**, avant/après, et les objets qui prennent une image |
+| `comparatif-decor.png` | la **mégatour et la paroi** du décor, avant/après (round 24) |
+| `comparatif-heros.png` | le **vaisseau et les ennemis** du secteur 4, avant/après (round 24) |
+| `comparatif-fond.png` | la **toile de fond** (nébuleuse), avant/après (round 24) |
+| `comparatif-bestiaire.png` | **les dix ennemis** des secteurs 5 et 6, avant/après (round 24) |
 | `.nojekyll` | dit à GitHub Pages de servir les fichiers tels quels (ignore Jekyll) |
 
 Une fois publié, l'adresse sera :

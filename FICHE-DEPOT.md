@@ -14,13 +14,13 @@ Dépôt : <https://github.com/JacquesBV/Neo-vanguard> · Glisser-déposer :
 > Champ limité à **350 caractères**. Version courte (recommandée) :
 
 ```
-Shoot them up vertical rétro-évolutif : le moteur graphique change de génération à chaque secteur — Game Boy, 8 bits, 16 bits, arcade Neo Geo, CD-ROM, HD WebGL. Six secteurs, un seul fichier HTML, jouable au clavier, à la souris ou au doigt.
+Shoot them up vertical rétro-évolutif : le moteur graphique change de génération à chaque secteur — Pocket, 8 bits, 16 bits, arcade, CD-ROM, HD WebGL. Six secteurs, un seul fichier HTML, jouable au clavier, à la souris ou au doigt.
 ```
 
 *Variante plus factuelle, si tu préfères :*
 
 ```
-6 secteurs, 6 moteurs de rendu : Game Boy 160×144, 8 bits, 16 bits, arcade Neo Geo, CD-ROM 32 bits, HD WebGL temps réel. Moteur maison, pixel-art procédural, chiptune WebAudio. Fichier index.html unique, sans CDN.
+6 secteurs, 6 moteurs de rendu : Pocket 160×144 (4 teintes), 8 bits, 16 bits, arcade, CD-ROM 32 bits, HD WebGL temps réel. Moteur maison, pixel-art procédural, chiptune WebAudio. Fichier index.html unique, sans CDN.
 ```
 
 ## 2. Site web (About → Website)
@@ -34,7 +34,7 @@ https://jacquesbv.github.io/Neo-vanguard/
 À coller un par un (GitHub en accepte 20 ; ceux-ci sont pertinents et recherchés) :
 
 ```
-shoot-em-up  shmup  shoot-them-up  gameboy  game-boy  nes  snes  sega-master-system
+shoot-em-up  shmup  shoot-them-up  pixel-art  retro  arcade  webgl  chiptune
 webgl  pixijs  canvas  javascript  html5-game  browser-game  retro-gaming
 procedural-generation  chiptune  webaudio  single-file  game-dev
 ```
@@ -67,12 +67,12 @@ NEO VANGUARD v1.1 — 6 secteurs, 6 générations graphiques
 Première version publiée du jeu complet.
 
 **Les 6 générations de rendu**
-- **Secteur 1 — Game Boy (DMG-01)** : 160×144, 4 teintes imposées, trames ordonnées, aucun dégradé.
-- **Secteur 2 — 8 bits+ (NES / Master System)** : 16 couleurs, parallaxe sur deux plans, sprites animés.
-- **Secteur 3 — 16 bits (Super NES / Mega Drive)** : palette étendue, transparences, particules, boss à plusieurs phases.
-- **Secteur 4 — arcade Neo Geo (MVS / AES)** : 32 teintes, grosses sprites, salle d'arcade, monnayeurs,
+- **Secteur 1 — Kodama Pocket (KDM-01)** : 160×144, 4 teintes imposées, trames ordonnées, aucun dégradé.
+- **Secteur 2 — 8 bits+ (Kodama Home System)** : 16 couleurs, parallaxe sur deux plans, sprites animés.
+- **Secteur 3 — 16 bits (Kodama Super 16 / Vega Neon Drive)** : palette étendue, transparences, particules, boss à plusieurs phases.
+- **Secteur 4 — arcade (Arcadia, shockbox)** : 32 teintes, grosses sprites, salle d'arcade, monnayeurs,
   balayage CRT et dérive de teinte magenta — le seul secteur qui « passe à la borne ».
-- **Secteur 5 — 32 bits CD-ROM (Saturn / PlayStation)** : résolution interne réduite, tramage ordonné
+- **Secteur 5 — 32 bits CD-ROM (Nova CD)** : résolution interne réduite, tramage ordonné
   4×4, brouillard de portée, monolithes de données : la génération CD assumée, sans lissage.
 - **Secteur 6 — HD temps réel** : rendu WebGL 2, bloom, aberration chromatique, flou de mouvement,
   particules sur le GPU (4 000 max), poses cuites (4 par sprite), étalonnage par table de couleurs.
@@ -111,4 +111,4 @@ Première version publiée du jeu complet.
    (c'était le résidu de la version téléchargée par proxy, corrigé par le `index.html` du zip).
 4. Dans le jeu : MENU CHEAT → taper `kabrak77` → « CODE ACCEPTÉ — VIES INFINIES ».
 5. Mettre l'adresse dans Discord ou X : l'aperçu social doit montrer la bannière.
-6. Recherche GitHub : taper `shmup gameboy webgl` — le dépôt doit ressortir grâce aux sujets.
+6. Recherche GitHub : taper `shmup retro webgl` — le dépôt doit ressortir grâce aux sujets.
