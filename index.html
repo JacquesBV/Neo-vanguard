@@ -171,7 +171,7 @@ kbd{background:var(--bg2);border:1px solid color-mix(in srgb,var(--acc) 55%,tran
 /* ================= ÉCRAN TITRE & MENU (refonte) ========================= */
 .title-screen{align-items:stretch;justify-content:center;padding:0;background:none}
 .title-col{display:flex;flex-direction:column;justify-content:flex-end;width:100%;min-height:100%;
-  background:linear-gradient(180deg,rgba(2,3,9,0) 30%,rgba(2,3,9,.55) 62%,rgba(2,3,9,.92) 88%);
+  background:linear-gradient(180deg,rgba(2,3,9,0) 22%,rgba(2,3,9,.40) 42%,rgba(2,3,9,.88) 55%,rgba(2,3,9,.995) 62%);
   padding:0 12px 14px}
 .title-logo-zone{flex:1;min-height:34vh}
 .title-menu{width:min(1000px,96vw);margin:0 auto;
@@ -180,7 +180,7 @@ kbd{background:var(--bg2);border:1px solid color-mix(in srgb,var(--acc) 55%,tran
 .menu-head{display:flex;align-items:center;gap:10px;margin:10px 2px 7px}
 .menu-kicker{font-size:10px;letter-spacing:.34em;color:var(--acc)}
 .menu-line{flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 70%,transparent),transparent)}
-.menu-main{display:grid;grid-template-columns:1.35fr 1fr;gap:9px}
+.menu-main{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:9px}
 .menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .btn.big{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px}
 .btn .bi{font-size:19px;line-height:1;color:var(--acc);flex:0 0 auto}
@@ -236,6 +236,10 @@ h1.logo{background:linear-gradient(180deg,#fff 22%,#bcd6f5 52%,#7fa4cc 78%,#e8f6
         <button class="btn prim big" data-act="play">
           <span class="bi">▶</span>
           <span class="bl"><b>Commencer la campagne</b><i>Six secteurs, six consoles · l'histoire d'abord</i></span>
+        </button>
+        <button class="btn big" data-act="play2">
+          <span class="bi">⧉</span>
+          <span class="bl"><b>2 joueurs</b><i>Deux vaisseaux, un seul écran</i></span>
         </button>
         <button class="btn big" data-act="story">
           <span class="bi">▤</span>
@@ -311,6 +315,11 @@ h1.logo{background:linear-gradient(180deg,#fff 22%,#bcd6f5 52%,#7fa4cc 78%,#e8f6
       <tr><td><kbd>Souris</kbd></td><td>Pilotage (option « visée souris » ou toucher)</td></tr>
       <tr><td><kbd>X</kbd> / <kbd>W</kbd></td><td>Changer de set de tir (armes possédées)</td></tr>
       <tr><td><kbd>F</kbd></td><td>Plein écran</td></tr>
+      <tr><td colspan="2" style="padding-top:6px"><b style="color:var(--acc)">À DEUX, SUR LE MÊME CLAVIER</b><br>
+        <b>Joueur 1</b> : <kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> + <kbd>Espace</kbd> (tir) + <kbd>B</kbd> ou <kbd>G</kbd> (bombe).<br>
+        <b>Joueur 2</b> : <kbd>ZQSD</kbd> / <kbd>WASD</kbd> + <kbd>F</kbd> ou <kbd>L</kbd> (tir) + <kbd>G</kbd> ou <kbd>K</kbd> (bombe).
+        Manettes acceptées : la première pilote le joueur 1, la seconde le joueur 2.<br>
+        Scores, vies, bombes et puissance sont <b>séparés</b> ; les crédits et le réglage de l'arsenal restent communs.</td></tr>
     </table>
     <div class="note" style="border-left:2px solid var(--acc);padding-left:10px">
       <b>AU DOIGT (téléphone / tablette)</b><br>
@@ -1608,7 +1617,7 @@ function defaultSave() {
     owned: { ships: ['falcon'], weapons: ['pulse'], upgrades: {}, liveries: ['squadron'], trails: ['pixel'], auras: ['none'], bombs: 2 },
     sel:   { ship: 'falcon', weapon: 'pulse', livery: 'squadron', trail: 'pixel', aura: 'none' },
     opts:  { music: 50, sfx: 70, shake: 100, crt: 'auto', smooth: false, diff: 1, gpu: 'auto',
-             mouse: false, autofire: true, fps: false, preview: 0, speech: 1 },
+             mouse: false, autofire: true, fps: false, preview: 0, speech: 1, twoP: 0 },
     cheats: { found: {}, on: {}, startLevel: 1 }
   };
 }
@@ -2035,12 +2044,19 @@ function initInput() {
   addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; keys[k] = false; });
   addEventListener('blur', () => { for (const k in keys) keys[k] = false; pointer.down = false; });
 }
-function axis() {
+function axis(id) {
   let ax = 0, ay = 0;
-  if (keys.ArrowLeft || keys.q || keys.a) ax -= 1;
-  if (keys.ArrowRight || keys.d) ax += 1;
-  if (keys.ArrowUp || keys.z || keys.w) ay -= 1;
-  if (keys.ArrowDown || keys.s) ay += 1;
+  if (id === 2) {                        /* joueur 2 : ZQSD / WASD, main gauche */
+    if (keys.q || keys.a) ax -= 1;
+    if (keys.d) ax += 1;
+    if (keys.z || keys.w) ay -= 1;
+    if (keys.s) ay += 1;
+  } else {
+    if (keys.ArrowLeft || (!G.twoP && (keys.q || keys.a))) ax -= 1;
+    if (keys.ArrowRight || (!G.twoP && keys.d)) ax += 1;
+    if (keys.ArrowUp || (!G.twoP && (keys.z || keys.w))) ay -= 1;
+    if (keys.ArrowDown || (!G.twoP && keys.s)) ay += 1;
+  }
   const m = Math.hypot(ax, ay) || 1;
   return { x: ax / m, y: ay / m };
 }
@@ -2601,6 +2617,8 @@ const LIGHTS = []; let lIdx = 0;
 for (let i = 0; i < 40; i++) LIGHTS.push({ on: false, x: 0, y: 0, r: 0, col: '#fff', life: 0, max: 1, warm: 0 });
 function addLight(x, y, r, col, life, warm) {
   if (R.era < 2 || R.qual < 0.45) return;
+  /* une coordonnée NaN tuerait createRadialGradient → image perdue : on jette */
+  if (!isFinite(x) || !isFinite(y) || !isFinite(r)) return;
   const l = LIGHTS[lIdx++ % LIGHTS.length];
   l.on = true; l.x = x; l.y = y; l.r = r; l.col = col;
   l.life = l.max = life || 0.45; l.warm = warm || 0;
@@ -3079,20 +3097,178 @@ function drawBackdrop() {
       ctx.stroke();
     }
   }
-  /* cadre autour de la zone de jeu */
-  const t0 = performance.now() * 0.002;
-  ctx.strokeStyle = TH.acc;
-  ctx.globalAlpha = R.era === 0 ? 1 : 0.75;
-  ctx.lineWidth = R.era === 0 ? 6 : R.era === 1 ? 4 : 2;
-  if (R.era === 0) { ctx.strokeRect(PF.x - 4, PF.y - 4, PF.w + 8, PF.h + 8); }
-  else if (R.era >= 2) {
-    ctx.shadowColor = TH.acc; ctx.shadowBlur = 18; ctx.strokeRect(PF.x - 3, PF.y - 3, PF.w + 6, PF.h + 6); ctx.shadowBlur = 0;
-    /* coins lumineux */
-    ctx.strokeStyle = TH.pLite; ctx.lineWidth = 3; const c = 26;
-    const corners = [[PF.x - 3, PF.y - 3, 1, 1], [PF.x + PF.w + 3, PF.y - 3, -1, 1], [PF.x - 3, PF.y + PF.h + 3, 1, -1], [PF.x + PF.w + 3, PF.y + PF.h + 3, -1, -1]];
-    for (const [cx, cy, sx, sy] of corners) { ctx.beginPath(); ctx.moveTo(cx + sx * c, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + sy * c); ctx.stroke(); }
-  } else { ctx.strokeRect(PF.x - 3, PF.y - 3, PF.w + 6, PF.h + 6); }
+  drawMachineFrame();
+}
+
+/* --------------------------------------------- LA CARCASSE DE LA MACHINE ---
+   La zone de jeu n'est pas encadrée par un simple liseré : chaque génération
+   apporte sa carcasse — le boîtier gris de la Game Boy avec sa sérigraphie, le
+   téléviseur beige de la NES, la coque anthracite à barres de la Super NES, la
+   borne d'arcade et son monnayeur, la console CD et sa trappe, l'écran plat.
+   Tout est peint dans la marge : le jeu ne perd pas un pixel.                 */
+function drawMachineFrame() {
+  const sec = G.eraIdx, e = R.era;
+  const m = Math.min(PF.x, PF.y, view.w - (PF.x + PF.w), view.h - (PF.y + PF.h));
+  const room = m >= 9;                       /* assez de marge pour le boîtier */
+  const acc = TH.acc, acc2 = TH.acc2;
+  ctx.save();
   ctx.globalAlpha = 1;
+  if (!room) {                               /* écran plein : liseré discret */
+    ctx.strokeStyle = e === 0 ? TH.livery.gb[3] : acc;
+    ctx.globalAlpha = e === 0 ? 1 : 0.8;
+    ctx.lineWidth = e === 0 ? 4 : 2;
+    ctx.strokeRect(PF.x - 3, PF.y - 3, PF.w + 6, PF.h + 6);
+    ctx.restore();
+    return;
+  }
+  const B = Math.min(m * 0.72, 26);          /* épaisseur du boîtier           */
+  const det = B >= 14;                       /* les détails ont-ils la place ? */
+  const x0 = PF.x - B, y0 = PF.y - B, w0 = PF.w + B * 2, h0 = PF.h + B * 2;
+  const r = e === 0 ? 14 : e === 5 ? 10 : 6;
+  const path = () => {
+    ctx.beginPath();
+    ctx.moveTo(x0 + r, y0);
+    ctx.lineTo(x0 + w0 - r, y0); ctx.quadraticCurveTo(x0 + w0, y0, x0 + w0, y0 + r);
+    ctx.lineTo(x0 + w0, y0 + h0 - r); ctx.quadraticCurveTo(x0 + w0, y0 + h0, x0 + w0 - r, y0 + h0);
+    ctx.lineTo(x0 + r, y0 + h0); ctx.quadraticCurveTo(x0, y0 + h0, x0, y0 + h0 - r);
+    ctx.lineTo(x0, y0 + r); ctx.quadraticCurveTo(x0, y0, x0 + r, y0);
+    ctx.closePath();
+  };
+  /* la coque */
+  const skin = [
+    ['#c8c4b4', '#8e8a7c'],                 /* Game Boy : gris olive         */
+    ['#cfc7b0', '#8d8672'],                 /* NES : beige de téléviseur     */
+    ['#3a3a42', '#1c1c22'],                 /* Super NES : anthracite        */
+    ['#131110', '#020202'],                 /* borne d'arcade : noir brillant */
+    ['#9aa0a8', '#5b6169'],                 /* console CD : gris plastique   */
+    ['#1b2430', '#0a0f16']                  /* écran plat                    */
+  ][clamp(sec, 0, 5)];
+  const gr = ctx.createLinearGradient(0, y0, 0, y0 + h0);
+  gr.addColorStop(0, skin[0]); gr.addColorStop(0.5, skin[1]); gr.addColorStop(1, skin[0]);
+  ctx.fillStyle = gr; path(); ctx.fill();
+  FRAME_SKIN = skin[1];
+  /* la visière : le verre par-dessus */
+  ctx.fillStyle = 'rgba(0,0,0,.55)';
+  ctx.fillRect(PF.x - 3, PF.y - 3, PF.w + 6, PF.h + 6);
+  /* détails selon la machine */
+  ctx.globalAlpha = 0.9;
+  if (sec === 0) {                          /* Game Boy : sérigraphie + LED  */
+    ctx.fillStyle = '#4a4636';
+    ctx.fillRect(x0 + 10, y0 + h0 - B * 0.72, w0 - 20, Math.max(1, B * 0.10));
+    ctx.fillStyle = '#d03030';
+    ctx.beginPath(); ctx.arc(x0 + 16, y0 + h0 - B * 0.34, Math.max(2.5, B * 0.16), 0, TAU); ctx.fill();
+    if (det) { ctx.globalAlpha = 0.5;
+      hText(ctx, 'Nintendo GAME BOY', x0 + 30, y0 + h0 - B * 0.24, { color: '#2c2a22', size: Math.max(8, B * 0.36), weight: 800 }); }
+  } else if (sec === 1) {                   /* NES : téléviseur + aérations  */
+    ctx.fillStyle = 'rgba(0,0,0,.30)';
+    for (let i = 0; i < 6; i++) ctx.fillRect(x0 + 12 + i * 9, y0 + h0 - B * 0.55, 5, B * 0.28);
+    if (det) { ctx.globalAlpha = 0.55;
+      hText(ctx, '8-BIT SYSTEM', x0 + w0 - 12, y0 + h0 - B * 0.24, { color: '#3a3020', size: Math.max(8, B * 0.34), weight: 800, align: 'right' }); }
+  } else if (sec === 2) {                   /* Super NES : les quatre barres */
+    const cols = ['#2b6fd6', '#38a852', '#e8c33a', '#d0433a'];
+    for (let i = 0; i < 4; i++) { ctx.fillStyle = cols[i]; ctx.fillRect(x0 + 12 + i * (B * 0.26), y0 + h0 - B * 0.62, B * 0.20, B * 0.34); }
+    if (det) { ctx.globalAlpha = 0.5;
+      hText(ctx, 'SUPER NINTENDO', x0 + w0 - 12, y0 + h0 - B * 0.30, { color: '#d8d8e0', size: Math.max(8, B * 0.32), weight: 800, align: 'right' }); }
+  } else if (sec === 3) {                   /* borne : monnayeur et bandeau  */
+    ctx.fillStyle = '#c8a24a';
+    ctx.fillRect(x0 + 8, y0 + h0 - B * 0.78, w0 - 16, Math.max(1, B * 0.09));
+    ctx.fillRect(x0 + 8, y0 + 4, w0 - 16, Math.max(1, B * 0.09));
+    ctx.fillStyle = '#0a0806';
+    ctx.fillRect(x0 + 14, y0 + h0 - B * 0.52, B * 0.9, B * 0.3);
+    ctx.fillStyle = '#e0c060';
+    ctx.beginPath(); ctx.arc(x0 + 14 + B * 0.45, y0 + h0 - B * 0.37, Math.max(2, B * 0.10), 0, TAU); ctx.fill();
+    if (det) { ctx.globalAlpha = 0.6;
+      hText(ctx, 'INSERT COIN · MVS', x0 + w0 - 14, y0 + h0 - B * 0.28, { color: '#e0c060', size: Math.max(8, B * 0.32), weight: 800, align: 'right' }); }
+  } else if (sec === 4) {                   /* console CD : trappe + logo    */
+    ctx.fillStyle = '#6f757c';
+    ctx.fillRect(x0 + 10, y0 + B * 0.5, B * 1.5, B * 0.12);
+    ctx.beginPath(); ctx.arc(x0 + B * 0.95, y0 + B * 0.95, B * 0.42, 0, TAU);
+    ctx.fillStyle = '#4a5058'; ctx.fill();
+    if (det) { ctx.globalAlpha = 0.55;
+      hText(ctx, 'CD-ROM SYSTEM', x0 + w0 - 12, y0 + h0 - B * 0.30, { color: '#cfd6dd', size: Math.max(8, B * 0.32), weight: 800, align: 'right' }); }
+  } else {                                  /* écran plat : sigle et pied   */
+    if (det) { ctx.globalAlpha = 0.7;
+      hText(ctx, 'HD', x0 + 12, y0 + h0 - B * 0.26, { color: acc, size: Math.max(9, B * 0.44), weight: 800 });
+      ctx.globalAlpha = 0.35;
+      hText(ctx, 'VECTORIEL TEMPS RÉEL', x0 + w0 - 12, y0 + h0 - B * 0.26, { color: '#cfe6ff', size: Math.max(8, B * 0.30), weight: 700, align: 'right' }); }
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+/* ---------------------------------------------- LE VERRE DE L'ÉCRAN --------
+   Passe posée par-dessus l'image du jeu : coins arrondis, ombre de bord, reflet
+   de verre, et la trame de pixels propre à chaque génération.                */
+let GLASS = null, GLASS_KEY = '', FRAME_SKIN = '#111';
+function drawScreenGlass() {
+  const sec = G.eraIdx, e = R.era;
+  const key = [PF.x, PF.y, PF.w, PF.h, sec].join('|');
+  const r = e === 0 ? 10 : e === 5 ? 8 : 5;
+  ctx.save();
+  /* coins arrondis : la coque mord sur les angles de l'image */
+  ctx.save();
+  ctx.fillStyle = FRAME_SKIN; ctx.globalAlpha = 0.92;
+  ctx.beginPath();
+  ctx.moveTo(PF.x + r, PF.y);
+  ctx.lineTo(PF.x + PF.w - r, PF.y); ctx.quadraticCurveTo(PF.x + PF.w, PF.y, PF.x + PF.w, PF.y + r);
+  ctx.lineTo(PF.x + PF.w, PF.y + PF.h - r); ctx.quadraticCurveTo(PF.x + PF.w, PF.y + PF.h, PF.x + PF.w - r, PF.y + PF.h);
+  ctx.lineTo(PF.x + r, PF.y + PF.h); ctx.quadraticCurveTo(PF.x, PF.y + PF.h, PF.x, PF.y + PF.h - r);
+  ctx.lineTo(PF.x, PF.y + r); ctx.quadraticCurveTo(PF.x, PF.y, PF.x + r, PF.y);
+  ctx.closePath();
+  ctx.rect(PF.x - 2, PF.y - 2, PF.w + 4, PF.h + 4);
+  ctx.fill('evenodd');
+  ctx.restore();
+  /* liseré lumineux : la lumière de l'écran qui bave sur la coque */
+  ctx.save();
+  ctx.strokeStyle = e === 0 ? TH.livery.gb[3] : TH.acc;
+  ctx.globalAlpha = e === 0 ? 0.9 : 0.6;
+  ctx.lineWidth = e === 0 ? 3 : 2;
+  if (e >= 2) { ctx.shadowColor = TH.acc; ctx.shadowBlur = 14; }
+  ctx.strokeRect(PF.x - 1.5, PF.y - 1.5, PF.w + 3, PF.h + 3);
+  ctx.shadowBlur = 0; ctx.restore();
+  /* trame de pixels : grillage LCD en Game Boy, lignes ailleurs */
+  if (GLASS_KEY !== key) {
+    const c = document.createElement('canvas'); c.width = 4; c.height = 4;
+    const g2 = c.getContext('2d');
+    if (sec === 0) { g2.fillStyle = 'rgba(0,0,0,.20)'; for (let i = 0; i < 4; i++) { g2.fillRect(i, 0, 1, 4); g2.fillRect(0, i, 4, 1); } }
+    else if (sec === 1) { g2.fillStyle = 'rgba(0,0,0,.14)'; g2.fillRect(0, 0, 4, 1); g2.fillRect(0, 2, 4, 1); }
+    else if (sec === 2) { g2.fillStyle = 'rgba(0,0,0,.10)'; g2.fillRect(0, 0, 4, 1); }
+    else if (sec === 3) { g2.fillStyle = 'rgba(0,0,0,.13)'; g2.fillRect(0, 0, 4, 1); g2.fillRect(0, 2, 2, 1); }
+    else if (sec === 4) { g2.fillStyle = 'rgba(0,0,0,.09)'; for (let i = 0; i < 4; i += 2) g2.fillRect(i, 0, 1, 1); }
+    GLASS = ctx.createPattern(c, 'repeat'); GLASS_KEY = key;
+  }
+  if (GLASS) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(PF.x + r, PF.y);
+    ctx.lineTo(PF.x + PF.w - r, PF.y); ctx.quadraticCurveTo(PF.x + PF.w, PF.y, PF.x + PF.w, PF.y + r);
+    ctx.lineTo(PF.x + PF.w, PF.y + PF.h - r); ctx.quadraticCurveTo(PF.x + PF.w, PF.y + PF.h, PF.x + PF.w - r, PF.y + PF.h);
+    ctx.lineTo(PF.x + r, PF.y + PF.h); ctx.quadraticCurveTo(PF.x, PF.y + PF.h, PF.x, PF.y + PF.h - r);
+    ctx.lineTo(PF.x, PF.y + r); ctx.quadraticCurveTo(PF.x, PF.y, PF.x + r, PF.y);
+    ctx.closePath(); ctx.clip();
+    const off = sec === 0 ? 0 : (SCROLL.y % 4) * 0.5;
+    ctx.translate(0, off);
+    ctx.fillStyle = GLASS; ctx.fillRect(PF.x - 4, PF.y - 8, PF.w + 8, PF.h + 16);
+    ctx.restore();
+  }
+  /* ombre des bords : l'écran s'enfonce dans son cadre */
+  const gr = ctx.createLinearGradient(PF.x, PF.y, PF.x, PF.y + PF.h * 0.16);
+  gr.addColorStop(0, 'rgba(0,0,0,.34)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gr; ctx.fillRect(PF.x, PF.y, PF.w, PF.h * 0.16);
+  const gb = ctx.createLinearGradient(0, PF.y + PF.h, 0, PF.y + PF.h * 0.86);
+  gb.addColorStop(0, 'rgba(0,0,0,.28)'); gb.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gb; ctx.fillRect(PF.x, PF.y + PF.h * 0.86, PF.w, PF.h * 0.14);
+  /* reflet de verre, en diagonale */
+  ctx.globalAlpha = e === 0 ? 0.055 : 0.045;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(PF.x + PF.w * 0.06, PF.y);
+  ctx.lineTo(PF.x + PF.w * 0.34, PF.y);
+  ctx.lineTo(PF.x, PF.y + PF.h * 0.30);
+  ctx.lineTo(PF.x, PF.y + PF.h * 0.10);
+  ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 
 /* --- post-traitement ------------------------------------------------------ */
@@ -3713,6 +3889,8 @@ function presentFrame() {
     ctx.fillStyle = fg; ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
     ctx.restore();
   }
+  /* 6quinquies. le verre de l'écran par-dessus tout le reste */
+  drawScreenGlass();
   /* 7. flash */
   if (FX.flash > 0.01) {
     ctx.globalAlpha = FX.flash; ctx.fillStyle = FX.flashCol;
@@ -5629,6 +5807,7 @@ function useBuf(b) { PAINT = { g: b.g, K: b.K }; }
 const G = {
   state: 'title',            /* title | play | shop | options | help | credits | pause | over */
   level: 1, eraIdx: 0, score: 0, credits: 0, runCredits: 0, kills: 0, lives: 3, bombs: 2,
+  players: [], twoP: false,  /* un ou deux vaisseaux sur le même écran */
   player: null, enemies: [], bullets: [], ebullets: [], pickups: [], beams: [], shocks: [], props: [],
   stats: null, t: 0, waveT: 0, waveIdx: 0, plan: [], spawned: 0,
   phase: 'intro', phaseT: 0, levelDur: 46, bossWarnT: 0, boss: null,
@@ -5665,37 +5844,126 @@ function computeStats() {
 /* petit espace de noms « D » pour éviter les collisions de noms */
 const D = { lv };
 
+/* ---------------------------- joueurs (1 ou 2) -----------------------------
+   Chaque joueur porte son vaisseau, ses vies, ses bombes, son score et sa
+   puissance de tir. G.players en contient un ou deux ; G.player reste l'alias
+   du premier, si bien que tout le code écrit pour un seul vaisseau fonctionne
+   encore. G.score est le total de l'équipage (l'affichage et les records).   */
+let CUR_OWN = 1;                     /* dernier tireur : à qui revient le point */
+const byId = id => (G.players || []).find(p => p.id === id) || (G.players || [])[0] || G.player;
+function addScore(P, n) {
+  n = Math.round(n);
+  if (P && typeof P.score === 'number') P.score += n;
+  G.score += n;
+}
+function nearestPlayer(x, y) {
+  let best = null, bd = Infinity;
+  for (const p of (G.players || [])) {
+    if (!p.alive || p.out) continue;
+    const d = dist2(x, y, p.x, p.y);
+    if (d < bd) { bd = d; best = p; }
+  }
+  return best;
+}
+/* manettes : la première pilote le joueur 1, la seconde le joueur 2 */
+function padInput(i) {
+  let gp = null;
+  try { gp = navigator.getGamepads ? navigator.getGamepads()[i] : null; } catch (e) { gp = null; }
+  if (!gp || !gp.connected) return null;
+  const bt = k => !!(gp.buttons[k] && gp.buttons[k].pressed);
+  const dz = v => Math.abs(v) > 0.24 ? v : 0;
+  let ax = dz(gp.axes[0] || 0), ay = dz(gp.axes[1] || 0);
+  if (bt(14)) ax = -1; if (bt(15)) ax = 1;
+  if (bt(12)) ay = -1; if (bt(13)) ay = 1;
+  return { x: ax, y: ay, fire: bt(0) || bt(7) || bt(5), bomb: bt(1) || bt(6) || bt(2) };
+}
+
 const TIM = { laser: 1.1 };
 const mult = () => 1 + Math.min(G.combo, 40) * 0.05;
 
 /* ------------------------------ joueur ------------------------------------ */
-function makePlayer() {
+function makePlayer(id) {
   const st = G.stats;
   return {
+    id: id || 1,
     x: L_W / 2, y: L_H - 150, vx: 0, vy: 0, r: 6,
     hp: st.maxHp, maxHp: st.maxHp, shield: st.shields, shMax: st.shields, shCd: 8,
     inv: 2.6, fireCd: 0, power: cheatOn('power') ? 5 : 1, drones: [], droneA: 0, hitT: 0, alive: true,
     trailT: 0, auraT: 0, bank: 0, anim: 0, dead: 0, shieldFx: 0,
+    lives: 0, score: 0, bombs: 0, out: false, bombCd: 0,
   };
 }
-function updatePlayer(dt) {
-  const P = G.player, st = G.stats;
-  if (!P.alive) { P.dead += dt; if (P.dead > 1.6) respawn(); return; }
+/* nouvelle partie : un vaisseau, ou deux en mode 2 joueurs */
+function spawnPlayers() {
+  const d = DIFFS[S.opts.diff];
+  G.players = [];
+  const n = G.twoP ? 2 : 1;
+  for (let i = 1; i <= n; i++) {
+    const P = makePlayer(i);
+    P.lives = d.lives - 1;                       /* vies supplémentaires */
+    P.bombs = clamp(2 + D.lv('bomb'), 0, 5);
+    G.players.push(P);
+  }
+  placePlayers();
+  G.player = G.players[0];
+  G.lives = G.players[0].lives; G.bombs = G.players[0].bombs;
+}
+/* place les vaisseaux côte à côte (ou au centre quand on est seul) */
+function placePlayers() {
+  const n = G.players.length;
+  G.players.forEach((P, i) => {
+    P.x = n === 1 ? L_W / 2 : L_W * (i ? 0.62 : 0.38);
+    P.y = L_H - (n === 1 ? 150 : 132 - i * 26);
+  });
+}
+/* au début de chaque secteur : vaisseau neuf, vies, bombes et score gardés */
+function resetPlayersForLevel() {
+  if (!G.players || !G.players.length) return spawnPlayers();
+  const want = G.twoP ? 2 : 1;
+  while (G.players.length > want) G.players.pop();
+  while (G.players.length < want) {
+    const P = makePlayer(G.players.length + 1);
+    /* le second vaisseau reprend les vies et les bombes du premier */
+    P.lives = Math.max(0, G.lives | 0);
+    P.bombs = clamp(G.bombs | 0, 0, 5);
+    G.players.push(P);
+  }
+  const n = G.players.length;
+  G.players.forEach((P, i) => {
+    P.out = P.lives < 0; P.alive = !P.out; P.dead = 0; P.inv = 2.6; P.vx = P.vy = 0; P.bank = 0;
+    P.maxHp = G.stats.maxHp; P.hp = G.stats.maxHp;
+    P.shMax = G.stats.shields; P.shield = Math.min(G.stats.shields, 1); P.shCd = 8;
+    P.power = cheatOn('power') ? 5 : 1; P.fireCd = 0; P.hitT = 0; P.shieldFx = 0;
+    P.drones = []; P.droneA = 0; P.droneCd = 0;
+  });
+  placePlayers();
+  G.player = G.players[0];
+  G.lives = G.players[0].lives; G.bombs = G.players[0].bombs;
+}
+function updatePlayers(dt) { for (const P of G.players) updatePlayerOne(P, dt); }
+function updatePlayerOne(P, dt) {
+  const st = G.stats;
+  const pad = padInput(P.id - 1);
+  if (!P.alive) {
+    if (P.out) return;
+    P.dead += dt; if (P.dead > 1.6) respawn(P); return;
+  }
   P.anim += dt;
   if (cheatOn('power')) P.power = 5;   /* cheat ARMEMENT MAXIMAL */
-  const ax = axis();
+  const ax = axis(P.id);
   let dx = ax.x, dy = ax.y;
+  if (pad) { dx = clamp(dx + pad.x, -1, 1); dy = clamp(dy + pad.y, -1, 1); }
   /* --- pilotage au doigt : RELATIF ------------------------------------------
      Le doigt ne désigne pas un point où aller, il pousse le vaisseau. On
      reprend donc la position mémorisée à la pose du doigt et on y ajoute le
      déplacement du doigt, à l'échelle du jeu : un centimètre de doigt = un
      centimètre de vaisseau, dans la même direction, sans attraction.        */
   let tx = null, ty = null;
-  if (pointer.drag && pointer.down) {
+  if (P.id === 1 && pointer.drag && pointer.down) {
     const kx = view.w / PF.s, ky = view.h / PF.s;
     tx = pointer.grabX + (pointer.x - pointer.baseX) * kx;
     ty = pointer.grabY + (pointer.y - pointer.baseY) * ky;
-  } else if ((S.opts.mouse || pointer.down) && pointer.active) {
+  } else if (P.id === 1 && (S.opts.mouse || pointer.down) && pointer.active) {
     /* souris : visée absolue au curseur (comportement d'origine) */
     tx = (pointer.x * view.w - PF.x) / PF.s;
     ty = (pointer.y * view.h - PF.y) / PF.s;
@@ -5719,16 +5987,23 @@ function updatePlayer(dt) {
   if (P.hitT > 0) P.hitT -= dt;
   if (P.shieldFx > 0) P.shieldFx -= dt;
 
-  /* tir */
+  /* tir : joueur 1 au clavier « central », joueur 2 à F / L */
   P.fireCd -= dt;
-  const firing = keys[' '] || keys.Enter || keys.Control || keys.Meta || pointer.down || S.opts.autofire;
-  if (firing && P.fireCd <= 0) { fireWeapon(); P.fireCd = st.fireCd; }
+  const firing = (P.id === 2
+      ? (keys.f || keys.l)
+      : (keys[' '] || keys.Enter || keys.Control || keys.Meta || pointer.down))
+    || S.opts.autofire || !!(pad && pad.fire);
+  if (firing && P.fireCd <= 0) { fireWeapon(P); P.fireCd = st.fireCd; }
+  /* bombe : touche propre à chaque joueur, ou bouton de la manette */
+  P.bombCd = Math.max(0, P.bombCd - dt);
+  const bombKey = P.id === 2 ? (keys.g || keys.k) : keys.g;
+  if ((bombKey || (pad && pad.bomb)) && P.bombCd <= 0) { P.bombCd = 0.4; useBomb(P); }
 
   /* drones */
   P.droneA += dt * 2.2;
   P.drones.length = st.drones;
   P.droneCd = (P.droneCd || 0) - dt;
-  if (st.drones > 0 && P.droneCd <= 0) { P.droneCd = 0.22 / st.fireMul; droneFire(); }
+  if (st.drones > 0 && P.droneCd <= 0) { P.droneCd = 0.22 / st.fireMul; droneFire(P); }
 
   /* traînée */
   P.trailT -= dt;
@@ -5761,8 +6036,9 @@ function emitAura(P) {
 }
 
 /* ------------------------------- armes ------------------------------------ */
-function fireWeapon() {
-  const P = G.player, st = G.stats, w = st.weapon.id, p = P.power;
+function fireWeapon(P) {
+  P = P || G.player; CUR_OWN = P.id;
+  const st = G.stats, w = st.weapon.id, p = P.power;
   const dmg = 1 * st.dmgMul, y = P.y - 20;
   const pierce = st.pierce;
   if (w === 'pulse') {
@@ -5800,8 +6076,8 @@ function fireWeapon() {
   if (R.era >= 1) spawnPart({ x: P.x, y: y - 2, vx: 0, vy: -60, life: 0.08, col: TH.pLite, size: 7, glow: R.era >= 2, drag: 0.8 });
   G.stats.shotsFired = (G.stats.shotsFired || 0) + 1;
 }
-function droneFire() {
-  const P = G.player;
+function droneFire(P) {
+  P = P || G.player; CUR_OWN = P.id;
   for (let i = 0; i < P.drones.length; i++) {
     const a = P.droneA + i * TAU / Math.max(1, P.drones.length);
     const dx = P.x + Math.cos(a) * 34, dy = P.y + Math.sin(a) * 30;
@@ -5811,6 +6087,7 @@ function droneFire() {
 }
 function pb(x, y, vx, vy, dmg, type, opt = {}) {
   G.bullets.push({ x, y, vx, vy, dmg, type, pierce: !!opt.pierce, long: !!opt.long, aoe: opt.aoe || 0,
+    owner: opt.owner || CUR_OWN,
     r: type === 'plasma' ? 16 : type === 'rail' ? 13 : 9, hit: null, t: 0, big: !!opt.big, seed: rnd(TAU) });
 }
 function updateBullets(dt) {
@@ -5877,7 +6154,6 @@ function spawnPropCluster(n, y) {
   }
 }
 function updateProps(dt) {
-  const P = G.player;
   for (let i = G.props.length - 1; i >= 0; i--) {
     const p = G.props[i]; p.t += dt;
     if (p.flash > 0) p.flash -= dt;
@@ -5885,19 +6161,20 @@ function updateProps(dt) {
     p.ang = Math.sin(p.t * 1.4) * 0.18;
     if (p.x < 40 || p.x > L_W - 40) p.vx *= -1;
     if (p.y > L_H + 90) { G.props.splice(i, 1); continue; }
-    if (P.alive && dist2(P.x, P.y, p.x, p.y) < (p.r * 0.85 + P.r) ** 2) { hitPlayer(1, true); damageProp(p, 4); }
+    for (const P of G.players)
+      if (P.alive && !P.out && dist2(P.x, P.y, p.x, p.y) < (p.r * 0.85 + P.r) ** 2) { hitPlayer(P, 1, true); damageProp(p, 4); }
   }
 }
 function damageProp(p, dmg, silent) {
   if (!p || p.dead) return;
-  p.hp -= dmg; p.flash = 0.1;
+  p.hp -= dmg; p.flash = 0.1; p.by = CUR_OWN;
   if (!silent && R.era >= 1) spawnPart({ x: p.x + rnd(8, -8), y: p.y + rnd(8, -8), vx: rnd(70, -70), vy: rnd(70, -70), life: 0.22, col: TH.gold, size: 3.5, glow: R.era >= 2 });
   if (p.hp <= 0) breakProp(p);
 }
 function breakProp(p) {
   p.dead = true;
   const i = G.props.indexOf(p); if (i >= 0) G.props.splice(i, 1);
-  G.score += Math.round(p.T.sc * mult());
+  addScore(byId(p.by || 1), p.T.sc * mult());
   G.kills++;
   const big = p.kind === 'barrel';
   explode(p.x, p.y, big ? 2.2 : 1.3, big ? '#ffb03a' : TH.gold, TH.eLite);
@@ -5933,36 +6210,39 @@ function addPickup(x, y, kind, value) {
   G.pickups.push({ x, y, vx: rnd(50, -50), vy: rnd(70, 30), kind, value: value || 0, t: 0, mag: false });
 }
 function updatePickups(dt) {
-  const P = G.player, st = G.stats, mag = st.magnet;
+  const st = G.stats, mag = st.magnet;
   for (let i = G.pickups.length - 1; i >= 0; i--) {
     const k = G.pickups[i]; k.t += dt;
-    const dx = P.x - k.x, dy = P.y - k.y, d = Math.hypot(dx, dy);
-    if (P.alive && d < mag) { k.mag = true; k.vx = lerp2(k.vx, dx / d * 420, dt * 6); k.vy = lerp2(k.vy, dy / d * 420, dt * 6); }
+    const P = nearestPlayer(k.x, k.y);
+    const dx = P ? P.x - k.x : 0, dy = P ? P.y - k.y : 0, d = Math.hypot(dx, dy);
+    if (P && d < mag) { k.mag = true; k.vx = lerp2(k.vx, dx / d * 420, dt * 6); k.vy = lerp2(k.vy, dy / d * 420, dt * 6); }
     else { k.vx *= Math.pow(0.4, dt); k.vy = lerp2(k.vy, 52, dt * 2); }
     k.x += k.vx * dt; k.y += k.vy * dt;
     if (k.y > L_H + 30 || (k.x < -30 || k.x > L_W + 30) && !k.mag) { G.pickups.splice(i, 1); continue; }
-    if (P.alive && d < 34) { collect(k); G.pickups.splice(i, 1); }
+    if (P && d < 34) { collect(k, P); G.pickups.splice(i, 1); }
   }
 }
-function collect(k) {
-  const P = G.player, st = G.stats, d = DIFFS[S.opts.diff];
+function collect(k, P) {
+  if (!P) return;
+  const st = G.stats, d = DIFFS[S.opts.diff];
   switch (k.kind) {
     case 'power':
       if (P.power < 5) { P.power++; popText(P.x, P.y - 26, 'PWR ' + P.power, TH.gold, 9); }
-      else { G.score += 250; popText(P.x, P.y - 26, '+250', TH.gold, 9); }
+      else { addScore(P, 250); popText(P.x, P.y - 26, '+250', TH.gold, 9); }
       Audio2.sfx('power'); break;
     case 'shield':
-      if (P.shield < P.shMax + 1) P.shield++; else { G.score += 200; }
+      if (P.shield < P.shMax + 1) P.shield++; else { addScore(P, 200); }
       popText(P.x, P.y - 26, 'BOUCLIER', TH.shield, 9); Audio2.sfx('pick'); break;
     case 'hull':
-      if (P.hp < P.maxHp) P.hp++; else G.score += 150;
+      if (P.hp < P.maxHp) P.hp++; else addScore(P, 150);
       popText(P.x, P.y - 26, 'COQUE', TH.hull, 9); Audio2.sfx('pick'); break;
     case 'credit': {
       const v = Math.round((k.value || 25) * st.creditMul * d.credit);
       G.credits += v; G.runCredits += v; popText(P.x, P.y - 26, '+' + v, TH.gold, 9);
       Audio2.sfx('coin'); break; }
     case 'bomb':
-      if (G.bombs < 5) G.bombs++; else G.score += 300;
+      if (P.bombs < 5) P.bombs++; else addScore(P, 300);
+      G.bombs = G.players[0].bombs;
       popText(P.x, P.y - 26, 'BOMBE', '#ff7ad9', 9); Audio2.sfx('pick'); break;
   }
 }
@@ -6007,9 +6287,10 @@ function cycleWeapon(dir) {
   saveGame();
   syncTouchUI();
 }
-function useBomb() {
-  if (G.bombs <= 0 || !G.player.alive || G.state !== 'play') return;
-  G.bombs--;
+function useBomb(pl) {
+  const who = pl || G.player;
+  if (!who || who.bombs <= 0 || !who.alive || G.state !== 'play') return;
+  who.bombs--; G.bombs = G.players[0].bombs; CUR_OWN = who.id;
   Audio2.sfx('bomb'); FX.addFlash(0.75, TH.pLite); FX.addShake(18); FX.stop(0.09);
   FX.slow = 0.35; FX.slowT = 0.55;
   for (const b of G.ebullets) {
@@ -6019,7 +6300,7 @@ function useBomb() {
   const dmg = 90 + G.level * 40;
   for (let i = G.enemies.length - 1; i >= 0; i--) damageEnemy(G.enemies[i], dmg, true);
   if (G.boss) bossDamage(dmg * 2.2);
-  const P = G.player;
+  const P = who;
   for (let i = 0; i < 90; i++) {
     const a = rnd(TAU), v = rnd(560, 120);
     spawnPart({ x: P.x, y: P.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(0.9, 0.4), col: pick([TH.pLite, TH.acc, TH.gold]), size: rnd(7, 3), drag: 0.9, glow: true });
@@ -6102,7 +6383,8 @@ function updateEnemies(dt) {
     /* hors écran */
     if (e.y > L_H + 70 || e.x < -70 || e.x > L_W + 70) { G.enemies.splice(i, 1); G.combo = 0; continue; }
     /* collision corps à corps */
-    if (P.alive && dist2(P.x, P.y, e.x, e.y) < (e.r * 0.8 + P.r) ** 2) { hitPlayer(1, true); damageEnemy(e, 3, true); }
+    for (const P of G.players)
+      if (P.alive && !P.out && dist2(P.x, P.y, e.x, e.y) < (e.r * 0.8 + P.r) ** 2) { hitPlayer(P, 1, true); damageEnemy(e, 3, true); }
   }
 }
 function aimedShot(x, y, n, arc, spdMul, s) {
@@ -6120,10 +6402,10 @@ function eb(x, y, ang, speed, kind, opt = {}) {
     kind, t: 0, spin: opt.spin || 0, ang, dmg: s.dmg, steer: opt.steer || 0, col: opt.col || null, seed: rnd(TAU) });
 }
 function updateEBullets(dt) {
-  const P = G.player;
   for (let i = G.ebullets.length - 1; i >= 0; i--) {
     const b = G.ebullets[i]; b.t += dt;
-    if (b.steer && P.alive) { /* missiles à tête chercheuse : virage progressif */
+    const P = nearestPlayer(b.x, b.y);          /* les missiles choisissent leur cible */
+    if (b.steer && P) { /* missiles à tête chercheuse : virage progressif */
       const want = Math.atan2(P.y - b.y, P.x - b.x);
       let d = want - b.ang; while (d > Math.PI) d -= TAU; while (d < -Math.PI) d += TAU;
       b.ang += clamp(d, -b.steer * dt, b.steer * dt);
@@ -6133,17 +6415,21 @@ function updateEBullets(dt) {
     if (b.kind === 'wave') b.x += Math.sin(b.t * 6 + b.seed) * 115 * dt;
     if (b.kind === 'missile' && R.era >= 1 && chance(dt * 30)) spawnPart({ x: b.x, y: b.y, vx: rnd(20, -20), vy: rnd(20, -20), life: 0.25, col: TH.eLite, size: 2.6, glow: R.era >= 2 });
     if (b.x < -50 || b.x > L_W + 50 || b.y < -50 || b.y > L_H + 50) { G.ebullets.splice(i, 1); continue; }
-    if (P.alive && dist2(P.x, P.y, b.x, b.y) < (b.r + P.r) ** 2) { G.ebullets.splice(i, 1); hitPlayer(b.dmg, false); }
+    let touched = false;
+    for (const Q of G.players)
+      if (Q.alive && !Q.out && dist2(Q.x, Q.y, b.x, b.y) < (b.r + Q.r) ** 2) { hitPlayer(Q, b.dmg, false); touched = true; }
+    if (touched) G.ebullets.splice(i, 1);
   }
 }
 /* rayons continus (Hydra / Omega) */
 function updateBeams(dt) {
-  const P = G.player;
   for (let i = G.beams.length - 1; i >= 0; i--) {
     const bm = G.beams[i]; bm.t += dt; bm.hitCd -= dt;
     if (bm.t > bm.dur) { G.beams.splice(i, 1); continue; }
     const act = bm.t > bm.warn;
-    if (act && P.alive && bm.hitCd <= 0 && Math.abs(P.x - bm.x) < bm.w / 2 + P.r) { bm.hitCd = 0.5; hitPlayer(1, false); }
+    if (act) for (const P of G.players) {
+      if (P.alive && !P.out && P.inv <= 0 && Math.abs(P.x - bm.x) < bm.w / 2 + P.r) hitPlayer(P, 1, false);
+    }
     if (act && R.era >= 2 && chance(dt * 20)) spawnPart({ x: bm.x + rnd(bm.w / 2, -bm.w / 2), y: rnd(L_H), vx: 0, vy: -180, life: 0.4, col: TH.eBossLite, size: 3, glow: true });
   }
 }
@@ -6152,9 +6438,9 @@ function updateBeams(dt) {
 function damageEnemy(e, dmg, silent) {
   if (e.dead) return;
   if (e.guardOn && !silent) { /* garde active : les tirs ricochent */
-    if (chance(0.9)) { spawnPart({ x: e.x, y: e.y + e.h / 2, vx: rnd(120, -120), vy: rnd(-40, -140), life: 0.25, col: TH.pLite, size: 3, glow: R.era >= 2 }); return; }
+    if (chance(0.9)) { spawnPart({ x: e.x, y: e.y + (e.h || e.r) / 2, vx: rnd(120, -120), vy: rnd(-40, -140), life: 0.25, col: TH.pLite, size: 3, glow: R.era >= 2 }); return; }
   }
-  e.hp -= dmg; e.flash = 0.09;
+  e.hp -= dmg; e.flash = 0.09; e.by = CUR_OWN;
   if (!silent && R.era >= 1) spawnPart({ x: e.x + rnd(6, -6), y: e.y + rnd(6, -6), vx: rnd(60, -60), vy: rnd(60, -60), life: 0.2, col: TH.eb, size: 3, glow: R.era >= 2 });
   if (e.hp <= 0) killEnemy(e);
 }
@@ -6162,7 +6448,7 @@ function killEnemy(e) {
   e.dead = true;
   const i = G.enemies.indexOf(e); if (i >= 0) G.enemies.splice(i, 1);
   G.kills++; G.combo++; G.comboT = 1.6;
-  G.score += Math.round(e.sc * mult());
+  addScore(byId(e.by || 1), e.sc * mult());
   const big = e.elite || e.kind === 'carrier' || e.kind === 'splitter';
   explode(e.x, e.y, big ? 1.9 : e.r / 12, TH.eMain, TH.eLite);
   /* la mine de l'arcade se venge : sa mort libère une couronne de tirs */
@@ -6209,9 +6495,9 @@ function drawShocks() {
 }
 
 /* -------------------------------- joueur ---------------------------------- */
-function hitPlayer(dmg, contact) {
-  const P = G.player, st = G.stats;
-  if (!P.alive || P.inv > 0) return;
+function hitPlayer(P, dmg, contact) {
+  const st = G.stats;
+  if (!P || !P.alive || P.out || P.inv > 0) return;
   if (cheatOn('god')) {   /* cheat COQUE INDESTRUCTIBLE */
     if (R.era >= 1 && chance(0.35)) spawnPart({ x: P.x + rnd(14, -14), y: P.y + rnd(14, -14), vx: rnd(120, -120), vy: rnd(-40, -160), life: 0.3, col: TH.shield, size: 3, glow: R.era >= 2 });
     return;
@@ -6231,23 +6517,37 @@ function hitPlayer(dmg, contact) {
   Audio2.sfx('hurt'); FX.addShake(11); FX.addFlash(0.3, TH.danger); FX.stop(0.05);
   G.combo = 0;
   explode(P.x, P.y, 1.4, TH.pMain, TH.pLite);
-  if (P.hp <= 0) playerDie();
+  if (P.hp <= 0) playerDie(P);
   else popText(P.x, P.y - 26, 'COQUE ' + P.hp + '/' + P.maxHp, '#ff7a86', 9);
 }
-function playerDie() {
-  const P = G.player;
+function playerDie(P) {
+  P = P || G.player;
   P.alive = false; P.dead = 0; G.noDeath = false;
   explode(P.x, P.y, 3, TH.pMain, TH.pLite);
   Audio2.sfx('explode', { big: true }); Audio2.sfx('gameover');
   FX.addShake(22); FX.addFlash(0.65, TH.white); FX.stop(0.12); FX.slow = 0.3; FX.slowT = 0.8;
-  if (!cheatOn('lives')) G.lives--;   /* cheat VIES INFINIES */
+  if (!cheatOn('lives')) P.lives--;   /* cheat VIES INFINIES */
+  if (P.lives < 0) {
+    P.out = true;
+    if (G.twoP) { popText(P.x, P.y - 40, 'JOUEUR ' + P.id + ' ÉLIMINÉ', TH.pLite, 10); speak('Joueur ' + P.id + ' éliminé.'); }
+  }
+  G.lives = G.players[0].lives;
+  checkGameOver();
 }
-function respawn() {
-  const P = G.player, st = G.stats;
-  if (G.lives < 0) { gameOver(); return; }
-  P.alive = true; P.x = L_W / 2; P.y = L_H - 120; P.vx = P.vy = 0;
+function respawn(P) {
+  P = P || G.player;
+  const st = G.stats;
+  if (P.out || P.lives < 0) { P.out = true; checkGameOver(); return; }
+  const n = G.players.length, i = G.players.indexOf(P);
+  P.alive = true; P.x = n === 1 ? L_W / 2 : L_W * (i ? 0.62 : 0.38); P.y = L_H - (n === 1 ? 120 : 132 - i * 26); P.vx = P.vy = 0;
   P.hp = P.maxHp; P.shield = Math.min(st.shields, 1); P.inv = 3.2; P.power = Math.max(1, P.power - 1);
   G.ebullets.length = 0;
+}
+/* la partie s'arrête quand plus personne ne peut revenir */
+function checkGameOver() {
+  if (G.state !== 'play' && G.state !== 'intro') return;
+  const alive = G.players.some(p => !p.out && (p.alive || p.lives >= 0));
+  if (!alive) gameOver();
 }
 
 /* ================================= BOSS =================================== */
@@ -6280,12 +6580,14 @@ function spawnBoss() {
 }
 function bossPartsAlive(b) { return b.parts.filter(p => !p.dead).length; }
 function bossDamage(dmg, part) {
+  CUR_OWN = CUR_OWN || 1;
   const b = G.boss; if (!b || b.dead) return;
   if (part) { part.hp -= dmg; part.flash = 0.1; if (part.hp <= 0 && !part.dead) { part.dead = true; explode(part.x, part.y, 2, TH.eBoss, TH.eBossLite); Audio2.sfx('explode', { big: true }); FX.addShake(9); } }
   else {
     if (b.parts.length && bossPartsAlive(b) > 0) { bossDamage(dmg * 0.25, nearestPart(b)); return; }
     b.hp -= dmg; b.flash = 0.08;
   }
+  b.by = CUR_OWN;
   if (b.hp <= 0) bossDie();
 }
 function nearestPart(b) {
@@ -6382,10 +6684,12 @@ function updateBoss(dt) {
   }
   /* collision corps */
   const partsAlive = b.parts.length ? bossPartsAlive(b) : 0;
-  if (P.alive && dist2(P.x, P.y, b.x, b.y) < (b.r * 0.6 + P.r) ** 2) hitPlayer(1, true);
+  for (const Q of G.players)
+    if (Q.alive && !Q.out && dist2(Q.x, Q.y, b.x, b.y) < (b.r * 0.6 + Q.r) ** 2) hitPlayer(Q, 1, true);
   /* collisions projectiles joueur → boss / parties */
   for (let i = G.bullets.length - 1; i >= 0; i--) {
     const bu = G.bullets[i];
+    CUR_OWN = bu.owner || CUR_OWN;
     let hit = false;
     for (const p of b.parts) if (!p.dead && dist2(bu.x, bu.y, p.x, p.y) < (p.r * 0.8 + bu.r) ** 2) { bossDamage(bu.dmg * 3.2, p); hit = true; break; }
     if (!hit && dist2(bu.x, bu.y, b.x, b.y) < (b.r * 0.7 + bu.r) ** 2) {
@@ -6398,7 +6702,7 @@ function updateBoss(dt) {
 function bossDie() {
   const b = G.boss; if (!b || b.dead) return;
   b.dead = true; b.deadT = 0;
-  G.score += Math.round(b.sc * mult());
+  addScore(byId(b.by || 1), b.sc * mult());
   G.credits += b.cr; G.runCredits += b.cr;
   popText(b.x, b.y, '+' + fmt(b.cr) + ' CR', TH.gold, 12);
   Audio2.sfx('explode', { big: true }); FX.addFlash(0.8, TH.white); FX.addShake(26); FX.stop(0.14);
@@ -6496,7 +6800,7 @@ function levelComplete() {
 function bankRun() {
   S.credits += G.credits;
   S.kills += G.kills;
-  if (!anyCheat()) {   /* une partie truquée ne bat pas les records */
+  if (!anyCheat() && !G.twoP) {   /* ni une partie truquée ni une partie à deux */
     S.quickBest = Math.max(S.quickBest, G.score);
     S.best = Math.max(S.best, G.score);
     S.maxLevel = Math.max(S.maxLevel, G.level);
@@ -6540,6 +6844,12 @@ const ETHEME = {
   sniper:   { hue: 205, sat: 0.62, light: 0.46 },
 };
 const PTHEME = { crate: { hue: 38, sat: 0.7, light: 0.5 }, barrel: { hue: 12, sat: 0.88, light: 0.5 }, pod: { hue: 192, sat: 0.62, light: 0.5 } };
+/* LE SENS DE VOL — le catalogue de silhouettes est dessiné « nez en haut ».
+   Tout ennemi qui descend vers le joueur doit donc être retourné (180°), sinon
+   il vole en marche arrière : tuyères devant, canon derrière. Les engins
+   symétriques ou dont la pièce mobile est peinte à part (tourelle, porteuse,
+   mine, diviseur) restent tels quels.                                     */
+const ENEMY_FLIP = { drone: 1, stinger: 1, runner: 1, swarmlet: 1, shielder: 1, elite: 1, sniper: 1 };
 const EID = { drone: 'drone', stinger: 'stinger', runner: 'runner', swarmlet: 'swarmlet',
   turret: 'turret', shielder: 'shielder', splitter: 'splitter', carrier: 'carrier', elite: 'elite',
   mine: 'mine', sniper: 'sniper' };
@@ -6553,8 +6863,9 @@ function playerEnergy() {
   LV_ENG = (L.energy && R.era > 0) ? L.energy[Math.min(L.energy.length - 1, R.era - 1)] : null;
   return LV_ENG;
 }
-function drawPlayer() {
-  const P = G.player; if (!P || !P.alive) return;
+function drawPlayers() { for (const P of G.players) drawPlayer(P); }
+function drawPlayer(pl) {
+  const P = pl || G.player; if (!P || !P.alive) return;
   useBuf(R.bufNear);
   const g = PAINT.g, K = PAINT.K, e = R.era;
   if (P.inv > 0) {
@@ -6672,7 +6983,7 @@ function drawEnemies() {
     else if (en.kind === 'carrier') sc = 1 + Math.sin(en.t * 1.6) * 0.01;
     /* ombre/réflexion sur le sol pour les ères basses */
     if (e <= 1) { g.globalAlpha = 0.25; fr(en.x - spriteBox(EID[en.kind]).w * 0.28, en.y + spriteBox(EID[en.kind]).h * 0.36, spriteBox(EID[en.kind]).w * 0.56, 4, TH.bg); g.globalAlpha = 1; }
-    drawSpriteTo(g, K, EID[en.kind], en.x, en.y, { kind: 'enemy', hue: th.hue, sat: th.sat, light: th.light, rot, scale: sc, flash, alpha,
+    drawSpriteTo(g, K, EID[en.kind], en.x, en.y, { kind: 'enemy', hue: th.hue, sat: th.sat, light: th.light, rot: rot + (ENEMY_FLIP[en.kind] ? Math.PI : 0), scale: sc, flash, alpha,
       frame: (Math.floor(en.t * (en.kind === 'swarmlet' ? 16 : en.kind === 'elite' ? 6 : 9) + (en.phase * 4 | 0)) & 3) });
     /* --- pièces animées par-dessus le sprite --- */
     if (en.kind === 'turret') {           /* canon qui balaie */
@@ -7146,7 +7457,7 @@ function drawWorld(dt) {
   drawProps();
   drawEnemies();
   drawBoss();
-  drawPlayer();
+  drawPlayers();
   drawEBullets();
   drawPlayerBullets();
   drawParts();
@@ -7172,9 +7483,58 @@ function showScreen(name) {
 function hideScreens() { showScreen(null); }
 
 /* ------------------------------- HUD en jeu -------------------------------- */
+/* pied de HUD d'un joueur : vies, bombes, puissance, bouclier. `dir` vaut +1
+   pour un bloc qui part du bord gauche, -1 pour un bloc en miroir à droite.   */
+function drawPwrGauge(P, ox, fy, dir, scl) {
+  const e = R.era, pw = 15 * scl, total = pw * 5;
+  const gx = dir > 0 ? ox : ox - total;
+  hudText(ctx, 'PWR', dir > 0 ? gx - 34 : gx + total + 8, fy - 3, e === 0 ? TH.white : '#ffffff', scl,
+    { align: dir > 0 ? 'left' : 'right' });
+  for (let i = 0; i < 5; i++) {
+    const on = P && P.power > i;
+    ctx.fillStyle = on ? TH.gold : (e === 0 ? TH.bg2 : 'rgba(255,255,255,.14)');
+    ctx.fillRect(dir > 0 ? gx + i * pw : gx + total - (i + 1) * pw, fy - 8, pw - 3, 10);
+  }
+}
+function drawHudFooter(P, ox, fy, dir, scl, withPwr) {
+  const e = R.era, two = G.players.length > 1;
+  const col = dir > 0 ? (e === 0 ? TH.pLite : '#ff7ad9') : TH.acc2;
+  let span = 6;
+  if (cheatOn('lives')) {
+    const ix = ox + dir * 6, iy = fy + 1, rr = e === 0 ? 4 : 4.5;
+    ctx.strokeStyle = TH.pLite; ctx.lineWidth = Math.max(1, e === 0 ? 2 : 1.6);
+    ctx.beginPath(); ctx.arc(ix - rr * dir, iy, rr, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(ix + rr * dir, iy, rr, 0, TAU); ctx.stroke();
+    hudText(ctx, 'VIES', ox + dir * 22, fy - 3, TH.pLite, scl, { align: dir > 0 ? 'left' : 'right' });
+    span = 56;
+  } else {
+    const n = Math.max(0, P.lives);
+    for (let i = 0; i < n; i++) {
+      const ix = ox + dir * (4 + i * 15), iy = fy + 2;
+      const c = P.alive ? TH.pMain : TH.pDark;
+      if (e === 0) { ctx.fillStyle = c; ctx.fillRect(ix - 4, iy - 4, 8, 8); ctx.fillStyle = TH.pLite; ctx.fillRect(ix - 2, iy - 2, 4, 4); }
+      else { ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(ix, iy - 6); ctx.lineTo(ix + 6, iy + 5); ctx.lineTo(ix, iy + 2); ctx.lineTo(ix - 6, iy + 5); ctx.closePath(); ctx.fill(); }
+    }
+    span = n * 15 + 8;
+  }
+  const label = (two ? 'P' + P.id + ' BOMBES ' + P.bombs : 'BOMBES ' + P.bombs);
+  hudText(ctx, label, ox + dir * span, fy - 3, col, scl,
+    { align: dir > 0 ? 'left' : 'right', glow: e === 0 ? null : col });
+  if (withPwr) {                       /* les pips de puissance suivent le texte */
+    const pw = 15 * scl, total = pw * 5;
+    const px = dir > 0 ? ox + span + hudW(label, scl) + 12 : ox - span - hudW(label, scl) - 12 - total;
+    for (let i = 0; i < 5; i++) {
+      const on = P.power > i;
+      ctx.fillStyle = on ? TH.gold : (e === 0 ? TH.bg2 : 'rgba(255,255,255,.14)');
+      ctx.fillRect(px + i * pw, fy - 8, pw - 3, 10);
+    }
+  }
+}
 function drawHUD() {
   const e = R.era, P = G.player, st = G.stats, x0 = PF.x, y0 = PF.y, w = PF.w, h = PF.h;
   const acc = TH.acc, white = e === 0 ? TH.white : '#ffffff';
+  const twoP = G.twoP && G.players.length > 1;
+  const P2p = twoP ? G.players[1] : null;
   if (!st) return;
   ctx.save();
   /* bandeau supérieur */
@@ -7188,19 +7548,22 @@ function drawHUD() {
 
   const scl = e >= 2 ? 1 : Math.max(2, Math.round(w / 340));
   const baseline = y0 + barH * 0.68;
-  hudText(ctx, 'SC ' + fmt(G.score), x0 + 8, y0 + 6, white, scl, { glow: acc });
+  hudText(ctx, 'SC ' + fmt(P ? P.score : G.score), x0 + 8, y0 + 6, white, scl, { glow: acc });
+  if (twoP) hudText(ctx, (P2p.out ? 'P2 SORTI · ' : 'SC ') + fmt(P2p.score), x0 + w - 8, y0 + 6, TH.acc2, scl,
+    { align: 'right', glow: TH.acc2 });
   /* --- le vocabulaire de chaque machine -----------------------------------
      · salle d'arcade : on ne dit pas « vies » mais CREDIT, et la borne réclame
        sa pièce quand on ne joue pas ;
      · CD-ROM : on compte les pistes du disque.                            */
-  if (R.sec === 3 && G.state === 'play') {
+  if (R.sec === 3 && G.state === 'play' && !twoP) {
     hudText(ctx, 'CREDIT 01', x0 + w - 8 - hudW('CR 000000', scl) - 12, y0 + 6, TH.eMain, scl, { align: 'right' });
     if (Math.floor(G.t * 1.6) % 4 < 2) hudText(ctx, 'PRESS START', x0 + w / 2, y0 + barH + 26, TH.gold, scl, { align: 'center', glow: TH.gold });
   }
-  if (R.sec === 4 && G.state === 'play') {
+  if (R.sec === 4 && G.state === 'play' && !twoP) {
     hudText(ctx, 'DISQUE 01 · TRACK ' + String(G.level).padStart(2, '0'), x0 + w - 8 - hudW('CR 000000', scl) - 12, y0 + 6, TH.acc, scl, { align: 'right' });
   }
-  hudText(ctx, 'CR ' + fmt(G.credits + S.credits), x0 + w - 8, y0 + 6, TH.gold, scl, { align: 'right', glow: TH.gold });
+  hudText(ctx, 'CR ' + fmt(G.credits + S.credits), twoP ? x0 + w / 2 : x0 + w - 8, y0 + 6, TH.gold, scl,
+    { align: twoP ? 'center' : 'right', glow: TH.gold });
   if (G.combo > 1) hudText(ctx, 'x' + mult().toFixed(2), x0 + w / 2, y0 + 6, TH.acc, scl, { align: 'center', glow: acc });
 
   /* pied de HUD : vies, bombes, puissance */
@@ -7209,37 +7572,22 @@ function drawHUD() {
   ctx.fillStyle = e === 0 ? TH.bg : 'rgba(2,6,14,.72)';
   ctx.fillRect(x0, fy - 8, w, y0 + h - (fy - 8));
   ctx.globalAlpha = 1;
-  let livesSpan = 0;
-  if (cheatOn('lives')) {
-    /* cheat VIES INFINIES : le sigle ∞ remplace les icônes de vie */
-    const ix = x0 + 16, iy = fy + 1, rr = e === 0 ? 4 : 4.5;
-    ctx.strokeStyle = TH.pLite; ctx.lineWidth = Math.max(1, e === 0 ? 2 : 1.6);
-    ctx.beginPath(); ctx.arc(ix - rr, iy, rr, 0, TAU); ctx.stroke();
-    ctx.beginPath(); ctx.arc(ix + rr, iy, rr, 0, TAU); ctx.stroke();
-    hudText(ctx, 'VIES', ix + 18, fy - 3, TH.pLite, scl);
-    livesSpan = 62;
+  if (twoP) {
+    drawHudFooter(G.players[0], x0 + 10, fy, 1, scl, true);
+    drawHudFooter(P2p, x0 + w - 10, fy, -1, scl, true);
   } else {
-    for (let i = 0; i < Math.max(0, G.lives); i++) { /* icônes de vaisseau */
-      const ix = x0 + 10 + i * 15, iy = fy + 2;
-      const c = P && P.alive ? TH.pMain : TH.pDark;
-      if (e === 0) { ctx.fillStyle = c; ctx.fillRect(ix - 4, iy - 4, 8, 8); ctx.fillStyle = TH.pLite; ctx.fillRect(ix - 2, iy - 2, 4, 4); }
-      else { ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(ix, iy - 6); ctx.lineTo(ix + 6, iy + 5); ctx.lineTo(ix, iy + 2); ctx.lineTo(ix - 6, iy + 5); ctx.closePath(); ctx.fill(); }
-    }
-    livesSpan = Math.max(0, G.lives) * 15;
-  }
-  hudText(ctx, 'BOMBES ' + G.bombs, x0 + 10 + livesSpan + 12, fy - 3, e === 0 ? TH.pLite : '#ff7ad9', scl, { glow: e === 0 ? null : '#ff7ad9' });
-  /* jauge de puissance */
-  const pw = 15 * scl, px0 = x0 + w - 10 - pw * 5 - 4;
-  hudText(ctx, 'PWR', px0 - 32, fy - 3, white, scl);
-  for (let i = 0; i < 5; i++) {
-    const on = P && P.power > i;
-    ctx.fillStyle = on ? TH.gold : (e === 0 ? TH.bg2 : 'rgba(255,255,255,.14)');
-    ctx.fillRect(px0 + i * pw, fy - 8, pw - 3, 10);
+    drawHudFooter(P || G.players[0], x0 + 10, fy, 1, scl);
+    drawPwrGauge(P || G.players[0], x0 + w - 10 - 4, fy, 1, scl);
   }
   /* jauge de bouclier */
   if (st.shields > 0) {
     for (let i = 0; i < st.shields; i++) {
       const on = P && P.shield > i, bx = x0 + w - 10 - (st.shields - i) * 13;
+      ctx.fillStyle = on ? TH.shield : 'rgba(255,255,255,.12)';
+      ctx.fillRect(bx, fy - 22, 10, 6);
+    }
+    if (twoP) for (let i = 0; i < st.shields; i++) {
+      const on = P2p.shield > i, bx = x0 + 10 + i * 13;
       ctx.fillStyle = on ? TH.shield : 'rgba(255,255,255,.12)';
       ctx.fillRect(bx, fy - 22, 10, 6);
     }
@@ -7376,26 +7724,134 @@ function drawSidePanels(sideRes) {
 }
 
 /* ---------------------------- bannière d'ère ------------------------------- */
+/* ------------------------------------------------------------- LE BRIEFING --
+   Avant chaque secteur : une fiche de mission qui a l'air d'être sortie de la
+   machine de la génération en cours — badge de console, nuancier réel, plan de
+   vol, hostiles attendus et nom de l'amiral à abattre. Les lignes s'écrivent
+   comme sur un terminal, la barre d'approche se remplit, et le vaisseau prend
+   sa place en bas de l'écran pendant ce temps.                              */
+const SECTINFO = [
+  { lieu: 'SILO 01 · BÉTON ARMÉ',    obj: 'Réveiller la mémoire morte sous le désert.' },
+  { lieu: 'GRILLE 8-BIT · BANLIEUE', obj: 'Rouvrir la ville, bloc par bloc.' },
+  { lieu: 'AXE NÉON · PÉRIPHÉRIQUE', obj: 'Couper la diffusion avant l\'aube.' },
+  { lieu: 'SALLE D\'ARCADE · 24-BIT', obj: 'Payer la partie et reprendre la salle.' },
+  { lieu: 'RUINES CD-ROM · ORBITE',  obj: 'Brûler le disque maître avant réécriture.' },
+  { lieu: 'CŒUR VECTORIEL · HD',     obj: 'Atteindre la singularité et tout réimprimer.' },
+];
+const SECTHOST = [
+  'DRONES · PIQUEURS',
+  'DRONES · PIQUEURS · COUREURS · TOURELLES',
+  'DRONES · PIQUEURS · BOUCLIERS · DIVISEURS',
+  'DRONES · MINES · COUREURS · BOUCLIERS',
+  'DRONES · TIREURS · MINES · DIVISEURS',
+  'TOUT CE QUI RESTE · AMIRAUX MK-2',
+];
+function introTyped(str, a, b, t) {
+  const k = clamp((t - a) / Math.max(0.001, b - a), 0, 1);
+  return String(str).slice(0, Math.round(String(str).length * k));
+}
 function drawEraBanner(t) {
   /* t : 0 → 1 sur la durée de l'intro */
-  const fade = t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 1;
-  const e = R.era;
+  const fade = t < 0.14 ? t / 0.14 : t > 0.88 ? (1 - t) / 0.12 : 1;
+  const e = R.era, sec = G.eraIdx, p = PF, cxm = p.x + p.w / 2;
+  const scl = Math.max(2, Math.round(p.w / 340));         /* échelle du texte   */
+  const info = SECTINFO[sec] || SECTINFO[0];
+  const boss = BOSSES[(G.level - 1) % 4];
+  const mk = Math.floor((G.level - 1) / 4);
   ctx.save();
   ctx.globalAlpha = clamp(fade, 0, 1);
-  ctx.fillStyle = 'rgba(2,4,10,.82)';
-  const bh = Math.min(210, PF.h * 0.34), by = PF.y + PF.h * 0.32;
-  ctx.fillRect(PF.x, by, PF.w, bh);
-  ctx.strokeStyle = TH.acc; ctx.lineWidth = e === 0 ? 4 : 2;
-  ctx.strokeRect(PF.x, by, PF.w, bh);
-  const scl = Math.max(2, Math.round(PF.w / 340));
-  hudText(ctx, 'SECTEUR ' + G.level, PF.x + PF.w / 2, by + 24, TH.white, scl + 1, { align: 'center', glow: TH.acc });
-  hudText(ctx, ERAS[e].name, PF.x + PF.w / 2, by + 62, TH.acc, scl, { align: 'center', glow: TH.acc });
-  hudText(ctx, ERAS[e].tag, PF.x + PF.w / 2, by + 90, TH.acc2, scl - 1, { align: 'center' });
-  /* nuancier de l'ère */
-  const sw = PF.w / 4;
-  const cols = e === 0 ? TH.livery.gb : e === 2 ? [TH.bg, TH.pMain, TH.eMain, TH.acc] : [TH.bg, TH.pMain, TH.eMain, TH.white];
-  for (let i = 0; i < 4; i++) { ctx.fillStyle = cols[i]; ctx.fillRect(PF.x + i * sw, by + bh - 26, sw - 2, 18); }
-  hudText(ctx, 'MOTEUR GRAPHIQUE : ' + ERALIST[e].note.slice(0, 30), PF.x + PF.w / 2, by + bh - 34, TH.ui, scl - 1, { align: 'center' });
+  /* 1. le monde passe au second plan */
+  ctx.fillStyle = 'rgba(2,4,10,.74)';
+  ctx.fillRect(p.x, p.y, p.w, p.h);
+  /* 2. la carte : elle glisse depuis la droite, puis se pose */
+  const ease = t < 0.22 ? 1 - Math.pow(1 - t / 0.22, 3) : 1;
+  const bh = Math.min(p.h * 0.74, 476);
+  const bw = p.w;
+  const bx = p.x + (1 - ease) * p.w * 0.35, by = p.y + p.h * 0.13;
+  ctx.save();
+  ctx.translate(bx + bw / 2, by + bh / 2);
+  ctx.globalAlpha = clamp(fade, 0, 1) * (0.55 + 0.45 * ease);
+  ctx.scale(0.94 + 0.06 * ease, 0.94 + 0.06 * ease);
+  ctx.translate(-(bx + bw / 2), -(by + bh / 2));
+  /* fond de la fiche */
+  const bg = ctx.createLinearGradient(0, by, 0, by + bh);
+  bg.addColorStop(0, 'rgba(8,12,22,.96)'); bg.addColorStop(1, 'rgba(3,5,12,.97)');
+  ctx.fillStyle = bg; ctx.fillRect(bx, by, bw, bh);
+  /* bandeau haut : l'écusson de la machine */
+  const hh = Math.max(20, bh * 0.085);
+  ctx.fillStyle = e === 0 ? '#0f380f' : 'rgba(255,255,255,.06)';
+  ctx.fillRect(bx, by, bw, hh);
+  ctx.fillStyle = TH.acc; ctx.fillRect(bx, by + hh - 3, bw, 3);
+  hudText(ctx, ERAS[sec].sys, bx + 10, by + hh * 0.5, TH.acc, scl, { align: 'left' });
+  hudText(ctx, 'SECTEUR ' + G.level + ' / ' + MAX_LEVEL, bx + bw - 10, by + hh * 0.5, e === 0 ? TH.livery.gb[3] : TH.white, scl, { align: 'right' });
+  /* 3. le nuancier réel de la machine */
+  const sw = [];
+  if (e === 0) { for (const c of TH.livery.gb) sw.push(c); }
+  else { for (const c of [TH.bg, TH.bg2, TH.pMain, TH.pLite, TH.eMain, TH.eLite, TH.eBossLite, TH.acc]) if (!sw.includes(c)) sw.push(c); }
+  const swh = Math.max(7, bh * 0.024), swy = by + hh + Math.max(4, bh * 0.018);
+  const swW = bw / sw.length;
+  for (let i = 0; i < sw.length; i++) { ctx.fillStyle = sw[i]; ctx.fillRect(bx + i * swW, swy, swW - 1.5, swh); }
+  /* 4. le nom du secteur */
+  const ny = swy + swh + Math.max(16, bh * 0.085);
+  hudText(ctx, ERAS[sec].name, cxm, ny, e === 0 ? TH.livery.gb[3] : TH.acc, scl + 1, { align: 'center', glow: TH.acc });
+  ctx.fillStyle = e === 0 ? TH.livery.gb[2] : TH.acc2;
+  ctx.globalAlpha = ctx.globalAlpha * 0.85;
+  ctx.fillRect(cxm - bw * 0.30, ny + scl * 5, bw * 0.60, Math.max(1, scl * 0.6));
+  ctx.globalAlpha = clamp(fade, 0, 1) * (0.55 + 0.45 * ease);
+  hText(ctx, ERAS[sec].tag, cxm, ny + scl * 5 + Math.max(14, bh * 0.042), { color: TH.ui, size: Math.max(9, bw * 0.030), align: 'center', weight: 700 });
+  /* 5. l'affiche : le chasseur et l'hostile du secteur, tirés des impressions */
+  const iy = ny + Math.max(44, bh * 0.135), ih = Math.max(34, bh * 0.155);
+  const hero = boxShipSprite(sec, 0), foe = boxShipSprite(sec, 1);
+  const hwf = ih * (hero.W / hero.H), hwfo = ih * (foe.W / foe.H);
+  ctx.save();
+  ctx.globalAlpha = ctx.globalAlpha * clamp((t - 0.20) / 0.16, 0, 1);
+  ctx.drawImage(hero.c, cxm - bw * 0.28 - hwf / 2, iy - ih / 2, hwf, ih);
+  ctx.save(); ctx.translate(cxm + bw * 0.28, iy); ctx.rotate(Math.PI);
+  ctx.drawImage(foe.c, -hwfo / 2, -ih / 2, hwfo, ih); ctx.restore();
+  hText(ctx, 'VS', cxm, iy + ih * 0.14, { color: TH.acc2, size: Math.max(10, bw * 0.036), align: 'center', weight: 800, glow: TH.acc });
+  ctx.restore();
+  /* 6. les lignes de mission, écrites comme sur un terminal */
+  const ly0 = iy + Math.max(30, bh * 0.105);
+  const lh = Math.max(14, bh * 0.046);
+  const lx = bx + 12, vx = bx + 12 + Math.max(54, bw * 0.235), maxW = bw - (vx - bx) - 13;
+  const rows = [
+    ['LIEU', info.lieu, 0.26, 0.52],
+    ['OBJECTIF', info.obj, 0.34, 0.60],
+    ['HOSTILES', SECTHOST[sec] || '', 0.44, 0.70],
+    ['CIBLE', boss.name + (mk ? ' MK-' + (mk + 1) : '') + ' · ' + Math.round(boss.hp / 10) + ' T', 0.54, 0.80],
+  ];
+  let ry = ly0;
+  const ink = e === 0 ? TH.livery.gb[3] : TH.white;
+  for (let i = 0; i < rows.length; i++) {
+    const [lab, val, a, b] = rows[i];
+    let fs = Math.max(8.5, Math.min(bw * 0.028, lh * 0.62));
+    ctx.font = '500 ' + fs + 'px ui-monospace, monospace';
+    let lines = wrapH(ctx, val, maxW, fs, 500);
+    while (lines.length > 2 && fs > 7.5) { fs -= 0.4; lines = wrapH(ctx, val, maxW, fs, 500); }
+    const typed = introTyped(val, a, b, t);
+    hText(ctx, lab, lx, ry, { color: TH.acc2, size: fs, weight: 700 });
+    let used = 0;
+    for (let k = 0; k < lines.length; k++) {
+      const piece = typed.slice(used, used + lines[k].length);
+      hText(ctx, piece, vx, ry + k * fs * 1.22, { color: ink, size: fs, weight: 500 });
+      used += lines[k].length + 1;
+    }
+    ry += Math.max(lh, lines.length * fs * 1.28) + lh * 0.30;
+  }
+  /* 7. barre d'approche */
+  const pby = by + bh - Math.max(20, bh * 0.075);
+  ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.fillRect(bx + 12, pby, bw - 24, Math.max(4, bh * 0.014));
+  ctx.fillStyle = TH.acc; ctx.fillRect(bx + 12, pby, (bw - 24) * clamp(t * 1.06, 0, 1), Math.max(4, bh * 0.014));
+  const fsBar = Math.max(8.5, Math.min(bw * 0.026, lh * 0.56));
+  if (Math.floor(t * 14) % 2 === 0)
+    hText(ctx, 'APPROCHE DU SECTEUR', cxm, pby - Math.max(6, bh * 0.022), { color: TH.ui, size: fsBar, align: 'center', weight: 700 });
+  /* cadre : plus épais en 8 bits, lumineux en HD */
+  ctx.strokeStyle = e === 0 ? TH.livery.gb[3] : TH.acc;
+  ctx.lineWidth = e === 0 ? 4 : e >= 2 ? 2 : 2;
+  if (e >= 3) { ctx.shadowColor = TH.acc; ctx.shadowBlur = 14; }
+  ctx.strokeRect(bx, by, bw, bh);
+  ctx.shadowBlur = 0;
+  ctx.restore();
   ctx.restore();
 }
 
@@ -7533,11 +7989,18 @@ function buildOptions() {
     });
   };
   seg('diff', 'Difficulté', 'Ennemis plus résistants et plus agressifs', DIFFS.map((d, i) => d.name),
-    () => { toast('Difficulté : ' + DIFFS[S.opts.diff].name); if (G.state === 'play') { G.lives = Math.max(1, G.lives + (DIFFS[S.opts.diff].lives - 3)); } });
+    () => {
+      toast('Difficulté : ' + DIFFS[S.opts.diff].name);
+      if (G.state === 'play')
+        for (const P of G.players) P.lives = Math.max(1, P.lives + (DIFFS[S.opts.diff].lives - 3));
+    });
   const sw = (key, label, hint, after) => {
     const d = add(`<div><label>${label}<span class="hint">${hint}</span></label></div><div class="ctl"><button class="sw${o[key] ? ' on' : ''}">${o[key] ? 'OUI' : 'NON'}</button></div>`);
     d.querySelector('button').onclick = () => { o[key] = o[key] ? 0 : 1; Audio2.sfx('ui'); saveGame(); buildOptions(); if (after) after(); };
   };
+  sw('twoP', '2 joueurs', 'Deux vaisseaux sur le même écran, dès la prochaine mission', () => {
+    toast(o.twoP ? '2 joueurs : activé (prochaine campagne)' : '1 joueur');
+  });
   sw('speech', 'Annonces vocales', 'Voix de synthèse pour les alertes de secteur');
   sw('mouse', 'Visée souris', 'Le vaisseau suit le curseur (clavier prioritaire)');
   sw('autofire', 'Tir automatique', 'Tir continu sans maintenir la touche');
@@ -7681,7 +8144,9 @@ function showVictoryScreen() {
   const d = DIFFS[S.opts.diff];
   $('#vicSub').textContent = '6 secteurs traversés · difficulté ' + d.name;
   $('#vicStats').innerHTML = `
-    <div class="opt"><label>Score final</label><b style="color:#ffe066">${fmt(G.score)}</b></div>
+    <div class="opt"><label>Score d'équipage</label><b style="color:#ffe066">${fmt(G.score)}</b></div>
+    ${G.twoP && G.players.length > 1 ? `<div class="opt"><label>Joueur 1</label><b style="color:#ffe066">${fmt(G.players[0].score)}</b></div>
+    <div class="opt"><label>Joueur 2</label><b style="color:#ff5fa2">${fmt(G.players[1].score)}</b></div>` : ''}
     <div class="opt"><label>Meilleur score</label><b>${fmt(S.best)}</b></div>
     <div class="opt"><label>Ennemis détruits</label><b>${fmt(G.kills)}</b></div>
     <div class="opt"><label>Boss abattus</label><b>6</b></div>
@@ -7698,8 +8163,13 @@ function buildOverScreen() {
   const best = anyCheat() ? S.best : Math.max(S.best, G.score);
   $('#overTitle').textContent = G.level >= 5 ? 'ASYMPTOTE ATTEINTE' : 'MISSION ÉCHOUÉE';
   $('#overSub').textContent = G.level >= 5 ? 'Aucun secteur ne vous a arrêté' : 'Vaisseau détruit — secteur ' + G.level;
+  const duel = G.twoP && G.players.length > 1
+    ? `<div class="opt"><label>Joueur 1</label><b style="color:#ffe066">${fmt(G.players[0].score)}</b></div>
+       <div class="opt"><label>Joueur 2</label><b style="color:#ff5fa2">${fmt(G.players[1].score)}</b></div>`
+    : '';
   $('#overStats').innerHTML = `
-    <div class="opt"><label>Score final</label><b style="color:#ffe066">${fmt(G.score)}</b></div>
+    <div class="opt"><label>Score d'équipage</label><b style="color:#ffe066">${fmt(G.score)}</b></div>
+    ${duel}
     <div class="opt"><label>Meilleur score</label><b>${fmt(best)}</b></div>
     <div class="opt"><label>Secteur atteint</label><b>${G.level} (${ERAS[G.eraIdx].sys})</b></div>
     <div class="opt"><label>Ennemis détruits</label><b>${fmt(G.kills)}</b></div>
@@ -7725,7 +8195,7 @@ function toggleFullscreen() {
 
 
 /* ========================= 5. BOUCLE, ÉTATS & DÉMARRAGE =================== */
-const INTRO_DUR = 2.6;
+const INTRO_DUR = 3.4;
 const MAX_LEVEL = 6;          /* la campagne compte six secteurs, six consoles */
 let introT = 0, sideRes = 0, autoSaveT = 0;
 
@@ -7992,17 +8462,27 @@ function drawStory() {
    Le titre n'est plus un panneau : c'est une affiche peinte sur le canvas, en
    chrome, avec la frise des six générations. Le menu DOM se pose dessous.   */
 let titleT = 0;
+/* bas de la zone libre de l'écran titre, en pixels du canvas : la feuille de
+   style décide où commence le menu, le moteur ne peint que ce qu'il y a au-dessus */
+function titleZoneBottom() {
+  const el = document.querySelector('.title-logo-zone');
+  if (!el || !el.getBoundingClientRect) return PF.y + PF.h * 0.62;
+  const r = el.getBoundingClientRect();
+  if (!r.height) return PF.y + PF.h * 0.62;
+  return clamp(r.bottom, PF.y + 150, PF.y + PF.h);
+}
 function drawTitleArt() {
-  const x = PF.x, y = PF.y, w = PF.w, h = PF.h, t = titleT;
+  const x = PF.x, y = PF.y, w = PF.w, t = titleT;
+  const h = Math.max(180, titleZoneBottom() - y);   /* hauteur de l'affiche   */
   ctx.save();
   /* bandeau sombre en haut pour détacher le logo */
-  const gr = ctx.createLinearGradient(0, y, 0, y + h * 0.62);
+  const gr = ctx.createLinearGradient(0, y, 0, y + h);
   gr.addColorStop(0, 'rgba(2,4,12,.92)'); gr.addColorStop(0.62, 'rgba(2,4,12,.35)'); gr.addColorStop(1, 'rgba(2,4,12,0)');
-  ctx.fillStyle = gr; ctx.fillRect(x, y, w, h * 0.62);
+  ctx.fillStyle = gr; ctx.fillRect(x, y, w, h);
   const cxm = x + w / 2;
-  const sizeA = Math.max(18, Math.min(w * 0.075, h * 0.045));
-  const sizeB = Math.max(34, Math.min(w * 0.155, h * 0.095));
-  const lyA = y + h * 0.15, lyB = lyA + sizeB * 0.92;
+  const sizeA = Math.max(18, Math.min(w * 0.075, h * 0.105));
+  const sizeB = Math.max(34, Math.min(w * 0.155, h * 0.225));
+  const lyA = y + h * 0.20, lyB = lyA + sizeB * 0.92;
   /* --- le logo, lettre à lettre, en chrome --- */
   const chrome = (txt, size, ly, spacing) => {
     ctx.save();
@@ -8040,7 +8520,7 @@ function drawTitleArt() {
   chrome('VANGUARD', sizeB, lyB, sizeB * 0.03);
   /* --- frise des six consoles --- */
   const fy = lyB + sizeB * 0.62;
-  const bw = Math.min(w * 0.13, h * 0.075), gap = bw * 0.28;
+  const bw = Math.min(w * 0.13, h * 0.17), gap = bw * 0.28;
   const total = bw * 6 + gap * 5;
   let bx = cxm - total / 2;
   for (let i = 0; i < 6; i++) {
@@ -8072,10 +8552,11 @@ function drawTitleArt() {
     'LA MÉMOIRE DU JEU EST ATTAQUÉE. REPRENDS-LA.',
     'TON VAISSEAU CHANGE D\'ÉPOQUE, PAS DE COCKPIT.'
   ][Math.floor(t / 4.5) % 3];
-  hText(ctx, accroche, cxm, fy + bw * 0.62 + Math.max(20, h * 0.035), { color: TH.acc2, size: Math.max(10, w * 0.019), align: 'center', weight: 700, glow: 'rgba(0,0,0,0)' });
-  /* --- la fiche du jour, en bas --- */
-  if (S.best > 0)
-    hText(ctx, 'MEILLEUR SCORE ' + fmt(S.best) + '  ·  SECTEUR MAX ' + S.maxLevel + '/6', cxm, y + h * 0.955,
+  const accY = fy + bw * 0.62 + Math.max(18, h * 0.075);
+  hText(ctx, accroche, cxm, Math.min(accY, y + h - 26), { color: TH.acc2, size: Math.max(10, w * 0.019), align: 'center', weight: 700, glow: 'rgba(0,0,0,0)' });
+  /* --- la fiche du jour, juste sous l'accroche (jamais dans le menu) --- */
+  if (S.best > 0 && accY + 26 < y + h)
+    hText(ctx, 'MEILLEUR SCORE ' + fmt(S.best) + '  ·  SECTEUR MAX ' + S.maxLevel + '/6', cxm, Math.min(accY + 26, y + h - 6),
       { color: 'rgba(190,205,230,.8)', size: Math.max(9, w * 0.014), align: 'center' });
   ctx.restore();
 }
@@ -8084,9 +8565,8 @@ function drawTitleArt() {
 function newRun() {
   const d = DIFFS[S.opts.diff];
   G.score = 0; G.kills = 0; G.combo = 0; G.comboT = 0; G.runCredits = 0; G.credits = 0;
-  G.lives = d.lives - 1;                       /* vies supplémentaires */
-  G.bombs = clamp(2 + D.lv('bomb'), 0, 5);
   G.noDeath = true; G.stats = computeStats();
+  spawnPlayers();                              /* un ou deux vaisseaux */
   S.runs = (S.runs | 0) + 1;
   /* cheat SAUT DE SECTEUR : la mission peut démarrer plus loin */
   const startAt = cheatFound('jump') ? clamp(S.cheats.startLevel | 0 || 1, 1, MAX_LEVEL) : 1;
@@ -8102,7 +8582,7 @@ function startLevel(level) {
   computeTheme(G.eraIdx, S.sel.livery);
   setEra(ERAS[G.eraIdx].sty);
   G.stats = computeStats();
-  G.player = makePlayer();
+  resetPlayersForLevel();
   G.enemies.length = 0; G.bullets.length = 0; G.ebullets.length = 0; G.pickups.length = 0; G.beams.length = 0; SHOCK.length = 0; G.props.length = 0; G.propT = 6;
   for (const p of parts) p.on = false; for (const f of FTs) f.on = false;
   G.boss = null; G.plan = buildPlan(level); G.waveIdx = 0; G.waveT = 0; G.phase = 'waves';
@@ -8143,282 +8623,750 @@ const BOXKIND = {
 };
 
 /* palette de la jaquette : elle suit la machine annoncée */
+/* =============================================================================
+   CATALOGUE — LES BOÎTES DE JEU EN VRAIE 3D
+   -----------------------------------------------------------------------------
+   Un mini moteur orthographique (lacet + tangage) dessine des volumes réels :
+   face avant imprimée, tranche, dessus, arêtes vives, pli du carton, ombre
+   portée, reflet de sol. Chaque face reçoit une impression cuite une fois puis
+   plaquée sur son quadrilatère par transformation affine — exact en projection
+   orthographique, donc la perspective ne « bave » jamais.
+   Le support (cartouche, disque, boîtier) est un second volume, posé devant.
+   ========================================================================= */
+const BOX3D = {
+  gb:     { w: 124, h: 124, d: 30,  paper: '#f2efe4', edge: '#cdc8b8' },   /* DMG-01       */
+  nes:    { w: 133, h: 188, d: 26,  paper: '#101216', edge: '#33373f' },   /* NES          */
+  snes:   { w: 136, h: 194, d: 32,  paper: '#151a30', edge: '#3a4a7a' },   /* Super NES    */
+  neogeo: { w: 170, h: 215, d: 42,  paper: '#0b0906', edge: '#4a3a12' },   /* AES shockbox */
+  psx:    { w: 142, h: 125, d: 14,  paper: '#0e1014', edge: '#2b2f38' },   /* jewel front  */
+  hd:     { w: 136, h: 172, d: 15,  paper: '#121722', edge: '#2c3746' },   /* boîtier HD   */
+};
+const BOX_YAW = -0.44, BOX_PITCH = 0.24;          /* le cadrage « photo produit » */
+const BOX_FAR = 3.6;              /* distance caméra en multiples de la boîte */
+const BOX_LIGHT = (() => {                        /* lumière clé, depuis la gauche */
+  const v = [-0.46, -0.60, 0.66], n = Math.hypot(v[0], v[1], v[2]);
+  return [v[0] / n, v[1] / n, v[2] / n];
+})();
+
+/* palettes de jaquette : elles suivent la machine annoncée */
 function coverCol(sec) {
   switch (sec) {
-    case 0: { const gb = (TH.livery && TH.livery.gb) || ['#0f380f','#306230','#8bac0f','#9bbc0f'];
-      return { sky: gb[3], sky2: gb[2], sky3: gb[1], far: gb[1], near: gb[0], hull: gb[3], ink: gb[0], acc: gb[0], glow: gb[3], flat: true }; }
-    case 1: return { sky: PAL1[2], sky2: PAL1[3], sky3: PAL1[4], far: PAL1[4], near: PAL1[1], hull: PAL1[7], ink: PAL1[0], acc: PAL1[15], glow: PAL1[10], flat: true };
-    case 2: return { sky: PAL2[2], sky2: PAL2[3], sky3: PAL2[5], far: PAL2[4], near: PAL2[1], hull: PAL2[7], ink: PAL2[0], acc: PAL2[15], glow: PAL2[6] };
-    case 3: return { sky: PAL3[1], sky2: PAL3[17], sky3: PAL3[19], far: PAL3[4], near: PAL3[0], hull: PAL3[13], ink: PAL3[0], acc: PAL3[23], glow: PAL3[12] };
-    case 4: return { sky: PAL4[1], sky2: PAL4[2], sky3: PAL4[29], far: PAL4[3], near: PAL4[0], hull: PAL4[7], ink: PAL4[0], acc: PAL4[23], glow: PAL4[12] };
-    default: return { sky: '#050a18', sky2: '#0d1730', sky3: '#2a1b5e', far: '#12224a', near: '#03040a', hull: '#dff6ff', ink: '#03040a', acc: '#ff5fa2', glow: '#4be7ff' };
+    case 0: { const gb = (TH.livery && TH.livery.gb) || ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'];
+      return { sky: gb[3], sky2: gb[2], sky3: gb[1], far: gb[1], mid: gb[1], near: gb[0],
+        hull: gb[3], ink: gb[0], acc: gb[0], glow: gb[3], warm: gb[2], flat: true, tones: 4 }; }
+    case 1: return { sky: PAL1[2], sky2: PAL1[3], sky3: PAL1[4], far: PAL1[4], mid: PAL1[1], near: PAL1[0],
+      hull: PAL1[7], ink: PAL1[0], acc: PAL1[15], glow: PAL1[10], warm: PAL1[13], flat: true, tones: 7 };
+    case 2: return { sky: PAL2[2], sky2: PAL2[3], sky3: PAL2[5], far: PAL2[4], mid: PAL2[1], near: PAL2[0],
+      hull: PAL2[7], ink: PAL2[0], acc: PAL2[15], glow: PAL2[6], warm: PAL2[12], tones: 15 };
+    case 3: return { sky: PAL3[2], sky2: PAL3[17], sky3: PAL3[19], far: PAL3[6], mid: PAL3[3], near: PAL3[0],
+      hull: PAL3[13], ink: PAL3[0], acc: PAL3[23], glow: PAL3[12], warm: PAL3[21], tones: 31 };
+    case 4: return { sky: '#04070f', sky2: '#0c1830', sky3: '#1c2f56', far: '#16224a', mid: '#0b1226', near: '#03050c',
+      hull: '#cfd9e8', ink: '#03050c', acc: '#8d9ec7', glow: '#ffbe6b', warm: '#ff9a3d', tones: 15, poly: true };
+    default: return { sky: '#03060f', sky2: '#0a142c', sky3: '#241a5c', far: '#12224a', mid: '#0a1330', near: '#020409',
+      hull: '#eaf6ff', ink: '#020409', acc: '#4be7ff', glow: '#4be7ff', warm: '#ff5fa2', tones: 255 };
   }
 }
 
-/* ---------------------------------------------------------------- jaquette --
-   L'illustration de couverture : horizon, silhouette du vaisseau amiral, et
-   le VANGUARD au premier plan. Elle est peinte à la taille demandée, donc
-   lisible aussi bien sur une vignette que sur une pleine page.              */
-function drawCoverArt(g, x, y, w, h, sec) {
-  const C = coverCol(sec);
-  srand(1000 + sec * 77);
-  const gb = C.flat;                     /* Game Boy et NES : pas de dégradé */
-  /* 1. ciel, par bandes : les vieilles jaquettes étaient sérigraphiées */
-  if (gb) {
-    const bands = 5;
-    for (let i = 0; i < bands; i++) {
-      const t = i / (bands - 1);
-      const col = i === 0 ? C.sky : i === 1 ? C.sky2 : i === 2 ? C.sky2 : i === 3 ? C.sky3 : C.sky3;
-      g.fillStyle = col; g.fillRect(x, y + (h * i) / bands, w, h / bands + 1);
-      if (t > 0.2) {                     /* trame ordonnée entre les bandes */
-        g.fillStyle = C.far; g.globalAlpha = 0.5;
-        for (let py = y + (h * i) / bands; py < y + (h * (i + 1)) / bands; py += 4)
-          for (let px = x + ((i % 2) * 2); px < x + w; px += 4) g.fillRect(px, py, 2, 2);
-        g.globalAlpha = 1;
-      }
-    }
-  } else {
-    const gr = g.createLinearGradient(0, y, 0, y + h);
-    gr.addColorStop(0, C.sky); gr.addColorStop(0.45, C.sky2); gr.addColorStop(1, C.sky3);
-    g.fillStyle = gr; g.fillRect(x, y, w, h);
-  }
-  /* 2. étoiles */
-  const n = gb ? 26 : 60;
+/* ---------------------------------------------------------------- outils --- */
+/* grain d'impression : trame déterministe, très légère, sur toute la surface  */
+function boxGrain(g, w, h, amt, seed) {
+  srand(seed | 0);
+  g.save(); g.globalAlpha = amt;
+  const n = Math.round(w * h / 320);
   for (let i = 0; i < n; i++) {
-    const sx = x + srandNext() * w, sy = y + srandNext() * h * 0.72;
-    const sz = gb ? (i % 5 === 0 ? 2.4 : 1.6) : (srandNext() < 0.2 ? 2.2 : 1.2);
-    g.fillStyle = gb ? C.hull : (i % 7 === 0 ? C.acc : C.hull);
-    g.globalAlpha = gb ? 0.9 : (0.35 + srandNext() * 0.6);
-    g.fillRect(sx, sy, sz, sz);
-  }
-  g.globalAlpha = 1;
-  /* 3. astres : disque du soleil (arcade) ou planète annelée (CD, HD) */
-  if (sec === 3) {
-    const cx = x + w * 0.72, cy = y + h * 0.34, r = w * 0.26;
-    g.fillStyle = C.acc; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
-    g.fillStyle = C.glow; g.globalAlpha = 0.5; g.beginPath(); g.arc(cx, cy, r * 0.68, 0, TAU); g.fill(); g.globalAlpha = 1;
-    for (let i = 0; i < 7; i++) { g.fillStyle = C.ink; g.globalAlpha = 0.16; g.fillRect(cx - r, cy + i * (r / 5) - r * 0.3, r * 2, 2); }
-    g.globalAlpha = 1;
-  } else if (sec === 4 || sec === 5) {
-    const cx = x + w * 0.66, cy = y + h * 0.42, r = w * 0.34;
-    g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
-    g.fillStyle = sec === 4 ? PAL4[17] : '#1b2a5e';
-    g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
-    /* la planète est bandée : la génération n'a pas assez de couleurs pour
-       un dégradé, elle le fabrique avec des tranches bien nettes */
-    for (let i = 0; i < 10; i++) {
-      g.fillStyle = i % 2 ? (sec === 4 ? PAL4[18] : '#24406e') : (sec === 4 ? PAL4[29] : '#16264d');
-      g.globalAlpha = 0.5;
-      g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
-      const yy = cy - r + (i + 1) * (2 * r / 11);
-      g.globalAlpha = 1; g.fillStyle = C.ink; g.fillRect(cx - r * 1.2, yy, r * 2.4, 3);
-    }
-    g.globalAlpha = 0.85; g.strokeStyle = sec === 4 ? PAL4[13] : '#8fd3ff'; g.lineWidth = Math.max(2, w * 0.012);
-    g.beginPath(); g.ellipse(cx, cy, r * 1.55, r * 0.34, -0.42, 0, TAU); g.stroke();
-    g.globalAlpha = 1; g.restore();
-  } else if (!gb) {
-    const cx = x + w * 0.3, cy = y + h * 0.3, r = w * 0.16;
-    const rg = g.createRadialGradient(cx, cy, 0, cx, cy, r);
-    rg.addColorStop(0, C.hull); rg.addColorStop(0.4, C.acc); rg.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = rg; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
-  }
-  /* 4. l'horizon : montagnes, ou ville debout */
-  const hz = y + h * 0.78;
-  if (sec === 3 || sec === 4) {
-    /* une ville : la salle d'arcade et les ruines CD ont un horizon bâti */
-    for (let i = 0; i < 14; i++) {
-      const bw = w * (0.04 + srandNext() * 0.05), bx = x + (i / 14) * w;
-      const bh = h * (0.08 + srandNext() * 0.20);
-      g.fillStyle = C.near; g.fillRect(bx, hz - bh, bw, bh + h * 0.22);
-      for (let wy = hz - bh + 4; wy < hz - 4; wy += 7)
-        for (let wx = bx + 3; wx < bx + bw - 3; wx += 6) {
-          if (srandNext() < 0.45) continue;
-          g.fillStyle = srandNext() < 0.5 ? C.acc : C.glow; g.globalAlpha = 0.75;
-          g.fillRect(wx, wy, 2.4, 3.4);
-        }
-      g.globalAlpha = 1;
-    }
-  } else {
-    const pts = [];
-    for (let i = 0; i <= 12; i++) pts.push([x + (i / 12) * w, hz - h * (0.04 + srandNext() * 0.22)]);
-    g.fillStyle = C.far;
-    g.beginPath(); g.moveTo(x, y + h); g.lineTo(x, hz);
-    for (const pt of pts) g.lineTo(pt[0], pt[1]);
-    g.lineTo(x + w, y + h); g.closePath(); g.fill();
-    g.fillStyle = C.near;
-    for (let i = 0; i < 6; i++) {
-      const bx = x + srandNext() * w, bw = w * (0.06 + srandNext() * 0.12), bh = h * (0.05 + srandNext() * 0.1);
-      g.fillRect(bx, hz - bh * 0.6, bw, bh + h * 0.3);
-    }
-  }
-  /* 5. le vaisseau amiral, en ombre chinoise, derrière la scène */
-  const bx0 = x + w * 0.5, by0 = y + h * 0.30, bs = w * 0.30;
-  g.fillStyle = C.ink; g.globalAlpha = sec === 0 ? 1 : 0.85;
-  g.beginPath();
-  g.moveTo(bx0, by0 - bs * 0.5);
-  g.lineTo(bx0 + bs * 0.46, by0 - bs * 0.1);
-  g.lineTo(bx0 + bs * 0.72, by0 + bs * 0.34);
-  g.lineTo(bx0 + bs * 0.24, by0 + bs * 0.26);
-  g.lineTo(bx0 + bs * 0.12, by0 + bs * 0.6);
-  g.lineTo(bx0 - bs * 0.12, by0 + bs * 0.6);
-  g.lineTo(bx0 - bs * 0.24, by0 + bs * 0.26);
-  g.lineTo(bx0 - bs * 0.72, by0 + bs * 0.34);
-  g.lineTo(bx0 - bs * 0.46, by0 - bs * 0.1);
-  g.closePath(); g.fill();
-  for (let i = 0; i < 4; i++) {           /* ses feux : la menace se voit de loin */
-    g.fillStyle = i % 2 ? C.acc : C.glow; g.globalAlpha = 0.9;
-    g.fillRect(bx0 - bs * 0.5 + i * bs * 0.34, by0 + bs * 0.12, bs * 0.09, bs * 0.09);
-  }
-  g.globalAlpha = 1;
-  /* 6. le VANGUARD, au premier plan : la coque d'usine, la bande rouge,
-        la verrière cyan — la livrée de la planche, peinte pour la jaquette. */
-  const sx = x + w * 0.5, sy = y + h * 0.68, sc = w * 0.30;
-  if (!gb) {                              /* halo de réacteurs */
-    const fl = g.createRadialGradient(sx, sy + sc * 0.52, 0, sx, sy + sc * 0.52, sc * 0.5);
-    fl.addColorStop(0, 'rgba(255,240,200,.55)'); fl.addColorStop(1, 'rgba(255,180,90,0)');
-    g.fillStyle = fl; g.beginPath(); g.arc(sx, sy + sc * 0.52, sc * 0.5, 0, TAU); g.fill();
-  }
-  /* ailes */
-  g.fillStyle = gb ? C.sky2 : '#8e9bb3';
-  g.beginPath();
-  g.moveTo(sx - sc * 0.1, sy - sc * 0.1);
-  g.lineTo(sx - sc * 0.92, sy + sc * 0.44);
-  g.lineTo(sx - sc * 0.72, sy + sc * 0.62);
-  g.lineTo(sx - sc * 0.12, sy + sc * 0.34);
-  g.closePath(); g.fill();
-  g.beginPath();
-  g.moveTo(sx + sc * 0.1, sy - sc * 0.1);
-  g.lineTo(sx + sc * 0.92, sy + sc * 0.44);
-  g.lineTo(sx + sc * 0.72, sy + sc * 0.62);
-  g.lineTo(sx + sc * 0.12, sy + sc * 0.34);
-  g.closePath(); g.fill();
-  /* fuselage */
-  g.fillStyle = gb ? C.hull : '#eef3fb';
-  if (gb) { g.strokeStyle = C.ink; g.lineWidth = Math.max(1, sc * 0.03); }
-  g.beginPath();
-  g.moveTo(sx, sy - sc * 0.78);
-  g.lineTo(sx + sc * 0.2, sy - sc * 0.2);
-  g.lineTo(sx + sc * 0.17, sy + sc * 0.44);
-  g.lineTo(sx, sy + sc * 0.58);
-  g.lineTo(sx - sc * 0.17, sy + sc * 0.44);
-  g.lineTo(sx - sc * 0.2, sy - sc * 0.2);
-  g.closePath(); g.fill();
-  if (gb) { g.strokeStyle = C.ink; g.lineWidth = Math.max(1, sc * 0.03); g.stroke(); }
-  /* bande MARK rouge : elle ne change jamais */
-  g.fillStyle = gb ? C.ink : '#d2232a';
-  g.fillRect(sx - sc * 0.2, sy - sc * 0.06, sc * 0.4, sc * 0.11);
-  /* verrière cyan */
-  g.fillStyle = gb ? C.sky : '#3fd8ff';
-  g.beginPath();
-  g.moveTo(sx, sy - sc * 0.52);
-  g.lineTo(sx + sc * 0.1, sy - sc * 0.2);
-  g.lineTo(sx, sy - sc * 0.08);
-  g.lineTo(sx - sc * 0.1, sy - sc * 0.2);
-  g.closePath(); g.fill();
-  if (!gb) { g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(sx - sc * 0.06, sy - sc * 0.46, sc * 0.04, sc * 0.2); }
-  /* tuyères */
-  g.fillStyle = gb ? C.ink : '#2b3244';
-  g.fillRect(sx - sc * 0.14, sy + sc * 0.5, sc * 0.28, sc * 0.14);
-  if (!gb) {
-    g.fillStyle = '#ffd166'; g.fillRect(sx - sc * 0.1, sy + sc * 0.62, sc * 0.08, sc * 0.14);
-    g.fillRect(sx + sc * 0.02, sy + sc * 0.62, sc * 0.08, sc * 0.14);
-  }
-  /* 7. le titre, sur la jaquette */
-  const ty = y + h * 0.9;
-  if (gb) {
-    g.fillStyle = C.ink; g.fillRect(x, ty - h * 0.11, w, h * 0.17);
-    pixText(g, 'NEO VANGUARD', x + w * 0.5, ty - h * 0.045, C.hull, Math.max(2, Math.round(w / 62)), { align: 'center' });
-  } else {
-    hText(g, 'NEO VANGUARD', x + w * 0.5, ty, { color: '#ffffff', size: Math.max(12, w * 0.115), align: 'center', weight: 800, glow: C.glow, glowSize: Math.max(8, w * 0.06) });
-  }
-}
-
-/* ------------------------------------------------------------------ support -
-   La cartouche, le disque ou le boîtier qui accompagne la boîte.            */
-function drawBoxMedia(g, k, cx, cy, w, t, sec) {
-  const C = coverCol(sec), bob = Math.sin(t * 2.2) * 3;
-  cy += bob;
-  if (k.media === 'disc') {
-    const r = w * 0.5;
-    g.save(); g.translate(cx, cy);
-    g.rotate(Math.sin(t * 0.6) * 0.12);
-    g.fillStyle = '#cdd6e6'; g.beginPath(); g.arc(0, 0, r, 0, TAU); g.fill();
-    g.fillStyle = sec === 4 ? PAL4[20] : '#8fa0bb';
-    g.beginPath(); g.moveTo(-r, 0); g.arc(0, 0, r, Math.PI, 0); g.lineTo(r * 0.2, 0); g.arc(0, 0, r * 0.2, 0, Math.PI, true); g.closePath(); g.fill();
-    g.fillStyle = '#eef3fb'; g.fillRect(-r, -r * 0.06, r * 2, r * 0.12);
-    g.fillStyle = '#0b0e14'; g.beginPath(); g.arc(0, 0, r * 0.24, 0, TAU); g.fill();
-    g.fillStyle = '#cdd6e6'; g.beginPath(); g.arc(0, 0, r * 0.1, 0, TAU); g.fill();
-    g.fillStyle = '#f2f6ff'; g.globalAlpha = 0.5;
-    g.beginPath(); g.moveTo(-r * 0.7, -r * 0.7); g.lineTo(r * 0.2, -r * 0.9); g.lineTo(r * 0.5, -r * 0.5); g.closePath(); g.fill();
-    g.globalAlpha = 1; g.restore();
-  } else {
-    /* cartouche / boîtier : rectangle à coins coupés, avec étiquette */
-    const h2 = w * (k.media === 'case' ? 1.28 : 1.05), c = w * 0.12;
-    const x0 = cx - w / 2, y0 = cy - h2 / 2, x1 = cx + w / 2, y1 = cy + h2 / 2;
-    g.fillStyle = k.msq;
-    g.beginPath();
-    g.moveTo(x0 + c, y0); g.lineTo(x1, y0); g.lineTo(x1, y1 - c); g.lineTo(x1 - c, y1); g.lineTo(x0, y1); g.lineTo(x0, y0 + c);
-    g.closePath(); g.fill();
-    g.fillStyle = k.mat; g.fillRect(x0 + c * 0.6, y0 + h2 * 0.06, w - c * 1.2, h2 * 0.88);
-    /* l'étiquette imprimée */
-    g.fillStyle = k.mat2; g.fillRect(x0 + c * 0.8, y0 + h2 * 0.12, w - c * 1.6, h2 * 0.34);
-    for (let i = 0; i < 5; i++) { g.fillStyle = i % 2 ? C.acc : C.glow; g.fillRect(x0 + c * 0.8 + i * (w - c * 1.6) / 5, y0 + h2 * 0.12, (w - c * 1.6) / 10, h2 * 0.34); }
-    g.fillStyle = k.edge; g.fillRect(x0 + c, y0 + h2 * 0.55, w - c * 2, h2 * 0.05);
-    pixText(g, 'NEO VANGUARD', cx, y0 + h2 * 0.72, k.edge, Math.max(1, Math.round(w / 46)), { align: 'center' });
-    for (let i = 0; i < 6; i++) { g.fillStyle = k.msq; g.fillRect(x0 + c * 2 + i * (w - c * 4) / 6, y1 - h2 * 0.1, (w - c * 4) / 14, h2 * 0.03); }
-  }
-}
-
-/* ------------------------------------------------------------- la boîte ----
-   Face avant, tranche et dessus : trois faces suffisent à faire tourner une
-   boîte dans la tête du joueur. La jaquette est peinte sur la face avant.   */
-function drawBoxBody(g, cx, cy, w, h, sec, t, sweep) {
-  const k = BOXKIND[ERAS[sec].sq] || BOXKIND.hd;
-  const dx = w * 0.17, dy = -h * 0.055;                  /* profondeur */
-  const x = cx - w / 2, y = cy - h / 2;
-  /* ombre au sol */
-  g.fillStyle = 'rgba(0,0,0,.45)';
-  g.beginPath(); g.ellipse(cx + dx * 0.4, y + h + h * 0.06, w * 0.62, h * 0.05, 0, 0, TAU); g.fill();
-  /* dessus */
-  g.fillStyle = k.mat2;
-  g.beginPath(); g.moveTo(x, y); g.lineTo(x + w, y); g.lineTo(x + w + dx, y + dy); g.lineTo(x + dx, y + dy); g.closePath(); g.fill();
-  /* tranche : le papier des boîtes est plus clair sur le côté */
-  g.fillStyle = k.mat;
-  g.beginPath(); g.moveTo(x + w, y); g.lineTo(x + w + dx, y + dy); g.lineTo(x + w + dx, y + h + dy); g.lineTo(x + w, y + h); g.closePath(); g.fill();
-  g.fillStyle = k.edge; g.globalAlpha = 0.5;
-  g.beginPath(); g.moveTo(x + w + dx * 0.35, y + dy * 0.35); g.lineTo(x + w + dx * 0.35, y + h + dy * 0.35); g.lineTo(x + w + dx * 0.5, y + h + dy * 0.5); g.lineTo(x + w + dx * 0.5, y + dy * 0.5); g.closePath(); g.fill();
-  g.globalAlpha = 1;
-  /* face avant */
-  g.save();
-  g.beginPath(); g.rect(x, y, w, h); g.clip();
-  drawCoverArt(g, x, y, w, h, sec);
-  /* reflet qui balaie la jaquette : le geste commercial */
-  if (sweep > 0) {
-    g.globalCompositeOperation = 'lighter';
-    const bw = w * 0.36, bx = x - bw + (w + bw * 2) * sweep;
-    const gr = g.createLinearGradient(bx, y, bx + bw, y + h);
-    gr.addColorStop(0, 'rgba(255,255,255,0)');
-    gr.addColorStop(0.5, 'rgba(255,255,255,.34)');
-    gr.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = gr; g.fillRect(x, y, w, h);
-    g.globalCompositeOperation = 'source-over';
+    const x = srandNext() * w, y = srandNext() * h, r = srandNext();
+    g.fillStyle = r < 0.5 ? '#000' : '#fff';
+    g.fillRect(x | 0, y | 0, 1, 1);
   }
   g.restore();
-  /* bandeau de la console : ce que l'œil cherche en premier sur une boîte */
-  const bh = h * 0.11;
-  g.fillStyle = k.mat2; g.globalAlpha = 0.92; g.fillRect(x, y, w, bh); g.globalAlpha = 1;
-  g.fillStyle = k.edge; g.fillRect(x, y + bh - 2, w, 2);
-  const label = ERAS[sec].sq === 'gb' ? 'NINTENDO GAME BOY' : ERAS[sec].sq === 'nes' ? 'NINTENDO ENTERTAINMENT SYSTEM'
-    : ERAS[sec].sq === 'snes' ? '16-BIT SUPER SYSTEM' : ERAS[sec].sq === 'neogeo' ? 'NEO GEO · ADVANCED ENTERTAINMENT'
-    : ERAS[sec].sq === 'psx' ? '32-BIT CD-ROM SYSTEM' : 'NEO VANGUARD · EDITION HD';
-  pixText(g, label, x + w / 2, y + bh * 0.34, k.edge, Math.max(1, Math.round(w / 78)), { align: 'center' });
-  /* sceau « 1 JOUEUR » et code produit */
-  g.fillStyle = k.edge; g.globalAlpha = 0.85;
-  g.beginPath(); g.arc(x + w * 0.9, y + h * 0.94, w * 0.055, 0, TAU); g.fill(); g.globalAlpha = 1;
-  pixText(g, '1', x + w * 0.9, y + h * 0.92, k.mat2, Math.max(1, Math.round(w / 50)), { align: 'center' });
-  pixText(g, 'NV-' + (sec + 1) + '00', x + w * 0.06, y + h * 0.94, k.edge, Math.max(1, Math.round(w / 90)));
-  /* contour final : la boîte se détache du fond */
-  g.strokeStyle = 'rgba(0,0,0,.55)'; g.lineWidth = 2; g.strokeRect(x, y, w, h);
+}
+/* demi-teinte ordonnée : la signature des jaquettes d'avant le HD */
+function boxDither(g, x, y, w, h, col, step, alpha) {
+  g.save(); g.globalAlpha = alpha === undefined ? 0.5 : alpha; g.fillStyle = col;
+  for (let py = 0; py < h; py += step * 2)
+    for (let px = ((py / (step * 2)) | 0) % 2 ? 0 : step; px < w; px += step * 2)
+      g.fillRect(x + px, y + py, step, step);
+  g.restore();
+}
+/* titre « logo » : contour épais, dégradé, ombre — le geste des jaquettes     */
+function boxLogo(g, txt, cx, cy, size, c1, c2, ink, skew) {
+  g.save(); g.translate(cx, cy); if (skew) g.transform(1, 0, skew, 1, 0, 0);
+  g.font = '900 ' + size + 'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineJoin = 'round';
+  g.lineWidth = Math.max(2, size * 0.22); g.strokeStyle = ink; g.strokeText(txt, 0, 0);
+  g.lineWidth = Math.max(1, size * 0.08); g.strokeStyle = 'rgba(0,0,0,.5)'; g.strokeText(txt, 0, size * 0.045);
+  const gr = g.createLinearGradient(0, -size * 0.6, 0, size * 0.6);
+  gr.addColorStop(0, c1); gr.addColorStop(0.5, c2); gr.addColorStop(1, c1);
+  g.fillStyle = gr; g.fillText(txt, 0, 0);
+  g.restore();
+}
+function boxBarcode(g, x, y, w, h, seed) {
+  g.fillStyle = '#fff'; g.fillRect(x, y, w, h);
+  srand(seed | 0);
+  let px = x + 2;
+  while (px < x + w - 3) {
+    const bw = 1 + Math.round(srandNext() * 2);
+    g.fillStyle = srandNext() < 0.62 ? '#12131a' : '#f4f4f4';
+    g.fillRect(px, y + 2, bw, h - 7); px += bw + 1 + (srandNext() < 0.3 ? 1 : 0);
+  }
+  g.fillStyle = '#12131a';
+  g.font = '700 ' + Math.max(5, h * 0.15) + 'px ui-monospace, monospace'; g.textAlign = 'center';
+  g.fillText('4 901234 567890', x + w / 2, y + h - 1.5);
+}
+function boxSeal(g, cx, cy, r, bg, fg, txt, ring) {
+  g.save();
+  g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fillStyle = bg; g.fill();
+  if (ring) { g.lineWidth = Math.max(1, r * 0.11); g.strokeStyle = ring; g.beginPath(); g.arc(cx, cy, r * 0.86, 0, TAU); g.stroke(); }
+  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '900 ' + Math.max(5, r * 0.5) + 'px ui-monospace, monospace';
+  g.fillText(txt, cx, cy + r * 0.04);
+  g.restore();
+}
+
+/* le vaisseau du joueur, cuit dans le style de l'ère de la boîte */
+const BOXSHIP = new Map();
+function boxShipSprite(sec, enemy) {
+  const key = sec + '|' + (enemy ? 'e' : 'p');
+  if (BOXSHIP.has(key)) return BOXSHIP.get(key);
+  const sty = ERAS[sec].sty;
+  const h = playerHull();
+  const rec = bakeSprite(enemy ? 'stinger' : 'falcon', sty, enemy ? 'enemy' : 'player',
+    enemy ? 12 : h.hue, enemy ? 0.78 : h.sat, enemy ? 0.52 : h.light, 0);
+  BOXSHIP.set(key, rec); return rec;
+}
+
+/* ------------------------------------------------------- l'illustration ----
+   Une composition de jaquette lisible : l'astre en haut à droite, la flotte en
+   fuite, le VANGUARD au centre en contre-plongée, les explosions à droite.    */
+function coverScene(g, x, y, w, h, sec) {
+  const C = coverCol(sec), flat = !!C.flat;
+  g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+  srand(700 + sec * 37);
+  /* 1. ciel */
+  if (flat) {
+    const bands = sec === 0 ? 4 : 5;
+    for (let i = 0; i < bands; i++) {
+      const cols = [C.sky, C.sky, C.sky2, C.sky3, C.near];
+      g.fillStyle = cols[i] || C.near; g.fillRect(x, y + h * (i / bands), w, h / bands + 1);
+    }
+    /* la frontière entre deux bandes est tramée, jamais fondue */
+    boxDither(g, x, y + h * 0.25, w, h * 0.14, C.sky2, 2, 0.5);
+    boxDither(g, x, y + h * 0.5, w, h * 0.12, C.near, 2, 0.35);
+  } else {
+    const gr = g.createLinearGradient(0, y, 0, y + h);
+    gr.addColorStop(0, C.sky); gr.addColorStop(0.38, C.sky2); gr.addColorStop(0.74, C.sky3); gr.addColorStop(1, C.near);
+    g.fillStyle = gr; g.fillRect(x, y, w, h);
+    if (C.poly) for (let i = 0; i < 18; i++) {          /* le ciel tramé du CD */
+      g.fillStyle = i % 2 ? '#000' : '#fff'; g.globalAlpha = 0.045;
+      g.fillRect(x, y + h * (i / 18), w, h / 18 + 1); g.globalAlpha = 1;
+    }
+  }
+  /* 2. étoiles */
+  const n = flat ? 34 : 130;
+  for (let i = 0; i < n; i++) {
+    const sx = x + srandNext() * w, sy = y + srandNext() * h * 0.8, r = srandNext();
+    g.globalAlpha = 0.35 + r * 0.6; g.fillStyle = r < 0.7 ? C.sky : '#ffffff';
+    const s = flat ? (r < 0.85 ? 1.6 : 3) : (r < 0.88 ? 1 : 2.2);
+    g.fillRect(sx, sy, s, s);
+  }
+  g.globalAlpha = 1;
+  /* 3. l'astre : à droite, il sort du cadre — il donne l'échelle */
+  const px = x + w * 0.86, py = y + h * 0.20, pr = w * (flat ? 0.34 : 0.30);
+  if (flat) {
+    g.fillStyle = C.sky; g.beginPath(); g.arc(px, py, pr, 0, TAU); g.fill();
+    g.fillStyle = C.sky2; g.beginPath(); g.arc(px + pr * 0.22, py + pr * 0.2, pr * 0.82, 0, TAU); g.fill();
+    boxDither(g, px - pr, py - pr * 0.2, pr * 1.3, pr * 1.2, C.near, 3, 0.3);
+  } else {
+    const pg = g.createRadialGradient(px - pr * 0.45, py - pr * 0.5, pr * 0.08, px, py, pr);
+    pg.addColorStop(0, C.warm); pg.addColorStop(0.45, C.acc); pg.addColorStop(1, C.near);
+    g.fillStyle = pg; g.beginPath(); g.arc(px, py, pr, 0, TAU); g.fill();
+    /* liseré de lumière sur le limbe, nuit à l'opposé */
+    g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.6;
+    g.strokeStyle = C.glow; g.lineWidth = pr * 0.05;
+    g.beginPath(); g.arc(px, py, pr * 0.97, Math.PI * 0.65, Math.PI * 1.45); g.stroke(); g.restore();
+    const tg = g.createLinearGradient(px - pr, py - pr * 0.2, px + pr * 0.7, py + pr);
+    tg.addColorStop(0, 'rgba(0,0,0,0)'); tg.addColorStop(0.5, 'rgba(2,4,10,.72)'); tg.addColorStop(1, 'rgba(2,4,10,.95)');
+    g.fillStyle = tg; g.beginPath(); g.arc(px, py, pr, 0, TAU); g.fill();
+  }
+  /* 4. la flotte, en file indienne sur la diagonale */
+  const eShip = boxShipSprite(sec, 1);
+  for (let i = 0; i < 5; i++) {
+    const fx = x + w * (0.10 + i * 0.17) + srandNext() * w * 0.02;
+    const fy = y + h * (0.06 + i * 0.035) + srandNext() * h * 0.015;
+    const fw = w * 0.10;
+    g.globalAlpha = 0.5 + i * 0.07;
+    g.save(); g.translate(fx, fy); g.rotate(Math.PI);
+    g.drawImage(eShip.c, -fw / 2, -fw * 0.5, fw, fw * eShip.H / eShip.W);
+    g.restore();
+  }
+  g.globalAlpha = 1;
+  /* 5. le halo chaud qui détache le vaisseau du fond */
+  const hx = x + w * 0.40, hy = y + h * 0.66, hh = h * (flat ? 0.40 : 0.50), hw = hh * 0.86;
+  if (!flat) {
+    g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.5;
+    const hg = g.createRadialGradient(hx, hy, 0, hx, hy, hw * 1.5);
+    hg.addColorStop(0, C.glow); hg.addColorStop(0.5, 'rgba(255,120,160,.28)'); hg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = hg; g.beginPath(); g.arc(hx, hy, hw * 1.5, 0, TAU); g.fill(); g.restore();
+  } else {
+    g.globalAlpha = 0.5; g.fillStyle = C.sky;
+    g.beginPath(); g.arc(hx, hy, hw * 1.1, 0, TAU); g.fill(); g.globalAlpha = 1;
+    boxDither(g, hx - hw * 1.1, hy - hw * 1.1, hw * 2.2, hw * 2.2, C.sky3, 3, 0.4);
+  }
+  /* 6. la traînée du VANGUARD */
+  const tg2 = g.createLinearGradient(hx, hy + hh * 0.35, hx, hy + hh * 1.5);
+  tg2.addColorStop(0, flat ? C.sky2 : C.glow); tg2.addColorStop(1, 'rgba(0,0,0,0)');
+  g.globalAlpha = flat ? 0.55 : 0.8; g.fillStyle = tg2;
+  g.beginPath(); g.moveTo(hx - hw * 0.16, hy + hh * 0.38); g.lineTo(hx + hw * 0.16, hy + hh * 0.38);
+  g.lineTo(hx + hw * 0.04, hy + hh * 1.45); g.lineTo(hx - hw * 0.04, hy + hh * 1.45); g.closePath(); g.fill();
+  g.globalAlpha = 1;
+  /* 7. le VANGUARD */
+  const hero = boxShipSprite(sec, 0);
+  const dh = hh, dw = dh * hero.W / hero.H;
+  g.save(); g.translate(hx, hy); g.rotate(-0.08);
+  g.drawImage(hero.c, -dw / 2, -dh / 2, dw, dh);
+  g.restore();
+  /* 8. explosions, du plus petit au plus gros */
+  for (let i = 0; i < 3; i++) {
+    const ex = x + w * (0.62 + i * 0.13), ey = y + h * (0.44 + (i % 2) * 0.16);
+    const r = w * (0.045 + i * 0.03);
+    if (flat) {
+      g.fillStyle = C.sky; g.beginPath(); g.arc(ex, ey, r, 0, TAU); g.fill();
+      g.fillStyle = C.near; g.beginPath(); g.arc(ex, ey, r * 0.5, 0, TAU); g.fill();
+      boxDither(g, ex - r, ey - r, r * 2, r * 2, C.sky2, 2, 0.5);
+    } else {
+      const rg = g.createRadialGradient(ex, ey, 0, ex, ey, r * 1.9);
+      rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.28, C.warm);
+      rg.addColorStop(0.62, 'rgba(255,96,64,.55)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = rg; g.beginPath(); g.arc(ex, ey, r * 1.9, 0, TAU); g.fill();
+    }
+  }
+  /* 9. traits de tir du vaisseau */
+  g.fillStyle = flat ? C.sky : C.glow;
+  for (let i = 0; i < 3; i++) {
+    g.globalAlpha = 0.85 - i * 0.2;
+    g.fillRect(hx - w * 0.02 + i * w * 0.02, hy - hh * (0.72 + i * 0.18), Math.max(2, w * 0.013), hh * (0.34 + i * 0.16));
+  }
+  g.globalAlpha = 1;
+  /* 10. premier plan : une épave qui coupe le coin */
+  g.fillStyle = C.ink; g.globalAlpha = 0.9;
+  g.beginPath(); g.moveTo(x, y + h); g.lineTo(x, y + h * 0.90); g.lineTo(x + w * 0.22, y + h * 0.93);
+  g.lineTo(x + w * 0.30, y + h * 0.985); g.lineTo(x, y + h * 0.995); g.closePath(); g.fill();
+  g.globalAlpha = 1;
+  /* 11. vignette */
+  const vg = g.createRadialGradient(x + w / 2, y + h * 0.44, w * 0.18, x + w / 2, y + h * 0.44, w * 0.98);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.5)');
+  g.fillStyle = vg; g.fillRect(x, y, w, h);
+  g.restore();
+}
+
+/* une vignette « capture d'écran » de la console, encadrée */
+function boxShot(g, x, y, w, h, sec, seed) {
+  const C = coverCol(sec);
+  g.save();
+  g.beginPath(); g.rect(x, y, w, h); g.clip();
+  g.fillStyle = C.near; g.fillRect(x, y, w, h);
+  srand(seed | 0);
+  if (C.flat) { g.fillStyle = C.sky3; g.fillRect(x, y, w, h * 0.6); boxDither(g, x, y, w, h * 0.6, C.sky, 2, 0.45); }
+  else { const gr = g.createLinearGradient(0, y, 0, y + h * 0.7); gr.addColorStop(0, C.sky3); gr.addColorStop(1, C.near); g.fillStyle = gr; g.fillRect(x, y, w, h * 0.7); }
+  g.strokeStyle = C.mid; g.globalAlpha = 0.65; g.lineWidth = 1;
+  for (let i = 0; i < 5; i++) { const yy = y + h * (0.6 + i * 0.09); g.beginPath(); g.moveTo(x, yy); g.lineTo(x + w, yy); g.stroke(); }
+  for (let i = -3; i <= 3; i++) { g.beginPath(); g.moveTo(x + w / 2 + i * w * 0.18, y + h * 0.6); g.lineTo(x + w / 2 + i * w * 0.55, y + h); g.stroke(); }
+  g.globalAlpha = 1;
+  const enemy = boxShipSprite(sec, 1);
+  for (let i = 0; i < 2; i++) {
+    const ex = x + w * (0.24 + srandNext() * 0.52), ey = y + h * (0.14 + srandNext() * 0.26), ew = w * 0.17;
+    g.save(); g.translate(ex, ey); g.rotate(Math.PI);
+    g.drawImage(enemy.c, -ew / 2, -ew * 0.5, ew, ew * enemy.H / enemy.W); g.restore();
+  }
+  const hero = boxShipSprite(sec, 0);
+  const hw2 = w * 0.26, hh2 = hw2 * hero.H / hero.W;
+  g.drawImage(hero.c, x + w * 0.5 - hw2 / 2, y + h * 0.60, hw2, hh2);
+  g.fillStyle = C.glow;
+  for (let i = 0; i < 3; i++) g.fillRect(x + w * (0.46 + i * 0.03), y + h * (0.28 + i * 0.08), Math.max(1, w * 0.012), h * 0.09);
+  const ex = x + w * 0.76, ey = y + h * 0.24, rg = g.createRadialGradient(ex, ey, 0, ex, ey, w * 0.2);
+  rg.addColorStop(0, C.flat ? C.sky : '#fff'); rg.addColorStop(0.36, C.warm); rg.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = rg; g.beginPath(); g.arc(ex, ey, w * 0.2, 0, TAU); g.fill();
+  g.restore();
+  g.save();
+  g.strokeStyle = sec === 0 ? '#5c5f52' : '#2a2f38'; g.lineWidth = Math.max(2, w * 0.05); g.strokeRect(x, y, w, h);
+  g.fillStyle = 'rgba(255,255,255,.09)';
+  g.beginPath(); g.moveTo(x, y); g.lineTo(x + w * 0.5, y); g.lineTo(x, y + h * 0.55); g.closePath(); g.fill();
+  g.restore();
+}
+
+/* ======================= LES IMPRESSIONS DE CHAQUE FACE ==================== */
+const PRINTS = new Map();
+function boxPrint(sec, face, W, H) {
+  W = Math.max(8, Math.round(W)); H = Math.max(8, Math.round(H));
+  const key = sec + '|' + face + '|' + W + '|' + H;
+  if (PRINTS.has(key)) return PRINTS.get(key);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const C = coverCol(sec);
+  if (face === 'front') coverFront(g, W, H, sec, C);
+  else if (face === 'spine') coverSpine(g, W, H, sec, C);
+  else coverTop(g, W, H, sec, C);
+  PRINTS.set(key, c); return c;
+}
+function specPaper(sec) { return (BOX3D[ERAS[sec].sq] || BOX3D.hd).paper; }
+function specAcc(sec) {
+  return [ '#a01a2f', '#e04b3a', '#3f6fd8', '#c8a237', '#8d9ec7', '#1b4fa8' ][sec] || '#4be7ff';
+}
+function specInk(sec) { return sec === 3 ? '#080706' : '#f4f6fb'; }
+
+/* --------------------------------------------- face avant : six maquettes --- */
+function coverFront(g, W, H, sec, C) {
+  g.fillStyle = specPaper(sec); g.fillRect(0, 0, W, H);
+  const U = W / 100;
+  if (sec === 0)      coverFrontGB(g, W, H, C);
+  else if (sec === 1) coverFrontNES(g, W, H, C);
+  else if (sec === 2) coverFrontSNES(g, W, H, C);
+  else if (sec === 3) coverFrontAES(g, W, H, C);
+  else if (sec === 4) coverFrontPSX(g, W, H, C);
+  else                coverFrontHD(g, W, H, C);
+  /* grain d'impression + ombre du pli près de la tranche */
+  boxGrain(g, W, H, 0.04, 3 + sec);
+  const eg = g.createLinearGradient(0, 0, W * 0.10, 0);
+  eg.addColorStop(0, 'rgba(0,0,0,.20)'); eg.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = eg; g.fillRect(0, 0, W * 0.10, H);
+}
+
+function coverFrontGB(g, W, H, C) {
+  /* carton crème, bandeau noir, quatre captures, titre en pied */
+  g.fillStyle = '#f7f4ea'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#191919'; g.fillRect(0, 0, W, H * 0.115);
+  g.fillStyle = '#ffffff'; g.font = '900 ' + (H * 0.044) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.textBaseline = 'middle';
+  g.fillText('Nintendo', W * 0.055, H * 0.058);
+  g.fillStyle = '#a01a2f'; g.font = '900 ' + (H * 0.028) + 'px ui-monospace, monospace';
+  g.textAlign = 'right'; g.fillText('GAME BOY', W * 0.945, H * 0.058);
+  g.fillStyle = '#a01a2f'; g.fillRect(W * 0.62, H * 0.078, W * 0.32, H * 0.006);
+  coverScene(g, W * 0.04, H * 0.135, W * 0.92, H * 0.42, 0);
+  g.strokeStyle = '#191919'; g.lineWidth = Math.max(2, W * 0.012); g.strokeRect(W * 0.04, H * 0.135, W * 0.92, H * 0.42);
+  const gx = W * 0.04, gy = H * 0.575, gw = W * 0.44, gh = H * 0.115;
+  for (let i = 0; i < 4; i++)
+    boxShot(g, gx + (i % 2) * (gw + W * 0.04), gy + ((i / 2) | 0) * (gh + H * 0.018), gw, gh, 0, 40 + i * 7);
+  g.fillStyle = '#191919'; g.fillRect(0, H * 0.845, W, H * 0.095);
+  boxLogo(g, 'NEO VANGUARD', W / 2, H * 0.892, H * 0.048, '#9bbc0f', '#8bac0f', '#0f380f', 0);
+  g.fillStyle = '#f7f4ea'; g.font = '700 ' + (H * 0.020) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.fillText('DMG-NV-FRA', W * 0.05, H * 0.972);
+  g.textAlign = 'right'; g.fillText('4 TEINTES · 1 JOUEUR', W * 0.95, H * 0.972);
+}
+
+function coverFrontNES(g, W, H, C) {
+  g.fillStyle = '#0c0d11'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#d8d8d2'; g.fillRect(0, 0, W, H * 0.085);
+  g.fillStyle = '#e04b3a'; g.font = '900 ' + (H * 0.030) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText('Nintendo', W * 0.05, H * 0.043);
+  g.fillStyle = '#101216'; g.font = '700 ' + (H * 0.0155) + 'px ui-monospace, monospace';
+  g.fillText('ENTERTAINMENT SYSTEM', W * 0.40, H * 0.045);
+  coverScene(g, W * 0.055, H * 0.11, W * 0.89, H * 0.46, 1);
+  g.strokeStyle = '#d8d8d2'; g.lineWidth = Math.max(2, W * 0.016); g.strokeRect(W * 0.055, H * 0.11, W * 0.89, H * 0.46);
+  g.fillStyle = '#101216'; g.fillRect(W * 0.055, H * 0.60, W * 0.89, H * 0.105);
+  g.strokeStyle = '#d8d8d2'; g.lineWidth = Math.max(1.5, W * 0.010); g.strokeRect(W * 0.055, H * 0.60, W * 0.89, H * 0.105);
+  boxLogo(g, 'NEO VANGUARD', W / 2, H * 0.653, H * 0.050, '#ffffff', '#e6ecf5', '#0c0d11', 0);
+  boxShot(g, W * 0.055, H * 0.735, W * 0.41, H * 0.145, 1, 11);
+  boxShot(g, W * 0.53, H * 0.735, W * 0.41, H * 0.145, 1, 23);
+  boxSeal(g, W * 0.145, H * 0.785, W * 0.062, '#e8c547', '#101216', '★', '#8a7020');
+  g.fillStyle = '#d8d8d2'; g.font = '700 ' + (H * 0.0145) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.fillText('NES-NV-1 FRA', W * 0.055, H * 0.925);
+  g.fillText('1 JOUEUR', W * 0.055, H * 0.952);
+  boxBarcode(g, W * 0.46, H * 0.90, W * 0.48, H * 0.052, 5);
+  g.fillStyle = '#6c7280'; g.font = '700 ' + (H * 0.0135) + 'px ui-monospace, monospace';
+  g.textAlign = 'right'; g.fillText('© 1991 NEO VANGUARD LTD', W * 0.945, H * 0.972);
+}
+
+function coverFrontSNES(g, W, H, C) {
+  const gr = g.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, '#22335f'); gr.addColorStop(0.45, '#161c34'); gr.addColorStop(1, '#0c1020');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#1b2340'; g.fillRect(0, 0, W, H * 0.095);
+  const sq = ['#3f6fd8', '#48c8a0', '#e8c547', '#e0556e'];
+  for (let i = 0; i < 4; i++) { g.fillStyle = sq[i]; g.fillRect(W * 0.05 + i * W * 0.030, H * 0.028, W * 0.024, H * 0.042); }
+  g.fillStyle = '#dbe6ff'; g.font = '900 ' + (H * 0.027) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText('SUPER NINTENDO', W * 0.20, H * 0.048);
+  g.fillStyle = '#8fa6d8'; g.font = '700 ' + (H * 0.0145) + 'px ui-monospace, monospace';
+  g.textAlign = 'right'; g.fillText('16-BIT', W * 0.95, H * 0.048);
+  coverScene(g, W * 0.05, H * 0.115, W * 0.90, H * 0.50, 2);
+  g.strokeStyle = '#7f96c8'; g.lineWidth = Math.max(1.5, W * 0.011); g.strokeRect(W * 0.05, H * 0.115, W * 0.90, H * 0.50);
+  g.save(); g.beginPath(); g.ellipse(W / 2, H * 0.665, W * 0.44, H * 0.058, 0, 0, TAU);
+  const og = g.createLinearGradient(0, H * 0.61, 0, H * 0.72);
+  og.addColorStop(0, '#f2f7ff'); og.addColorStop(0.55, '#cfe0f6'); og.addColorStop(1, '#9fc0ee');
+  g.fillStyle = og; g.fill(); g.restore();
+  g.save(); g.font = '900 ' + (H * 0.042) + 'px ui-monospace, monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#16224a';
+  g.fillText('NEO VANGUARD', W / 2, H * 0.667); g.restore();
+  boxShot(g, W * 0.05, H * 0.745, W * 0.29, H * 0.125, 2, 31);
+  boxShot(g, W * 0.355, H * 0.745, W * 0.29, H * 0.125, 2, 37);
+  boxShot(g, W * 0.66, H * 0.745, W * 0.29, H * 0.125, 2, 41);
+  g.fillStyle = '#b9c9e8'; g.font = '700 ' + (H * 0.0145) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.fillText('SNSP-NV · PAL', W * 0.05, H * 0.918);
+  g.fillText('1-2 JOUEURS', W * 0.05, H * 0.945);
+  boxBarcode(g, W * 0.48, H * 0.895, W * 0.47, H * 0.05, 9);
+}
+
+function coverFrontAES(g, W, H, C) {
+  g.fillStyle = '#080706'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#c8a237'; g.fillRect(0, 0, W * 0.07, H);
+  g.save(); g.translate(W * 0.035, H * 0.30); g.rotate(-Math.PI / 2);
+  g.fillStyle = '#0b0906'; g.font = '900 ' + (H * 0.026) + 'px ui-monospace, monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('NEO GEO', 0, 0);
+  g.restore();
+  g.fillStyle = '#c8a237'; g.font = '900 ' + (H * 0.021) + 'px ui-monospace, monospace';
+  g.textAlign = 'right'; g.textBaseline = 'middle';
+  g.fillText('ADVANCED ENTERTAINMENT SYSTEM', W * 0.95, H * 0.038);
+  g.fillStyle = '#5a4a20'; g.fillRect(W * 0.07, H * 0.058, W * 0.93, H * 0.0025);
+  coverScene(g, W * 0.10, H * 0.085, W * 0.86, H * 0.52, 3);
+  g.strokeStyle = '#c8a237'; g.lineWidth = Math.max(2, W * 0.018); g.strokeRect(W * 0.10, H * 0.085, W * 0.86, H * 0.52);
+  boxLogo(g, 'NEO VANGUARD', W * 0.53, H * 0.645, H * 0.048, '#ffe9a8', '#c8a237', '#000', 0);
+  g.fillStyle = '#c8a237'; g.fillRect(W * 0.10, H * 0.688, W * 0.86, H * 0.002);
+  g.save(); g.translate(W * 0.79, H * 0.755); g.rotate(-0.04);
+  g.fillStyle = '#b3161f'; g.fillRect(-W * 0.17, -H * 0.026, W * 0.34, H * 0.052);
+  g.strokeStyle = '#ffe9a8'; g.lineWidth = Math.max(1.5, W * 0.012); g.strokeRect(-W * 0.17, -H * 0.026, W * 0.34, H * 0.052);
+  g.fillStyle = '#ffe9a8'; g.font = '900 ' + (H * 0.024) + 'px ui-monospace, monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('INSERT COIN', 0, 0);
+  g.restore();
+  boxShot(g, W * 0.10, H * 0.735, W * 0.36, H * 0.16, 3, 51);
+  g.fillStyle = '#c8a237'; g.font = '700 ' + (H * 0.0155) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.fillText('MVS · AES · NGH-260', W * 0.10, H * 0.928);
+  g.fillText('1-2 JOUEURS', W * 0.10, H * 0.955);
+  boxBarcode(g, W * 0.62, H * 0.905, W * 0.34, H * 0.048, 77);
+}
+
+function coverFrontPSX(g, W, H, C) {
+  g.fillStyle = '#0b0c10'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#e9edf5'; g.fillRect(0, 0, W, H * 0.085);
+  g.fillStyle = '#0b0c10'; g.font = '800 ' + (H * 0.024) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText('CD-ROM SYSTEM', W * 0.05, H * 0.043);
+  g.save(); g.translate(W * 0.87, H * 0.043); g.rotate(Math.PI / 4);
+  g.fillStyle = '#8d9ec7'; g.fillRect(-H * 0.018, -H * 0.018, H * 0.036, H * 0.036);
+  g.fillStyle = '#e9edf5'; g.fillRect(-H * 0.010, -H * 0.010, H * 0.020, H * 0.020);
+  g.restore();
+  coverScene(g, W * 0.05, H * 0.11, W * 0.90, H * 0.50, 4);
+  g.strokeStyle = '#e9edf5'; g.lineWidth = Math.max(1.5, W * 0.011); g.strokeRect(W * 0.05, H * 0.11, W * 0.90, H * 0.50);
+  g.fillStyle = '#14161c'; g.fillRect(W * 0.05, H * 0.635, W * 0.90, H * 0.095);
+  boxLogo(g, 'NEO VANGUARD', W / 2, H * 0.683, H * 0.042, '#ffffff', '#c3ccdb', '#000', 0);
+  g.fillStyle = '#8d9ec7'; g.fillRect(W * 0.05, H * 0.735, W * 0.90, H * 0.002);
+  g.fillStyle = '#e9edf5'; g.fillRect(W * 0.05, H * 0.752, W * 0.30, H * 0.038);
+  g.fillStyle = '#0b0c10'; g.font = '800 ' + (H * 0.020) + 'px ui-monospace, monospace';
+  g.textAlign = 'center'; g.fillText('1 DISC', W * 0.20, H * 0.771);
+  g.fillStyle = '#e9edf5'; g.fillRect(W * 0.05, H * 0.805, W * 0.30, H * 0.075);
+  g.fillStyle = '#0b0c10'; g.font = '700 ' + (H * 0.0155) + 'px ui-monospace, monospace';
+  g.fillText('MEMORY CARD', W * 0.20, H * 0.826);
+  g.fillRect(W * 0.07, H * 0.842, W * 0.26, H * 0.005);
+  g.fillRect(W * 0.07, H * 0.854, W * 0.26, H * 0.005);
+  boxShot(g, W * 0.39, H * 0.752, W * 0.56, H * 0.128, 4, 61);
+  g.fillStyle = '#9aa7bd'; g.font = '700 ' + (H * 0.0155) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.fillText('SCES-00001 · PAL', W * 0.05, H * 0.925);
+  g.fillText('32-BIT · 1-2 JOUEURS', W * 0.05, H * 0.952);
+  g.textAlign = 'right'; g.fillText('© 1997', W * 0.95, H * 0.952);
+}
+
+function coverFrontHD(g, W, H, C) {
+  const gr = g.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, '#1a2a52'); gr.addColorStop(0.45, '#0e1730'); gr.addColorStop(1, '#080c18');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#1b4fa8'; g.fillRect(0, 0, W, H * 0.085);
+  g.fillStyle = '#eaf6ff'; g.font = '900 ' + (H * 0.032) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText('HD', W * 0.05, H * 0.043);
+  g.font = '700 ' + (H * 0.0155) + 'px ui-monospace, monospace';
+  g.fillText('BLU-RAY DISC · 1080p60', W * 0.155, H * 0.045);
+  coverScene(g, 0, H * 0.085, W, H * 0.60, 5);
+  const tg = g.createLinearGradient(0, H * 0.50, 0, H * 0.80);
+  tg.addColorStop(0, 'rgba(3,6,15,0)'); tg.addColorStop(1, 'rgba(3,6,15,.94)');
+  g.fillStyle = tg; g.fillRect(0, H * 0.42, W, H * 0.42);
+  boxLogo(g, 'NEO VANGUARD', W * 0.5, H * 0.735, H * 0.050, '#ffffff', '#bfe6ff', '#031018', 0);
+  g.fillStyle = '#4be7ff'; g.fillRect(W * 0.05, H * 0.782, W * 0.90, H * 0.003);
+  g.fillStyle = '#cfe6ff'; g.font = '700 ' + (H * 0.0155) + 'px ui-monospace, monospace';
+  g.textAlign = 'left'; g.textBaseline = 'middle';
+  g.fillText('ÉDITION COLLECTOR · 6 SECTEURS', W * 0.05, H * 0.815);
+  g.fillText('60 IMAGES/S · HDR', W * 0.05, H * 0.845);
+  boxSeal(g, W * 0.87, H * 0.895, W * 0.055, '#4be7ff', '#04121c', '16', '#0a4a5e');
+  boxBarcode(g, W * 0.05, H * 0.885, W * 0.32, H * 0.055, 91);
+  g.fillStyle = '#8fb6d8'; g.font = '700 ' + (H * 0.0135) + 'px ui-monospace, monospace';
+  g.textAlign = 'right'; g.fillText('© 2026 NEO VANGUARD', W * 0.95, H * 0.972);
+}
+
+/* ------------------------------------------------------------ la tranche -- */
+function coverSpine(g, W, H, sec, C) {
+  g.fillStyle = specPaper(sec); g.fillRect(0, 0, W, H);
+  const acc = specAcc(sec), ink = specInk(sec);
+  g.fillStyle = acc; g.fillRect(0, 0, W, H * 0.075);
+  g.fillStyle = sec === 3 ? '#080706' : '#f4f6fb';
+  g.font = '900 ' + (H * 0.019) + 'px ui-monospace, monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(ERAS[sec].sys, W / 2, H * 0.038);
+  g.save(); g.translate(W / 2, H * 0.42); g.rotate(-Math.PI / 2);
+  g.fillStyle = ink; g.font = '900 ' + (W * 0.58) + 'px ui-monospace, monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('NEO VANGUARD', 0, 0);
+  g.restore();
+  g.fillStyle = acc; g.fillRect(0, H * 0.78, W, H * 0.006);
+  g.fillStyle = ink; g.font = '700 ' + (H * 0.016) + 'px ui-monospace, monospace';
+  g.textAlign = 'center'; g.fillText('NV-' + (sec + 1) + '00', W / 2, H * 0.83);
+  g.fillText(['DMG', 'NES', 'SNES', 'AES', 'SCES', 'HD'][sec], W / 2, H * 0.885);
+  boxGrain(g, W, H, 0.05, 17 + sec);
+}
+
+/* --------------------------------------------------------------- le dessus - */
+function coverTop(g, W, H, sec, C) {
+  g.fillStyle = specPaper(sec); g.fillRect(0, 0, W, H);
+  g.fillStyle = specAcc(sec); g.fillRect(0, 0, W, H * 0.07);
+  /* bandeau de couleur du dos, comme sur un carton rabattu */
+  g.fillStyle = specAcc(sec); g.fillRect(0, 0, W * 0.085, H);
+  g.globalAlpha = 0.35; g.fillRect(W * 0.97, 0, W * 0.03, H); g.globalAlpha = 1;
+  /* le pli central : une ligne d'encre sur toute la longueur */
+  g.fillStyle = specInk(sec); g.globalAlpha = 0.5;
+  g.fillRect(W * 0.10, H * 0.47, W * 0.86, Math.max(1, H * 0.045));
+  g.globalAlpha = 1;
+  /* le sceau de la maison, gravé à droite */
+  g.save(); g.translate(W * 0.80, H * 0.5);
+  g.fillStyle = specInk(sec); g.globalAlpha = 0.42;
+  const r = Math.min(W * 0.045, H * 0.30);
+  g.beginPath(); g.arc(0, 0, r, 0, TAU); g.fill();
+  g.globalAlpha = 1; g.fillStyle = specPaper(sec);
+  g.beginPath(); g.moveTo(-r * 0.45, -r * 0.30); g.lineTo(r * 0.45, -r * 0.30);
+  g.lineTo(0, r * 0.45); g.closePath(); g.fill();
+  g.restore();
+  /* et deux repères de pliage */
+  g.globalAlpha = 0.30; g.fillStyle = specInk(sec);
+  g.fillRect(W * 0.22, H * 0.86, W * 0.10, Math.max(1, H * 0.09));
+  g.fillRect(W * 0.52, H * 0.86, W * 0.10, Math.max(1, H * 0.09));
+  g.globalAlpha = 1;
+  boxGrain(g, W, H, 0.06, 29 + sec);
+}
+
+/* =========================== LE MOTEUR 3D ORTHOGRAPHIQUE =================== */
+function b3Setup(s, ox, oy, yaw, pitch, D) {
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const far = D || 1e7;                     /* distance caméra : les arêtes fuient */
+  return {
+    s, ox, oy,
+    p(x, y, z) {
+      const X = x * cy + z * sy;
+      const Z = -x * sy + z * cy;
+      const Y = y * cp + Z * sp;
+      const k = far / (far + y * sp - Z * cp);   /* > 1 = plus près du caisson   */
+      return { x: ox + X * k * s, y: oy + Y * k * s, z: Z, k, X, Y };
+    },
+  };
+}
+/* plaque une impression sur un quadrilatère (projection orthographique : la
+   transformation affine est exacte)                                          */
+function b3Quad(g, tex, p0, p1, p3, W, H, shade, opt = {}) {
+  const p2 = opt.p2 || { x: p1.x + (p3.x - p0.x), y: p1.y + (p3.y - p0.y) };
+  g.save();
+  g.beginPath(); g.moveTo(p0.x, p0.y); g.lineTo(p1.x, p1.y);
+  g.lineTo(p2.x, p2.y); g.lineTo(p3.x, p3.y); g.closePath();
+  g.clip();
+  if (tex) {
+    /* la face est posée en petites dalles : chaque dalle est projetée par sa
+       propre transformation, la fuite des arêtes reste donc exacte            */
+    const K = opt.flat ? 1 : 3, L = opt.flat ? 1 : 3;
+    const w0 = 1 / (p0.k || 1), w1 = 1 / (p1.k || 1), w2 = 1 / (p2.k || 1), w3 = 1 / (p3.k || 1);
+    const q = { x: 0, y: 0 };
+    const pt = (u, v) => {
+      const a = (1 - u) * (1 - v) * w0, b = u * (1 - v) * w1, c = u * v * w2, d = (1 - u) * v * w3;
+      const t = a + b + c + d;
+      q.x = (p0.x * a + p1.x * b + p2.x * c + p3.x * d) / t;
+      q.y = (p0.y * a + p1.y * b + p2.y * c + p3.y * d) / t;
+      return { x: q.x, y: q.y };
+    };
+    for (let iv = 0; iv < L; iv++) {
+      for (let iu = 0; iu < K; iu++) {
+        const u0 = iu / K, u1 = (iu + 1) / K, v0 = iv / L, v1 = (iv + 1) / L;
+        const q00 = pt(u0, v0), q10 = pt(u1, v0), q11 = pt(u1, v1), q01 = pt(u0, v1);
+        const sx = W * u0, sy = H * v0;
+        const pad = opt.flat ? 0 : 1.2;                      /* recouvrement : pas de couture */
+        const x0 = Math.max(0, sx - pad), y0 = Math.max(0, sy - pad);
+        const x1 = Math.min(W, sx + W * (u1 - u0) + pad), y1 = Math.min(H, sy + H * (v1 - v0) + pad);
+        const sw = x1 - x0, sh = y1 - y0;
+        const a = (q10.x - q00.x) / (W * (u1 - u0)), b = (q10.y - q00.y) / (W * (u1 - u0));
+        const c = (q01.x - q00.x) / (H * (v1 - v0)), d = (q01.y - q00.y) / (H * (v1 - v0));
+        g.save();
+        g.transform(a, b, c, d, q00.x - a * sx - c * sy, q00.y - b * sx - d * sy);
+        g.drawImage(tex, x0, y0, sw, sh, x0, y0, sw, sh);
+        g.restore();
+      }
+    }
+  } else { g.fillStyle = opt.col || '#222'; g.fill(); }
+  g.globalCompositeOperation = 'source-atop';
+  g.fillStyle = 'rgba(0,0,0,' + (1 - shade).toFixed(3) + ')';
+  g.fillRect(p0.x - 4000, p0.y - 4000, 9000, 9000);
+  if (opt.warm) { g.fillStyle = 'rgba(255,238,205,' + (opt.warm * 0.09).toFixed(3) + ')'; g.fillRect(p0.x - 4000, p0.y - 4000, 9000, 9000); }
+  g.globalCompositeOperation = 'source-over';
+  g.restore();
+}
+function b3Shade(n) {
+  const d = n[0] * BOX_LIGHT[0] + n[1] * BOX_LIGHT[1] + n[2] * BOX_LIGHT[2];
+  const amb = 0.48;
+  return amb + (1 - amb) * Math.max(0, d);
+}
+/* ------------------------------------------- le corps de la boîte, en 3D --- */
+function drawBoxBody(g, cx, cy, w, h, sec, t, sweep) {
+  const spec = BOX3D[ERAS[sec].sq] || BOX3D.hd;
+  const s = h / spec.h;                       /* échelle : px par millimètre  */
+  const bw = spec.w * s;
+  const PR = 1.4 * s;                         /* netteté des impressions      */
+  const bob = Math.sin(t * 1.4) * h * 0.005;
+  const P = b3Setup(s, cx, cy + bob, BOX_YAW, BOX_PITCH, BOX_FAR * Math.max(spec.w, spec.h, spec.d));
+  const gy = cy + bob + (spec.h / 2) * s * Math.cos(BOX_PITCH) + (spec.d / 2) * s * Math.sin(BOX_PITCH);
+  /* --- ombre portée au sol --- */
+  g.save();
+  g.fillStyle = 'rgba(0,0,0,.52)';
+  g.beginPath(); g.ellipse(cx - bw * 0.06, gy + h * 0.015, bw * 0.72, h * 0.040, -0.06, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.26)';
+  g.beginPath(); g.ellipse(cx + bw * 0.24, gy + h * 0.038, bw * 0.92, h * 0.026, -0.04, 0, TAU); g.fill();
+  g.restore();
+  /* --- les huit coins --- */
+  const x0 = -spec.w / 2, x1 = spec.w / 2, y0 = -spec.h / 2, y1 = spec.h / 2, z0 = -spec.d / 2, z1 = spec.d / 2;
+  const c000 = P.p(x0, y0, z1), c100 = P.p(x1, y0, z1), c110 = P.p(x1, y1, z1), c010 = P.p(x0, y1, z1);
+  const c001 = P.p(x0, y0, z0), c101 = P.p(x1, y0, z0), c111 = P.p(x1, y1, z0), c011 = P.p(x0, y1, z0);
+  const FW = Math.round(spec.w * PR), FH = Math.round(spec.h * PR), FD = Math.round(spec.d * PR);
+  /* --- faces visibles : avant, tranche droite, dessus --- */
+  b3Quad(g, boxPrint(sec, 'front', FW, FH), c000, c100, c010, FW, FH, b3Shade([0, 0, 1]), { p2: c110, warm: 1.6 });
+  b3Quad(g, boxPrint(sec, 'spine', FD, FH), c100, c101, c110, FD, FH, b3Shade([1, 0, 0]), { p2: c111 });
+  b3Quad(g, boxPrint(sec, 'top', FW, FD), c001, c101, c000, FW, FD, b3Shade([0, -1, 0]), { p2: c100, warm: 1.2 });
+  /* --- arêtes : le pli du carton prend la lumière --- */
+  g.save();
+  g.strokeStyle = 'rgba(255,255,255,.30)'; g.lineWidth = Math.max(1, s * 0.8);
+  g.beginPath(); g.moveTo(c000.x, c000.y); g.lineTo(c100.x, c100.y); g.stroke();
+  g.strokeStyle = 'rgba(0,0,0,.40)';
+  g.beginPath(); g.moveTo(c000.x, c000.y); g.lineTo(c010.x, c010.y); g.stroke();
+  g.beginPath(); g.moveTo(c101.x, c101.y); g.lineTo(c111.x, c111.y); g.stroke();
+  g.restore();
+  /* --- film rétractable : un reflet qui balaie la boîte --- */
+  if (sweep > 0) {
+    g.save();
+    g.beginPath();
+    g.moveTo(c000.x, c000.y); g.lineTo(c100.x, c100.y); g.lineTo(c110.x, c110.y); g.lineTo(c010.x, c010.y);
+    g.lineTo(c011.x, c011.y); g.lineTo(c111.x, c111.y); g.lineTo(c101.x, c101.y); g.lineTo(c001.x, c001.y);
+    g.closePath(); g.clip();
+    g.globalCompositeOperation = 'lighter';
+    const bw2 = bw * 0.28, bx = cx - bw + (bw * 2.2) * sweep;
+    const gr = g.createLinearGradient(bx, cy - h, bx + bw2, cy + h);
+    gr.addColorStop(0, 'rgba(255,255,255,0)');
+    gr.addColorStop(0.5, 'rgba(255,255,255,.26)');
+    gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(bx, cy - h * 1.4, bw2, h * 2.8);
+    g.restore();
+  }
+}
+
+/* ================== LE SUPPORT : cartouche, disque, boîtier ================ */
+const MEDIA3 = {
+  gb:     { w: 57,  h: 64,  d: 9,  kind: 'cart' },
+  nes:    { w: 104, h: 71,  d: 13, kind: 'cart' },
+  snes:   { w: 117, h: 67,  d: 14, kind: 'cart' },
+  neogeo: { w: 78,  h: 112, d: 26, kind: 'cart' },
+  psx:    { w: 142, h: 125, d: 11, kind: 'jewel' },
+  hd:     { w: 136, h: 172, d: 12, kind: 'case' },
+};
+function mediaSprite(sec, face, W, H) {
+  W = Math.max(8, Math.round(W)); H = Math.max(8, Math.round(H));
+  const key = 'med' + sec + '|' + face + '|' + W + '|' + H;
+  if (PRINTS.has(key)) return PRINTS.get(key);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const C = coverCol(sec);
+  if (face === 'front') {
+    const shell = ['#3d3d3d', '#bdbdb4', '#a9a9a3', '#181614', '#0f1116', '#0c1018'][sec] || '#333';
+    g.fillStyle = shell; g.fillRect(0, 0, W, H);
+    /* l'étiquette imprimée : elle couvre la plus grande partie du boîtier */
+    const lx = W * 0.07, ly = H * 0.06, lw = W * 0.86, lh = H * (sec === 3 ? 0.60 : 0.66);
+    coverScene(g, lx, ly, lw, lh, sec);
+    g.fillStyle = sec === 3 ? '#c8a237' : '#0d0f14';
+    g.fillRect(lx, ly + lh, lw, H * 0.078);
+    g.fillStyle = sec === 3 ? '#080706' : '#f2f6ff';
+    g.font = '900 ' + (H * 0.052) + 'px ui-monospace, monospace';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('NEO VANGUARD', W / 2, ly + lh + H * 0.039);
+    /* moulages : nervures, marquage, vis */
+    g.save();
+    g.fillStyle = 'rgba(0,0,0,.30)';
+    for (let i = 0; i < 5; i++) g.fillRect(W * (0.13 + i * 0.185), H * 0.80, W * 0.07, H * 0.13);
+    g.fillStyle = 'rgba(255,255,255,.10)';
+    g.fillRect(0, 0, W, H * 0.02); g.fillRect(0, 0, W * 0.02, H);
+    g.restore();
+    g.fillStyle = 'rgba(255,255,255,.22)';
+    g.font = '700 ' + (H * 0.026) + 'px ui-monospace, monospace';
+    g.fillText(ERAS[sec].sys, W / 2, H * 0.965);
+  } else if (face === 'top') {
+    g.fillStyle = '#26282e'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#d8b64a';
+    for (let i = 0; i < 12; i++) g.fillRect(W * (0.08 + i * 0.072), H * 0.34, W * 0.042, H * 0.32);
+    g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, W, H * 0.16);
+  } else {
+    g.fillStyle = '#1b1d22'; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.10)'; g.fillRect(0, 0, W * 0.34, H);
+  }
+  PRINTS.set(key, c); return c;
+}
+function drawBoxMedia(g, k, cx, cy, w, t, sec) {
+  const spec = MEDIA3[ERAS[sec].sq] || MEDIA3.gb;
+  const C = coverCol(sec);
+  const s = (w * 1.10) / spec.w;
+  const bob = Math.sin(t * 2.0) * w * 0.02;
+  cy += bob;
+  const P = b3Setup(s, cx, cy, BOX_YAW + Math.sin(t * 0.5) * 0.030, BOX_PITCH, BOX_FAR * Math.max(spec.w, spec.h, spec.d));
+  const x0 = -spec.w / 2, x1 = spec.w / 2, y0 = -spec.h / 2, y1 = spec.h / 2, z0 = -spec.d / 2, z1 = spec.d / 2;
+  const c000 = P.p(x0, y0, z1), c100 = P.p(x1, y0, z1), c110 = P.p(x1, y1, z1), c010 = P.p(x0, y1, z1);
+  const c001 = P.p(x0, y0, z0), c101 = P.p(x1, y0, z0), c111 = P.p(x1, y1, z0);
+  const FW = Math.round(spec.w * 1.7 * s), FH = Math.round(spec.h * 1.7 * s), FD = Math.round(spec.d * 1.7 * s);
+  const gy = cy + (spec.h / 2) * s * Math.cos(BOX_PITCH * 0.62);
+  g.save(); g.fillStyle = 'rgba(0,0,0,.5)';
+  g.beginPath(); g.ellipse(cx, gy + w * 0.03, w * 0.52, w * 0.09, -0.05, 0, TAU); g.fill(); g.restore();
+  if (spec.kind === 'jewel' || spec.kind === 'case') {
+    /* ---- le boîtier translucide, puis le disque posé devant ---- */
+    g.save(); g.globalAlpha = 0.42;
+    b3Quad(g, mediaSprite(sec, 'front', FW, FH), c000, c100, c010, FW, FH, b3Shade([0, 0, 1]), { p2: c110, warm: 1.4 });
+    g.restore();
+    b3Quad(g, mediaSprite(sec, 'top', FW, FD), c001, c101, c000, FW, FD, b3Shade([0, -1, 0]), { p2: c100 });
+    g.save(); g.strokeStyle = C.acc; g.globalAlpha = 0.55; g.lineWidth = 1.4;
+    g.beginPath(); g.moveTo(c000.x, c000.y); g.lineTo(c100.x, c100.y); g.lineTo(c110.x, c110.y); g.lineTo(c010.x, c010.y); g.closePath(); g.stroke();
+    g.restore();
+    const rr = w * 0.40, dcx = cx + w * 0.22, dcy = cy - w * 0.08, tilt = 0.28;
+    g.save(); g.translate(dcx, dcy); g.scale(1, tilt);
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(w * 0.06, -w * 0.02, rr * 1.02, 0, TAU); g.fill();
+    const dg = g.createLinearGradient(-rr, -rr, rr, rr);
+    dg.addColorStop(0, '#c8d0de'); dg.addColorStop(0.34, '#f2f6fd'); dg.addColorStop(0.5, sec === 4 ? '#c3cfe4' : '#a9c8ee');
+    dg.addColorStop(0.7, '#e4ebf7'); dg.addColorStop(1, '#bfc8d6');
+    g.fillStyle = dg; g.beginPath(); g.arc(0, 0, rr, 0, TAU); g.fill();
+    g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.42;
+    for (let i = 0; i < 4; i++) {
+      const a = i * 1.7 + t * 0.4;
+      g.strokeStyle = ['#ff8fd0', '#8fe6ff', '#ffe98f', '#a8ff9e'][i]; g.lineWidth = rr * 0.15;
+      g.beginPath(); g.arc(0, 0, rr * (0.46 + i * 0.13), a, a + 1.4); g.stroke();
+    }
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    g.fillStyle = sec === 4 ? '#8d9ec7' : '#1b4fa8';
+    g.beginPath(); g.arc(0, 0, rr * 0.44, 0, TAU); g.fill();
+    g.fillStyle = '#f4f8ff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = '900 ' + (rr * 0.20) + 'px ui-monospace, monospace';
+    g.fillText('NEO', 0, -rr * 0.11); g.fillText('VANGUARD', 0, rr * 0.13);
+    g.fillStyle = '#e9edf5'; g.beginPath(); g.arc(0, 0, rr * 0.21, 0, TAU); g.fill();
+    g.fillStyle = '#0b0c10'; g.beginPath(); g.arc(0, 0, rr * 0.10, 0, TAU); g.fill();
+    g.restore();
+  } else {
+    /* ---- la cartouche : un vrai volume, avec son étiquette et ses rainures -- */
+    const r = w * 0.06;                        /* rayon des coins arrondis     */
+    g.save();
+    g.beginPath();
+    g.moveTo(c000.x + r, c000.y); g.lineTo(c100.x - r, c100.y);
+    g.quadraticCurveTo(c100.x, c100.y, c100.x + (c110.x - c100.x) * 0.06, c100.y + (c110.y - c100.y) * 0.06);
+    g.lineTo(c110.x - r * 0.4, c110.y); g.lineTo(c010.x + r * 0.4, c010.y);
+    g.quadraticCurveTo(c010.x, c010.y, c010.x + (c000.x - c010.x) * 0.06, c010.y + (c000.y - c010.y) * 0.06);
+    g.closePath(); g.clip();
+    b3Quad(g, mediaSprite(sec, 'front', FW, FH), c000, c100, c010, FW, FH, b3Shade([0, 0, 1]), { p2: c110, warm: 1.5 });
+    g.restore();
+    b3Quad(g, mediaSprite(sec, 'side', FD, FH), c100, c101, c110, FD, FH, b3Shade([1, 0, 0]), { p2: c111 });
+    b3Quad(g, mediaSprite(sec, 'top', FW, FD), c001, c101, c000, FW, FD, b3Shade([0, -1, 0]), { p2: c100, warm: 1.1 });
+    g.save(); g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 1.2;
+    g.beginPath(); g.moveTo(c000.x, c000.y); g.lineTo(c100.x, c100.y); g.stroke();
+    g.beginPath(); g.moveTo(c100.x, c100.y); g.lineTo(c101.x, c101.y); g.stroke();
+    g.restore();
+  }
 }
 
 /* --------------------------------------------------------------- la scène --
@@ -8442,11 +9390,13 @@ function drawBoxArt(t) {
   ctx.globalAlpha = 1;
   /* 2. entrée : la boîte glisse depuis la droite, avec son sillage */
   const ease = p < 0.16 ? 1 - Math.pow(1 - p / 0.16, 3) : 1;
-  const boxH = Math.min(view.h * 0.42, view.w * 0.38 / (BOXKIND[E.sq] ? BOXKIND[E.sq].ratio : 0.9));
-  const boxW = boxH * (BOXKIND[E.sq] ? BOXKIND[E.sq].ratio : 0.9);
+  const SPB = BOX3D[E.sq] || BOX3D.hd;             /* les cotes réelles de la boîte */
+  const ratio = SPB.w / SPB.h;
+  const boxH = Math.min(view.h * 0.52, view.w * 0.50 / ratio);
+  const boxW = boxH * ratio;
   const grow = p > 0.86 ? 1 + Math.pow((p - 0.86) / 0.14, 2.4) * 1.1 : 1;   /* elle fonce sur le joueur */
   const alpha = p > 0.93 ? clamp(1 - (p - 0.93) / 0.07, 0, 1) : 1;
-  const cx = view.w * 0.44 + (1 - ease) * view.w * 0.45, cy = view.h * 0.45 + Math.sin(t * 1.6) * 6;
+  const cx = view.w * 0.36 + (1 - ease) * view.w * 0.45, cy = view.h * 0.42 + Math.sin(t * 1.6) * 6;
   const sc = (0.86 + 0.14 * ease) * grow;
   ctx.globalAlpha = alpha;
   ctx.save();
@@ -8469,7 +9419,7 @@ function drawBoxArt(t) {
     ctx.globalAlpha = alpha * mp;
     ctx.save();
     ctx.translate(cx, cy); ctx.scale(sc, sc); ctx.translate(-cx, -cy);
-    drawBoxMedia(ctx, BOXKIND[E.sq], cx + boxW * 0.86 + (1 - mp) * 110, cy + boxH * 0.16, boxW * 0.46, t - 0.4, sec);
+    drawBoxMedia(ctx, BOX3D[E.sq], cx + boxW * 0.92 + (1 - mp) * 130, cy + boxH * 0.28, boxW * 0.50, t - 0.4, sec);
     ctx.restore();
     ctx.globalAlpha = alpha;
   }
@@ -8696,6 +9646,7 @@ function collideBullets() {
   const B = G.bullets;
   for (let i = B.length - 1; i >= 0; i--) {
     const b = B[i];
+    CUR_OWN = b.owner || CUR_OWN;      /* à qui revient ce que le tir touche */
     let hit = false;
     for (let j = G.enemies.length - 1; j >= 0; j--) {
       const e = G.enemies[j];
@@ -8775,7 +9726,7 @@ function update(dt) {
   }
   /* --- jeu --- */
   G.t += dt;
-  updatePlayer(dt);
+  updatePlayers(dt);
   updateEnemies(dt);
   updateBullets(dt);
   collideBullets();
@@ -8920,7 +9871,7 @@ function showClearScreen() {
 /* ---------------------------------- entrées -------------------------------- */
 function onKeyDown(k, ev) {
   if (k === 'm') { const m = Audio2.toggleMute(); toast(m ? 'Son coupé' : 'Son activé'); return; }
-  if (k === 'f') { toggleFullscreen(); return; }
+  if (k === 'f' && !G.twoP) { toggleFullscreen(); return; }   /* à deux, F tire pour le joueur 2 */
   if (G.state === 'warp') { skipWarp(); return; }
   if (G.state === 'play' || G.state === 'intro') {
     if (k === 'Escape' || k === 'p') { pauseGame(); return; }
@@ -8929,6 +9880,7 @@ function onKeyDown(k, ev) {
   } else if (G.state === 'pause') {
     if (k === 'Escape' || k === 'p') resumeGame();
   } else if (G.state === 'title' && (k === 'Enter' || k === ' ')) startFromTitle();
+  else if (G.state === 'title' && k === '2') { G.twoP = true; startFromTitle(); }
 }
 function pauseGame() {
   if (G.state === 'warp') { skipWarp(); return; }
@@ -8975,7 +9927,8 @@ function wireButtons() {
     Audio2.init(); Audio2.unlock(); Audio2.sfx('ui');
     btn.blur();
     switch (act) {
-      case 'play': startFromTitle(); break;
+      case 'play': G.twoP = false; startFromTitle(); break;
+      case 'play2': G.twoP = true; startFromTitle(); break;
       case 'story': beginStory(); break;
       case 'fullscreen': toggleFullscreen(); break;
       case 'touch-bomb': useBomb(); break;
@@ -9006,7 +9959,7 @@ function wireButtons() {
       case 'pause-options': G.prevScreen = 'pause'; G.state = 'options'; buildOptions(); showScreen('options'); break;
       case 'resume': resumeGame(); break;
       case 'abort': abortRun(); break;
-      case 'retry': newRun(); break;
+      case 'retry': newRun(); break;   /* on rejoue dans le même mode */
       case 'over-shop': G.prevScreen = 'over'; G.state = 'shop'; buildShop(); showScreen('shop'); break;
       case 'over-menu': backToTitle(); break;
       case 'vic-replay': newRun(); break;
