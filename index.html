@@ -16111,7 +16111,7 @@ const NV_CART_TYPES = [
   { shape:'md',    ratio:1.54, size:.48, shell:'#20242b', edge:'#090b10', accent:'#53cfff' },
   { shape:'neo',   ratio:1.30, size:1.00, shell:'#191b22', edge:'#07080c', accent:'#f2b64d' },
 ];
-const NV_CART_RAIN = { cv:null, g:null, w:0, h:0, d:0, cards:null, sprites:null, elapsed:0, painted:false };
+const NV_CART_RAIN = { cv:null, g:null, w:0, h:0, d:0, cards:null, sprites:null, elapsed:0, time:0, painted:false };
 function nvCartPath(g, shape, w, h) {
   const x=-w/2, y=-h/2, r=Math.min(w,h)*.045;
   g.beginPath();
@@ -16232,9 +16232,10 @@ function drawCartridgeRain(dt) {
   }
   const baseH=Math.max(92,Math.min(180,h*.15));
   if(!NV_CART_RAIN.cards){
+    const tilts=[-.14,.11,-.055,.17,-.10], phases=[.2,1.7,3.1,4.4,5.6], drifts=[.034,.052,.026,.061,.041];
     NV_CART_RAIN.cards=NV_CART_TYPES.map((type,i)=>{
       const scale=[.72,.88,1,.66,.94][i], depth=[.9,.58,.82,.35,.68][i], ch=baseH*scale*type.size;
-      return {type,x:.10+i*.20,y:-ch*(.9+i*1.15),speed:Math.max(18,h*.028)+(i%3)*3,scale,depth};
+      return {type,x:.10+i*.20,y:-ch*(.9+i*1.15),speed:Math.max(18,h*.028)+(i%3)*3,scale,depth,tilt:tilts[i],phase:phases[i],drift:drifts[i]};
     });
   }
   // Chaque face avant est pré-rendue une seule fois avec son flou de profondeur.
@@ -16249,17 +16250,20 @@ function drawCartridgeRain(dt) {
   // 30 i/s suffisent pour cette chute lente, tout en divisant le travail de dessin.
   if(NV_CART_RAIN.painted&&NV_CART_RAIN.elapsed<1/30)return;
   const step=reduce?0:Math.min(.09,NV_CART_RAIN.elapsed);NV_CART_RAIN.elapsed=0;
+  NV_CART_RAIN.time+=step;
   g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);
   for(let i=0;i<NV_CART_RAIN.cards.length;i++){
     const card=NV_CART_RAIN.cards[i],ch=baseH*card.scale*card.type.size,cw=ch*card.type.ratio;
     card.y+=card.speed*step;
-    if(card.y>h+ch){card.y=-ch*(1.1+Math.random()*1.4);card.x=.08+Math.random()*.84;}
-    const x=Math.min(w-cw*.52,Math.max(cw*.52,w*card.x));
+    if(card.y>h+ch){card.y=-ch*(1.1+Math.random()*1.4);card.x=.08+Math.random()*.84;card.phase=Math.random()*Math.PI*2;}
+    const sway=Math.sin(NV_CART_RAIN.time*(.28+card.drift*5)+card.phase)*w*card.drift;
+    const halfW=Math.abs(Math.cos(card.tilt))*cw*.5+Math.abs(Math.sin(card.tilt))*ch*.5;
+    const x=Math.min(w-halfW,Math.max(halfW,w*card.x+sway));
     const focal=card.depth,alpha=(w<600?.76:.84)*(1-(1-focal)*.16);
     const sprite=NV_CART_RAIN.sprites[i];
     const pad=12*(ch/240),sw=cw+pad*2,sh=ch+pad*2;
-    g.save();g.globalAlpha=alpha*.16;g.drawImage(sprite,x-sw*.5,card.y-sh*.5+3,sw,sh); // ombre douce
-    g.globalAlpha=alpha;g.drawImage(sprite,x-sw*.5,card.y-sh*.5,sw,sh);g.restore();
+    g.save();g.translate(x,card.y);g.rotate(card.tilt);g.globalAlpha=alpha*.16;g.drawImage(sprite,-sw*.5,-sh*.5+3,sw,sh); // ombre douce
+    g.globalAlpha=alpha;g.drawImage(sprite,-sw*.5,-sh*.5,sw,sh);g.restore();
   }
   NV_CART_RAIN.painted=true;
 }
