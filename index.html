@@ -2373,7 +2373,8 @@ const FONT5 = {
   '$':'27272'
 };
 function pixChar(g, ch, x, y, col, s) {
-  const rows = FONT5[ch] || FONT5[ch.toUpperCase()] || FONT5['?'];
+  const dec0 = L_DECOMP[ch] || L_DECOMP[String(ch).toUpperCase()];
+  const rows = FONT5[ch] || FONT5[ch.toUpperCase()] || (dec0 && FONT5[dec0[0]]) || FONT5['?'];
   g.fillStyle = col;
   for (let r = 0; r < 5; r++) {
     const bits = parseInt(rows[r], 16);
