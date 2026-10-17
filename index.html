@@ -12977,7 +12977,13 @@ function beginBrief(level) {
 }
 function briefDone(level) {
   const eraChange = level === 1 || R.sec !== eraOfLevel(level) || eraOfLevel(level) !== eraOfLevel(level - 1);
-  if (eraChange) { beginBox(level); return; }
+  if (eraChange) {
+    /* le décor passe directement à la génération du secteur : plus de flash de l'ère récente */
+    const e = eraOfLevel(level);
+    if (R.sec !== e) { R.sec = e; computeTheme(e, S.sel.livery); setEra(ERAS[e].sty, true); }
+    beginBox(level, 'level');
+    return;
+  }
   /* même génération : pas de boîte, la fiche de secteur suffit */
   startLevel(level);
   FX.addFlash(0.22, TH.pGlow);
