@@ -287,6 +287,7 @@ kbd{background:var(--bg2);border:1px solid color-mix(in srgb,var(--acc) 55%,tran
 h1.logo{background:linear-gradient(180deg,#fff 22%,#bcd6f5 52%,#7fa4cc 78%,#e8f6ff);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   filter:drop-shadow(0 2px 0 rgba(0,0,0,.55)) drop-shadow(0 0 22px color-mix(in srgb,var(--acc) 55%,transparent))}
+@media (pointer:coarse){.panel{backdrop-filter:none!important}}
 </style>
 </head>
 <body class="era-3">
@@ -2909,7 +2910,36 @@ if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); window.sp
    ========================================================================= */
 const cv  = $('#game');
 const ctx = cv.getContext('2d', { alpha: false });
-const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
+/* Résolution de rendu par paliers : le jeu dessine plein écran puis envoie l'image au GPU à
+   chaque frame ; à 2x sur un téléphone, ça fait 4 fois plus de pixels à traiter (bloom,
+   aberration, flou de mouvement). Le palier descend tout seul si la machine rame. */
+const DPR_TIERS = [2, 1.5, 1.25, 1, 0.8];
+const PERF = { tier: 0, ema: 16.7, n: 0, cool: 180, bad: 0 };
+(function () {
+  const touch = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  PERF.tier = touch ? 2 : 0;                       /* téléphone : on démarre à 1,25x */
+  try {
+    const sv = parseInt(localStorage.getItem('nv_dprtier'), 10);
+    if (sv >= 0 && sv < DPR_TIERS.length) PERF.tier = sv;
+  } catch (e) {}
+})();
+const dpr = () => Math.min(window.devicePixelRatio || 1, DPR_TIERS[PERF.tier]);
+function perfAdapt(raw) {
+  if (raw > 0.2 || document.hidden) return;          /* onglet en arrière-plan, chargement : on ignore */
+  PERF.ema = PERF.ema * 0.95 + raw * 1000 * 0.05;
+  if (PERF.cool > 0) { PERF.cool--; return; }
+  if (++PERF.n % 90) return;
+  PERF.bad = PERF.ema > 22 ? PERF.bad + 1 : 0;       /* < ~45 i/s de façon soutenue */
+  if (PERF.bad < 2) return;
+  const dev = window.devicePixelRatio || 1, cur = Math.min(dev, DPR_TIERS[PERF.tier]);
+  let j = PERF.tier + 1;
+  while (j < DPR_TIERS.length && Math.min(dev, DPR_TIERS[j]) >= cur - 0.01) j++;
+  PERF.bad = 0;
+  if (j >= DPR_TIERS.length) return;                 /* déjà au plus bas */
+  PERF.tier = j; PERF.cool = 240; PERF.ema = 16.7;
+  try { localStorage.setItem('nv_dprtier', String(j)); } catch (e) {}
+  try { sideRes = resizeView().sideRes; syncTitleZone(); } catch (e) {}
+}
 
 const view = { w: 960, h: 540, dpr: 1 };
 let RES_SCALE = 1;                                   /* résolution interne du rendu HD */
@@ -3752,7 +3782,7 @@ const GPU = {
   ready: false, err: null, res: null, stage: null, cv: null, tex: null,
   base: null, glow: null, glowTex: null, post: null, u: null, ug: null,
   t: 0, rip: { t: -9, x: 0, y: 0, s: 0 }, wasFlash: 0, fps: 0, frames: 0, frameT: 0,
-  q: 2, tick: 0, ms: 16.7, glowMul: 1, fxMul: 1, bad: 0, fallback2D: false,
+  q: (window.matchMedia && matchMedia('(pointer: coarse)').matches) ? 1 : 2, tick: 0, ms: 16.7, glowMul: 1, fxMul: 1, bad: 0, fallback2D: false,
 };
 const GL_VERT = `in vec2 aPosition;
 out vec2 vTextureCoord;
@@ -11525,6 +11555,7 @@ function frame(now) {
   if (cheatOn('slow') && (G.state === 'play' || G.state === 'intro')) dt *= 0.6;   /* cheat TEMPS RALENTI */
   autoQuality(raw);
   gpuAutoQuality(raw);
+  perfAdapt(raw);
   try { update(dt); render(dt); } catch (err) {
     /* garde-fou : une erreur de rendu ne doit jamais figer la partie */
     if (!frame.errs) frame.errs = 0;
