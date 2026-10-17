@@ -133,8 +133,26 @@ body.touch.playing #tpause{display:block}
 .opt{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.08);flex-wrap:wrap}
 .opt label{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#cfdcf5}
 .opt .hint{display:block;font-size:10px;color:#8ba0c2;letter-spacing:.04em;text-transform:none;margin-top:3px}
+#optBody{display:flex;flex-direction:column;gap:14px}
+.opt-section{min-width:0;padding:12px 14px 6px;border:1px solid color-mix(in srgb,var(--acc) 22%,rgba(255,255,255,.06));background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(0,0,0,.12))}
+.opt-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 2px 9px;border-bottom:1px solid color-mix(in srgb,var(--acc) 34%,transparent)}
+.opt-section-title{margin:0;color:var(--acc);font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+.opt-section-desc{margin:0;color:#8193b2;font-size:10px;letter-spacing:.04em;text-align:right}
+.opt-section-body{min-width:0}
+.opt-section-body>.opt:last-child{border-bottom:0}
 .ctl{display:flex;align-items:center;gap:8px}
 input[type=range]{width:190px;accent-color:var(--acc)}
+@media(max-width:600px){
+  #optBody{gap:10px}
+  .opt-section{padding:10px 10px 5px}
+  .opt-section-head{align-items:flex-start;flex-direction:column;gap:3px}
+  .opt-section-desc{text-align:left}
+  .opt-section-body>.opt{gap:8px;padding:10px 2px}
+  .opt-section-body>.opt>.ctl{max-width:100%;flex-wrap:wrap}
+  .opt-section-body>.opt .seg{max-width:100%;flex-wrap:wrap}
+  .opt-section-body>.opt .seg button{padding:8px 9px}
+  .opt-section-body input[type=range]{width:min(190px,52vw)}
+}
 .tile.online .ti{color:#8ff0ff}
 .tile.online{border-color:rgba(143,240,255,.45)}
 #netBox{display:flex;flex-direction:column;gap:10px}
@@ -8903,7 +8921,13 @@ function buy(listKey, id, price) {
 function buildOptions() {
   const o = S.opts, body = $('#optBody'); body.innerHTML = '';
   $('#optEra').textContent = ERAS[R.sec].sys;
-  const add = (html) => { const d = document.createElement('div'); d.className = 'opt'; d.innerHTML = html; body.appendChild(d); return d; };
+  let target = body;
+  const section = (key, title, description) => {
+    const s = document.createElement('section'); s.className = 'opt-section'; s.dataset.section = key;
+    s.innerHTML = `<div class="opt-section-head"><h2 class="opt-section-title">${title}</h2><p class="opt-section-desc">${description}</p></div><div class="opt-section-body"></div>`;
+    body.appendChild(s); target = s.querySelector('.opt-section-body');
+  };
+  const add = (html) => { const d = document.createElement('div'); d.className = 'opt'; d.innerHTML = html; target.appendChild(d); return d; };
   /* sliders */
   const slider = (key, label, hint, min, max, fmtFn) => {
     const d = add(`<div><label>${label}<span class="hint">${hint}</span></label></div>
@@ -8911,6 +8935,11 @@ function buildOptions() {
     const inp = d.querySelector('input'), out = d.querySelector('.ctl span');
     inp.oninput = () => { o[key] = +inp.value; out.textContent = (fmtFn || (v => v))(o[key]); if (key === 'music' || key === 'sfx') Audio2.applyVolumes(); saveGame(); };
   };
+  const sw = (key, label, hint, after) => {
+    const d = add(`<div><label>${label}<span class="hint">${hint}</span></label></div><div class="ctl"><button class="sw${o[key] ? ' on' : ''}">${o[key] ? 'OUI' : 'NON'}</button></div>`);
+    d.querySelector('button').onclick = () => { o[key] = o[key] ? 0 : 1; Audio2.sfx('ui'); saveGame(); buildOptions(); if (after) after(); };
+  };
+  section('interface', 'Interface', 'Langue des menus, briefings et annonces');
   /* langue : le dictionnaire porte sur le texte français du jeu (lang-dict.js) */
   (() => {
     const d = add('<div><label>' + NLS('Langue') + '<span class="hint">Interface, briefings, histoire et annonces vocales</span></label></div><div class="ctl"><div class="seg"></div></div>');
@@ -8922,9 +8951,14 @@ function buildOptions() {
       segEl.appendChild(b);
     });
   })();
+  section('audio', 'Audio et voix', 'Niveaux sonores, musique et narration');
   slider('music', 'Musique', 'Volume de la musique', 0, 100, v => v + '%');
   slider('sfx', 'Effets', 'Tirs, explosions, ravitaillements', 0, 100, v => v + '%');
-  slider('shake', 'Secousses', 'Intensité du screen-shake', 0, 150, v => v + '%');
+  sw('speech', 'Voix IA du droïde', 'Lecture du prologue, des briefings et des annonces de bord', () => { if (!S.opts.speech) droidStop(); });
+  voiceOptionsRows(add);
+  sw('ost', 'Bande originale', 'Musiques libres du dossier music/ ; sinon, séquenceur chiptune', () => mxApplyOption());
+  /* segmentation difficulté */
+  section('gameplay', 'Gameplay', 'Difficulté, coopération et aides de jeu');
   /* segmentation difficulté */
   const seg = (key, label, hint, items, after) => {
     const d = add(`<div><label>${label}<span class="hint">${hint}</span></label></div><div class="ctl"><div class="seg"></div></div>`);
@@ -8942,19 +8976,15 @@ function buildOptions() {
       if (G.state === 'play')
         for (const P of G.players) P.lives = Math.max(1, P.lives + (DIFFS[S.opts.diff].lives - 3));
     });
-  const sw = (key, label, hint, after) => {
-    const d = add(`<div><label>${label}<span class="hint">${hint}</span></label></div><div class="ctl"><button class="sw${o[key] ? ' on' : ''}">${o[key] ? 'OUI' : 'NON'}</button></div>`);
-    d.querySelector('button').onclick = () => { o[key] = o[key] ? 0 : 1; Audio2.sfx('ui'); saveGame(); buildOptions(); if (after) after(); };
-  };
   sw('twoP', '2 joueurs', 'Deux vaisseaux sur le même écran, dès la prochaine mission', () => {
     toast(o.twoP ? '2 joueurs : activé (prochaine campagne)' : '1 joueur');
   });
   sw('ghost', 'Fantôme du record', 'Ton meilleur run rejoue, translucide, à côté de toi', () => { if (!S.ghost) toast('Bats ton record pour créer un fantôme'); });
-  sw('speech', 'Voix IA du droïde', 'Lecture du prologue, des briefings et des annonces de bord', () => { if (!S.opts.speech) droidStop(); });
-  voiceOptionsRows(add);
-  sw('ost', 'Bande originale', 'Musiques libres du dossier music/ ; sinon, séquenceur chiptune', () => mxApplyOption());
+  section('controls', 'Commandes', 'Méthodes de visée et de tir');
   sw('mouse', 'Visée souris', 'Le vaisseau suit le curseur (clavier prioritaire)');
   sw('autofire', 'Tir automatique', 'Tir continu sans maintenir la touche');
+  section('display', 'Affichage et performances', 'Rendu, fluidité et effets visuels');
+  slider('shake', 'Secousses', 'Intensité du screen-shake', 0, 150, v => v + '%');
   sw('fps', 'Compteur FPS', 'Affiche les performances et le nombre de particules');
   sw('smooth', 'Lissage HD', 'Adoucit les pixels en secteur HD');
   const d2 = add(`<div><label>Scanlines CRT<span class="hint">Filtre sur le rendu HD uniquement</span></label></div>
@@ -8992,6 +9022,7 @@ function buildOptions() {
   const d4 = add(`<div><label>Plein écran<span class="hint">F pour basculer à tout moment</span></label></div>
     <div class="ctl"><button class="sw">ACTIVER</button></div>`);
   d4.querySelector('button').onclick = () => toggleFullscreen();
+  section('save', 'Sauvegarde', 'Exporter, importer ou réinitialiser ta progression');
   const d5 = add(`<div><label>Réinitialiser<span class="hint">Efface crédits, achats et records</span></label></div>
     <div class="ctl"><button class="sw" style="border-color:#ff5f6d;color:#ffd6d9">EFFACER</button></div>`);
   d5.querySelector('button').onclick = () => {
@@ -18842,7 +18873,9 @@ function importSave(file) {
       '<button class="btn small" id="svImp">' + svt('imp') + '</button>' +
       '<button class="btn small bad" id="svClr"' + (has ? '' : ' disabled') + '>' + svt('clr') + '</button>' +
       '<input type="file" id="svFile" accept="application/json,.json" hidden></div>';
-    body.insertBefore(d, body.firstChild);
+    const saveGroup = body.querySelector('[data-section="save"] .opt-section-body');
+    if (saveGroup) saveGroup.insertBefore(d, saveGroup.firstChild);
+    else body.insertBefore(d, body.firstChild);
     d.querySelector('#svExp').onclick = exportSave;
     const fi = d.querySelector('#svFile');
     d.querySelector('#svImp').onclick = () => fi.click();
