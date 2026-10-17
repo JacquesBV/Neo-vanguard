@@ -430,7 +430,8 @@ body{max-width:100%;overflow-x:hidden}
       <span class="ptitle">Boutique orbitale</span>
       <span class="wallet">CRÉDITS <b id="shopCredits">0</b></span>
     </div>
-    <div class="tabs" id="shopTabs"></div>
+    <div class="shop-intro" id="shopIntro" aria-live="polite"></div>
+    <div class="tabs" id="shopTabs" aria-label="Rayons de la boutique"></div>
     <div class="grid" id="shopGrid"></div>
     <div class="note" id="shopNote"></div>
     <div class="row"><button class="btn small" data-act="shop-back">◀ Retour</button></div>
@@ -8713,9 +8714,21 @@ function drawEraBanner(t) {
 /* ------------------------------ boutique ----------------------------------- */
 let shopTab = 'ships';
 const SHOP_TABS = [
-  ['ships', 'Vaisseaux'], ['weapons', 'Armes'], ['upgrades', 'Équipements'],
-  ['bombs', 'Bombes'], ['liveries', 'Livrées'], ['trails', 'Traînées'], ['auras', 'Auras'],
+  ['hangar', 'Hangar'], ['ships', 'Vaisseaux'], ['weapons', 'Armement'],
+  ['upgrades', 'Améliorations'], ['custom', 'Personnalisation'],
 ];
+const SHOP_GUIDE = {
+  hangar: ['CONFIGURATION ACTIVE', 'Équipe ton vaisseau, ton arme et tes éléments visuels. Les jauges résument les performances actuelles.'],
+  ships: ['CHOISIS TON STYLE DE COMBAT', 'Compare les performances au vaisseau actuellement équipé avant de débloquer une nouvelle cellule.'],
+  weapons: ['ARMEMENT ET SURVIE', 'Les armes changent ta façon d’attaquer. Les bombes sont consommées et rejoignent ton stock de départ.'],
+  upgrades: ['PROGRESSION PERMANENTE', 'Chaque achat améliore directement ton équipement. Le prix augmente avec le niveau : vérifie l’effet avant de confirmer.'],
+  custom: ['APPARENCE DU VAISSEAU', 'Livrées, traînées et auras sont purement visuelles : elles ne modifient pas les performances.'],
+};
+function shopRoute(tab) {
+  if (tab === 'liveries' || tab === 'trails' || tab === 'auras') return 'custom';
+  if (tab === 'bombs') return 'weapons';
+  return tab;
+}
 function itemList(tab) {
   if (tab === 'ships') return SHIPS;
   if (tab === 'weapons') return WEAPONS;
@@ -8724,65 +8737,115 @@ function itemList(tab) {
   if (tab === 'auras') return AURAS;
   return [];
 }
+function shopStatValues(st) {
+  return {
+    'Vitesse': `${Math.round(st.speed / 560 * 100)}%`,
+    'Cadence': `${Math.round(st.fireMul * 100)}%`,
+    'Coque': `${st.maxHp}`,
+    'Boucliers': `${st.shields}`,
+    'Drones': `${st.drones}`,
+    'Dégâts': `${Math.round(st.dmgMul * 100)}%`,
+    'Collecte': `${Math.round(st.magnet)} px`,
+    'Crédits gagnés': `${Math.round(st.creditMul * 100)}%`,
+    'Télémétrie': `${st.luck}`,
+  };
+}
+function shopStatCompare(before, after) {
+  const a = shopStatValues(before), b = shopStatValues(after);
+  return Object.keys(a).filter(k => a[k] !== b[k]).map(k => {
+    const av = Number(a[k].match(/[\d.]+/)?.[0] || 0), bv = Number(b[k].match(/[\d.]+/)?.[0] || 0);
+    return `<span class="${bv >= av ? 'up' : 'down'}"><i>${k}</i><b>${a[k]} <em>→</em> ${b[k]}</b></span>`;
+  }).join('');
+}
+function shopItemCard(key, it) {
+  const selKey = { ships: 'ship', weapons: 'weapon', liveries: 'livery', trails: 'trail', auras: 'aura' }[key];
+  const owned = S.owned[key].includes(it.id), equipped = S.sel[selKey] === it.id;
+  let compare = '';
+  if (key === 'ships' && !equipped) {
+    const old = S.sel.ship; S.sel.ship = it.id;
+    const after = computeStats(); S.sel.ship = old;
+    compare = shopStatCompare(computeStats(), after);
+  }
+  const el = document.createElement('div');
+  el.className = 'card shop-item' + (equipped ? ' sel' : '') + (owned ? '' : ' locked');
+  el.innerHTML = `${owned ? `<span class="badge${equipped ? ' own' : ''}">${equipped ? 'ÉQUIPÉ' : 'POSSÉDÉ'}</span>` : ''}
+    <div class="cname">${it.name}</div>
+    <div class="cdesc">${it.desc || it.note || ''}${it.perk ? '<br><b style="color:#ffd166">' + it.perk + '</b>' : ''}</div>
+    ${compare ? `<div class="shop-compare">${compare}</div>` : ''}
+    ${(it.gb || it.hull) ? `<div style="display:flex;gap:3px;margin-top:6px">${liverySwatch(it).map(c => `<span style="flex:1;height:8px;background:${c}"></span>`).join('')}</div>` : ''}
+    <div class="cprice${owned ? ' owned' : (S.credits < it.price ? ' cant' : '')}">${owned ? (equipped ? 'SÉLECTIONNÉ' : 'ÉQUIPER') : fmt(it.price) + ' CR'}</div>`;
+  el.onclick = () => { ownsOrBuy(key, selKey, it); };
+  return el;
+}
+function buildBombCard(grid) {
+  const l = D.lv('bomb'), el = document.createElement('div');
+  el.className = 'card shop-item' + (l >= 9 ? ' locked' : '');
+  el.innerHTML = `<span class="badge">CONSOMMABLE</span><div class="cname">BOMBE INTELLIGENTE</div>
+    <div class="cdesc">Efface les tirs ennemis et inflige de lourds dégâts de zone. Les bombes achetées alimentent le stock permanent.</div>
+    <div class="bar"><i style="width:${l / 9 * 100}%"></i></div>
+    <div class="stat"><span>STOCK : ${l}/9</span><span>${l >= 9 ? 'PLEIN' : 'MAX. 9'}</span></div>
+    <div class="cprice${l >= 9 ? ' cant' : (S.credits < 200 ? ' cant' : '')}">${l >= 9 ? 'STOCK PLEIN' : 'ACHETER · ' + fmt(200) + ' CR'}</div>`;
+  if (l < 9) el.onclick = () => buy('bombs', 'bomb');
+  grid.appendChild(el);
+  const note = document.createElement('div'); note.className = 'shop-inline-note';
+  note.textContent = `Chargées au début de chaque mission : 3 + ton stock, dans la limite de 5 en vol.`;
+  grid.appendChild(note);
+}
 function buildShop() {
+  shopTab = shopRoute(shopTab);
   $('#shopCredits').textContent = fmt(S.credits);
+  const guide = SHOP_GUIDE[shopTab] || SHOP_GUIDE.ships;
+  $('#shopIntro').innerHTML = `<b>${guide[0]}</b><span>${guide[1]}</span>`;
   const tabs = $('#shopTabs'); tabs.innerHTML = '';
   for (const [id, label] of SHOP_TABS) {
     const b = document.createElement('button');
     b.className = 'tab' + (shopTab === id ? ' sel' : '');
-    b.textContent = label;
+    b.textContent = label; b.setAttribute('aria-pressed', shopTab === id ? 'true' : 'false');
     b.onclick = () => { shopTab = id; Audio2.sfx('ui'); buildShop(); };
     tabs.appendChild(b);
   }
   const grid = $('#shopGrid'); grid.innerHTML = '';
-  if (shopTab === 'bombs') {
-    const l = D.lv('bomb');
-    const el = document.createElement('div');
-    el.className = 'card' + (l >= 9 ? ' locked' : '');
-    el.innerHTML = `<div class="cname">BOMBE INTELLIGENTE</div>
-      <div class="cdesc">Efface tous les tirs ennemis et inflige de lourds dégâts de zone. Consommable, stocké dans le vaisseau (max 9).</div>
-      <div class="bar"><i style="width:${l / 9 * 100}%"></i></div>
-      <div class="stat"><span>STOCK : ${l}/9</span><span>${l >= 9 ? 'PLEIN' : ''}</span></div>
-      <div class="cprice${l >= 9 ? ' cant' : ''}">${l >= 9 ? 'MAXIMUM' : 'ACHETER · ' + fmt(200) + ' CR'}</div>`;
-    el.onclick = () => { buy('bombs', 'bomb'); };
-    grid.appendChild(el);
-    const note = document.createElement('div');
-    note.className = 'card'; note.style.gridColumn = '1/-1';
-    note.innerHTML = `<div class="cdesc">Les bombes achetées rejoignent ton stock permanent : elles sont chargées au début de chaque mission (3 + stock, max 5 en vol).</div>`;
-    grid.appendChild(note);
-  } else if (shopTab === 'upgrades') {
-    for (const u of UPGRADES) {
+  if (shopTab === 'upgrades') {
+    for (const u of UPGRADES.filter(x => !x.consumable)) {
       const l = D.lv(u.id), maxed = l >= u.max, cost = upgCost(u);
-      const el = document.createElement('div');
-      el.className = 'card' + (maxed ? ' locked' : '');
-      el.innerHTML = `<div class="cname">${u.name}</div>
-        <div class="cdesc">${u.step}</div>
+      let compare = '';
+      if (!maxed) {
+        const before = computeStats(), old = upgs()[u.id] | 0;
+        upgs()[u.id] = old + 1; const after = computeStats(); upgs()[u.id] = old;
+        compare = shopStatCompare(before, after);
+      }
+      const el = document.createElement('div'); el.className = 'card shop-item' + (maxed ? ' locked' : '');
+      el.innerHTML = `<div class="cname">${u.name}</div><div class="cdesc">${u.step}</div>
+        ${compare ? `<div class="shop-compare">${compare}</div>` : ''}
         <div class="bar"><i style="width:${l / u.max * 100}%"></i></div>
-        <div class="stat"><span>NIVEAU ${l}/${u.max}</span><span>${maxed ? 'MAX' : '+' + (u.max - l) + ' dispo.'}</span></div>
-        <div class="cprice${maxed ? ' owned' : (S.credits < cost ? ' cant' : '')}">${maxed ? 'INSTALLÉ' : fmt(cost) + ' CR'}</div>`;
+        <div class="stat"><span>NIVEAU ${l}/${u.max}</span><span>${maxed ? 'MAX' : 'PROCHAIN : ' + (l + 1)}</span></div>
+        <div class="cprice${maxed ? ' owned' : (S.credits < cost ? ' cant' : '')}">${maxed ? 'NIVEAU MAXIMAL' : fmt(cost) + ' CR · NIVEAU ' + (l + 1)}</div>`;
       if (!maxed) el.onclick = () => buy('upgrades', u.id);
       grid.appendChild(el);
     }
-  } else {
-    const list = itemList(shopTab);
-    const key = shopTab;
-    const selKey = { ships: 'ship', weapons: 'weapon', liveries: 'livery', trails: 'trail', auras: 'aura' }[key];
-    for (const it of list) {
-      const owned = S.owned[key].includes(it.id);
-      const equipped = S.sel[selKey] === it.id;
-      const el = document.createElement('div');
-      el.className = 'card' + (equipped ? ' sel' : '') + (owned ? '' : ' locked');
-      el.innerHTML = `${owned ? `<span class="badge${equipped ? ' own' : ''}">${equipped ? 'ÉQUIPÉ' : 'POSSÉDÉ'}</span>` : ''}
-        <div class="cname">${it.name}</div>
-        <div class="cdesc">${it.desc || it.note || ''}${it.perk ? '<br><b style="color:#ffd166">' + it.perk + '</b>' : ''}</div>
-        ${(it.gb || it.hull) ? `<div style="display:flex;gap:3px;margin-top:6px">${liverySwatch(it).map(c => `<span style="flex:1;height:8px;background:${c}"></span>`).join('')}</div>` : ''}
-        <div class="cprice${owned ? ' owned' : (S.credits < it.price ? ' cant' : '')}">${owned ? (equipped ? 'SÉLECTIONNÉ' : 'ÉQUIPER') : fmt(it.price) + ' CR'}</div>`;
-      el.onclick = () => { ownsOrBuy(key, selKey, it); };
-      grid.appendChild(el);
+  } else if (shopTab === 'weapons') {
+    WEAPONS.forEach(it => grid.appendChild(shopItemCard('weapons', it)));
+    buildBombCard(grid);
+  } else if (shopTab === 'custom') {
+    const groups = [
+      ['LIVRÉES', 'liveries', LIVERIES], ['TRAÎNÉES', 'trails', TRAILS], ['AURAS', 'auras', AURAS],
+    ];
+    for (const [label, key, list] of groups) {
+      const heading = document.createElement('div'); heading.className = 'shop-group-title'; heading.textContent = label;
+      grid.appendChild(heading);
+      list.forEach(it => grid.appendChild(shopItemCard(key, it)));
     }
+  } else if (shopTab === 'ships') {
+    SHIPS.forEach(it => grid.appendChild(shopItemCard('ships', it)));
   }
-  $('#shopNote').innerHTML = 'Achète puis <b>équipe</b> : les statistiques s\'appliquent à la prochaine mission (ou immédiatement hors mission). '
-    + 'Crédits gagnés en mission : <b>' + fmt(S.credits) + '</b>. Les achats sont permanents et sauvegardés.';
+  const notes = {
+    hangar: 'Ton équipement sélectionné est sauvegardé automatiquement. Les changements sont appliqués à la prochaine mission.',
+    ships: 'Les valeurs comparées montrent l’effet du vaisseau par rapport à ta cellule actuelle. L’achat équipe automatiquement le nouveau vaisseau.',
+    weapons: 'Une arme achetée est équipée automatiquement. Les bombes sont consommables et leur stock est sauvegardé.',
+    upgrades: 'Les améliorations sont permanentes. Chaque carte compare ton niveau actuel avec le niveau suivant.',
+    custom: 'Les éléments visuels ne changent ni les dégâts ni les performances. Tu peux les équiper à tout moment.',
+  };
+  $('#shopNote').innerHTML = `${notes[shopTab]} <b>Solde : ${fmt(S.credits)} crédits.</b> Les achats et équipements sont sauvegardés.`;
 }
 function liverySwatch(it) {
   if (!it.hull) return it.gb || [];
@@ -14208,6 +14271,19 @@ function ensureMerchantUI() {
   #buyModal .bmq{margin-top:10px;padding:8px 10px;border-left:3px solid #ffe066;background:rgba(255,255,255,.05);font-size:13px;display:flex;gap:10px;align-items:center}
   #buyModal .bmq img{width:44px;height:44px;object-fit:cover;border:1px solid var(--acc);flex:none}
   #buyModal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+  #scr-shop .shop-intro{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;padding:10px 12px;border-left:3px solid var(--acc);background:color-mix(in srgb,var(--acc) 8%,transparent);color:#cbd8ee;font-size:12px;line-height:1.5}
+  #scr-shop .shop-intro b{color:var(--acc);font-size:10px;letter-spacing:.16em}
+  #scr-shop .tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  #scr-shop .tab{padding:10px 7px;min-height:42px;font-size:10px;letter-spacing:.08em;touch-action:manipulation}
+  #scr-shop .shop-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px;margin-top:8px;padding-top:7px;border-top:1px solid color-mix(in srgb,var(--acc) 25%,transparent)}
+  #scr-shop .shop-compare span{display:flex;justify-content:space-between;gap:4px;font-size:10px;color:#9fb2d4}
+  #scr-shop .shop-compare i{font-style:normal}
+  #scr-shop .shop-compare .up b{color:#b8f5d0;font-size:10px;white-space:nowrap}
+  #scr-shop .shop-compare .down b{color:#ff9aa4;font-size:10px;white-space:nowrap}
+  #scr-shop .shop-compare em{font-style:normal;color:var(--acc)}
+  #scr-shop .shop-group-title{grid-column:1/-1;padding:10px 2px 3px;border-bottom:1px solid color-mix(in srgb,var(--acc) 35%,transparent);color:var(--acc);font-size:11px;font-weight:800;letter-spacing:.18em}
+  #scr-shop .shop-inline-note{grid-column:1/-1;padding:10px 12px;border:1px solid color-mix(in srgb,var(--acc) 25%,transparent);color:#aebed8;font-size:11px;line-height:1.5}
+  @media(max-width:620px){#scr-shop .grid{grid-template-columns:1fr}#scr-shop .card .cdesc{display:block}#scr-shop .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}#scr-shop .tab:last-child{grid-column:1/-1}}
   .hangar{display:grid;grid-template-columns:340px 1fr;gap:16px;grid-column:1/-1}
   @media (max-width:760px){.hangar{grid-template-columns:1fr}}
   .hangar canvas{width:100%;aspect-ratio:1/1;background:radial-gradient(ellipse at 50% 60%,rgba(63,182,255,.14),rgba(0,0,0,.6));border:1px solid color-mix(in srgb,var(--acc) 50%,transparent)}
@@ -14288,7 +14364,6 @@ function confirmYes() {
     if (owned) { merchantSay('equip'); if (shopTab === 'hangar') buildShop(); }
   };
   /* la boutique : le marchand parle à chaque onglet, et l'onglet Hangar */
-  SHOP_TABS.unshift(['hangar', 'Hangar']);
   const _buildShop = buildShop;
   buildShop = function () {
     ensureMerchantUI();
@@ -17078,12 +17153,25 @@ narrativeInstall();
 
 
 /* ---- 99_title_quiet.js ---- */
-/* Écran d'entrée et menu principal : MUSIQUE SEULE. Aucun effet de la démo,
-   bip de navigation, clic ni ambiance générée en parallèle. */
+/* L'écran titre garde sa musique, avec un retour sonore sur chaque action.
+   Un seul effet est joué par clic : l'effet spécifique de l'action a priorité,
+   sinon le bip d'interface générique prend le relais. */
 {
   const _sfx = Audio2.sfx.bind(Audio2);
+  let clickSfx = null;
+  document.addEventListener('click', e => {
+    const control = e.target && e.target.closest && e.target.closest('button, a, [role="button"]');
+    if (!control || control.disabled || control.getAttribute('aria-disabled') === 'true') return;
+    const token = { played: false };
+    clickSfx = token;
+    queueMicrotask(() => { if (clickSfx === token) clickSfx = null; });
+  }, true);
   Audio2.sfx = function (name, opt) {
-    if (G.state === 'title') return;
+    if (G.state === 'title' && name !== 'ui') return;
+    if (clickSfx) {
+      if (clickSfx.played) return;
+      clickSfx.played = true;
+    }
     return _sfx(name, opt);
   };
 }
