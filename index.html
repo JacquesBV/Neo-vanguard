@@ -6849,7 +6849,7 @@ function useBomb(pl) {
   const who = pl || G.player;
   if (typeof NET !== 'undefined' && NET.role === 'guest') {
     /* retour visuel immédiat chez l'invité, effet réel décidé par l'hôte */
-    netSend('b|1'); Audio2.sfx('bomb'); FX.addFlash(0.5, TH.pLite);
+    netSend('b|1'); Audio2.sfx('bomb'); FX.addFlash(0.12, TH.pLite);
     for (const b of G.ebullets) spawnPart({ x: b.x, y: b.y, vx: rnd(90, -90), vy: rnd(90, -90), life: 0.3, col: TH.pLite, size: 3.2, glow: R.era >= 2 });
     G.ebullets.length = 0;
     return;
@@ -6857,7 +6857,7 @@ function useBomb(pl) {
   if (G.daily && G.mods.includes('nobomb')) { if (!G.nobombMsg) { G.nobombMsg = 1; toast('Défi du jour : bombes interdites'); } return; }
   if (!who || who.bombs <= 0 || !who.alive || G.state !== 'play') return;
   who.bombs--; G.bombs = G.players[0].bombs; CUR_OWN = who.id;
-  Audio2.sfx('bomb'); FX.addFlash(0.75, TH.pLite); FX.addShake(18); FX.stop(0.09);
+  Audio2.sfx('bomb'); FX.addFlash(0.12, TH.pLite); FX.addShake(12); FX.stop(0.05);   /* flash léger : plus de voile blanc plein écran */
   FX.slow = 0.35; FX.slowT = 0.55;
   for (const b of G.ebullets) {
     spawnPart({ x: b.x, y: b.y, vx: rnd(120, -120), vy: rnd(120, -120), life: 0.3, col: TH.pLite, size: 4, glow: R.era >= 2 });
@@ -11480,7 +11480,11 @@ function wireButtons() {
       case 'resume': resumeGame(); break;
       case 'abort': abortRun(); break;   /* la graine du défi est relâchée */
       case 'net-created-ok': break;
-      case 'retry': if (NET.role === 'guest') { toast(L('L’hôte décide de la suite')); break; } newRun(); break;   /* on rejoue dans le même mode */
+      case 'retry': if (NET.role === 'guest') { toast(L('L’hôte décide de la suite')); break; }
+        /* solo campagne : on rejoue le secteur du point de reprise (et non le secteur 1,
+           qui repartait en ère 8 bits). Sinon, comportement d'origine. */
+        if (!G.twoP && !G.daily && !G.netOnline && !(typeof NET !== 'undefined' && NET.role !== 'off') && campValid(S.camp)) { continueCampaign(); break; }
+        newRun(); break;   /* on rejoue dans le même mode */
       case 'over-shop': G.prevScreen = 'over'; G.state = 'shop'; buildShop(); showScreen('shop'); break;
       case 'over-menu': backToTitle(); break;
       case 'vic-replay': newRun(); break;
@@ -18519,5 +18523,5 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && (G.
   apply();
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
