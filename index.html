@@ -11378,7 +11378,7 @@ function render(dt) {
     drawWorld(dt);
     if (G.state === 'title') R.overlay = () => drawTitleArt();
     presentFrame();
-    if (G.state === 'title') drawCartridgeRain(dt);
+    if (G.state === 'title' && document.getElementById('nvGate')) drawCartridgeRain(dt);
     if (G.state === 'intro') drawEraBanner(introT / INTRO_DUR);
     if (G.state === 'warp') drawWarp();
     if (G.state !== 'title' && G.state !== 'warp') drawHUD();
@@ -16194,7 +16194,7 @@ function drawNvCartridge(g, c, cx, cy, cw, ch, time) {
   g.restore();
 }
 function drawCartridgeRain(dt) {
-  const c=document.getElementById('nvCartridgeRain'); if(!c) return;
+  const c=document.getElementById('nvGateCartridges'); if(!c) return;
   const r=c.getBoundingClientRect(), w=Math.max(1,r.width), h=Math.max(1,r.height), d=Math.min(window.devicePixelRatio||1,2);
   if(!NV_CART_RAIN.g) { NV_CART_RAIN.cv=c; NV_CART_RAIN.g=c.getContext('2d',{alpha:true}); }
   const g=NV_CART_RAIN.g; if(!g) return;
@@ -16204,7 +16204,7 @@ function drawCartridgeRain(dt) {
   if(!NV_CART_RAIN.cards||NV_CART_RAIN.cards.length!==NV_CART_TYPES.length){
     NV_CART_RAIN.cards=NV_CART_TYPES.map((type,i)=>{
       const scale=.86+(i%3)*.12, ch=baseH*scale*type.h;
-      return {type, x:.64+i*.078, y:-ch*(.9+i*1.15), speed:Math.max(18,h*.028)+(i%3)*3, phase:i*1.71, scale};
+      return {type, x:.10+i*.20, y:-ch*(.9+i*1.15), speed:Math.max(18,h*.028)+(i%3)*3, phase:i*1.71, scale};
     });
   }
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -16353,9 +16353,6 @@ function drawCartridgeRain(dt) {
   const hero = document.createElement('div'); hero.className = 'nv-hero';
   if (typeof TITLE_KEY_ART !== 'undefined') hero.style.backgroundImage = `url(${TITLE_KEY_ART})`;
   const veil = document.createElement('div'); veil.className = 'nv-veil';
-  const cartridgeRain = document.createElement('canvas'); cartridgeRain.id = 'nvCartridgeRain';
-  cartridgeRain.setAttribute('aria-hidden', 'true');
-  cartridgeRain.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1';
   const left = document.createElement('div'); left.className = 'nv-left';
   const brand = document.createElement('div'); brand.className = 'nv-brand';
   brand.innerHTML = `<div class="k" id="nvKicker"></div><span class="w1">NEO</span><span class="w2">VANGUARD</span><div class="tag" id="nvTag"></div>`;
@@ -16379,7 +16376,7 @@ function drawCartridgeRain(dt) {
   const foot = document.createElement('div'); foot.className = 'nv-foot'; foot.id = 'nvFoot';
   status.appendChild(foot);
   left.append(brand, secA, prim, secB, more, grid, status);
-  wrap.append(hero, veil, cartridgeRain, left);
+  wrap.append(hero, veil, left);
   scr.appendChild(wrap);
   /* visibilité : liée à l'écran titre */
   const sync = () => { wrap.classList.toggle('on', scr.classList.contains('on')); };
@@ -16719,6 +16716,8 @@ narrativeInstall();
   #nvGate{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;cursor:pointer;
     background:radial-gradient(ellipse at 50% 45%,rgba(10,16,34,.55),rgba(2,4,10,.92) 70%);backdrop-filter:blur(10px);transition:opacity .6s ease}
   #nvGate.off{opacity:0;pointer-events:none}
+  #nvGate #nvGateCartridges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+  #nvGate>.gl,#nvGate>.ge,#nvGate>.gs{position:relative;z-index:1}
   /* envol du logo au moment du tap */
   #nvGate .gl{transition:transform .85s cubic-bezier(.55,0,.8,.2),opacity .85s ease,letter-spacing .85s ease}
   #nvGate .gl.launch{transform:translateY(-42vh) scale(1.5);letter-spacing:.14em;opacity:0}
@@ -16777,7 +16776,7 @@ narrativeInstall();
   function showGate() {
     if (document.getElementById('nvGate')) return;
     const g = document.createElement('div'); g.id = 'nvGate';
-    g.innerHTML = `<div class="gl"><span class="n">NEO</span><span class="v">VANGUARD</span></div><button type="button" class="ge" aria-label="${NXT('ap.enter')}">${NXT('ap.enter')}</button><div class="gs">♪ L'ÉVEIL · THÈME ORIGINAL — TOUCHEZ POUR ÉCOUTER</div>`;
+    g.innerHTML = `<canvas id="nvGateCartridges" aria-hidden="true"></canvas><div class="gl"><span class="n">NEO</span><span class="v">VANGUARD</span></div><button type="button" class="ge" aria-label="${NXT('ap.enter')}">${NXT('ap.enter')}</button><div class="gs">♪ L'ÉVEIL · THÈME ORIGINAL — TOUCHEZ POUR ÉCOUTER</div>`;
     document.body.appendChild(g);
     const dismiss = () => {
       g.classList.add('off'); setTimeout(() => g.remove(), 700);
