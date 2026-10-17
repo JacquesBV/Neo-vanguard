@@ -309,16 +309,14 @@ h1.logo{background:linear-gradient(180deg,#fff 22%,#bcd6f5 52%,#7fa4cc 78%,#e8f6
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;max-width:100%;overflow-x:hidden}
 body{max-width:100%;overflow-x:hidden}
 #stage{max-width:100vw;max-height:100vh}
-/* ---- sélection en deux temps (tactile) : 1er appui = sélectionner, 2e appui = valider ---- */
-.btn.sel,#nvTitle .btn.sel{background:color-mix(in srgb,var(--acc) 20%,rgba(255,255,255,.04))!important;border-color:var(--acc)!important;color:#fff!important;
-  box-shadow:0 0 0 2px color-mix(in srgb,var(--acc) 60%,transparent),0 0 18px color-mix(in srgb,var(--acc) 35%,transparent)!important}
+/* ---- retour visuel au toucher : chaque appui déclenche directement l'action ---- */
 /* retour visuel à l'appui sur tactile */
 @media (hover:none){ .btn:active{transform:scale(.97);filter:brightness(1.25);transition:transform .05s,filter .05s} }
 /* clignotement de confirmation sur le bouton validé */
 @keyframes okBlink{0%{background-color:transparent}20%{background-color:color-mix(in srgb,var(--acc) 85%,#fff);color:#03060e}45%{background-color:transparent;color:inherit}65%{background-color:color-mix(in srgb,var(--acc) 85%,#fff);color:#03060e}100%{background-color:transparent;color:inherit}}
 .btn.ok-blink{animation:okBlink .42s ease-out 1}
 /* bouton Retour : bleu à l'appui */
-.btn[data-act$="-back"]:active,.btn[data-act$="-back"].sel{background:#1f5fd6!important;border-color:#5b93ff!important;color:#fff!important}
+.btn[data-act$="-back"]:active{background:#1f5fd6!important;border-color:#5b93ff!important;color:#fff!important}
 @keyframes okBlinkBlue{0%{background-color:transparent}20%{background-color:#2f74ff;color:#fff}45%{background-color:transparent;color:inherit}65%{background-color:#2f74ff;color:#fff}100%{background-color:transparent;color:inherit}}
 .btn[data-act$="-back"].ok-blink{animation:okBlinkBlue .42s ease-out 1}
 </style>
@@ -11586,9 +11584,9 @@ function wireButtons() {
       }
       case 'records': G.prevScreen = G.state; G.state = 'records'; buildRecords(); showScreen('records'); break;
       case 'online': G.prevScreen = G.state; G.state = 'online'; netUiRefresh(); showScreen('online'); break;
-      case 'net-back': Audio2.sfx('back'); gotoReturn(); break;
+      case 'net-back': gotoReturn(); break;
       case 'net-create': case 'net-join': case 'net-leave': case 'net-go': netUiAct(act); break;
-      case 'records-back': Audio2.sfx('back'); gotoReturn(); break;
+      case 'records-back': gotoReturn(); break;
       case 'over-continue': doContinue(); break;
       case 'continue': continueCampaign(); break;
       case 'play': G.twoP = false; G.daily = false; dailySeedOff(); startFromTitle(); break;
@@ -11600,13 +11598,13 @@ function wireButtons() {
       case 'touch-weapon': cycleWeapon(1); break;
       case 'touch-weapon-prev': cycleWeapon(-1); break;
       case 'shop': G.prevScreen = G.state; G.state = 'shop'; buildShop(); showScreen('shop'); refreshUI(); break;
-      case 'shop-back': Audio2.sfx('back'); gotoReturn(); break;
+      case 'shop-back': gotoReturn(); break;
       case 'options': G.prevScreen = G.state; G.state = 'options'; buildOptions(); showScreen('options'); break;
-      case 'opt-back': Audio2.sfx('back'); gotoReturn(); break;
+      case 'opt-back': gotoReturn(); break;
       case 'opt-defaults': {
         const keep = S.credits; S.opts = defaultSave().opts; saveGame(); buildOptions(); toast('Options réinitialisées'); break; }
       case 'help': G.state = 'help'; showScreen('help'); break;
-      case 'help-back': Audio2.sfx('back'); gotoReturn(); break;
+      case 'help-back': gotoReturn(); break;
       case 'credits': G.state = 'credits'; showScreen('credits'); break;
       case 'cheats': case 'pause-cheats':
         G.prevScreen = G.state === 'pause' ? 'pause' : G.state;
@@ -11619,8 +11617,8 @@ function wireButtons() {
         S.cheats.on = {}; saveGame(); buildCheats(); refreshUI();
         if (G.player) G.stats = computeStats();
         toast('Tous les cheats sont désactivés'); break;
-      case 'cheat-back': Audio2.sfx('back'); gotoReturn(); break;
-      case 'credits-back': Audio2.sfx('back'); gotoReturn(); break;
+      case 'cheat-back': gotoReturn(); break;
+      case 'credits-back': gotoReturn(); break;
       case 'pause-options': G.prevScreen = 'pause'; G.state = 'options'; buildOptions(); showScreen('options'); break;
       case 'resume': resumeGame(); break;
       case 'abort': abortRun(); break;   /* la graine du défi est relâchée */
@@ -16719,37 +16717,16 @@ narrativeInstall();
 }
 
 
-/* ---- Menus tactiles : un appui suffit ; retour visuel à l'appui.
-   Double appui uniquement pour les actions risquées (abandon, achat, effacement). ---- */
-(function () {
-  const RISKY = '[data-act="abort"], [data-act="clear-shop"], [data-act="buy"]';
-  document.addEventListener('click', e => {
-    if (!IS_TOUCH) return;
-    const b = e.target && e.target.closest ? e.target.closest(RISKY) : null;
-    if (!b || b.disabled || b.hidden) return;
-    if (b.classList.contains('sel')) return;     /* 2e appui : l'action s'exécute */
-    e.preventDefault(); e.stopImmediatePropagation();
-    document.querySelectorAll('.btn.sel').forEach(x => x.classList.remove('sel'));
-    b.classList.add('sel');
-    try { b.focus({ preventScroll: true }); } catch (err) {}
-    try { Audio2.sfx('ui'); } catch (err) {}
-    try { toast(L('Appuie encore pour confirmer')); } catch (err) {}
-  }, true);
-  /* un tap ailleurs annule une confirmation en attente */
-  document.addEventListener('pointerdown', e => {
-    if (!e.target || !e.target.closest || !e.target.closest(RISKY)) document.querySelectorAll('.btn.sel').forEach(x => x.classList.remove('sel'));
-  }, true);
-})();
+/* Les contrôles tactiles utilisent le même gestionnaire que les clics : un appui valide. */
 
-/* ---- son de confirmation : jouer « pick » quand un bouton valide une action ---- */
+/* ---- retour visuel discret après la validation au premier appui ---- */
 (function () {
   document.addEventListener('click', e => {
     const b = e.target && e.target.closest ? e.target.closest('button[data-act]') : null;
     if (!b || b.disabled || b.hidden) return;
-    try { Audio2.sfx('pick'); } catch (err) {}
     b.classList.remove('ok-blink'); void b.offsetWidth; b.classList.add('ok-blink');
     b.addEventListener('animationend', () => b.classList.remove('ok-blink'), { once: true });
-    setTimeout(() => b.classList.remove('ok-blink'), 520);   /* filet : un élément caché ne joue pas l'animation */
+    setTimeout(() => b.classList.remove('ok-blink'), 520);
   }, true);
 })();
 
@@ -17822,7 +17799,7 @@ function doContinue() {
   G.noDeath = false;
   saveGame(); hideScreens();
   G.state = 'play'; G.phaseT = 0;
-  Audio2.sfx('levelup'); FX.addFlash(0.5, TH.pGlite || TH.pLite);
+  FX.addFlash(0.5, TH.pGlite || TH.pLite);
   toast(L('Reprendre la partie') + ' — ' + (1 + G.continues) + ' CR');
   speak(L('Continuer') + '.');
 }
