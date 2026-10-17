@@ -1,49 +1,27 @@
-# NEO VANGUARD — Shmup évolutif
+# NEO VANGUARD — pack GitHub Pages
 
-Shoot 'em up vertical dont le moteur graphique évolue au fil de la campagne :
-24 secteurs répartis sur 6 générations de consoles (8 bits portable → HD vectoriel).
-Un seul fichier `index.html` (moteur, interface, illustrations, textes en 5 langues)
-plus un dossier `music/` de pistes libres.
-
-## Jouer
-
-- **En ligne** : ouvre simplement la page publiée (GitHub Pages, voir ci-dessous).
-- **En local** : sers le dossier avec un petit serveur HTTP, par exemple
-  `python3 -m http.server 8000` puis ouvre <http://localhost:8000/>.
-  (Ouvrir `index.html` directement en `file://` fonctionne dans la plupart des
-  navigateurs, mais certains bloquent alors la musique.)
-
-Contrôles : flèches / ZQSD pour piloter, Espace pour tirer, B pour la bombe,
-X / Tab pour changer d'arme, Échap pour la pause, F pour le plein écran.
-Compatible tactile et à deux joueurs sur le même clavier ; mode co-op en ligne.
-
-## Publier sur GitHub Pages
-
-1. Crée un dépôt et pousse ce dossier à la racine :
-   ```bash
-   git init
-   git add .
-   git commit -m "NEO VANGUARD"
-   git branch -M main
-   git remote add origin https://github.com/<toi>/<depot>.git
-   git push -u origin main
-   ```
-2. Dans *Settings → Pages*, choisis **Deploy from a branch**, branche `main`, dossier `/ (root)`.
-3. Le jeu est servi à `https://<toi>.github.io/<depot>/` au bout d'une minute.
+Ce dossier est prêt à être publié à la **racine** du dépôt GitHub Pages du jeu. Il part du dernier `index.html` fourni et contient les corrections de sauvegarde et la nouvelle musique d'accueil.
 
 ## Contenu
 
-| Chemin | Rôle |
-|---|---|
-| `index.html` | Le jeu complet (≈7,5 Mo : images encodées en base64) |
-| `music/*.mp3` | Bande originale (12 pistes, toutes CC0) |
-| `music/CREDITS.txt` | Attribution détaillée des pistes |
-| `LICENSE` | Licence du code (MIT) |
+- `index.html` — jeu complet : HTML, CSS, JavaScript, illustrations **et musique d’accueil embarqués**. Il fonctionne seul, même dans un aperçu qui ne charge pas les fichiers voisins. **Remplace l'ancien `index.html` du dépôt.**
+- `music/title.mp3` — copie séparée de **L’Éveil**, la musique instrumentale originale douce et mythique, utile pour l’écouter ou l’archiver. Le jeu n'a plus besoin de charger ce fichier pour les deux premiers écrans.
+- `UPDATE.md` — détail des changements.
+- `.nojekyll` — évite un traitement Jekyll inutile sur GitHub Pages.
+- `music/README.md` — liste des autres musiques facultatives.
 
-## Crédits
+## Publier sur GitHub
 
-- Musiques : CC0 / domaine public — détail dans `music/CREDITS.txt`
-  (Juhani Junkala, iamoneabe, haeldb, Of Far Different Nature, OpenGameArt).
-- Effets sonores : synthèse WebAudio en temps réel, aucun fichier externe.
-- Illustrations (portraits, boîtes, vaisseaux, décors) : images générées pour ce projet.
-- Aucune dépendance réseau au lancement ; le mode en ligne utilise WebRTC.
+1. Faites une copie de l'ancien `index.html` du dépôt si vous souhaitez pouvoir revenir en arrière.
+2. Décompressez l'archive `neo-vanguard-github.zip`. **Ne déposez pas le ZIP tel quel sur GitHub : GitHub Pages ne le décompresse pas.**
+3. Ouvrez **le contenu** du dossier `neo-vanguard-github` et envoyez-le à la racine du dépôt, au même endroit que l'actuel `index.html`. Remplacez le fichier existant. `music/title.mp3` est fourni en copie séparée, mais le thème est aussi intégré dans `index.html` : il joue donc même si ce fichier audio séparé n'est pas chargé. Si vous avez déjà d'autres fichiers MP3 dans le dépôt, ne les effacez pas.
+4. Dans **Settings → Pages**, gardez le réglage de publication existant s'il fonctionne. Sinon sélectionnez la branche publiée (souvent `main`) et **`/ (root)`**.
+5. Attendez le déploiement, puis rechargez le site. Sur téléphone, si l'ancien son persiste, ouvrez le site en navigation privée ou videz le cache de la page.
+
+La progression du jeu est stockée dans le navigateur (`localStorage`), pas sur GitHub : remplacer les fichiers n'efface normalement pas les sauvegardes conservées sur la même adresse.
+
+## Son sur mobile
+
+Les navigateurs mobiles peuvent **interdire la lecture automatique avant le premier toucher**. Le jeu essaie de lancer la musique dès l'affichage ; si le navigateur le refuse, le premier toucher sur « Appuyer pour entrer » démarre **L’Éveil** et le laisse jouer quelques secondes sur cet écran avant d'ouvrir le menu. Ce thème continue ensuite sur le menu, sans bruit de fond ni effets de navigation. Le réglage de volume et la sourdine du jeu s'appliquent toujours.
+
+Les dix autres MP3 facultatifs n'étaient pas dans les fichiers reçus. Le jeu utilise son audio synthétique de repli lorsqu'ils manquent ; voir `music/README.md`.
