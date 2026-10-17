@@ -5778,7 +5778,7 @@ function drawSpriteTo(g, K, id, x, y, opt = {}) {
   /* Sur écran tactile, les vaisseaux et objets étaient difficiles à distinguer
      dans le cadre vertical. Agrandir seulement les sprites en jeu garde le HUD,
      les menus et les dimensions de la zone de jeu à leur taille d'origine. */
-  const touchBoost = IS_TOUCH && G.state === 'play' ? 1.22 : 1;
+  const touchBoost = IS_TOUCH && G.state === 'play' && opt.kind !== 'player' ? 1.22 : 1;
   const w = box.w * (opt.scale || 1) * touchBoost * (opt.sx === undefined ? 1 : opt.sx), h = box.h * (opt.scale || 1) * touchBoost;
   const hue = opt.hue === undefined ? 200 : opt.hue;
   const sat = opt.sat === undefined ? 0.55 : opt.sat;
@@ -7755,13 +7755,16 @@ function drawPlayer(pl) {
     else g.globalAlpha = 0.55 + 0.45 * Math.sin(P.inv * 22);
   }
   const x = P.x, y = P.y, bank = P.bank || 0;
+  const playerTouchScale = IS_TOUCH && G.state === 'play'
+    ? (G.players.length > 1 ? 1.55 : 1.9) : 1;
   const h = playerHull();
   const hue = h.hue, sat = h.sat, light = h.light;
   playerEnergy();
   CUR_TWK = liveryTweak(h); TWK_SIG = h._sig || '';
   /* --- réacteurs animés (sous le sprite) --- */
   const fl = 0.75 + Math.sin(P.anim * 34) * 0.22;
-  const box = spriteBox(S.sel.ship);
+  const baseBox = spriteBox(S.sel.ship);
+  const box = { w: baseBox.w * playerTouchScale, h: baseBox.h * playerTouchScale };
   const jets = EXH[S.sel.ship] || [{ x: -0.08, y: 0.45, r: 0.03 }, { x: 0.08, y: 0.45, r: 0.03 }];
   for (const j of jets) {
     const cx = x + j.x * box.w * 0.5, cy = y + j.y * box.h * 0.5;
@@ -7784,7 +7787,7 @@ function drawPlayer(pl) {
   g.save();
   g.translate(x * K, y * K); g.rotate(bank * 0.15); g.scale(1 - Math.abs(bank) * 0.14, 1);
   g.translate(-x * K, -y * K);
-  drawSpriteTo(g, K, S.sel.ship, x, y, { kind: 'player', hue, sat, light, scale: 1 });
+  drawSpriteTo(g, K, S.sel.ship, x, y, { kind: 'player', hue, sat, light, scale: playerTouchScale });
   g.restore();
   /* --- feux de navigation, éclat spéculaire, avaries visibles ------------ */
   if (e >= 1) {
@@ -7823,15 +7826,15 @@ function drawPlayer(pl) {
   /* --- bouclier --- */
   if (P.shield > 0 || P.shieldFx > 0) {
     const on = P.shieldFx > 0 ? 1 : 0.55;
-    const r = 34 + Math.sin(P.anim * 6) * 2.5;
-    if (e === 0) { ring(x, y, r, 1.5, TH.livery.gb[3]); }
+    const r = (34 + Math.sin(P.anim * 6) * 2.5) * playerTouchScale;
+    if (e === 0) { ring(x, y, r, 1.5 * playerTouchScale, TH.livery.gb[3]); }
     else {
       g.globalCompositeOperation = 'lighter';
       g.globalAlpha = on * 0.7;
-      ring(x, y, r, e === 3 ? 2.4 : 1.6, TH.shield);
+      ring(x, y, r, (e === 3 ? 2.4 : 1.6) * playerTouchScale, TH.shield);
       if (e >= 2) for (let i = 0; i < 8; i++) {
         const a = P.anim * 1.2 + i * TAU / 8;
-        circle(x + Math.cos(a) * r, y + Math.sin(a) * r * 0.96, e === 3 ? 3 : 2, TH.shield);
+        circle(x + Math.cos(a) * r, y + Math.sin(a) * r * 0.96, (e === 3 ? 3 : 2) * playerTouchScale, TH.shield);
       }
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
     }
@@ -7839,13 +7842,14 @@ function drawPlayer(pl) {
   /* --- drones d'escorte --- */
   for (let i = 0; i < P.drones.length; i++) {
     const a = P.droneA + i * TAU / Math.max(1, P.drones.length);
-    const dx = x + Math.cos(a) * 46, dy = y + Math.sin(a) * 38;
-    if (e === 0) { fr(dx - 4, dy - 4, 8, 8, TH.livery.gb[3]); fr(dx - 2, dy - 2, 4, 4, TH.livery.gb[2]); }
+    const dx = x + Math.cos(a) * 46 * playerTouchScale, dy = y + Math.sin(a) * 38 * playerTouchScale;
+    if (e === 0) { fr(dx - 4 * playerTouchScale, dy - 4 * playerTouchScale, 8 * playerTouchScale, 8 * playerTouchScale, TH.livery.gb[3]); fr(dx - 2 * playerTouchScale, dy - 2 * playerTouchScale, 4 * playerTouchScale, 4 * playerTouchScale, TH.livery.gb[2]); }
     else {
-      poly([dx, dy - 9, dx + 7, dy, dx, dy + 9, dx - 7, dy], TH.pMain);
-      poly([dx, dy - 4.5, dx + 3.5, dy, dx, dy + 4.5, dx - 3.5, dy], TH.pLite);
-      if (e >= 3) { g.globalCompositeOperation = 'lighter'; circle(dx, dy, 10, 'rgba(120,240,255,.3)'); g.globalCompositeOperation = 'source-over'; }
-      else if (e === 2) circle(dx, dy, 4, TH.pGlow);
+      const ds = playerTouchScale;
+      poly([dx, dy - 9 * ds, dx + 7 * ds, dy, dx, dy + 9 * ds, dx - 7 * ds, dy], TH.pMain);
+      poly([dx, dy - 4.5 * ds, dx + 3.5 * ds, dy, dx, dy + 4.5 * ds, dx - 3.5 * ds, dy], TH.pLite);
+      if (e >= 3) { g.globalCompositeOperation = 'lighter'; circle(dx, dy, 10 * ds, 'rgba(120,240,255,.3)'); g.globalCompositeOperation = 'source-over'; }
+      else if (e === 2) circle(dx, dy, 4 * ds, TH.pGlow);
     }
   }
 }
