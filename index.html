@@ -2034,13 +2034,15 @@ function loadSave() {
 }
 function saveGame() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
 function pct(v, def) { return Number.isFinite(+v) ? +v / 100 : def; }   /* un réglage illisible ne fera jamais NaN */
-function upgLevel(id) { return S.owned.upgrades[id] | 0; }
+function upgLevel(id) { return upgs()[id] | 0; }
 function upgCost(def) {
   const lv = upgLevel(def.id);
   if (def.id === 'bomb') return def.price;
   return Math.round(def.price * (1 + lv * 0.75));
 }
-function lv(id) { return S.owned.upgrades[id] | 0; }
+function lv(id) { return upgs()[id] | 0; }
+/* garde-fou : une sauvegarde abîmée ou remplacée ne doit jamais laisser S.owned.upgrades indéfini */
+function upgs() { if (!S.owned || typeof S.owned !== 'object') S.owned = defaultSave().owned; if (!S.owned.upgrades || typeof S.owned.upgrades !== 'object') S.owned.upgrades = {}; return S.owned.upgrades; }
 
 /* ============================== CONTENU JOUABLE =========================== */
 
@@ -8590,7 +8592,7 @@ function buy(listKey, id, price) {
   if (listKey === 'bombs') cost = 200;
   if (S.credits < cost) { toast('Crédits insuffisants', true); Audio2.sfx('back'); return false; }
   S.credits -= cost;
-  if (listKey === 'bombs') S.owned.upgrades.bomb = Math.min(9, D.lv('bomb') + 1);
+  if (listKey === 'bombs') upgs().bomb = Math.min(9, D.lv('bomb') + 1);
   else if (listKey === 'upgrades') S.owned.upgrades[id] = D.lv(id) + 1;
   else {
     S.owned[listKey].push(id);
@@ -11514,7 +11516,7 @@ function frame(now) {
   try { update(dt); render(dt); } catch (err) {
     /* garde-fou : une erreur de rendu ne doit jamais figer la partie */
     if (!frame.errs) frame.errs = 0;
-    if (frame.errs++ < 3) { console.error('NEO VANGUARD — erreur de rendu', err); toast('Erreur de rendu : ' + (err && err.message), true); }
+    if (frame.errs++ < 3) { console.error('NEO VANGUARD — erreur de rendu', err); const where = (err && err.stack || '').split('\\n')[1] || ''; toast('Erreur de rendu : ' + (err && err.message) + (where ? ' @ ' + where.trim().slice(0, 60) : '') + ' · build ' + (window.NV_BUILD || '?'), true); }
   }
   try { Audio2.musicTick(); } catch (err) {}
   requestAnimationFrame(frame);
@@ -11545,6 +11547,12 @@ function boot() {
 
 
 /* ======================= EXTENSION : CAMPAGNE 24 SECTEURS ======================= */
+
+/* ---- 00_build.js ---- */
+/* horodatage du build : visible dans la console et dans les messages d'erreur */
+window.NV_BUILD = '2026-10-17 07:11';
+console.log('%cNEO VANGUARD build ' + window.NV_BUILD, 'color:#4be7ff;font-weight:bold');
+
 
 /* ---- 10_levels.js ---- */
 /* =============================================================================
@@ -16619,6 +16627,90 @@ narrativeInstall();
       if (card) card.animate([{ boxShadow: '0 0 0 0 rgba(255,224,102,0)' }, { boxShadow: '0 0 0 6px rgba(255,224,102,.45)' }, { boxShadow: '0 0 0 0 rgba(255,224,102,0)' }], { duration: 900, easing: 'ease-out' });
     }
   };
+}
+
+
+/* ---- 99_story_sync.js ---- */
+/* =============================================================================
+   RÉCIT : musique garantie sur mobile + voix du droïde synchronisée
+   ---------------------------------------------------------------------------
+   1. Sur téléphone (iOS surtout), un élément <audio> ne peut démarrer que s'il
+      a déjà été « touché » pendant un geste de l'utilisateur. La piste du récit
+      (story.mp3) était lancée depuis la boucle de jeu → refusée → silence.
+      Au premier geste, on déverrouille toutes les pistes (play muet + pause),
+      et chaque geste relance la piste courante si elle a été refusée.
+   2. Le droïde commençait à lire dès l'appui sur « Campagne », avant que la
+      page du récit ne soit affichée : la lecture attend désormais que la page
+      soit réellement dessinée et que la machine à écrire démarre.
+   ========================================================================= */
+{
+  /* ---- 1. déverrouillage des pistes au premier geste ---------------------- */
+  let unlocked = false;
+  function mxUnlockAll() {
+    if (unlocked || typeof mxEl !== 'function' || typeof MUSIC_FILES === 'undefined') return;
+    unlocked = true;
+    for (const k in MUSIC_FILES) {
+      if (k === 'gate' || k === 'title') continue;          /* déjà gérées par l'écran d'entrée */
+      try {
+        const a = mxEl(k);
+        if (MX.cur === a) continue;
+        a.muted = true;
+        const pr = a.play();
+        if (pr && pr.then) pr.then(() => { if (MX.cur !== a) { try { a.pause(); a.currentTime = 0; } catch (e) {} } a.muted = false; })
+                              .catch(() => { a.muted = false; });
+        else { a.pause(); a.muted = false; }
+      } catch (e) {}
+    }
+  }
+  function mxKick() {
+    /* la piste voulue a été refusée hors geste : on la relance dans le geste */
+    try {
+      if (MX.cur && MX.cur.paused && !MX.cur.ended) { MX.cur.muted = false; MX.cur.play().catch(() => {}); }
+      else if (!MX.cur && typeof mxEnabled === 'function' && mxEnabled() && typeof mxWant === 'function') {
+        const want = mxWant(); if (want && want !== 'gate' && want !== 'title' && MX.lastWant === want) mxPlay(want, 1.2);
+      }
+    } catch (e) {}
+  }
+  const onGesture = () => { mxUnlockAll(); mxKick(); };
+  addEventListener('pointerdown', onGesture, true);
+  addEventListener('touchend', onGesture, true);
+  addEventListener('keydown', onGesture, true);
+  /* l'écran d'entrée : son geste est le tout premier, on en profite */
+  addEventListener('load', () => {
+    const g = document.getElementById('nvGate');
+    if (g) g.addEventListener('pointerdown', onGesture, true);
+  });
+
+  /* ---- 2. la voix attend la page ------------------------------------------ */
+  if (typeof droidPage === 'function') {
+    const _droidPage = droidPage;
+    let pending = -1, pendingKind = '';
+    droidPage = function () {
+      /* on coupe tout de suite la lecture précédente, mais la nouvelle attend */
+      if (typeof droidStop === 'function') droidStop();
+      pending = storyI; pendingKind = DECK.kind;
+    };
+    /* déverrouillage de la synthèse vocale pendant le geste (iOS) */
+    const _beginDeck = beginDeck;
+    beginDeck = function (pages, onEnd, kind) {
+      try {
+        if (S.opts.speech && 'speechSynthesis' in window) {
+          const u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u);
+        }
+      } catch (e) {}
+      _beginDeck(pages, onEnd, kind);
+    };
+    const _update = update;
+    update = function (dt) {
+      _update(dt);
+      if (pending < 0) return;
+      if (G.state !== 'story') { pending = -1; return; }
+      if (pending !== storyI) { pending = storyI; return; }
+      /* la machine à écrire démarre à 0,5 s : la voix part avec la première lettre */
+      const first = storyI === 0;
+      if (storyT >= (first ? 0.9 : 0.55)) { pending = -1; _droidPage(); }
+    };
+  }
 }
 
 
