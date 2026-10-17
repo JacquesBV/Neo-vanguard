@@ -303,6 +303,11 @@ h1.logo{background:linear-gradient(180deg,#fff 22%,#bcd6f5 52%,#7fa4cc 78%,#e8f6
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   filter:drop-shadow(0 2px 0 rgba(0,0,0,.55)) drop-shadow(0 0 22px color-mix(in srgb,var(--acc) 55%,transparent))}
 @media (pointer:coarse){.panel{backdrop-filter:none!important}}
+/* --- Affichage téléphone (Chrome Android) : pas d'agrandissement automatique
+   du texte ni de débordement horizontal, qui décalaient le jeu sur la droite. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;max-width:100%;overflow-x:hidden}
+body{max-width:100%;overflow-x:hidden}
+#stage{max-width:100vw;max-height:100vh}
 </style>
 </head>
 <body class="era-3">
@@ -321,7 +326,7 @@ h1.logo{background:linear-gradient(180deg,#fff 22%,#bcd6f5 52%,#7fa4cc 78%,#e8f6
       </div>
       <div class="menu-main">
         <button class="btn prim big" data-act="continue" id="btnContinue" hidden>
-          <span class="bi">⏵</span>
+          <span class="bi"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" style="display:block"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg></span>
           <span class="bl"><b>Continuer la campagne</b><i id="tContinue">Reprendre là où tu t'es arrêté</i></span>
         </button>
         <button class="btn prim big" data-act="play">
