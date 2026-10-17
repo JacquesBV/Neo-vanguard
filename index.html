@@ -16629,6 +16629,8 @@ narrativeInstall();
   #nvGate .gs{display:flex;align-items:center;gap:10px;align-self:flex-start;margin-left:clamp(8px,10vw,150px);margin-top:3px;padding:10px 13px;border:1px solid rgba(176,205,255,.16);border-radius:7px;background:rgba(5,10,22,.55);color:#c2d3ee;
     font:600 9px/1.2 var(--ui-font,system-ui,sans-serif);letter-spacing:.16em;text-align:left;text-wrap:balance}
   #nvGate .gs .music-mark{color:#75e8ff;font-size:14px;text-shadow:0 0 12px rgba(71,218,255,.8)}
+  #nvGate .nv-copyright{position:absolute;z-index:2;left:16px;right:16px;bottom:max(14px,env(safe-area-inset-bottom));pointer-events:none;text-align:center;
+    color:rgba(194,218,240,.62);font:600 9px/1.4 var(--mono,ui-monospace,monospace);letter-spacing:.16em;text-transform:uppercase;text-shadow:0 1px 8px rgba(0,0,0,.9)}
   @keyframes nvSceneDrift{from{transform:scale(1.025) translate3d(0,0,0)}to{transform:scale(1.07) translate3d(-1.2%,.4%,0)}}
   @keyframes nvGlow{from{opacity:.45}to{opacity:.9}}
   @keyframes nvCtaGlow{0%,100%{box-shadow:0 0 18px rgba(42,191,231,.12),inset 0 0 18px rgba(50,163,206,.06)}50%{box-shadow:0 0 32px rgba(42,191,231,.28),inset 0 0 25px rgba(50,163,206,.14)}}
@@ -16691,7 +16693,7 @@ narrativeInstall();
   function showGate() {
     if (document.getElementById('nvGate')) return;
     const g = document.createElement('div'); g.id = 'nvGate';
-    g.innerHTML = `<div class="nv-scene" aria-hidden="true"><img src="${TITLE_KEY_ART}" alt=""></div><div class="gl"><span class="n">NEO</span><span class="v">VANGUARD</span><span class="nv-rule">${NXT('ap.status')}</span></div><button type="button" class="ge" aria-label="${NXT('ap.enter')}"><span class="ge-mark">▶</span><span>${NXT('ap.enter')}</span><span class="ge-key">${NXT('ap.key')}</span></button><div class="gs"><span class="music-mark">♫</span><span>${NXT('ap.music')}</span></div>`;
+    g.innerHTML = `<div class="nv-scene" aria-hidden="true"><img src="${TITLE_KEY_ART}" alt=""></div><div class="gl"><span class="n">NEO</span><span class="v">VANGUARD</span><span class="nv-rule">${NXT('ap.status')}</span></div><button type="button" class="ge" aria-label="${NXT('ap.enter')}"><span class="ge-mark">▶</span><span>${NXT('ap.enter')}</span><span class="ge-key">${NXT('ap.key')}</span></button><div class="gs"><span class="music-mark">♫</span><span>${NXT('ap.music')}</span></div><div class="nv-copyright">© 2026 Kabrak Entertainment</div>`;
     document.body.appendChild(g);
     const dismiss = () => {
       g.classList.add('off'); setTimeout(() => g.remove(), 700);
