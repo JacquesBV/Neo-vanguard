@@ -2844,6 +2844,7 @@ const Audio2 = {
   ],
   startMusic(sec, level) {
     this.init(); this.unlock(); if (!this.ok) return;
+    this.mode = 'game';
     /* `sec` est le SECTEUR (0-5) : chaque génération a désormais sa piste.
        Le timbre des voix suit la famille de la machine (ERAS[].sty).        */
     this.sect = clamp(sec, 0, 5);
@@ -2852,10 +2853,24 @@ const Audio2 = {
     this.nextT = this.ctx.currentTime + 0.15; this.running = true;
     this.applyEraFx();
   },
-  stopMusic() { this.running = false; },
+  gameOverMusic() {
+    this.init(); this.unlock(); if (!this.ok) return;
+    this.mode = 'gameover'; this.step = 0;
+    this.nextT = this.ctx.currentTime + 0.12; this.running = true;
+  },
+  stopMusic() { this.running = false; this.mode = 'off'; },
   setEra(era) { this.era = clamp(era, 0, 3); this.step = 0; if (this.ok) { this.nextT = Math.max(this.nextT, this.ctx.currentTime + 0.08); this.applyEraFx(); } },
   musicTick() {
     if (!this.ok || !this.running || this.muted) return;
+    if (this.mode === 'gameover') {
+      const sd = 60 / (64 * 4);                 /* pulsation lente, sans batterie */
+      while (this.nextT < this.ctx.currentTime + 0.16) {
+        this.scheduleGameOver(this.step, this.nextT, sd);
+        this.step = (this.step + 1) % 32;        /* boucle de huit secondes */
+        this.nextT += sd;
+      }
+      return;
+    }
     const T = this.TRACKS[this.sect === undefined ? this.era : this.sect] || this.TRACKS[this.era] || this.TRACKS[0];
     const spb = 60 / (T.bpm * (this.boss ? 1.07 : 1));
     const sd = spb / 4;
@@ -2864,6 +2879,25 @@ const Audio2 = {
       this.step = (this.step + 1) % 64;
       this.nextT += sd;
     }
+  },
+  scheduleGameOver(i, t, sd) {
+    const bar = Math.floor(i / 16) % 2, root = 55, M = this.musicGain;
+    const chord = bar === 0 ? [0, 3, 7, 12] : [-4, 0, 3, 8]; // La mineur → Fa majeur
+    if (i % 16 === 0) {
+      chord.forEach((n, k) => this.voice(t, {
+        f: n2f(n, root), dur: sd * 15.5, type: k === 0 ? 'sine' : 'triangle',
+        vol: k === 0 ? 0.075 : 0.034, dest: M, send: 0.45,
+        filter: k === 0 ? null : { type: 'lowpass', f: 900, q: 0.7 }
+      }));
+    }
+    const phrase = [12, null, 10, null, 7, null, 3, null, 7, null, 10, null, 12, null, null, null,
+                    8, null, 7, null, 3, null, 0, null, -4, null, 0, null, 3, null, null, null];
+    const note = phrase[i];
+    if (note !== null) this.voice(t, {
+      f: n2f(note + (bar ? -4 : 0), root * 2), dur: sd * 3.2,
+      type: 'sine', vol: 0.052, dest: M, send: 0.35,
+      filter: { type: 'lowpass', f: 1500, q: 0.6 }
+    });
   },
   schedule(i, t, T, sd) {
     const e = this.era, M = this.musicGain;
@@ -7572,7 +7606,7 @@ function gameOver() {
   if (typeof NET !== 'undefined' && NET.role === 'host') netSend('z|over|' + Math.round(G.score));
   bankRun();
   runArchive();
-  Audio2.boss = false; Audio2.stopMusic();
+  Audio2.boss = false; Audio2.stopMusic(); Audio2.gameOverMusic();
   speak('Mission échouée.');
   continueArm();
   buildOverScreen();
