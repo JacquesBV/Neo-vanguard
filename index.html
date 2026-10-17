@@ -15131,7 +15131,7 @@ function negoSave() {
 function negoKey() { return 'L' + (G.level || 0) + '_' + (S.maxLevel || 0) + '_' + (G.state === 'clear' ? 'c' : 't'); }
 function negoPay(n) { if (S.credits < n) return false; S.credits -= n; saveGame(); refreshUI && refreshUI(); return true; }
 function perkList() {
-  const p = S.perk, out = [];
+  const p = S.perk || (S.perk = {}), out = [];
   if (p.disc) out.push(NXT('ng.pdisc').replace('#', Math.round(p.disc * 100)));
   if (p.bomb) out.push(NXT('ng.pbomb').replace('#', p.bomb));
   if (p.shield) out.push(NXT('ng.pshield'));
@@ -15185,6 +15185,7 @@ function ensureNegoUI() {
     bar.appendChild(b);
   }
 }
+function perkEnsure() { if (!S.perk) { S.perk = {}; try { Object.assign(S.perk, JSON.parse(localStorage.getItem('nv_perk') || '{}')); } catch (e) {} } return S.perk; }
 function negoPerksLine() { const l = perkList(); return NXT('ng.perks') + ' : ' + (l.length ? l.join(' · ') : NXT('ng.none')); }
 function openNego() {
   ensureNegoUI();
@@ -15231,6 +15232,7 @@ function closeNego() { $('#negoModal').classList.remove('on'); if (typeof buildS
   const _open = openConfirm;
   openConfirm = function (listKey, id, price) {
     _open(listKey, id, price);
+    perkEnsure();
     if (!CONFIRM.open || !S.perk.disc) return;
     const cost = CONFIRM.price, off = Math.round(cost * S.perk.disc), net = cost - off;
     const can = S.credits >= net;
@@ -15241,6 +15243,7 @@ function closeNego() { $('#negoModal').classList.remove('on'); if (typeof buildS
   const _yes = confirmYes;
   confirmYes = function () {
     if (!CONFIRM.open) return;
+    perkEnsure();
     const disc = S.perk.disc || 0, price = CONFIRM.price, before = S.credits;
     const net = CONFIRM.discNet; CONFIRM.discNet = 0;
     /* avance temporaire pour que l'achat passe si seul le prix remisé est couvert */
@@ -15264,7 +15267,7 @@ function closeNego() { $('#negoModal').classList.remove('on'); if (typeof buildS
   update = function (dt) {
     _upd(dt);
     if (G.state !== 'play' || !G.players || !G.players.length) return;
-    const p = S.perk;
+    const p = S.perk || (S.perk = {});
     if ((p.bomb || p.shield) && p.doneLevel !== G.level) {
       p.doneLevel = G.level;
       for (const P of G.players) {
@@ -15279,7 +15282,7 @@ function closeNego() { $('#negoModal').classList.remove('on'); if (typeof buildS
   };
   const _bank = bankRun;
   bankRun = function () {
-    const p = S.perk;
+    const p = S.perk || (S.perk = {});
     if (p.mul && p.mulLevel === G.level && G.credits > 0) {
       const bonus = Math.round(G.credits * (p.mul - 1));
       G.credits += bonus; toast(NXT('ng.mulApplied').replace('#', fmt(bonus)));
@@ -16177,7 +16180,7 @@ function n2Describe(rw) {
 }
 function n2Grant(rw) {
   if (!rw) return;
-  const p = S.perk;
+  const p = perkEnsure();
   if (rw.disc) p.disc = Math.max(p.disc || 0, rw.disc);
   if (rw.bomb) p.bomb = (p.bomb || 0) + rw.bomb;
   if (rw.shield) p.shield = 1;
@@ -16191,7 +16194,7 @@ function n2Upgrade(tier, rw) { return tier === 2 ? Object.assign({}, rw, { cash:
 
 /* la prime de crédits affichée avec son vrai pourcentage */
 perkList = function () {
-  const p = S.perk, out = [];
+  const p = perkEnsure(), out = [];
   if (p.disc) out.push(NXT('ng.pdisc').replace('#', Math.round(p.disc * 100)));
   if (p.bomb) out.push(NXT('ng.pbomb').replace('#', p.bomb));
   if (p.shield) out.push(NXT('ng.pshield'));
