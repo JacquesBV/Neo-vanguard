@@ -2589,10 +2589,16 @@ const Audio2 = {
     return o;
   },
   noise(t, { dur = 0.2, vol = 0.25, f = 1200, f2 = 200, q = 0.7, type = 'lowpass', dest = null, pan = 0, send = 0 }) {
-    const c = this.ctx, len = Math.max(1, Math.ceil(c.sampleRate * dur));
-    const buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+    const c = this.ctx;
+    /* PERF : un seul tampon de bruit de 2 s, partagé et lu en boucle à un point de départ
+       aléatoire (avant : un nouveau tampon rempli de Math.random() à CHAQUE explosion). */
+    if (!this._noiseBuf || this._noiseBuf.sampleRate !== c.sampleRate) {
+      const nl = Math.ceil(c.sampleRate * 2);
+      const nb = c.createBuffer(1, nl, c.sampleRate), nd = nb.getChannelData(0);
+      for (let i = 0; i < nl; i++) nd[i] = Math.random() * 2 - 1;
+      this._noiseBuf = nb;
+    }
+    const src = c.createBufferSource(); src.buffer = this._noiseBuf; src.loop = true;
     const bq = c.createBiquadFilter(); bq.type = type; bq.frequency.setValueAtTime(f, t);
     if (f2 !== null) bq.frequency.exponentialRampToValueAtTime(Math.max(30, f2), t + dur);
     bq.Q.value = q;
@@ -2602,7 +2608,7 @@ const Audio2 = {
     if (pan) { const p = c.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); bq.connect(p); out = p; }
     out.connect(g); g.connect(dest || this.sfxGain);
     if (send > 0 && this.rev) { const sg = c.createGain(); sg.gain.value = send; g.connect(sg); sg.connect(this.rev); }
-    src.start(t); src.stop(t + dur + 0.03);
+    src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.03);
   },
   /* super-saw : 3 dents de scie désaccordées (ère HD) */
   saw3(t, f, dur, vol, dest, pan, send) {
@@ -2909,7 +2915,7 @@ if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); window.sp
    couleurs, ses calques de parallaxe et sa chaîne de post-traitement.
    ========================================================================= */
 const cv  = $('#game');
-const ctx = cv.getContext('2d', { alpha: false });
+let ctx = cv.getContext('2d', { alpha: false });   /* let : le HUD est dessiné sur un calque natif (voir HUDOV) */
 /* Résolution de rendu par paliers : le jeu dessine plein écran puis envoie l'image au GPU à
    chaque frame ; un téléphone à 2,6x de densité aurait près de 7 fois plus de pixels à traiter
    (bloom, aberration, flou de mouvement). Le palier descend tout seul si la machine rame. */
@@ -3455,16 +3461,19 @@ function setEra(era, silent) {
   const E = ERAS[R.sec];
   R.S = eraS(R.sec);
   const w = Math.round(L_W * R.S), h = Math.round(L_H * R.S);
-  R.bufNear = mkBuf(w, h);
-  R.bufFar  = mkBuf(w * 0.5, h * 0.5);
-  R.bufMid  = mkBuf(w * 0.5, h * 0.5);
-  R.bufC    = mkBuf(w, h);
-  R.bufL    = mkBuf(w * 0.45, h * 0.45);
-  R.bufCH   = mkBuf(w * 0.55, h * 0.55);
-  R.bufR    = mkBuf(w * 0.55, h * 0.55);
-  R.bufB    = mkBuf(w * 0.55, h * 0.55);
-  R.bufFG   = mkBuf(w, h);   /* décor de premier plan (poutrelles) */
-  R.bufLight = mkBuf(w * 0.25, h * 0.25);   /* sources lumineuses */
+  /* PERF MOBILE : les 10 calques sont réutilisés (redimensionnés sur place) au lieu d'être
+     recréés à chaque mission. Avant, chaque lancement abandonnait ~10 grands canvas au
+     ramasse-miettes : la mémoire GPU/RAM du téléphone se remplissait mission après mission. */
+  R.bufNear = reuseBuf(R.bufNear, w, h);
+  R.bufFar  = reuseBuf(R.bufFar,  w * 0.5, h * 0.5);
+  R.bufMid  = reuseBuf(R.bufMid,  w * 0.5, h * 0.5);
+  R.bufC    = reuseBuf(R.bufC,    w, h);
+  R.bufL    = reuseBuf(R.bufL,    w * 0.45, h * 0.45);
+  R.bufCH   = reuseBuf(R.bufCH,   w * 0.55, h * 0.55);
+  R.bufR    = reuseBuf(R.bufR,    w * 0.55, h * 0.55);
+  R.bufB    = reuseBuf(R.bufB,    w * 0.55, h * 0.55);
+  R.bufFG   = reuseBuf(R.bufFG,   w, h);   /* décor de premier plan (poutrelles) */
+  R.bufLight = reuseBuf(R.bufLight, w * 0.25, h * 0.25);   /* sources lumineuses */
   R.smooth  = !E.intScale && R.era >= 2;
   R.vig = null;
   document.body.className = 'era-' + R.era + ' sec-' + R.sec +
@@ -9619,6 +9628,7 @@ function startLevel(level) {
     S.aideVu = true; saveGame();
     setTimeout(() => { if (G.state === 'play' || G.state === 'intro') toast('Doigt : piloter · 2 doigts ou double tap : bombe'); }, 2600);
   }
+  trimCaches();
   SCROLL.y = 0;
   G.state = 'intro'; introT = 0;
   hideScreens();
@@ -16375,11 +16385,12 @@ narrativeInstall();
   #nvGate.off{opacity:0;pointer-events:none}
   #nvGate .gl{font-family:var(--ui-font,system-ui,sans-serif);text-align:center;color:#fff}
   #nvGate .gl .n{display:block;font-size:clamp(26px,4vw,44px);letter-spacing:.6em;font-weight:300;padding-left:.6em;text-shadow:0 0 30px color-mix(in srgb,var(--acc) 60%,transparent)}
-  #nvGate .gl .v{display:block;font-size:clamp(48px,9vw,110px);letter-spacing:.08em;font-weight:900;line-height:1;margin-top:4px;
+  #nvGate .gl .v{display:block;font-size:clamp(48px,9vw,110px);letter-spacing:.08em;padding-left:.08em;font-weight:900;line-height:1;margin-top:4px;
     background:linear-gradient(180deg,#fff 0%,#dfe9ff 55%,#8fb4ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 30px rgba(0,0,0,.6))}
-  #nvGate .ge{margin-top:28px;font-family:var(--ui-font,system-ui,sans-serif);font-size:12px;letter-spacing:.42em;color:var(--acc);font-weight:700;padding:14px 26px 14px 32px;border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);border-radius:999px;
+  #nvGate .ge{margin-top:28px;font-family:var(--ui-font,system-ui,sans-serif);font-size:12px;letter-spacing:.42em;color:var(--acc);font-weight:700;padding:14px 26px 14px calc(26px + .42em);border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);border-radius:999px;
     background:color-mix(in srgb,var(--acc) 10%,transparent);animation:gpulse 1.8s ease-in-out infinite}
-  #nvGate .gs{font-family:var(--ui-font,system-ui,sans-serif);font-size:10.5px;letter-spacing:.18em;color:#93a6c8}
+  #nvGate .gs{font-family:var(--ui-font,system-ui,sans-serif);font-size:10.5px;letter-spacing:.18em;color:#93a6c8;
+    text-align:center;max-width:92vw;box-sizing:border-box;padding-left:.18em;text-wrap:balance}
   @keyframes gpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 35%,transparent)}50%{box-shadow:0 0 0 12px rgba(0,0,0,0)}}`;
   document.head.appendChild(st);
 
@@ -18232,6 +18243,88 @@ function netUiAct(act) {
     }
   }
   netUiRefresh();
+}
+
+/* =============================================================================
+   PATCH MOBILE — FLUIDITÉ + HUD NET
+   -----------------------------------------------------------------------------
+   1) reuseBuf / trimCaches : plus de fuite mémoire entre les missions.
+   2) HUDOV : le HUD, les textes de combat et la bannière de secteur sont peints
+      sur un calque canvas SÉPARÉ, à la densité native de l'écran (jusqu'à 3x),
+      posé au-dessus du rendu GPU. Ils ne passent donc plus ni par le filtre
+      (bloom, aberration, flou), ni par la baisse automatique de résolution :
+      le jeu peut descendre sa résolution interne pour rester fluide sans que
+      les écritures deviennent floues.
+   ============================================================================= */
+function reuseBuf(old, w, h) {
+  w = Math.max(2, Math.round(w)); h = Math.max(2, Math.round(h));
+  if (!old || !old.c) return mkBuf(w, h);
+  const c = old.c, g = old.g;
+  if (c.width === w && c.height === h) {
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+    g.clearRect(0, 0, w, h);
+  } else { c.width = w; c.height = h; }          /* redimensionner libère l'ancienne mémoire */
+  g.imageSmoothingEnabled = false;
+  old.w = c.width; old.h = c.height; old.K = c.width / L_W;
+  return old;
+}
+function trimCaches() {
+  try {
+    const cap = (m, n) => { if (m && m.size > n) m.clear(); };
+    cap(PRINTS, 40); cap(BOXSHIP, 40); cap(MASKC, 160); cap(SV_TINT, 24); cap(BAKE, 260); cap(DBake, 160);
+    if (ART && ART.tintes && Object.keys(ART.tintes).length > 120) ART.tintes = {};
+  } catch (e) {}
+}
+
+const HUDOV = { cv: null, g: null, d: 0, w: 0, h: 0, dirty: false, busy: false, fr: 0, once: {} };
+function hudOvEnsure() {
+  try {
+    if (!HUDOV.cv) {
+      const c = document.createElement('canvas');
+      c.id = 'hudOverlay';
+      c.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:4;touch-action:none';
+      document.body.appendChild(c);
+      HUDOV.cv = c; HUDOV.g = c.getContext('2d', { alpha: true });
+    }
+    const d = Math.min(window.devicePixelRatio || 1, 3), W = view.w, H = view.h;
+    if (HUDOV.d !== d || HUDOV.w !== W || HUDOV.h !== H) {
+      HUDOV.d = d; HUDOV.w = W; HUDOV.h = H;
+      HUDOV.cv.width = Math.round(W * d); HUDOV.cv.height = Math.round(H * d);
+      HUDOV.cv.style.width = W + 'px'; HUDOV.cv.style.height = H + 'px';
+    }
+    return HUDOV.g;
+  } catch (e) { return null; }
+}
+function hudOvRun(key, fn, args) {
+  if (HUDOV.busy) return fn.apply(null, args);
+  if (HUDOV.once[key] === HUDOV.fr) return;       /* déjà peint pour cette image */
+  const g = hudOvEnsure();
+  if (!g) return fn.apply(null, args);
+  HUDOV.once[key] = HUDOV.fr;
+  const prev = ctx;
+  HUDOV.busy = true;
+  try {
+    ctx = g; HUDOV.dirty = true;
+    g.setTransform(HUDOV.d, 0, 0, HUDOV.d, 0, 0);
+    g.imageSmoothingEnabled = true;
+    return fn.apply(null, args);
+  } finally { ctx = prev; HUDOV.busy = false; }
+}
+{
+  const _hud = drawHUD, _side = drawSidePanels, _ban = drawEraBanner, _render = render;
+  drawHUD = function () { return hudOvRun('hud', _hud, arguments); };
+  drawSidePanels = function () { return hudOvRun('side', _side, arguments); };
+  drawEraBanner = function () { return hudOvRun('ban', _ban, arguments); };
+  render = function (dt) {
+    HUDOV.fr++;
+    if (HUDOV.dirty && HUDOV.g) {
+      HUDOV.g.setTransform(1, 0, 0, 1, 0, 0);
+      HUDOV.g.clearRect(0, 0, HUDOV.cv.width, HUDOV.cv.height);
+      HUDOV.dirty = false;
+    }
+    return _render(dt);
+  };
 }
 </script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
