@@ -9103,7 +9103,7 @@ function buildCheats() {
       else if (c.type === 'action') act = `<button class="sw" data-cheat-run="${c.id}">LANCER</button>`;
       else if (c.type === 'select') {
         const cur = clamp(S.cheats.startLevel | 0 || 1, 1, MAX_LEVEL);
-        act = `<div class="seg" style="flex-wrap:wrap">${Array.from({ length: MAX_LEVEL }, (_, k) => k + 1).map(n => `<button class="${n === cur ? 'sel' : ''}" data-cheat-lv="${n}">${n}</button>`).join('')}</div>`;
+        act = `<div class="seg cheat-levels">${Array.from({ length: MAX_LEVEL }, (_, k) => k + 1).map(n => `<button class="${n === cur ? 'sel' : ''}" data-cheat-lv="${n}">${n}</button>`).join('')}</div>`;
       }
       el.innerHTML = `<span class="badge own">DÉBLOQUÉ</span><div class="cname">${c.name}</div>
         <div class="cdesc">${c.desc}</div><div style="margin-top:8px">${act}</div>`;
@@ -16379,6 +16379,25 @@ narrativeInstall();
   #nvTitle .nv-secondary .tile{min-height:48px;touch-action:manipulation}
   #nvTitle .btn.big{min-height:54px;touch-action:manipulation}
   html.nvui .panel{max-height:92dvh;touch-action:pan-y pinch-zoom;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+  /* Menu des codes : plein écran mobile, sans débordement horizontal. */
+  #scr-cheats{box-sizing:border-box;overflow:hidden}
+  #scr-cheats .panel{box-sizing:border-box;min-width:0;max-width:100%;overflow-x:hidden}
+  #scr-cheats .phead{min-width:0;flex-wrap:wrap;gap:8px 14px}
+  #scr-cheats .ptitle,#scr-cheats .wallet{min-width:0}
+  #scr-cheats #cheatGrid{min-width:0;grid-template-columns:minmax(0,1fr)}
+  #scr-cheats #cheatGrid>.card{box-sizing:border-box;min-width:0;max-width:100%}
+  #scr-cheats .cheat-levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;width:100%;overflow:visible;border:0}
+  #scr-cheats .cheat-levels button{box-sizing:border-box;min-width:0;min-height:42px;padding:7px 3px;border:1px solid var(--line);border-radius:7px}
+  @media(max-width:700px){
+    #scr-cheats.on{position:fixed;inset:auto;left:var(--cheat-vv-left,0px);top:var(--cheat-vv-top,0px);width:var(--cheat-vv-width,100vw);height:var(--cheat-vv-height,100dvh);
+      padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);align-items:stretch;justify-content:stretch;overflow:hidden}
+    #scr-cheats .panel{width:100%;max-width:none;height:100%;max-height:none;margin:0;padding:16px 14px calc(18px + env(safe-area-inset-bottom));border-radius:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+    #scr-cheats .cheatline{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;width:100%;min-width:0}
+    #scr-cheats .cheatline input{box-sizing:border-box;width:100%;min-width:0;font-size:16px}
+    #scr-cheats .cheatline .btn{min-height:44px;padding-inline:12px;white-space:nowrap}
+    #scr-cheats .cheat-levels{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+    #scr-cheats .cheat-levels button{min-height:46px;font-size:14px}
+  }
   #nvTitle .nv-more-toggle{display:none;appearance:none;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;padding:10px 14px;
     font:600 12px var(--ui-font);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);background:color-mix(in srgb,var(--acc) 9%,rgba(255,255,255,.03));
     border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);border-radius:10px;cursor:pointer;touch-action:manipulation}
@@ -18934,6 +18953,32 @@ function importSave(file) {
 try { refreshUI(); } catch (e) {}
 /* pause automatique quand on quitte l'onglet / l'appli (téléphone) */
 document.addEventListener('visibilitychange', () => { if (document.hidden && (G.state === 'play')) pauseGame(); });
+
+/* Le menu des codes suit la zone réellement visible lorsque le clavier mobile s'ouvre. */
+(function () {
+  const screen = document.getElementById('scr-cheats');
+  if (!screen) return;
+  const fit = () => {
+    const vv = window.visualViewport;
+    if (vv && vv.scale <= 1.02 && vv.width > 0 && vv.height > 0) {
+      screen.style.setProperty('--cheat-vv-left', `${Math.round(vv.offsetLeft)}px`);
+      screen.style.setProperty('--cheat-vv-top', `${Math.round(vv.offsetTop)}px`);
+      screen.style.setProperty('--cheat-vv-width', `${Math.round(vv.width)}px`);
+      screen.style.setProperty('--cheat-vv-height', `${Math.round(vv.height)}px`);
+    } else {
+      screen.style.removeProperty('--cheat-vv-left');
+      screen.style.removeProperty('--cheat-vv-top');
+      screen.style.removeProperty('--cheat-vv-width');
+      screen.style.removeProperty('--cheat-vv-height');
+    }
+  };
+  fit();
+  window.addEventListener('resize', fit, { passive: true });
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', fit, { passive: true });
+    visualViewport.addEventListener('scroll', fit, { passive: true });
+  }
+})();
 
 /* =============================================================================
    TAILLE D'ÉCRAN ROBUSTE (téléphones)
