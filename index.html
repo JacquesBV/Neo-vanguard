@@ -317,6 +317,10 @@ body{max-width:100%;overflow-x:hidden}
 /* clignotement de confirmation sur le bouton validé */
 @keyframes okBlink{0%{background-color:transparent}20%{background-color:color-mix(in srgb,var(--acc) 85%,#fff);color:#03060e}45%{background-color:transparent;color:inherit}65%{background-color:color-mix(in srgb,var(--acc) 85%,#fff);color:#03060e}100%{background-color:transparent;color:inherit}}
 .btn.ok-blink{animation:okBlink .42s ease-out 1}
+/* bouton Retour : bleu à l'appui */
+.btn[data-act$="-back"]:active,.btn[data-act$="-back"].sel{background:#1f5fd6!important;border-color:#5b93ff!important;color:#fff!important}
+@keyframes okBlinkBlue{0%{background-color:transparent}20%{background-color:#2f74ff;color:#fff}45%{background-color:transparent;color:inherit}65%{background-color:#2f74ff;color:#fff}100%{background-color:transparent;color:inherit}}
+.btn[data-act$="-back"].ok-blink{animation:okBlinkBlue .42s ease-out 1}
 </style>
 </head>
 <body class="era-3">
@@ -12975,18 +12979,15 @@ function briefPage(level) {
 }
 function beginBrief(level) {
   level = clamp(Math.round(level) || 1, 1, MAX_LEVEL);
+  /* le décor de fond prend tout de suite la génération du secteur (plus de niveau d'une autre ère visible) */
+  const e = eraOfLevel(level);
+  if (R.sec !== e) { R.sec = e; computeTheme(e, S.sel.livery); setEra(ERAS[e].sty, true); }
   if (S.opts.story === false) { briefDone(level); return; }   /* récit coupé : on vole */
   beginDeck([briefPage(level)], () => briefDone(level), 'brief');
 }
 function briefDone(level) {
   const eraChange = level === 1 || R.sec !== eraOfLevel(level) || eraOfLevel(level) !== eraOfLevel(level - 1);
-  if (eraChange) {
-    /* le décor passe directement à la génération du secteur : plus de flash de l'ère récente */
-    const e = eraOfLevel(level);
-    if (R.sec !== e) { R.sec = e; computeTheme(e, S.sel.livery); setEra(ERAS[e].sty, true); }
-    beginBox(level, 'level');
-    return;
-  }
+  if (eraChange) { beginBox(level); return; }   /* boîte du secteur (cartouche), le décor est déjà à la bonne génération */
   /* même génération : pas de boîte, la fiche de secteur suffit */
   startLevel(level);
   FX.addFlash(0.22, TH.pGlow);
