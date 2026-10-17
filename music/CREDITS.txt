@@ -1,0 +1,15 @@
+NEO VANGUARD — bande originale (toutes les pistes sont sous licence CC0 / domaine public)
+Source : archive.org (miroirs OpenGameArt)
+
+title.mp3   iamoneabe — Cyber March (CC0, https://opengameart.org/content/cyber-march)
+gate.mp3    haeldb — Tragic ambient main menu (CC0, https://opengameart.org/content/tragic-ambient-main-menu) — écran d'entrée
+story.mp3   Juhani Junkala — JRPG Pack 2 : Town2 - Where Time Stands Still
+shop.mp3    Juhani Junkala — JRPG Pack 2 : Town4 - Bazaar
+ending.mp3  Juhani Junkala — Retro Game Music Pack : Ending
+boss.mp3    Juhani Junkala — Epic Boss Battle [Seamlessly Looping]
+era0.mp3    « NES shooter music » (OpenGameArt) — Mars
+era1.mp3    Juhani Junkala — Retro Game Music Pack : Level 1
+era2.mp3    Juhani Junkala — Retro Game Music Pack : Level 2
+era3.mp3    Spacecrusher (OpenGameArt)
+era4.mp3    Cyberpunk Moonlight Sonata (OpenGameArt)
+era5.mp3    Of Far Different Nature — Vengeance (CC0)
