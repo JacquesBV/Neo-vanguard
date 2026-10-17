@@ -2982,7 +2982,12 @@ function speak(txt) {
   if (now - lastSpeak < 1400) return; lastSpeak = now;
   try {
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(String(L(txt)));
+    /* Les titres d'introduction écrivent parfois « SAS » en capitales.
+       Certains moteurs vocaux français l'épelent alors « S-A-S » au lieu
+       de prononcer le mot courant « sas ». Normaliser uniquement la copie
+       envoyée à la voix, sans modifier les textes affichés à l'écran. */
+    const spokenText = String(L(txt)).replace(/\bSAS\b/gi, 'sas');
+    const u = new SpeechSynthesisUtterance(spokenText);
     u.lang = (LANGS.find(l => l.id === LANG) || LANGS[0]).code; u.rate = 1.02; u.pitch = 0.92;
     u.volume = clamp((S.opts.sfx | 0) / 100, 0, 1);
     const voices = window.speechSynthesis.getVoices();
