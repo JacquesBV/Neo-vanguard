@@ -305,6 +305,10 @@ h1.logo{background:linear-gradient(180deg,#fff 22%,#bcd6f5 52%,#7fa4cc 78%,#e8f6
         <span class="menu-line"></span>
       </div>
       <div class="menu-main">
+        <button class="btn prim big" data-act="continue" id="btnContinue" hidden>
+          <span class="bi">⏵</span>
+          <span class="bl"><b>Continuer la campagne</b><i id="tContinue">Reprendre là où tu t'es arrêté</i></span>
+        </button>
         <button class="btn prim big" data-act="play">
           <span class="bi">▶</span>
           <span class="bl"><b>Commencer la campagne</b><i>24 secteurs, six générations de consoles · l'histoire d'abord</i></span>
@@ -9590,6 +9594,7 @@ function drawTitleArt() {
 }
 
 /* ------------------------------ cycle de partie ---------------------------- */
+let CAMP_RESUME = null;   /* point de reprise consommé par newRun() */
 function newRun() {
   const d = DIFFS[S.opts.diff];
   G.score = 0; G.kills = 0; G.combo = 0; G.comboT = 0; G.runCredits = 0; G.credits = 0;
@@ -9601,7 +9606,12 @@ function newRun() {
   spawnPlayers();                              /* un ou deux vaisseaux */
   S.runs = (S.runs | 0) + 1;
   /* cheat SAUT DE SECTEUR : la mission peut démarrer plus loin */
-  const startAt = cheatFound('jump') ? clamp(S.cheats.startLevel | 0 || 1, 1, MAX_LEVEL) : 1;
+  let startAt = cheatFound('jump') ? clamp(S.cheats.startLevel | 0 || 1, 1, MAX_LEVEL) : 1;
+  if (CAMP_RESUME) {                           /* « Continuer la campagne » */
+    startAt = clamp(CAMP_RESUME.level | 0 || 1, 1, MAX_LEVEL);
+    G.score = Math.max(0, CAMP_RESUME.score | 0);
+    CAMP_RESUME = null;
+  }
   /* départ cinématique : briefing, puis la boîte du secteur, puis le saut
      de génération si l'écran n'est pas déjà dans l'ère demandée. */
   beginBrief(startAt);
@@ -11418,6 +11428,7 @@ function wireButtons() {
       case 'net-create': case 'net-join': case 'net-leave': case 'net-go': netUiAct(act); break;
       case 'records-back': Audio2.sfx('back'); gotoReturn(); break;
       case 'over-continue': doContinue(); break;
+      case 'continue': continueCampaign(); break;
       case 'play': G.twoP = false; G.daily = false; dailySeedOff(); startFromTitle(); break;
       case 'play2': G.twoP = true; G.daily = false; dailySeedOff(); startFromTitle(); break;
       case 'story': G.daily = false; dailySeedOff(); beginStory(); break;
@@ -18327,6 +18338,130 @@ function hudOvRun(key, fn, args) {
     return _render(dt);
   };
 }
+
+/* =============================================================================
+   SAUVEGARDE DE CAMPAGNE + EXPORT / IMPORT
+   - Un point de reprise (S.camp) est écrit à chaque secteur terminé, pour la
+     campagne solo normale (ni défi du jour, ni 2 joueurs, ni en ligne, ni cheat).
+   - Le titre propose « Continuer la campagne » tant qu'il existe.
+   - Options > Sauvegarde : exporter la partie dans un fichier, la réimporter,
+     ou effacer le point de reprise.
+   ========================================================================= */
+const SVT = {
+  cont:   ['Continuer la campagne', 'Continue campaign', 'Continuar la campaña', 'Continuar a campanha', 'キャンペーンを続ける'],
+  contSub:['Secteur # / 24 · score #', 'Sector # / 24 · score #', 'Sector # / 24 · puntos #', 'Setor # / 24 · pontos #', 'セクター # / 24 · スコア #'],
+  none:   ['Aucune campagne à reprendre', 'No campaign to resume', 'Ninguna campaña que reanudar', 'Nenhuma campanha para retomar', '再開できるキャンペーンがありません'],
+  resumed:['Campagne reprise — secteur ', 'Campaign resumed — sector ', 'Campaña reanudada — sector ', 'Campanha retomada — setor ', 'キャンペーン再開 — セクター '],
+  save:   ['Sauvegarde', 'Save data', 'Partida guardada', 'Jogo guardado', 'セーブデータ'],
+  hasPt:  ['Point de reprise : secteur ', 'Checkpoint: sector ', 'Punto de reanudación: sector ', 'Ponto de retoma: setor ', 'チェックポイント：セクター '],
+  noPt:   ['Aucun point de reprise', 'No checkpoint yet', 'Sin punto de reanudación', 'Sem ponto de retoma', 'チェックポイントなし'],
+  auto:   ['La partie est aussi enregistrée automatiquement dans ce navigateur', 'Progress is also saved automatically in this browser', 'El progreso también se guarda automáticamente en este navegador', 'O progresso também é guardado automaticamente neste navegador', '進行状況はこのブラウザにも自動保存されます'],
+  exp:    ['⇩ Exporter', '⇩ Export', '⇩ Exportar', '⇩ Exportar', '⇩ エクスポート'],
+  imp:    ['⇧ Importer', '⇧ Import', '⇧ Importar', '⇧ Importar', '⇧ インポート'],
+  clr:    ['✖ Effacer la reprise', '✖ Clear checkpoint', '✖ Borrar punto', '✖ Apagar ponto', '✖ チェックポイント削除'],
+  okExp:  ['Sauvegarde exportée', 'Save exported', 'Partida exportada', 'Jogo exportado', 'エクスポートしました'],
+  koExp:  ['Export impossible dans ce navigateur', 'Export not possible in this browser', 'Exportación imposible en este navegador', 'Exportação impossível neste navegador', 'このブラウザでは書き出せません'],
+  okImp:  ['Sauvegarde importée', 'Save imported', 'Partida importada', 'Jogo importado', 'インポートしました'],
+  koImp:  ['Fichier de sauvegarde invalide', 'Invalid save file', 'Archivo de partida no válido', 'Ficheiro de jogo inválido', '無効なセーブファイルです'],
+  koRd:   ['Lecture du fichier impossible', 'Could not read the file', 'No se pudo leer el archivo', 'Não foi possível ler o ficheiro', 'ファイルを読めません'],
+  clrd:   ['Point de reprise effacé', 'Checkpoint cleared', 'Punto de reanudación borrado', 'Ponto de retoma apagado', 'チェックポイントを削除しました']
+};
+function svt(k, a, b) {
+  const i = Math.max(0, ['fr', 'en', 'es', 'pt', 'ja'].indexOf(typeof LANG === 'string' ? LANG : 'fr'));
+  let t = (SVT[k] || [k])[i] || SVT[k][0];
+  if (a !== undefined) t = t.replace('#', a);
+  if (b !== undefined) t = t.replace('#', b);
+  return t;
+}
+function campEligible() {
+  return !anyCheat() && !G.twoP && !G.daily && !(typeof NET !== 'undefined' && NET.role !== 'off') && !G.netOnline;
+}
+function campValid(c) { return c && typeof c === 'object' && (c.level | 0) >= 2 && (c.level | 0) <= MAX_LEVEL; }
+function continueCampaign() {
+  if (!campValid(S.camp)) { toast(svt('none')); return; }
+  G.twoP = false; G.daily = false; dailySeedOff();
+  CAMP_RESUME = { level: S.camp.level | 0, score: S.camp.score | 0 };
+  Audio2.unlock(); hideScreens();
+  G.state = 'play'; newRun();
+  toast(svt('resumed') + (S.camp.level | 0));
+}
+{
+  const _next = startNextLevel;
+  startNextLevel = function () {
+    const ok = campEligible(), nextLv = G.level + 1, score = G.score | 0;
+    _next.apply(this, arguments);
+    if (ok && nextLv <= MAX_LEVEL) {
+      S.camp = { level: nextLv, score, diff: S.opts.diff, ts: Date.now() };
+      saveGame(); refreshUI();
+    }
+  };
+  const _vic = showVictoryScreen;
+  showVictoryScreen = function () {
+    if (S.camp) { delete S.camp; }          /* campagne terminée : plus rien à reprendre */
+    const r = _vic.apply(this, arguments); saveGame(); refreshUI(); return r;
+  };
+  const _ref = refreshUI;
+  refreshUI = function () {
+    _ref.apply(this, arguments);
+    const b = document.getElementById('btnContinue'); if (!b) return;
+    const ok = campValid(S.camp);
+    b.hidden = !ok; b.style.display = ok ? '' : 'none';
+    const t = document.getElementById('tContinue');
+    if (ok && t) t.textContent = svt('contSub', S.camp.level | 0, fmt(S.camp.score | 0));
+    const bb = b.querySelector('b'); if (bb) bb.textContent = svt('cont');
+  };
+}
+function exportSave() {
+  try {
+    const data = { game: 'neovanguard', v: 3, exported: new Date().toISOString(), save: S };
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'neovanguard-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast(svt('okExp'));
+  } catch (e) { toast(svt('koExp')); }
+}
+function importSave(file) {
+  if (!file) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const d = JSON.parse(String(rd.result));
+      const sv = d && d.game === 'neovanguard' && d.save ? d.save : d;      /* accepte aussi un export brut */
+      if (!sv || typeof sv !== 'object' || typeof sv.credits !== 'number' || !sv.owned) throw new Error('format');
+      localStorage.setItem(SAVE_KEY, JSON.stringify(sv));
+      if (sv.perk && typeof sv.perk === 'object') localStorage.setItem('nv_perk', JSON.stringify(sv.perk));
+      loadSave(); saveGame(); refreshUI(); buildOptions();
+      toast(svt('okImp'));
+    } catch (e) { toast(svt('koImp')); }
+  };
+  rd.onerror = () => toast(svt('koRd'));
+  rd.readAsText(file);
+}
+{
+  const _bo2 = buildOptions;
+  buildOptions = function () {
+    _bo2.apply(this, arguments);
+    const body = document.getElementById('optBody'); if (!body) return;
+    const d = document.createElement('div'); d.className = 'opt';
+    const has = campValid(S.camp);
+    d.innerHTML = '<div><label>' + svt('save') + '<span class="hint">' +
+      (has ? svt('hasPt') + (S.camp.level | 0) + ' / ' + MAX_LEVEL : svt('noPt')) + ' · ' + svt('auto') + '</span></label></div>' +
+      '<div class="ctl" style="flex-wrap:wrap;gap:8px"><button class="btn small" id="svExp">' + svt('exp') + '</button>' +
+      '<button class="btn small" id="svImp">' + svt('imp') + '</button>' +
+      '<button class="btn small bad" id="svClr"' + (has ? '' : ' disabled') + '>' + svt('clr') + '</button>' +
+      '<input type="file" id="svFile" accept="application/json,.json" hidden></div>';
+    body.insertBefore(d, body.firstChild);
+    d.querySelector('#svExp').onclick = exportSave;
+    const fi = d.querySelector('#svFile');
+    d.querySelector('#svImp').onclick = () => fi.click();
+    fi.onchange = () => { importSave(fi.files && fi.files[0]); fi.value = ''; };
+    d.querySelector('#svClr').onclick = () => { delete S.camp; saveGame(); refreshUI(); buildOptions(); toast(svt('clrd')); };
+  };
+}
+try { refreshUI(); } catch (e) {}
 </script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
