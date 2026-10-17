@@ -2986,9 +2986,13 @@ function speak(txt) {
        Certains moteurs vocaux français l'épelent alors « S-A-S » au lieu
        de prononcer le mot courant « sas ». Normaliser uniquement la copie
        envoyée à la voix, sans modifier les textes affichés à l'écran. */
-    const spokenText = String(L(txt)).replace(/\bSAS\b/gi, 'sas');
+    const speechLang = (LANGS.find(l => l.id === LANG) || LANGS[0]).code;
+    let spokenText = String(L(txt)).replace(/\bSAS\b/gi, 'sas');
+    /* En français, GOLIATH-PRIME est un nom anglais : écrire « praïm »
+       dans la seule piste vocale donne le son /praɪm/ sans toucher à l'écran. */
+    if (speechLang === 'fr-FR') spokenText = spokenText.replace(/\bGOLIATH[-–—\s]+PRIME\b/gi, 'Goliath praïm');
     const u = new SpeechSynthesisUtterance(spokenText);
-    u.lang = (LANGS.find(l => l.id === LANG) || LANGS[0]).code; u.rate = 1.02; u.pitch = 0.92;
+    u.lang = speechLang; u.rate = 1.02; u.pitch = 0.92;
     u.volume = clamp((S.opts.sfx | 0) / 100, 0, 1);
     const voices = window.speechSynthesis.getVoices();
     const wl = u.lang.slice(0, 2).toLowerCase();
