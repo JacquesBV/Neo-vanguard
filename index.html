@@ -5736,7 +5736,11 @@ function spriteBox(id) { const d = SIL[id] || SIL.falcon; const h = SPRITE_H[id]
 function drawSpriteTo(g, K, id, x, y, opt = {}) {
   if (!SIL[id]) id = 'falcon';            /* garde-fou : jamais d'id inconnu */
   const box = spriteBox(id);
-  const w = box.w * (opt.scale || 1) * (opt.sx === undefined ? 1 : opt.sx), h = box.h * (opt.scale || 1);
+  /* Sur écran tactile, les vaisseaux et objets étaient difficiles à distinguer
+     dans le cadre vertical. Agrandir seulement les sprites en jeu garde le HUD,
+     les menus et les dimensions de la zone de jeu à leur taille d'origine. */
+  const touchBoost = IS_TOUCH && G.state === 'play' ? 1.22 : 1;
+  const w = box.w * (opt.scale || 1) * touchBoost * (opt.sx === undefined ? 1 : opt.sx), h = box.h * (opt.scale || 1) * touchBoost;
   const hue = opt.hue === undefined ? 200 : opt.hue;
   const sat = opt.sat === undefined ? 0.55 : opt.sat;
   const light = opt.light === undefined ? 0.5 : opt.light;
