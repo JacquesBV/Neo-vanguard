@@ -16111,7 +16111,7 @@ const NV_CART_TYPES = [
   { shape:'md',    ratio:.98, size:.63, shell:'#20242b', edge:'#090b10', accent:'#53cfff' },
   { shape:'neo',   ratio:.93, size:1.00, shell:'#191b22', edge:'#07080c', accent:'#f2b64d' },
 ];
-const NV_CART_RAIN = { cv:null, g:null, w:0, h:0, d:0, cards:null, reduced:false };
+const NV_CART_RAIN = { cv:null, g:null, w:0, h:0, d:0, cards:null, sprites:null, elapsed:0, painted:false };
 function nvCartPath(g, shape, w, h) {
   const x=-w/2, y=-h/2, r=Math.min(w,h)*.045;
   g.beginPath();
@@ -16219,41 +16219,61 @@ function drawNvCartridge(g, c, cx, cy, cw, ch, time) {
   }
   g.restore();
 }
+function nvCartSprite(type, back, blurPx) {
+  const H=240,W=H*type.ratio, pad=12, d=1.25, c=document.createElement('canvas');
+  c.width=Math.ceil((W+pad*2)*d);c.height=Math.ceil((H+pad*2)*d);
+  const g=c.getContext('2d');if(!g)return c;
+  g.setTransform(d,0,0,d,0,0);g.filter=blurPx>0?`blur(${blurPx}px)`:'none';
+  drawNvCartridge(g,{type,phase:back?Math.PI:0},(W+pad*2)/2,(H+pad*2)/2,W,H,0);
+  g.filter='none';return c;
+}
 function drawCartridgeRain(dt) {
   const c=document.getElementById('nvGateCartridges'); if(!c) return;
-  const r=c.getBoundingClientRect(), w=Math.max(1,r.width), h=Math.max(1,r.height), d=Math.min(window.devicePixelRatio||1,2);
-  if(!NV_CART_RAIN.g) { NV_CART_RAIN.cv=c; NV_CART_RAIN.g=c.getContext('2d',{alpha:true}); }
+  const r=c.getBoundingClientRect(), w=Math.max(1,r.width), h=Math.max(1,r.height);
+  if(NV_CART_RAIN.cv!==c){NV_CART_RAIN.cv=c;NV_CART_RAIN.g=c.getContext('2d',{alpha:true});NV_CART_RAIN.painted=false;}
   const g=NV_CART_RAIN.g; if(!g) return;
-  if(w!==NV_CART_RAIN.w||h!==NV_CART_RAIN.h||d!==NV_CART_RAIN.d){NV_CART_RAIN.w=w;NV_CART_RAIN.h=h;NV_CART_RAIN.d=d;c.width=Math.round(w*d);c.height=Math.round(h*d);}
-  g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,w,h);
+  // Canvas 1× sur téléphone : la page d'entrée n'a pas besoin d'un buffer 2×.
+  const d=1;
+  if(w!==NV_CART_RAIN.w||h!==NV_CART_RAIN.h||d!==NV_CART_RAIN.d){
+    NV_CART_RAIN.w=w;NV_CART_RAIN.h=h;NV_CART_RAIN.d=d;c.width=Math.round(w*d);c.height=Math.round(h*d);NV_CART_RAIN.painted=false;
+  }
   const baseH=Math.max(92,Math.min(180,h*.15));
-  if(!NV_CART_RAIN.cards||NV_CART_RAIN.cards.length!==NV_CART_TYPES.length){
+  if(!NV_CART_RAIN.cards){
     NV_CART_RAIN.cards=NV_CART_TYPES.map((type,i)=>{
       const scale=[.72,.88,1,.66,.94][i], depth=[.9,.58,.82,.35,.68][i], ch=baseH*scale*type.size;
-      return {type, x:.10+i*.20, y:-ch*(.9+i*1.15), speed:Math.max(18,h*.028)+(i%3)*3, phase:i*1.71, scale, depth};
+      return {type,x:.10+i*.20,y:-ch*(.9+i*1.15),speed:Math.max(18,h*.028)+(i%3)*3,phase:i*1.71,scale,depth};
+    });
+  }
+  // Les deux faces, déjà floutées selon leur profondeur, ne sont dessinées qu'une fois.
+  if(!NV_CART_RAIN.sprites){
+    NV_CART_RAIN.sprites=NV_CART_RAIN.cards.map(card=>{
+      const blur=(1-card.depth)*1.45;
+      return {front:nvCartSprite(card.type,false,blur),back:nvCartSprite(card.type,true,blur)};
     });
   }
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const step=reduce?0:Math.min(.05,Math.max(0,dt||0));
-  for(const card of NV_CART_RAIN.cards){
-    const ch=baseH*card.scale*card.type.size, cw=ch*card.type.ratio;
+  NV_CART_RAIN.elapsed+=Math.max(0,dt||0);
+  // 30 i/s suffisent pour cette chute lente, tout en divisant le travail de dessin.
+  if(NV_CART_RAIN.painted&&NV_CART_RAIN.elapsed<1/30)return;
+  const step=reduce?0:Math.min(.09,NV_CART_RAIN.elapsed);NV_CART_RAIN.elapsed=0;
+  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);
+  for(let i=0;i<NV_CART_RAIN.cards.length;i++){
+    const card=NV_CART_RAIN.cards[i],ch=baseH*card.scale*card.type.size,cw=ch*card.type.ratio;
     card.y+=card.speed*step;
     if(card.y>h+ch){card.y=-ch*(1.1+Math.random()*1.4);card.x=.08+Math.random()*.84;}
     const x=Math.min(w-cw*.52,Math.max(cw*.52,w*card.x));
-    const blur=(1-card.depth)*2.2, alpha=(w<600?.60:.76)*(1-(1-card.depth)*.24);
-    // Halo et traînée floue : le cœur de la cartouche reste lisible, les plans lointains se fondent.
-    g.save();g.globalAlpha=alpha*.18;g.filter=`blur(${Math.max(2,blur+3)}px)`;
-    const halo=g.createRadialGradient(x,card.y,1,x,card.y,Math.max(cw,ch)*.68);halo.addColorStop(0,card.type.accent);halo.addColorStop(1,'rgba(0,0,0,0)');
-    g.fillStyle=halo;g.fillRect(x-Math.max(cw,ch)*.7,card.y-Math.max(cw,ch)*.7,Math.max(cw,ch)*1.4,Math.max(cw,ch)*1.4);g.restore();
-    g.save();g.globalAlpha=alpha*.22;g.filter='blur(5px)';
-    const trail=g.createLinearGradient(x,card.y-ch*.52,x,card.y-ch*1.35);trail.addColorStop(0,card.type.accent);trail.addColorStop(1,'rgba(0,0,0,0)');
-    g.fillStyle=trail;g.fillRect(x-cw*.055,card.y-ch*1.35,cw*.11,ch*.82);g.restore();
-    g.save();g.globalAlpha=alpha;g.filter=`blur(${blur.toFixed(2)}px)`;
-    g.shadowColor='rgba(48,115,210,.38)';g.shadowBlur=Math.min(20,ch*.18);g.shadowOffsetY=5;
-    drawNvCartridge(g,card,x,card.y,cw,ch,titleT);g.restore();
+    const yaw=titleT*.24+card.phase,front=Math.cos(yaw)>=0,roll=Math.sin(titleT*.17+card.phase)*.14;
+    const focal=card.depth,alpha=(w<600?.63:.78)*(1-(1-focal)*.22),sx=(front?1:-1)*(.26+.74*Math.abs(Math.cos(yaw)));
+    const sprite=front?NV_CART_RAIN.sprites[i].front:NV_CART_RAIN.sprites[i].back;
+    g.save();g.globalAlpha=alpha;g.translate(x,card.y);g.rotate(roll);g.scale(sx,1);
+    // Écho translucide préflouté pour prolonger doucement le mouvement.
+    g.globalAlpha=alpha*.14;g.drawImage(sprite,-cw*.5,-ch*.72,cw,ch);
+    g.globalAlpha=alpha;g.drawImage(sprite,-cw*.5,-ch*.5,cw,ch);g.restore();
+    // traînée simple et légère : pas de filtre recalculé à chaque image.
+    g.save();g.globalAlpha=alpha*.12;g.fillStyle=card.type.accent;g.fillRect(x-cw*.025,card.y-ch*.94,Math.max(1,cw*.05),ch*.36);g.restore();
   }
+  NV_CART_RAIN.painted=true;
 }
-
 (function nvUiInstall() {
   const css = `
   html.nvui{--ui-font:"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,system-ui,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
