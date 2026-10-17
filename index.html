@@ -314,6 +314,9 @@ body{max-width:100%;overflow-x:hidden}
   box-shadow:0 0 0 2px color-mix(in srgb,var(--acc) 60%,transparent),0 0 18px color-mix(in srgb,var(--acc) 35%,transparent)!important}
 /* retour visuel à l'appui sur tactile */
 @media (hover:none){ .btn:active{transform:scale(.97);filter:brightness(1.25);transition:transform .05s,filter .05s} }
+/* clignotement de confirmation sur le bouton validé */
+@keyframes okBlink{0%{background-color:transparent}20%{background-color:color-mix(in srgb,var(--acc) 85%,#fff);color:#03060e}45%{background-color:transparent;color:inherit}65%{background-color:color-mix(in srgb,var(--acc) 85%,#fff);color:#03060e}100%{background-color:transparent;color:inherit}}
+.btn.ok-blink{animation:okBlink .42s ease-out 1}
 </style>
 </head>
 <body class="era-3">
@@ -16635,6 +16638,18 @@ narrativeInstall();
   /* un tap ailleurs annule une confirmation en attente */
   document.addEventListener('pointerdown', e => {
     if (!e.target || !e.target.closest || !e.target.closest(RISKY)) document.querySelectorAll('.btn.sel').forEach(x => x.classList.remove('sel'));
+  }, true);
+})();
+
+/* ---- son de confirmation : jouer « pick » quand un bouton valide une action ---- */
+(function () {
+  document.addEventListener('click', e => {
+    const b = e.target && e.target.closest ? e.target.closest('button[data-act]') : null;
+    if (!b || b.disabled || b.hidden) return;
+    try { Audio2.sfx('pick'); } catch (err) {}
+    b.classList.remove('ok-blink'); void b.offsetWidth; b.classList.add('ok-blink');
+    b.addEventListener('animationend', () => b.classList.remove('ok-blink'), { once: true });
+    setTimeout(() => b.classList.remove('ok-blink'), 520);   /* filet : un élément caché ne joue pas l'animation */
   }, true);
 })();
 
