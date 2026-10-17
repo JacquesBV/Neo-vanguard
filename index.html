@@ -16101,15 +16101,15 @@ Object.assign(NX, {
 });
 narrativeInstall();
 
-/* Cartouches collector : coques inspirées des formes européennes originales,
-   sans logos de fabricants ni texte de console. Les seules jaquettes sont
-   des illustrations originales de Neo Vanguard. */
+/* Cartouches collector : silhouettes PAL proportionnées d'après les coques originales.
+   Pas de logos de constructeur ni de console ; jaquettes Neo Vanguard seulement. */
 const NV_CART_TYPES = [
-  { shape:'gb',    ratio:.87, size:.50, shell:'#c7c7bb', edge:'#777a76', accent:'#8bbf54' },
-  { shape:'nes',   ratio:.91, size:.91, shell:'#b9bab6', edge:'#676b6d', accent:'#d34a51' },
-  { shape:'snes',  ratio:.95, size:.80, shell:'#c8cbd2', edge:'#777b87', accent:'#b58bff' },
-  { shape:'md',    ratio:.98, size:.63, shell:'#20242b', edge:'#090b10', accent:'#53cfff' },
-  { shape:'neo',   ratio:.93, size:1.00, shell:'#191b22', edge:'#07080c', accent:'#f2b64d' },
+  // Proportions des versions européennes : largeur / hauteur.
+  { shape:'gb',    ratio:.88, size:.44, shell:'#c7c7bb', edge:'#777a76', accent:'#8bbf54' },
+  { shape:'nes',   ratio:.90, size:.92, shell:'#b9bab6', edge:'#676b6d', accent:'#d34a51' },
+  { shape:'snes',  ratio:1.48, size:.59, shell:'#c8cbd2', edge:'#777b87', accent:'#b58bff' },
+  { shape:'md',    ratio:1.54, size:.48, shell:'#20242b', edge:'#090b10', accent:'#53cfff' },
+  { shape:'neo',   ratio:1.30, size:1.00, shell:'#191b22', edge:'#07080c', accent:'#f2b64d' },
 ];
 const NV_CART_RAIN = { cv:null, g:null, w:0, h:0, d:0, cards:null, sprites:null, elapsed:0, painted:false };
 function nvCartPath(g, shape, w, h) {
@@ -16129,49 +16129,47 @@ function nvCartPath(g, shape, w, h) {
     g.lineTo(w/2,y+h-r); g.quadraticCurveTo(w/2,y+h,w/2-r,y+h);
     g.lineTo(x+r,y+h); g.quadraticCurveTo(x,y+h,x,y+h-r); g.lineTo(x,y+r); g.quadraticCurveTo(x,y,x+r,y); g.closePath();
   } else if (shape==='snes') {
-    // Version PAL européenne : façade et angles plus arrondis que la coque US boxy.
-    g.moveTo(-w*.48+r,y); g.lineTo(-w*.25,y); g.quadraticCurveTo(-w*.37,y+h*.02,-w*.37,y+h*.12);
-    g.quadraticCurveTo(-w*.48,y+h*.18,-w*.48,y+h*.28); g.lineTo(-w*.48,y+h*.79);
-    g.quadraticCurveTo(-w*.48,y+h*.97,-w*.31,y+h*.99); g.quadraticCurveTo(-w*.20,y+h,w*.20,y+h);
-    g.quadraticCurveTo(w*.48,y+h*.99,w*.48,y+h*.82); g.lineTo(w*.48,y+h*.29);
-    g.quadraticCurveTo(w*.48,y+h*.15,w*.37,y+h*.12); g.quadraticCurveTo(w*.37,y+h*.02,w*.25,y);
-    g.closePath();
+    // PAL/Super Famicom : coque large et basse (127 × 86 mm), épaules douces.
+    g.moveTo(x+r,y); g.lineTo(x+w*.29,y);
+    g.quadraticCurveTo(x+w*.33,y,x+w*.33,y+h*.11); g.lineTo(x+w*.67,y+h*.11);
+    g.quadraticCurveTo(x+w*.67,y,x+w*.71,y); g.lineTo(w/2-r,y);
+    g.quadraticCurveTo(w/2,y,w/2,y+r); g.lineTo(w/2,y+h-r);
+    g.quadraticCurveTo(w/2,y+h,w/2-r,y+h); g.lineTo(x+r,y+h);
+    g.quadraticCurveTo(x,y+h,x,y+h-r); g.lineTo(x,y+r);
+    g.quadraticCurveTo(x,y,x+r,y); g.closePath();
   } else if (shape==='md') {
-    // Cartouche PAL noire : haut biseauté, flancs droits et petites prises latérales.
-    g.moveTo(x+r,y); g.lineTo(w*.29-w/2,y); g.lineTo(w*.38-w/2,y+h*.055); g.lineTo(w/2-r,y+h*.055);
-    g.quadraticCurveTo(w/2,y+h*.055,w/2,y+h*.055+r); g.lineTo(w/2,y+h*.38);
-    g.lineTo(w*.44,y+h*.41); g.lineTo(w*.44,y+h*.51); g.lineTo(w/2,y+h*.54); g.lineTo(w/2,y+h-r);
-    g.quadraticCurveTo(w/2,y+h,w/2-r,y+h); g.lineTo(x+r,y+h); g.quadraticCurveTo(x,y+h,x,y+h-r);
-    g.lineTo(x,y+h*.54); g.lineTo(-w*.44,y+h*.51); g.lineTo(-w*.44,y+h*.41); g.lineTo(x,y+h*.38);
-    g.lineTo(x,y+r); g.quadraticCurveTo(x,y,x+r,y); g.closePath();
+    // PAL : cartouche noire courte et très large, coins chanfreinés et flancs arrondis.
+    g.moveTo(x+w*.07,y); g.lineTo(x+w*.93,y); g.lineTo(x+w*.985,y+h*.10);
+    g.lineTo(x+w*.985,y+h*.87); g.quadraticCurveTo(x+w*.98,y+h,x+w*.91,y+h);
+    g.lineTo(x+w*.09,y+h); g.quadraticCurveTo(x+w*.02,y+h,x+w*.015,y+h*.87);
+    g.lineTo(x+w*.015,y+h*.10); g.closePath();
   } else {
-    // AES : grande coque noire épaisse, épaules hautes et reliefs latéraux profonds.
-    g.moveTo(x+r,y); g.lineTo(-w*.28,y); g.lineTo(-w*.36,y+h*.035); g.lineTo(-w*.45,y+h*.035);
-    g.lineTo(-w*.45,y+h*.15); g.lineTo(x,y+h*.15); g.lineTo(x,y+h*.24);
-    g.lineTo(-w*.48,y+h*.24); g.lineTo(-w*.48,y+h*.82); g.quadraticCurveTo(-w*.48,y+h,-w*.38,y+h);
-    g.lineTo(w*.38,y+h); g.quadraticCurveTo(w*.48,y+h,w*.48,y+h*.82); g.lineTo(w*.48,y+h*.24); g.lineTo(x,y+h*.24); g.lineTo(x,y+h*.15);
-    g.lineTo(w*.45,y+h*.15); g.lineTo(w*.45,y+h*.035); g.lineTo(w*.36,y+h*.035); g.lineTo(w*.28,y);
-    g.closePath();
+    // AES : cartouche nettement plus large et massive, avec épaules et prises latérales.
+    g.moveTo(x+r,y); g.lineTo(-w*.28,y); g.lineTo(-w*.35,y+h*.045); g.lineTo(-w*.46,y+h*.045);
+    g.lineTo(-w*.49,y+h*.12); g.lineTo(-w*.49,y+h*.19); g.lineTo(-w*.43,y+h*.21);
+    g.lineTo(-w*.43,y+h*.29); g.lineTo(-w*.49,y+h*.31); g.lineTo(-w*.49,y+h*.84);
+    g.quadraticCurveTo(-w*.49,y+h,-w*.39,y+h); g.lineTo(w*.39,y+h);
+    g.quadraticCurveTo(w*.49,y+h,w*.49,y+h*.84); g.lineTo(w*.49,y+h*.31);
+    g.lineTo(w*.43,y+h*.29); g.lineTo(w*.43,y+h*.21); g.lineTo(w*.49,y+h*.19);
+    g.lineTo(w*.49,y+h*.12); g.lineTo(w*.46,y+h*.045); g.lineTo(w*.35,y+h*.045);
+    g.lineTo(w*.28,y); g.closePath();
   }
 }
 function drawNvCartridge(g, c, cx, cy, cw, ch, time) {
   const p=c.type, w=ch*p.ratio, h=ch;
-  const yaw=time*.24+c.phase, front=Math.cos(yaw)>=0, roll=Math.sin(time*.17+c.phase)*.14;
-  g.save(); g.translate(cx,cy); g.rotate(roll);
-  g.scale(.26+.74*Math.abs(Math.cos(yaw)),1); if(!front) g.scale(-1,1);
-  // tranche et ombre : donnent une épaisseur réelle au mouvement de rotation.
-  const dx=Math.sin(yaw)*w*.10;
-  g.save();g.translate(dx,h*.026);nvCartPath(g,p.shape,w,h);g.fillStyle=p.edge;g.fill();g.restore();
+  g.save(); g.translate(cx,cy);
+  // Face avant fixe : la silhouette reste lisible pendant toute la chute.
+  g.save();g.translate(0,h*.026);nvCartPath(g,p.shape,w,h);g.fillStyle=p.edge;g.fill();g.restore();
   const body=g.createLinearGradient(-w*.48,-h*.5,w*.42,h*.5);
   body.addColorStop(0,'#f5f5ef');body.addColorStop(.13,p.shell);body.addColorStop(.72,p.shell);body.addColorStop(1,p.edge);
   nvCartPath(g,p.shape,w,h);g.fillStyle=body;g.fill();g.lineWidth=Math.max(1,ch*.009);g.strokeStyle='rgba(235,243,255,.38)';g.stroke();
-  if(front){
+  {
     let lx=-w*.31,ly=-h*.28,lw=w*.62,lh=h*.43;
     if(p.shape==='gb'){lx=-w*.31;ly=-h*.25;lw=w*.63;lh=h*.39;}
     if(p.shape==='nes'){lx=-w*.02;ly=-h*.28;lw=w*.43;lh=h*.48;}
-    if(p.shape==='snes'){lx=-w*.34;ly=-h*.25;lw=w*.68;lh=h*.44;}
-    if(p.shape==='md'){lx=-w*.36;ly=-h*.31;lw=w*.72;lh=h*.48;}
-    if(p.shape==='neo'){lx=-w*.34;ly=-h*.27;lw=w*.68;lh=h*.48;}
+    if(p.shape==='snes'){lx=-w*.40;ly=-h*.27;lw=w*.80;lh=h*.54;}
+    if(p.shape==='md'){lx=-w*.40;ly=-h*.31;lw=w*.80;lh=h*.56;}
+    if(p.shape==='neo'){lx=-w*.35;ly=-h*.27;lw=w*.70;lh=h*.50;}
     // Étiquette illustrée unique : art spatial original, aucun nom de constructeur ni de console.
     g.save();g.beginPath();g.rect(lx,ly,lw,lh);g.clip();
     const lab=g.createLinearGradient(lx,ly,lx+lw,ly+lh);lab.addColorStop(0,'#111a31');lab.addColorStop(.58,'#182d50');lab.addColorStop(1,'#070d1b');
@@ -16200,31 +16198,26 @@ function drawNvCartridge(g, c, cx, cy, cw, ch, time) {
       for(let i=0;i<4;i++){const xx=-w*.43+i*w*.075;g.lineWidth=Math.max(1,ch*.012);g.beginPath();g.moveTo(xx,-h*.36);g.lineTo(xx,h*.35);g.stroke();}
       g.fillStyle='rgba(40,43,46,.42)';g.fillRect(w*.34,h*.42,w*.20,h*.035);
     } else if(p.shape==='snes'){
-      // rainures frontales moulées, caractéristiques du profil PAL arrondi.
-      g.lineWidth=Math.max(1,ch*.008);for(const xx of [-.37,.37]){g.beginPath();g.moveTo(w*xx,-h*.38);g.lineTo(w*xx,h*.39);g.stroke();}
-      g.beginPath();g.moveTo(-w*.16,h*.43);g.lineTo(w*.16,h*.43);g.stroke();
+      // Nervures latérales et ligne de séparation de la coque large PAL.
+      g.lineWidth=Math.max(1,ch*.008);for(const xx of [-.46,.46]){g.beginPath();g.moveTo(w*xx,-h*.28);g.lineTo(w*xx,h*.35);g.stroke();}
+      g.beginPath();g.moveTo(-w*.30,h*.42);g.lineTo(w*.30,h*.42);g.stroke();
     } else if(p.shape==='md'){
-      for(const xx of [-.46,.46]){g.lineWidth=Math.max(1,ch*.012);for(let j=0;j<3;j++){g.beginPath();g.moveTo(w*xx,h*(.27+j*.07));g.lineTo(w*(xx*.94),h*(.29+j*.07));g.stroke();}}
-      g.fillStyle='rgba(0,0,0,.5)';g.fillRect(-w*.19,h*.39,w*.38,h*.025);
+      for(const xx of [-.46,.46]){g.lineWidth=Math.max(1,ch*.012);for(let j=0;j<3;j++){g.beginPath();g.moveTo(w*xx,h*(.28+j*.08));g.lineTo(w*(xx*.94),h*(.30+j*.08));g.stroke();}}
+      g.fillStyle='rgba(0,0,0,.5)';g.fillRect(-w*.19,h*.43,w*.38,h*.025);
     } else {
       // reliefs profonds et cannelures latérales de la large coque AES.
       for(const xx of [-.44,.44]){g.lineWidth=Math.max(1,ch*.013);for(let j=0;j<4;j++){g.beginPath();g.moveTo(w*xx,h*(.30+j*.09));g.lineTo(w*(xx*.94),h*(.31+j*.09));g.stroke();}}
       g.fillStyle='rgba(0,0,0,.55)';g.fillRect(-w*.18,h*.43,w*.36,h*.035);
     }
-  } else {
-    // Dos neutre : joint des deux demi-coques, vis et reliefs, sans marquage.
-    g.strokeStyle='rgba(4,6,10,.38)';g.lineWidth=Math.max(1,ch*.008);g.beginPath();g.moveTo(-w*.42,-h*.31);g.lineTo(w*.42,-h*.31);g.lineTo(w*.42,h*.35);g.lineTo(-w*.42,h*.35);g.closePath();g.stroke();
-    for(const xx of [-.34,.34])for(const yy of [-.39,.39]){g.fillStyle='#080a0d';g.beginPath();g.arc(w*xx,h*yy,ch*.018,0,Math.PI*2);g.fill();g.fillStyle='rgba(220,225,230,.25)';g.fillRect(w*xx-ch*.01,h*yy-.5,ch*.02,1);}
-    for(let i=0;i<4;i++){const yy=-h*.18+i*h*.11;g.strokeStyle='rgba(4,6,10,.3)';g.beginPath();g.moveTo(-w*.30,yy);g.lineTo(w*.30,yy);g.stroke();}
   }
   g.restore();
 }
-function nvCartSprite(type, back, blurPx) {
+function nvCartSprite(type, blurPx) {
   const H=240,W=H*type.ratio, pad=12, d=1.25, c=document.createElement('canvas');
   c.width=Math.ceil((W+pad*2)*d);c.height=Math.ceil((H+pad*2)*d);
   const g=c.getContext('2d');if(!g)return c;
   g.setTransform(d,0,0,d,0,0);g.filter=blurPx>0?`blur(${blurPx}px)`:'none';
-  drawNvCartridge(g,{type,phase:back?Math.PI:0},(W+pad*2)/2,(H+pad*2)/2,W,H,0);
+  drawNvCartridge(g,{type},(W+pad*2)/2,(H+pad*2)/2,W,H,0);
   g.filter='none';return c;
 }
 function drawCartridgeRain(dt) {
@@ -16241,14 +16234,14 @@ function drawCartridgeRain(dt) {
   if(!NV_CART_RAIN.cards){
     NV_CART_RAIN.cards=NV_CART_TYPES.map((type,i)=>{
       const scale=[.72,.88,1,.66,.94][i], depth=[.9,.58,.82,.35,.68][i], ch=baseH*scale*type.size;
-      return {type,x:.10+i*.20,y:-ch*(.9+i*1.15),speed:Math.max(18,h*.028)+(i%3)*3,phase:i*1.71,scale,depth};
+      return {type,x:.10+i*.20,y:-ch*(.9+i*1.15),speed:Math.max(18,h*.028)+(i%3)*3,scale,depth};
     });
   }
-  // Les deux faces, déjà floutées selon leur profondeur, ne sont dessinées qu'une fois.
+  // Chaque face avant est pré-rendue une seule fois avec son flou de profondeur.
   if(!NV_CART_RAIN.sprites){
     NV_CART_RAIN.sprites=NV_CART_RAIN.cards.map(card=>{
-      const blur=(1-card.depth)*1.45;
-      return {front:nvCartSprite(card.type,false,blur),back:nvCartSprite(card.type,true,blur)};
+      const blur=(1-card.depth)*.72;
+      return nvCartSprite(card.type,blur);
     });
   }
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -16262,15 +16255,11 @@ function drawCartridgeRain(dt) {
     card.y+=card.speed*step;
     if(card.y>h+ch){card.y=-ch*(1.1+Math.random()*1.4);card.x=.08+Math.random()*.84;}
     const x=Math.min(w-cw*.52,Math.max(cw*.52,w*card.x));
-    const yaw=titleT*.24+card.phase,front=Math.cos(yaw)>=0,roll=Math.sin(titleT*.17+card.phase)*.14;
-    const focal=card.depth,alpha=(w<600?.63:.78)*(1-(1-focal)*.22),sx=(front?1:-1)*(.26+.74*Math.abs(Math.cos(yaw)));
-    const sprite=front?NV_CART_RAIN.sprites[i].front:NV_CART_RAIN.sprites[i].back;
-    g.save();g.globalAlpha=alpha;g.translate(x,card.y);g.rotate(roll);g.scale(sx,1);
-    // Écho translucide préflouté pour prolonger doucement le mouvement.
-    g.globalAlpha=alpha*.14;g.drawImage(sprite,-cw*.5,-ch*.72,cw,ch);
-    g.globalAlpha=alpha;g.drawImage(sprite,-cw*.5,-ch*.5,cw,ch);g.restore();
-    // traînée simple et légère : pas de filtre recalculé à chaque image.
-    g.save();g.globalAlpha=alpha*.12;g.fillStyle=card.type.accent;g.fillRect(x-cw*.025,card.y-ch*.94,Math.max(1,cw*.05),ch*.36);g.restore();
+    const focal=card.depth,alpha=(w<600?.76:.84)*(1-(1-focal)*.16);
+    const sprite=NV_CART_RAIN.sprites[i];
+    const pad=12*(ch/240),sw=cw+pad*2,sh=ch+pad*2;
+    g.save();g.globalAlpha=alpha*.16;g.drawImage(sprite,x-sw*.5,card.y-sh*.5+3,sw,sh); // ombre douce
+    g.globalAlpha=alpha;g.drawImage(sprite,x-sw*.5,card.y-sh*.5,sw,sh);g.restore();
   }
   NV_CART_RAIN.painted=true;
 }
