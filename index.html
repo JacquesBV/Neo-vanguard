@@ -588,6 +588,16 @@ body{max-width:100%;overflow-x:hidden}
 <!-- ============ FIN DE PARTIE ============ -->
 <div class="screen dim" id="scr-over">
   <div class="panel narrow" style="max-width:560px">
+    <div class="vec-crest" aria-hidden="true">
+      <svg viewBox="0 0 120 82" role="presentation">
+        <path class="vec-orbit" d="M8 41h24m56 0h24M60 5v12m0 48v12" />
+        <path class="vec-ring" d="M60 9 91 27v28L60 73 29 55V27z" />
+        <path class="vec-ship" d="m60 20 17 34-17-8-17 8z" />
+        <path class="vec-core" d="M60 31v18m-8-2 8-7 8 7" />
+        <path class="vec-scan" d="M37 41h11m24 0h11" />
+      </svg>
+      <span>NEO VANGUARD&nbsp; / &nbsp;SIGNAL PERDU</span>
+    </div>
     <h1 class="logo go-title" id="overTitle">GAME OVER</h1>
     <div class="sub" id="overSub">Vaisseau détruit</div>
     <div class="go-msg" id="overMsg">Retente ta chance une prochaine fois.</div>
@@ -18796,5 +18806,77 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && (G.
   apply();
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<style id="neo-vector-gameover">
+/* Game Over : hommage aux écrans vectoriels monochromes et à leurs filtres colorés */
+#scr-over.screen.dim{
+  --vec-green:#a8ffc5;--vec-cyan:#69f2ff;--vec-amber:#ffc975;--vec-red:#ff7180;
+  isolation:isolate;overflow:hidden;padding:clamp(12px,4vw,28px);
+  background:radial-gradient(ellipse at 50% 47%,rgba(15,34,38,.52),rgba(2,5,10,.96) 72%),#020509;
+  backdrop-filter:none!important
+}
+#scr-over.screen.dim::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.34;
+  background:repeating-linear-gradient(0deg,rgba(176,255,220,.045) 0 1px,transparent 1px 4px),
+    radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(0,0,0,.78) 100%);
+}
+#scr-over .panel{
+  position:relative;z-index:1;isolation:isolate;overflow:auto;width:min(560px,100%);max-height:92dvh;
+  padding:clamp(22px,5vw,38px) clamp(16px,5vw,34px) clamp(22px,4vw,30px);
+  border:1px solid rgba(143,255,205,.58);border-radius:18px;
+  background:linear-gradient(150deg,rgba(6,17,23,.97),rgba(3,8,15,.97) 60%,rgba(10,13,25,.97));
+  box-shadow:0 0 0 5px rgba(89,241,255,.055),0 0 32px rgba(81,255,191,.15),inset 0 0 44px rgba(52,148,167,.09);
+  backdrop-filter:none!important;scrollbar-color:rgba(122,255,205,.38) transparent
+}
+#scr-over .panel::before{content:none!important}
+#scr-over .panel::after{
+  content:"";position:absolute;z-index:-1;pointer-events:none;inset:0;border-radius:inherit;opacity:.7;
+  background:linear-gradient(112deg,transparent 0 18%,rgba(255,94,111,.08) 18% 19%,transparent 19% 81%,rgba(104,157,255,.10) 81% 82%,transparent 82%),
+    linear-gradient(90deg,transparent,rgba(116,255,202,.035) 50%,transparent)
+}
+#scr-over .vec-crest{display:flex;flex-direction:column;align-items:center;gap:5px;margin:0 auto 13px;color:rgba(169,255,211,.72)}
+#scr-over .vec-crest svg{display:block;width:76px;height:52px;overflow:visible;filter:drop-shadow(0 0 5px rgba(112,255,192,.65))}
+#scr-over .vec-crest path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+#scr-over .vec-orbit{stroke:var(--vec-cyan);stroke-width:1.1;opacity:.8}
+#scr-over .vec-ring{stroke:var(--vec-green);stroke-width:1.5;opacity:.72}
+#scr-over .vec-ship{stroke:#eafff3;stroke-width:1.7;fill:rgba(144,255,202,.09)}
+#scr-over .vec-core{stroke:var(--vec-amber);stroke-width:1.5}
+#scr-over .vec-scan{stroke:var(--vec-red);stroke-width:1.2;opacity:.8}
+#scr-over .vec-crest span{font:600 9px/1.3 ui-monospace,Consolas,monospace;letter-spacing:.25em;text-align:center}
+#scr-over h1.logo.go-title{
+  display:block;float:none;width:100%;margin:0 auto 8px;text-align:center;
+  font:500 clamp(31px,8.4vw,58px)/1.1 ui-monospace,"Courier New",monospace!important;
+  letter-spacing:.14em;color:var(--vec-green)!important;-webkit-text-fill-color:var(--vec-green)!important;
+  -webkit-text-stroke:.5px rgba(232,255,240,.8);background:none!important;
+  text-shadow:0 0 3px #caffdd,0 0 12px rgba(115,255,183,.86),0 0 30px rgba(67,255,179,.38)!important;
+  animation:vecPhosphor 4.8s ease-in-out infinite
+}
+@keyframes vecPhosphor{0%,100%{opacity:1;text-shadow:0 0 3px #caffdd,0 0 12px rgba(115,255,183,.86),0 0 30px rgba(67,255,179,.38)}50%{opacity:.88;text-shadow:0 0 2px #caffdd,0 0 8px rgba(115,255,183,.68),0 0 21px rgba(67,255,179,.25)}}
+#scr-over .sub{color:var(--vec-cyan);font:600 10px/1.5 ui-monospace,Consolas,monospace;letter-spacing:.24em;text-shadow:0 0 10px rgba(105,242,255,.55);margin:4px 0 13px}
+#scr-over .go-msg{color:#d6e9e3;font:400 clamp(13px,3.2vw,15px)/1.6 ui-monospace,Consolas,monospace;letter-spacing:.035em;margin:12px 4px 16px;text-shadow:0 0 8px rgba(168,255,197,.16)}
+#scr-over #overStats{padding:2px 0;margin:0 0 9px}
+#scr-over #overStats .opt{border-bottom:1px solid rgba(115,255,195,.16);color:#cfe9dc}
+#scr-over #overStats .opt label{color:#a9c8bb;font-family:ui-monospace,Consolas,monospace;letter-spacing:.12em}
+#scr-over #overStats .opt b{color:var(--vec-green);text-shadow:0 0 9px rgba(115,255,183,.4)}
+#scr-over .continue.on{border:1px solid rgba(255,201,117,.6);border-radius:10px;background:rgba(255,201,117,.055);box-shadow:inset 0 0 18px rgba(255,201,117,.05)}
+#scr-over .continue .cd{color:var(--vec-amber);font:600 12px ui-monospace,Consolas,monospace}
+#scr-over .row{justify-content:center;gap:10px;margin-top:18px}
+#scr-over .row .btn,#scr-over .continue .btn{
+  min-height:46px;border:1px solid rgba(105,242,255,.56);border-radius:8px;
+  background:rgba(7,24,30,.8);color:#c9fbff;box-shadow:inset 0 0 14px rgba(105,242,255,.055),0 0 12px rgba(105,242,255,.07);
+  font:700 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.1em;text-shadow:0 0 8px rgba(105,242,255,.32);touch-action:manipulation
+}
+#scr-over .row .btn:hover,#scr-over .row .btn:focus-visible,#scr-over .continue .btn:hover{border-color:var(--vec-green);color:#effff5;box-shadow:0 0 16px rgba(115,255,183,.25)}
+#scr-over .row .btn.prim,#scr-over .continue .btn.prim{border-color:rgba(168,255,197,.85);color:#e8fff0;background:rgba(42,104,78,.22);box-shadow:inset 0 0 18px rgba(115,255,183,.1),0 0 14px rgba(115,255,183,.11)}
+#scr-over .row .btn:focus-visible,#scr-over .continue .btn:focus-visible{outline:2px solid var(--vec-amber);outline-offset:3px}
+@media(max-width:480px){
+  #scr-over .panel{padding:20px 14px 22px;border-radius:14px}
+  #scr-over h1.logo.go-title{letter-spacing:.075em;font-size:clamp(28px,8.1vw,38px)}
+  #scr-over .row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  #scr-over .row .btn:first-child{grid-column:1/-1}
+  #scr-over .row .btn{width:100%;padding:10px 8px}
+}
+@media(prefers-reduced-motion:reduce){#scr-over h1.logo.go-title{animation:none}}
+</style>
+</body>
 </html>
