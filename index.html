@@ -92,9 +92,9 @@ h1.logo{
 .card:hover{border-color:var(--acc);transform:translateY(-2px)}
 .card.sel{border-color:var(--acc);box-shadow:0 0 16px color-mix(in srgb,var(--acc) 55%,transparent)}
 #touchui{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;justify-content:space-between;
-  align-items:flex-end;gap:10px;padding:0 12px 14px;pointer-events:none}
+  align-items:flex-end;gap:10px;padding:0 46px 14px 12px;pointer-events:none}
 body.touch.playing #touchui{display:flex}
-#tpause{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:9;display:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(8,12,24,.55);color:#fff;font-size:20px;line-height:1;padding:0;backdrop-filter:blur(4px);touch-action:manipulation}
+#tpause{position:fixed;bottom:max(4px,env(safe-area-inset-bottom));right:max(6px,env(safe-area-inset-right));z-index:9;display:none;width:34px;height:34px;border-radius:50%;border:1px solid color-mix(in srgb,var(--acc) 35%,transparent);background:transparent;color:color-mix(in srgb,var(--acc) 55%,transparent);font-size:14px;line-height:1;padding:0;touch-action:manipulation}
 body.touch.playing #tpause{display:block}
 .tbtn{pointer-events:auto;font:inherit;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;
   color:#dbe7ff;background:var(--bg2);border:var(--px) solid var(--acc);border-radius:2px;
