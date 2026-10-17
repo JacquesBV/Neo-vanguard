@@ -2012,11 +2012,11 @@ const SAVE_KEY = 'neovanguard.save.v3';
 const SAVE_KEY_OLD = 'neovanguard.save.v2';   /* migration : les anciennes parties sont conservées */
 function defaultSave() {
   return {
-    v: 3, credits: 500, best: 0, quickBest: 0, maxLevel: 1, kills: 0, runs: 0, playtime: 0,
+    v: 3, autofireDefaultOff: true, credits: 500, best: 0, quickBest: 0, maxLevel: 1, kills: 0, runs: 0, playtime: 0,
     owned: { ships: ['falcon'], weapons: ['pulse'], upgrades: {}, liveries: ['squadron'], trails: ['pixel'], auras: ['none'], bombs: 2 },
     sel:   { ship: 'falcon', weapon: 'pulse', livery: 'squadron', trail: 'pixel', aura: 'none' },
     opts:  { music: 50, sfx: 70, shake: 100, crt: 'auto', smooth: false, diff: 1, gpu: 'auto',
-             mouse: false, autofire: true, fps: false, preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1 },
+             mouse: false, autofire: false, fps: false, preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1 },
     cheats: { found: {}, on: {}, startLevel: 1 },
     perk: {},  /* bonus du marchand, également sauvegardés dans nv_perk */
     /* --- boucles d'addiction --- */
@@ -2026,6 +2026,7 @@ function defaultSave() {
 }
 let S = defaultSave();
 function loadSave() {
+  let migratedAutofireDefault = false;
   try {
     let raw = localStorage.getItem(SAVE_KEY);
     if (!raw) {   /* migration depuis la version précédente */
@@ -2046,6 +2047,14 @@ function loadSave() {
       S.perk = Object.assign({}, o.perk && typeof o.perk === 'object' ? o.perk : {});
       S.opts = Object.assign({}, d.opts, o.opts || {});
       for (const k in d.opts) if (S.opts[k] === undefined || S.opts[k] === null) S.opts[k] = d.opts[k];
+      /* Les anciennes versions activaient le tir automatique par défaut.
+         Corriger une seule fois cette valeur héritée, sans écraser ensuite
+         le choix que le joueur fera dans les options. */
+      if (o.autofireDefaultOff !== true) {
+        S.opts.autofire = false;
+        S.autofireDefaultOff = true;
+        migratedAutofireDefault = true;
+      }
       /* les cheats ont besoin d'une fusion profonde (objets imbriqués) */
       S.cheats = { found: {}, on: {}, startLevel: 1 };
       if (o.aideVu) S.aideVu = true;
@@ -2082,6 +2091,7 @@ function loadSave() {
      (une seule fois, et seulement si le joueur n'a rien changé lui-même)     */
   if (!S.owned.liveries.includes('squadron')) S.owned.liveries.push('squadron');
   if (!S.migLivery && S.sel.livery === 'green') { S.sel.livery = 'squadron'; S.migLivery = 1; }
+  if (migratedAutofireDefault) saveGame();
 }
 function saveGame() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
 function pct(v, def) { return Number.isFinite(+v) ? +v / 100 : def; }   /* un réglage illisible ne fera jamais NaN */
