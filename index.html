@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>NEO VANGUARD — Shmup évolutif</title>
 <meta name="description" content="Shoot them up vertical futuriste : le moteur graphique évolue à chaque niveau, du huit bits au rendu HD moderne.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230b1020'/><path d='M16 4l7 14h-4l4 8H9l4-8H9z' fill='%2338e0ff'/></svg>">
@@ -16,7 +16,7 @@ html,body{height:100%;overscroll-behavior:none}
 body{
   margin:0;background:#04060c;color:#dbe7ff;overflow:hidden;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace;
-  user-select:none;touch-action:none;
+  user-select:none;touch-action:auto;
   --acc:#38e0ff; --acc2:#c154ff; --bg1:rgba(7,11,22,.88); --bg2:rgba(12,18,34,.72);
   --glow:0 0 24px rgba(56,224,255,.35);
   --px:2px;
@@ -36,14 +36,14 @@ canvas#game{display:block;image-rendering:pixelated;image-rendering:crisp-edges;
 canvas#game.smooth{image-rendering:auto}
 
 /* ---------- écrans overlay ---------- */
-.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));z-index:10;touch-action:pan-y pinch-zoom}
 .screen.on{display:flex}
 .screen.dim{background:radial-gradient(ellipse at 50% 40%,rgba(4,8,18,.55),rgba(2,3,8,.92))}
 .panel{
   width:min(1000px,96vw);max-height:92vh;overflow:auto;padding:22px 22px 26px;
   background:var(--bg1);border:var(--px) solid var(--acc);border-radius:2px;
   box-shadow:var(--glow),inset 0 0 60px rgba(0,0,0,.6);
-  backdrop-filter:blur(7px) saturate(1.1);
+  backdrop-filter:blur(7px) saturate(1.1);touch-action:pan-y pinch-zoom;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;
 }
 .panel.narrow{width:min(680px,94vw)}
 .panel::-webkit-scrollbar{width:10px}
@@ -16053,6 +16053,8 @@ Object.assign(NX, {
   'ui.kicker':  ['ÉDITION COLLECTOR · 24 SECTEURS · 6 GÉNÉRATIONS', 'COLLECTOR EDITION · 24 SECTORS · 6 GENERATIONS', 'EDICIÓN COLECCIONISTA · 24 SECTORES · 6 GENERACIONES', 'EDIÇÃO DE COLECIONADOR · 24 SETORES · 6 GERAÇÕES', 'コレクターズエディション・24セクター・6世代'],
   'ui.play':    ['JOUER', 'PLAY', 'JUGAR', 'JOGAR', 'プレイ'],
   'ui.prep':    ['HANGAR & RÉGLAGES', 'HANGAR & SETTINGS', 'HANGAR Y AJUSTES', 'HANGAR E DEFINIÇÕES', '格納庫と設定'],
+  'ui.more':    ['PLUS D’OPTIONS', 'MORE OPTIONS', 'MÁS OPCIONES', 'MAIS OPÇÕES', 'その他のオプション'],
+  'ui.less':    ['MASQUER LES OPTIONS', 'HIDE OPTIONS', 'OCULTAR OPCIONES', 'OCULTAR OPÇÕES', 'オプションを隠す'],
   'ui.pilot':   ['FICHE PILOTE', 'PILOT RECORD', 'FICHA DE PILOTO', 'FICHA DO PILOTO', 'パイロット記録'],
   'ui.hint':    ['↑↓ naviguer · Entrée valider · Échap retour', '↑↓ navigate · Enter select · Esc back', '↑↓ navegar · Intro aceptar · Esc volver', '↑↓ navegar · Enter confirmar · Esc voltar', '↑↓ 移動・Enter 決定・Esc 戻る'],
 });
@@ -16162,6 +16164,22 @@ narrativeInstall();
     .nv-brand .w2{font-size:clamp(40px,12vw,64px)}.nv-brand .w1{font-size:clamp(22px,7vw,32px)}
     .nv-status .chips{grid-template-columns:repeat(2,1fr)}
   }
+  #nvTitle .nv-left{touch-action:pan-y pinch-zoom;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;min-height:0}
+  #nvTitle .nv-secondary .tile{min-height:48px;touch-action:manipulation}
+  #nvTitle .btn.big{min-height:54px;touch-action:manipulation}
+  html.nvui .panel{max-height:92dvh;touch-action:pan-y pinch-zoom;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+  #nvTitle .nv-more-toggle{display:none;appearance:none;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;padding:10px 14px;
+    font:600 12px var(--ui-font);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);background:color-mix(in srgb,var(--acc) 9%,rgba(255,255,255,.03));
+    border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);border-radius:10px;cursor:pointer;touch-action:manipulation}
+  #nvTitle .nv-more-toggle:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+  @media (max-width:560px){
+    #nvTitle .nv-left{padding:calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
+    #nvTitle .nv-more-toggle{display:flex}
+    #nvTitle .nv-left:not(.more-open) #nvSecB,#nvTitle .nv-left:not(.more-open) #nvSecondary{display:none}
+    #nvTitle .nv-secondary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    #nvTitle .nv-secondary .tile{min-height:48px;padding:9px 10px}
+    #nvTitle .nv-secondary .tile b{font-size:11px;letter-spacing:.04em}
+  }
   @media (max-height:640px){#nvTitle .btn.big{padding:7px 12px 7px 8px}#nvTitle .btn.big .bi{width:34px;height:34px;font-size:15px}.nv-brand .w2{font-size:clamp(34px,5vw,52px)}.nv-brand .w1{margin-top:6px}}
   `;
   const st = document.createElement('style'); st.id = 'nvui-css'; st.textContent = css; document.head.appendChild(st);
@@ -16180,13 +16198,22 @@ narrativeInstall();
   const prim = document.createElement('nav'); prim.className = 'nv-primary';
   for (const b of scr.querySelectorAll('.menu-main .btn')) prim.appendChild(b);
   const secB = document.createElement('div'); secB.className = 'nv-sec'; secB.id = 'nvSecB';
-  const grid = document.createElement('div'); grid.className = 'nv-secondary';
+  const grid = document.createElement('div'); grid.className = 'nv-secondary'; grid.id = 'nvSecondary';
   for (const b of scr.querySelectorAll('.menu-grid .tile')) grid.appendChild(b);
+  const more = document.createElement('button'); more.className = 'nv-more-toggle'; more.id = 'nvMoreToggle'; more.type = 'button';
+  more.setAttribute('aria-controls', 'nvSecondary'); more.setAttribute('aria-expanded', 'false');
+  let moreOpen = false;
+  more.addEventListener('click', () => {
+    moreOpen = !moreOpen; left.classList.toggle('more-open', moreOpen);
+    more.setAttribute('aria-expanded', String(moreOpen));
+    more.textContent = NXT(moreOpen ? 'ui.less' : 'ui.more');
+    if (moreOpen) grid.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
   const status = document.createElement('div'); status.className = 'nv-status';
   const chips = scr.querySelector('.chips'); if (chips) status.appendChild(chips);
   const foot = document.createElement('div'); foot.className = 'nv-foot'; foot.id = 'nvFoot';
   status.appendChild(foot);
-  left.append(brand, secA, prim, secB, grid, status);
+  left.append(brand, secA, prim, secB, more, grid, status);
   wrap.append(hero, veil, left);
   scr.appendChild(wrap);
   /* visibilité : liée à l'écran titre */
@@ -16198,6 +16225,7 @@ narrativeInstall();
     q('nvKicker').textContent = NXT('ui.kicker');
     q('nvTag').textContent = L('— shoot them up vertical top-down à moteur graphique évolutif.').replace(/^—\s*/, '');
     q('nvSecA').textContent = NXT('ui.play'); q('nvSecB').textContent = NXT('ui.prep');
+    q('nvMoreToggle').textContent = NXT(moreOpen ? 'ui.less' : 'ui.more');
     q('nvFoot').innerHTML = `<span>${NXT('ui.hint')}</span><span><b>v24</b> · CC0 OST</span>`;
   };
   nvTitleTexts();
@@ -16537,8 +16565,9 @@ narrativeInstall();
   #nvGate .gl .n{display:block;font-size:clamp(26px,4vw,44px);letter-spacing:.6em;font-weight:300;padding-left:.6em;text-shadow:0 0 30px color-mix(in srgb,var(--acc) 60%,transparent)}
   #nvGate .gl .v{display:block;font-size:clamp(48px,9vw,110px);letter-spacing:.08em;padding-left:.08em;font-weight:900;line-height:1;margin-top:4px;
     background:linear-gradient(180deg,#fff 0%,#dfe9ff 55%,#8fb4ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 30px rgba(0,0,0,.6))}
-  #nvGate .ge{margin-top:28px;font-family:var(--ui-font,system-ui,sans-serif);font-size:12px;letter-spacing:.42em;color:var(--acc);font-weight:700;padding:14px 26px 14px calc(26px + .42em);border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);border-radius:999px;
+  #nvGate .ge{appearance:none;cursor:pointer;margin-top:28px;font-family:var(--ui-font,system-ui,sans-serif);font-size:12px;letter-spacing:.42em;color:var(--acc);font-weight:700;padding:14px 26px 14px calc(26px + .42em);border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);border-radius:999px;
     background:color-mix(in srgb,var(--acc) 10%,transparent);animation:gpulse 1.8s ease-in-out infinite}
+  #nvGate .ge:focus-visible{outline:2px solid #fff;outline-offset:4px}
   #nvGate .gs{font-family:var(--ui-font,system-ui,sans-serif);font-size:10.5px;letter-spacing:.18em;color:#93a6c8;
     text-align:center;max-width:92vw;box-sizing:border-box;padding-left:.18em;text-wrap:balance}
   @keyframes gpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 35%,transparent)}50%{box-shadow:0 0 0 12px rgba(0,0,0,0)}}`;
@@ -16583,7 +16612,7 @@ narrativeInstall();
   function showGate() {
     if (document.getElementById('nvGate')) return;
     const g = document.createElement('div'); g.id = 'nvGate';
-    g.innerHTML = `<div class="gl"><span class="n">NEO</span><span class="v">VANGUARD</span></div><div class="ge">${NXT('ap.enter')}</div><div class="gs">♪ L'ÉVEIL · THÈME ORIGINAL — TOUCHEZ POUR ÉCOUTER</div>`;
+    g.innerHTML = `<div class="gl"><span class="n">NEO</span><span class="v">VANGUARD</span></div><button type="button" class="ge" aria-label="${NXT('ap.enter')}">${NXT('ap.enter')}</button><div class="gs">♪ L'ÉVEIL · THÈME ORIGINAL — TOUCHEZ POUR ÉCOUTER</div>`;
     document.body.appendChild(g);
     const dismiss = () => {
       g.classList.add('off'); setTimeout(() => g.remove(), 700);
@@ -16592,6 +16621,7 @@ narrativeInstall();
       /* Sur cet écran : musique seule, pas de son de clic. */
     };
     const go = (ev) => {
+      if (ev && ev.type === 'keydown' && !['Enter', ' ', 'Spacebar', 'Space'].includes(ev.key)) return;
       if (g.dataset.busy || g.classList.contains('off')) return;
       /* le geste d'entrée ne doit pas atteindre le jeu (Entrée = lancer la campagne) */
       if (ev) { ev.preventDefault(); ev.stopImmediatePropagation(); if (ev.type === 'pointerdown') swallowNext(['pointerup', 'click', 'mouseup', 'touchend']); else swallowNext(['keyup', 'keypress']); }
@@ -16605,7 +16635,7 @@ narrativeInstall();
          et la laisse jouer sur cet écran avant d'ouvrir le menu. */
       playKey('gate').catch(() => {});
       g.querySelector('.ge').style.opacity = '0'; g.querySelector('.gs').style.opacity = '0';
-      setTimeout(dismiss, 2600);
+      setTimeout(dismiss, 950);
     };
     addEventListener('pointerdown', go, true);
     addEventListener('keydown', go, true);
@@ -18671,9 +18701,8 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && (G.
 
 /* =============================================================================
    TAILLE D'ÉCRAN ROBUSTE (téléphones)
-   - recalcul à chaque changement de taille, de rotation, de barre d'adresse
-     ou de zoom, et par sécurité toutes les 400 ms ;
-   - zoom du navigateur (pincement, double-tap) bloqué et remis à 1.
+   - recalcule l'aire du jeu à chaque changement de taille, rotation, barre
+     d'adresse ou zoom ; le pincement reste disponible dans l'interface.
    ============================================================================= */
 (function () {
   let lw = 0, lh = 0, busy = false;
@@ -18688,19 +18717,10 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && (G.
       }
     } catch (e) {} finally { busy = false; }
   };
-  const resetZoom = () => {
-    const vv = window.visualViewport;
-    if (vv && vv.scale > 1.01) {
-      const m = document.querySelector('meta[name=viewport]');
-      if (m) { const c = m.content; m.content = 'width=device-width, initial-scale=1, maximum-scale=1'; setTimeout(() => { m.content = c; apply(); }, 60); }
-    }
-  };
   addEventListener('resize', () => { apply(); setTimeout(apply, 250); });
   addEventListener('orientationchange', () => { setTimeout(apply, 120); setTimeout(apply, 500); });
-  if (window.visualViewport) visualViewport.addEventListener('resize', () => { resetZoom(); apply(); });
+  if (window.visualViewport) visualViewport.addEventListener('resize', apply);
   document.addEventListener('fullscreenchange', () => { setTimeout(apply, 120); setTimeout(apply, 500); });
-  for (const ev of ['gesturestart', 'gesturechange', 'gestureend'])
-    document.addEventListener(ev, e => e.preventDefault(), { passive: false });
   setInterval(apply, 400);
   apply();
 })();
