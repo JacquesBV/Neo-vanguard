@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>NEO VANGUARD — Shmup évolutif</title>
 <meta name="description" content="Shoot them up vertical futuriste : le moteur graphique évolue à chaque niveau, du huit bits au rendu HD moderne.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230b1020'/><path d='M16 4l7 14h-4l4 8H9l4-8H9z' fill='%2338e0ff'/></svg>">
@@ -27,7 +27,7 @@ body.era-2{--acc:#38e0ff;--acc2:#ff4d6d;--bg1:rgba(5,7,18,.9);--bg2:rgba(14,20,4
 body.era-3{--acc:#4be7ff;--acc2:#ff5fa2;--bg1:rgba(4,6,14,.82);--bg2:rgba(10,14,30,.6);--glow:0 0 34px rgba(75,231,255,.5)}
 body.era-1,body.era-0{font-family:ui-monospace,"Courier New",monospace;letter-spacing:.5px}
 
-#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;
+#stage{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#000;
   touch-action:none}   /* aucun geste du navigateur (défilement, zoom, tirer-pour-recharger) ne doit
                           voler le pilotage au doigt : c'est la cause la plus fréquente d'un
                           vaisseau qui « ne bouge pas » sur téléphone. */
@@ -3497,8 +3497,22 @@ function setEra(era, silent) {
 }
 
 /* --- redimensionnement ---------------------------------------------------- */
+/* Taille réellement visible : on prend la plus petite des mesures disponibles
+   (fenêtre, zone fixe #stage, élément racine). Sur certains téléphones
+   innerWidth/innerHeight annoncent une valeur plus grande que l'écran visible
+   (barres de navigation, zoom du navigateur) : le jeu était alors dessiné trop
+   grand et la partie droite sortait de l'écran. */
+function visibleSize() {
+  const st = document.getElementById('stage'), de = document.documentElement;
+  const vv = window.visualViewport;
+  let W = window.innerWidth, H = window.innerHeight;
+  const cand = [[st && st.clientWidth, st && st.clientHeight], [de && de.clientWidth, de && de.clientHeight],
+                [vv && vv.scale <= 1.01 ? vv.width : 0, vv && vv.scale <= 1.01 ? vv.height : 0]];
+  for (const [w, h] of cand) { if (w > 40) W = Math.min(W, w); if (h > 40) H = Math.min(H, h); }
+  return [Math.max(1, Math.floor(W)), Math.max(1, Math.floor(H))];
+}
 function resizeView() {
-  const W = window.innerWidth, H = window.innerHeight;
+  const [W, H] = visibleSize();
   const sideRes = W > 1180 ? 210 : W > 860 ? 170 : 0;
   const tpad = (typeof IS_TOUCH !== 'undefined' && IS_TOUCH) ? 64 : 0;
   const scale = Math.min((W - 24 - sideRes * 2) / L_W, (H - 24 - tpad) / L_H);
@@ -3507,7 +3521,7 @@ function resizeView() {
   PF.x = (W - PF.w) / 2; PF.y = (H - tpad - PF.h) / 2;
   view.w = W; view.h = H; view.dpr = dpr();
   cv.width = Math.round(W * view.dpr); cv.height = Math.round(H * view.dpr);
-  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  cv.style.width = W + 'px'; cv.style.height = H + 'px'; cv.style.maxWidth = '100%'; cv.style.maxHeight = '100%';
   ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   ctx.imageSmoothingEnabled = R.smooth;
   R.vig = null; R.fog = null;
@@ -11505,8 +11519,8 @@ function wirePointer() {
   const poser = e => {
     const t = e.clientX !== undefined ? e : (e.touches && e.touches[0]);
     if (!t || t.clientX === undefined) return;
-    pointer.x = t.clientX / window.innerWidth;
-    pointer.y = t.clientY / window.innerHeight;
+    pointer.x = t.clientX / (view.w || window.innerWidth);
+    pointer.y = t.clientY / (view.h || window.innerHeight);
     pointer.active = true;
   };
   let dernierTap = 0, doigts = 0;
@@ -18462,6 +18476,42 @@ function importSave(file) {
   };
 }
 try { refreshUI(); } catch (e) {}
+
+/* =============================================================================
+   TAILLE D'ÉCRAN ROBUSTE (téléphones)
+   - recalcul à chaque changement de taille, de rotation, de barre d'adresse
+     ou de zoom, et par sécurité toutes les 400 ms ;
+   - zoom du navigateur (pincement, double-tap) bloqué et remis à 1.
+   ============================================================================= */
+(function () {
+  let lw = 0, lh = 0, busy = false;
+  const apply = () => {
+    if (busy) return; busy = true;
+    try {
+      const [W, H] = visibleSize();
+      if (W !== lw || H !== lh || view.w !== W || view.h !== H) {
+        lw = W; lh = H;
+        sideRes = resizeView().sideRes;
+        try { syncTitleZone(); } catch (e) {}
+      }
+    } catch (e) {} finally { busy = false; }
+  };
+  const resetZoom = () => {
+    const vv = window.visualViewport;
+    if (vv && vv.scale > 1.01) {
+      const m = document.querySelector('meta[name=viewport]');
+      if (m) { const c = m.content; m.content = 'width=device-width, initial-scale=1, maximum-scale=1'; setTimeout(() => { m.content = c; apply(); }, 60); }
+    }
+  };
+  addEventListener('resize', () => { apply(); setTimeout(apply, 250); });
+  addEventListener('orientationchange', () => { setTimeout(apply, 120); setTimeout(apply, 500); });
+  if (window.visualViewport) visualViewport.addEventListener('resize', () => { resetZoom(); apply(); });
+  document.addEventListener('fullscreenchange', () => { setTimeout(apply, 120); setTimeout(apply, 500); });
+  for (const ev of ['gesturestart', 'gesturechange', 'gestureend'])
+    document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+  setInterval(apply, 400);
+  apply();
+})();
 </script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
