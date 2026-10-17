@@ -11378,6 +11378,7 @@ function render(dt) {
     drawWorld(dt);
     if (G.state === 'title') R.overlay = () => drawTitleArt();
     presentFrame();
+    if (G.state === 'title') drawCartridgeRain(dt);
     if (G.state === 'intro') drawEraBanner(introT / INTRO_DUR);
     if (G.state === 'warp') drawWarp();
     if (G.state !== 'title' && G.state !== 'warp') drawHUD();
@@ -16100,6 +16101,127 @@ Object.assign(NX, {
 });
 narrativeInstall();
 
+/* Chute de cartouches collector sur le titre : silhouettes propres à chaque
+   génération, avec plastique moulé, étiquette, nervures et contacts visibles. */
+const NV_CART_TYPES = [
+  { id:'GB', name:'GAME BOY', shape:'gb', w:.72, h:1.00, shell:'#c7c7bb', edge:'#7a7d78', label:'#152333', accent:'#a8d653' },
+  { id:'NES', name:'NES', shape:'nes', w:1.08, h:.91, shell:'#b9bab6', edge:'#696d70', label:'#161c25', accent:'#df3949' },
+  { id:'SNES', name:'SUPER NINTENDO', shape:'snes', w:.91, h:1.00, shell:'#c8cbd2', edge:'#777b87', label:'#22263b', accent:'#b58bff' },
+  { id:'MEGA DRIVE', name:'16-BIT', shape:'md', w:1.18, h:.86, shell:'#20242b', edge:'#090b10', label:'#11151d', accent:'#e5e8ee' },
+  { id:'NEO GEO', name:'AES', shape:'neo', w:1.04, h:1.00, shell:'#191b22', edge:'#07080c', label:'#11131a', accent:'#f2b64d' },
+];
+const NV_CART_RAIN = { cv:null, g:null, w:0, h:0, d:0, cards:null, reduced:false };
+function nvCartPath(g, shape, w, h) {
+  const x=-w/2, y=-h/2, r=Math.min(w,h)*.065;
+  g.beginPath();
+  if (shape==='gb') {
+    g.moveTo(x+r,y); g.lineTo(w*.26-w/2,y); g.lineTo(w*.36-w/2,y+h*.065);
+    g.lineTo(w*.36-w/2,y+h*.12); g.lineTo(w/2-r,y+h*.12); g.quadraticCurveTo(w/2,y+h*.12,w/2,y+h*.12+r);
+    g.lineTo(w/2,y+h-r); g.quadraticCurveTo(w/2,y+h,w/2-r,y+h); g.lineTo(x+r,y+h);
+    g.quadraticCurveTo(x,y+h,x,y+h-r); g.lineTo(x,y+r); g.quadraticCurveTo(x,y,x+r,y); g.closePath();
+  } else if (shape==='nes') {
+    g.moveTo(x+r,y); g.lineTo(w*.34-w/2,y); g.lineTo(w*.39-w/2,y+h*.055); g.lineTo(w/2-r,y+h*.055);
+    g.quadraticCurveTo(w/2,y+h*.055,w/2,y+h*.055+r); g.lineTo(w/2,y+h-r);
+    g.quadraticCurveTo(w/2,y+h,w/2-r,y+h); g.lineTo(x+r,y+h); g.quadraticCurveTo(x,y+h,x,y+h-r);
+    g.lineTo(x,y+r); g.quadraticCurveTo(x,y,x+r,y); g.closePath();
+  } else if (shape==='snes') {
+    g.moveTo(x+r,y); g.lineTo(-w*.27,y); g.quadraticCurveTo(-w*.34,y+h*.02,-w*.34,y+h*.12);
+    g.lineTo(-w*.42,y+h*.19); g.lineTo(-w*.42,y+h*.84); g.quadraticCurveTo(-w*.42,y+h,w*.0,y+h);
+    g.quadraticCurveTo(w*.42,y+h,w*.42,y+h*.84); g.lineTo(w*.42,y+h*.19); g.lineTo(w*.34,y+h*.12);
+    g.quadraticCurveTo(w*.34,y+h*.02,w*.27,y); g.closePath();
+  } else if (shape==='md') {
+    g.moveTo(x+r,y); g.lineTo(w*.38-w/2,y); g.lineTo(w*.42-w/2,y+h*.075); g.lineTo(w/2-r,y+h*.075);
+    g.quadraticCurveTo(w/2,y+h*.075,w/2,y+h*.075+r); g.lineTo(w/2,y+h-r);
+    g.quadraticCurveTo(w/2,y+h,w/2-r,y+h); g.lineTo(x+r,y+h); g.quadraticCurveTo(x,y+h,x,y+h-r);
+    g.lineTo(x,y+h*.14); g.quadraticCurveTo(x,y,x+r,y); g.closePath();
+  } else { // AES : cartouche imposante, épaulements moulés et rainures latérales
+    g.moveTo(x+r,y); g.lineTo(w*.32-w/2,y); g.lineTo(w*.38-w/2,y+h*.045); g.lineTo(w*.46-w/2,y+h*.045);
+    g.lineTo(w*.46-w/2,y+h*.16); g.lineTo(w/2-r,y+h*.16); g.quadraticCurveTo(w/2,y+h*.16,w/2,y+h*.16+r);
+    g.lineTo(w/2,y+h-r); g.quadraticCurveTo(w/2,y+h,w/2-r,y+h); g.lineTo(x+r,y+h);
+    g.quadraticCurveTo(x,y+h,x,y+h-r); g.lineTo(x,y+h*.16+r); g.quadraticCurveTo(x,y+h*.16,x+r,y+h*.16);
+    g.lineTo(-w*.46,y+h*.16); g.lineTo(-w*.46,y+h*.045); g.lineTo(-w*.38,y+h*.045); g.closePath();
+  }
+}
+function drawNvCartridge(g, c, cx, cy, cw, ch, time) {
+  const p=c.type, w=cw*p.w, h=ch*p.h;
+  g.save(); g.translate(cx,cy);
+  const yaw=Math.sin(time*.32+c.phase), roll=Math.sin(time*.18+c.phase)*.16;
+  g.rotate(roll); g.scale(.72+.28*Math.abs(yaw),1);
+  const dx=Math.cos(time*.32+c.phase)*w*.075;
+  g.save(); g.translate(dx, h*.018); nvCartPath(g,p.shape,w,h); g.fillStyle=p.edge; g.fill(); g.restore();
+  const bodyGrad=g.createLinearGradient(-w/2,-h/2,w/2,h/2);
+  bodyGrad.addColorStop(0,'#ffffff'); bodyGrad.addColorStop(.17,p.shell); bodyGrad.addColorStop(.78,p.shell); bodyGrad.addColorStop(1,p.edge);
+  nvCartPath(g,p.shape,w,h); g.fillStyle=bodyGrad; g.fill();
+  g.lineWidth=Math.max(1,cw*.009); g.strokeStyle='rgba(235,243,255,.55)'; g.stroke();
+  // Étiquette propre à Neo-Vanguard, avec le nom du système clairement lisible.
+  let lx=-w*.34, ly=-h*.28, lw=w*.68, lh=h*.40;
+  if (p.shape==='gb') { lx=-w*.35; ly=-h*.22; lw=w*.70; lh=h*.43; }
+  if (p.shape==='nes') { lx=-w*.36; ly=-h*.25; lw=w*.72; lh=h*.49; }
+  if (p.shape==='snes') { lx=-w*.33; ly=-h*.20; lw=w*.66; lh=h*.42; }
+  if (p.shape==='md') { lx=-w*.38; ly=-h*.27; lw=w*.76; lh=h*.48; }
+  if (p.shape==='neo') { lx=-w*.36; ly=-h*.25; lw=w*.72; lh=h*.50; }
+  g.fillStyle='#080b12'; g.globalAlpha=.35; g.fillRect(lx-1,ly-1,lw+2,lh+2); g.globalAlpha=1;
+  const lab=g.createLinearGradient(lx,ly,lx+lw,ly+lh); lab.addColorStop(0,p.label); lab.addColorStop(1,'#090c13');
+  g.fillStyle=lab; g.fillRect(lx,ly,lw,lh);
+  g.strokeStyle=p.accent; g.lineWidth=Math.max(1,cw*.006); g.strokeRect(lx+1,ly+1,lw-2,lh-2);
+  g.fillStyle=p.accent; g.fillRect(lx+lw*.08,ly+lh*.13,lw*.84,Math.max(1,ch*.012));
+  g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff';
+  g.font=`900 ${Math.max(6,ch*.075)}px ui-monospace,monospace`;
+  g.fillText('NEO·VANGUARD',0,ly+lh*.48,lw*.9);
+  g.fillStyle=p.accent; g.font=`700 ${Math.max(5,ch*.047)}px ui-monospace,monospace`;
+  g.fillText(p.name,0,ly+lh*.78,lw*.9);
+  // Repères de moulage, nervures et dents du connecteur selon la famille.
+  if (p.shape==='gb') {
+    g.strokeStyle='rgba(35,39,42,.6)'; g.lineWidth=Math.max(1,ch*.008);
+    for(let i=0;i<4;i++){const yy=h*.29+i*h*.035;g.beginPath();g.moveTo(-w*.36,yy);g.lineTo(w*.36,yy);g.stroke();}
+  } else if (p.shape==='snes') {
+    g.strokeStyle='rgba(65,68,78,.55)';g.lineWidth=Math.max(1,ch*.008);
+    for(const xx of [-.37,.37]){g.beginPath();g.moveTo(w*xx,-h*.04);g.lineTo(w*xx,h*.77);g.stroke();}
+    g.fillStyle='#5a5f70'; g.fillRect(-w*.14,h*.39,w*.28,h*.035);
+  } else if (p.shape==='md') {
+    g.fillStyle='#080a0e';g.fillRect(-w*.19,-h*.43,w*.38,h*.035);
+    g.fillStyle='#aaa';g.font=`800 ${Math.max(5,ch*.045)}px ui-monospace,monospace`;g.fillText('16-BIT',0,-h*.34,lw*.7);
+  } else if (p.shape==='neo') {
+    g.fillStyle='#08090d';g.fillRect(-w*.23,-h*.44,w*.46,h*.035);
+    g.fillStyle=p.accent;g.font=`900 ${Math.max(6,ch*.064)}px ui-monospace,monospace`;g.fillText('AES',0,-h*.34,lw*.7);
+    for(let i=0;i<7;i++){g.fillStyle=i%2?'#d4a34e':'#f0cf82';g.fillRect(-w*.29+i*w*.097,h*.43,w*.055,h*.065);}
+  } else if (p.shape==='nes') {
+    g.fillStyle='rgba(255,255,255,.14)';g.fillRect(-w*.40,-h*.39,w*.80,h*.025);
+    g.fillStyle='#4b5057';g.fillRect(-w*.12,h*.43,w*.24,h*.035);
+  }
+  // Petite arête lumineuse qui tourne avec le plastique sans masquer l'étiquette.
+  g.globalAlpha=.22;g.fillStyle='#fff';g.beginPath();g.moveTo(-w*.44,-h*.35);g.lineTo(-w*.37,-h*.39);g.lineTo(-w*.34,h*.31);g.lineTo(-w*.40,h*.35);g.closePath();g.fill();
+  g.restore();
+}
+function drawCartridgeRain(dt) {
+  const c=document.getElementById('nvCartridgeRain'); if(!c) return;
+  const r=c.getBoundingClientRect(), w=Math.max(1,r.width), h=Math.max(1,r.height), d=Math.min(window.devicePixelRatio||1,2);
+  if(!NV_CART_RAIN.g) { NV_CART_RAIN.cv=c; NV_CART_RAIN.g=c.getContext('2d',{alpha:true}); }
+  const g=NV_CART_RAIN.g; if(!g) return;
+  if(w!==NV_CART_RAIN.w||h!==NV_CART_RAIN.h||d!==NV_CART_RAIN.d){NV_CART_RAIN.w=w;NV_CART_RAIN.h=h;NV_CART_RAIN.d=d;c.width=Math.round(w*d);c.height=Math.round(h*d);}
+  g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,w,h);
+  const unit=Math.min(w,h), baseH=Math.max(54,Math.min(142,unit*(w<600?.135:.17)));
+  if(!NV_CART_RAIN.cards||NV_CART_RAIN.cards.length!==NV_CART_TYPES.length){
+    NV_CART_RAIN.cards=NV_CART_TYPES.map((type,i)=>{
+      const scale=.86+(i%3)*.12, ch=baseH*scale*type.h;
+      return {type, x:.64+i*.078, y:-ch*(.9+i*1.15), speed:Math.max(18,h*.028)+(i%3)*3, phase:i*1.71, scale};
+    });
+  }
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const step=reduce?0:Math.min(.05,Math.max(0,dt||0));
+  for(const card of NV_CART_RAIN.cards){
+    const ch=baseH*card.scale, cw=ch*.88;
+    card.y+=card.speed*step;
+    if(card.y>h+ch){card.y=-ch*(1.1+Math.random()*1.4);card.x=.62+Math.random()*.34;}
+    const x=Math.min(w-cw*.52,Math.max(cw*.52,w*card.x));
+    g.save();g.globalAlpha=w<600?.52:.74;
+    // ombre portée froide : détache la coque du décor sans rivaliser avec le menu.
+    g.shadowColor='rgba(48,115,210,.34)';g.shadowBlur=Math.min(18,ch*.16);g.shadowOffsetY=5;
+    drawNvCartridge(g,card,x,card.y,cw,ch,titleT);
+    g.restore();
+  }
+}
+
 (function nvUiInstall() {
   const css = `
   html.nvui{--ui-font:"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,system-ui,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -16155,8 +16277,8 @@ narrativeInstall();
     -webkit-mask-image:linear-gradient(90deg,transparent 0,rgba(0,0,0,.35) 26%,#000 48%);mask-image:linear-gradient(90deg,transparent 0,rgba(0,0,0,.35) 26%,#000 48%);
     animation:nvHero 1.6s ease-out both}
   @keyframes nvHero{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:none}}
-  #nvTitle .nv-veil{position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,6,15,.96) 0,rgba(4,6,15,.9) 30%,rgba(4,6,15,.25) 56%,rgba(4,6,15,0) 75%),linear-gradient(0deg,rgba(2,3,8,.8),transparent 30%)}
-  #nvTitle .nv-left{position:absolute;left:0;top:0;bottom:0;width:min(560px,100%);padding:clamp(18px,4vh,40px) clamp(22px,3.4vw,46px);display:flex;flex-direction:column;gap:10px;overflow:auto;
+  #nvTitle .nv-veil{position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(4,6,15,.96) 0,rgba(4,6,15,.9) 30%,rgba(4,6,15,.25) 56%,rgba(4,6,15,0) 75%),linear-gradient(0deg,rgba(2,3,8,.8),transparent 30%)}
+  #nvTitle .nv-left{position:absolute;z-index:2;left:0;top:0;bottom:0;width:min(560px,100%);padding:clamp(18px,4vh,40px) clamp(22px,3.4vw,46px);display:flex;flex-direction:column;gap:10px;overflow:auto;
     animation:nvIn .6s cubic-bezier(.2,.9,.2,1) both}
   @keyframes nvIn{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}
   .nv-brand{margin-bottom:6px}
@@ -16231,6 +16353,9 @@ narrativeInstall();
   const hero = document.createElement('div'); hero.className = 'nv-hero';
   if (typeof TITLE_KEY_ART !== 'undefined') hero.style.backgroundImage = `url(${TITLE_KEY_ART})`;
   const veil = document.createElement('div'); veil.className = 'nv-veil';
+  const cartridgeRain = document.createElement('canvas'); cartridgeRain.id = 'nvCartridgeRain';
+  cartridgeRain.setAttribute('aria-hidden', 'true');
+  cartridgeRain.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1';
   const left = document.createElement('div'); left.className = 'nv-left';
   const brand = document.createElement('div'); brand.className = 'nv-brand';
   brand.innerHTML = `<div class="k" id="nvKicker"></div><span class="w1">NEO</span><span class="w2">VANGUARD</span><div class="tag" id="nvTag"></div>`;
@@ -16254,7 +16379,7 @@ narrativeInstall();
   const foot = document.createElement('div'); foot.className = 'nv-foot'; foot.id = 'nvFoot';
   status.appendChild(foot);
   left.append(brand, secA, prim, secB, more, grid, status);
-  wrap.append(hero, veil, left);
+  wrap.append(hero, veil, cartridgeRain, left);
   scr.appendChild(wrap);
   /* visibilité : liée à l'écran titre */
   const sync = () => { wrap.classList.toggle('on', scr.classList.contains('on')); };
