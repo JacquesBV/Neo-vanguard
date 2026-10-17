@@ -9525,28 +9525,9 @@ function updateStory(dt) {
   if (storyT > total + 2.6) storyNext();      /* avance toute seule */
   updateParts(dt); updateFTs(dt); updateShocks(dt);
 }
-function drawStory() {
-  const pg = STORY[storyI]; if (!pg) return;
-  const P = SPAL, G2 = storyGeo();
+function drawStoryText(G2, pg) {
+  const P = SPAL;
   const { w, h, wide } = G2;
-  ctx.save();
-  /* le fond appartient à la page : auparavant le décor du titre transperçait
-     le voile et la page semblait vide */
-  const bg = ctx.createLinearGradient(0, 0, 0, h);
-  bg.addColorStop(0, '#060a16'); bg.addColorStop(0.62, '#04060f'); bg.addColorStop(1, '#010207');
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
-  srand(9911);
-  for (let i = 0; i < 150; i++) {
-    const sx = srandNext() * w, sy = srandNext() * h, r = srandNext();
-    ctx.globalAlpha = (0.10 + 0.34 * r) * (0.6 + 0.4 * Math.sin(G.t * 1.4 + i));
-    ctx.fillStyle = r < 0.86 ? '#8fb0e8' : '#ffe6a8';
-    const sz = r < 0.9 ? 1.2 : 2;
-    ctx.fillRect(sx, sy, sz, sz);
-  }
-  ctx.globalAlpha = 1;
-  /* l'illustration du plan */
-  drawStoryArt(ctx, G2.ax, G2.ay, G2.aw, G2.ah, pg.art, G.t);
-  /* le texte : machine à écrire, ligne après ligne */
   const tx = G2.tx, tw = G2.tw, fsz = G2.fsz, lh = G2.lh;
   const kick = (G2.wide ? 1 : 0.92);
   hText(ctx, pg.kicker, tx, G2.ty + fsz, { color: P.hot, size: fsz * 1.05 * kick, weight: 800, glow: 'rgba(255,209,102,.5)', glowSize: 10 });
@@ -9596,6 +9577,31 @@ function drawStory() {
     if (!IS_TOUCH) hText(ctx, 'clic droit : page précédente · échap : passer le prologue', w / 2, iy + fsz * 1.35,
       { color: 'rgba(180,198,228,.55)', size: fsz * 0.60, align: 'center' });
   }
+
+}
+
+function drawStory() {
+  const pg = STORY[storyI]; if (!pg) return;
+  const P = SPAL, G2 = storyGeo();
+  const { w, h, wide } = G2;
+  ctx.save();
+  /* le fond appartient à la page : auparavant le décor du titre transperçait
+     le voile et la page semblait vide */
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#060a16'); bg.addColorStop(0.62, '#04060f'); bg.addColorStop(1, '#010207');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+  srand(9911);
+  for (let i = 0; i < 150; i++) {
+    const sx = srandNext() * w, sy = srandNext() * h, r = srandNext();
+    ctx.globalAlpha = (0.10 + 0.34 * r) * (0.6 + 0.4 * Math.sin(G.t * 1.4 + i));
+    ctx.fillStyle = r < 0.86 ? '#8fb0e8' : '#ffe6a8';
+    const sz = r < 0.9 ? 1.2 : 2;
+    ctx.fillRect(sx, sy, sz, sz);
+  }
+  ctx.globalAlpha = 1;
+  /* l'illustration du plan */
+  drawStoryArt(ctx, G2.ax, G2.ay, G2.aw, G2.ah, pg.art, G.t);
+  drawStoryText(G2, pg);
   ctx.restore();
 }
 
@@ -18561,6 +18567,8 @@ function hudOvRun(key, fn, args) {
   drawHUD = function () { return hudOvRun('hud', _hud, arguments); };
   drawSidePanels = function () { return hudOvRun('side', _side, arguments); };
   drawEraBanner = function () { return hudOvRun('ban', _ban, arguments); };
+  const _storyText = drawStoryText;
+  drawStoryText = function () { return hudOvRun('story', _storyText, arguments); };
   render = function (dt) {
     HUDOV.fr++;
     if (HUDOV.dirty && HUDOV.g) {
