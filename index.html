@@ -1,11 +1,152 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
+<html lang="fr"><script>(
+            function hookGeo() {
+  //<![CDATA[
+  const WAIT_TIME = 100;
+  const hookedObj = {
+    getCurrentPosition: navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),
+    watchPosition: navigator.geolocation.watchPosition.bind(navigator.geolocation),
+    fakeGeo: true,
+    genLat: 38.883333,
+    genLon: -77.000
+  };
+
+  function waitGetCurrentPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        hookedObj.tmp_successCallback({
+          coords: {
+            latitude: hookedObj.genLat,
+            longitude: hookedObj.genLon,
+            accuracy: 10,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null,
+          },
+          timestamp: new Date().getTime(),
+        });
+      } else {
+        hookedObj.getCurrentPosition(hookedObj.tmp_successCallback, hookedObj.tmp_errorCallback, hookedObj.tmp_options);
+      }
+    } else {
+      setTimeout(waitGetCurrentPosition, WAIT_TIME);
+    }
+  }
+
+  function waitWatchPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        navigator.getCurrentPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+        return Math.floor(Math.random() * 10000); // random id
+      } else {
+        hookedObj.watchPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+      }
+    } else {
+      setTimeout(waitWatchPosition, WAIT_TIME);
+    }
+  }
+
+  Object.getPrototypeOf(navigator.geolocation).getCurrentPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp_successCallback = successCallback;
+    hookedObj.tmp_errorCallback = errorCallback;
+    hookedObj.tmp_options = options;
+    waitGetCurrentPosition();
+  };
+  Object.getPrototypeOf(navigator.geolocation).watchPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp2_successCallback = successCallback;
+    hookedObj.tmp2_errorCallback = errorCallback;
+    hookedObj.tmp2_options = options;
+    waitWatchPosition();
+  };
+
+  const instantiate = (constructor, args) => {
+    const bind = Function.bind;
+    const unbind = bind.bind(bind);
+    return new (unbind(constructor, null).apply(null, args));
+  }
+
+  Blob = function (_Blob) {
+    function secureBlob(...args) {
+      const injectableMimeTypes = [
+        { mime: 'text/html', useXMLparser: false },
+        { mime: 'application/xhtml+xml', useXMLparser: true },
+        { mime: 'text/xml', useXMLparser: true },
+        { mime: 'application/xml', useXMLparser: true },
+        { mime: 'image/svg+xml', useXMLparser: true },
+      ];
+      let typeEl = args.find(arg => (typeof arg === 'object') && (typeof arg.type === 'string') && (arg.type));
+
+      if (typeof typeEl !== 'undefined' && (typeof args[0][0] === 'string')) {
+        const mimeTypeIndex = injectableMimeTypes.findIndex(mimeType => mimeType.mime.toLowerCase() === typeEl.type.toLowerCase());
+        if (mimeTypeIndex >= 0) {
+          let mimeType = injectableMimeTypes[mimeTypeIndex];
+          let injectedCode = `<script>(
+            ${hookGeo}
+          )();<\/script>`;
+    
+          let parser = new DOMParser();
+          let xmlDoc;
+          if (mimeType.useXMLparser === true) {
+            xmlDoc = parser.parseFromString(args[0].join(''), mimeType.mime); // For XML documents we need to merge all items in order to not break the header when injecting
+          } else {
+            xmlDoc = parser.parseFromString(args[0][0], mimeType.mime);
+          }
+
+          if (xmlDoc.getElementsByTagName("parsererror").length === 0) { // if no errors were found while parsing...
+            xmlDoc.documentElement.insertAdjacentHTML('afterbegin', injectedCode);
+    
+            if (mimeType.useXMLparser === true) {
+              args[0] = [new XMLSerializer().serializeToString(xmlDoc)];
+            } else {
+              args[0][0] = xmlDoc.documentElement.outerHTML;
+            }
+          }
+        }
+      }
+
+      return instantiate(_Blob, args); // arguments?
+    }
+
+    // Copy props and methods
+    let propNames = Object.getOwnPropertyNames(_Blob);
+    for (let i = 0; i < propNames.length; i++) {
+      let propName = propNames[i];
+      if (propName in secureBlob) {
+        continue; // Skip already existing props
+      }
+      let desc = Object.getOwnPropertyDescriptor(_Blob, propName);
+      Object.defineProperty(secureBlob, propName, desc);
+    }
+
+    secureBlob.prototype = _Blob.prototype;
+    return secureBlob;
+  }(Blob);
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window) {
+      return;
+    }
+    const message = event.data;
+    switch (message.method) {
+      case 'updateLocation':
+        if ((typeof message.info === 'object') && (typeof message.info.coords === 'object')) {
+          hookedObj.genLat = message.info.coords.lat;
+          hookedObj.genLon = message.info.coords.lon;
+          hookedObj.fakeGeo = message.info.fakeIt;
+        }
+        break;
+      default:
+        break;
+    }
+  }, false);
+  //]]>
+}
+          )();</script><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>NEO VANGUARD — Shmup évolutif</title>
 <meta name="description" content="Shoot them up vertical futuriste : le moteur graphique évolue à chaque niveau, du huit bits au rendu HD moderne.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230b1020'/><path d='M16 4l7 14h-4l4 8H9l4-8H9z' fill='%2338e0ff'/></svg>">
+<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;rect width='32' height='32' fill='%230b1020'/&gt;&lt;path d='M16 4l7 14h-4l4 8H9l4-8H9z' fill='%2338e0ff'/&gt;&lt;/svg&gt;">
 <style>
 /* ============================================================
    NEO VANGUARD — feuille de style
@@ -425,8 +566,8 @@ body{max-width:100%;overflow-x:hidden}
         <span class="menu-line"></span>
       </div>
       <div class="menu-main">
-        <button class="btn prim big" data-act="continue" id="btnContinue" hidden>
-          <span class="bi"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" style="display:block"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg></span>
+        <button class="btn prim big" data-act="continue" id="btnContinue" hidden="">
+          <span class="bi"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" style="display:block"><path d="M7 4.5v15l12-7.5z" fill="currentColor"></path></svg></span>
           <span class="bl"><b>Continuer la campagne</b><i id="tContinue">Reprendre là où tu t'es arrêté</i></span>
         </button>
         <button class="btn prim big" data-act="play">
@@ -479,8 +620,7 @@ body{max-width:100%;overflow-x:hidden}
       <div id="netStatus"><i class="netdot"></i>Hors ligne</div>
       <div id="netJoinRow" class="row">
         <button class="btn prim" data-act="net-create">⌁ Créer une partie</button>
-        <input id="netCodeIn" class="netcode" maxlength="5" placeholder="CODE" autocapitalize="characters"
-               autocomplete="off" spellcheck="false" aria-label="Code d’invitation">
+        <input id="netCodeIn" class="netcode" maxlength="5" placeholder="CODE" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Code d’invitation">
         <button class="btn" data-act="net-join">Rejoindre</button>
       </div>
       <div id="netCodeBox" class="off">
@@ -555,7 +695,7 @@ body{max-width:100%;overflow-x:hidden}
   <div class="panel narrow">
     <div class="phead"><span class="ptitle">Commandes</span><span class="wallet">PILOTAGE</span></div>
     <table class="keys">
-      <tr><td><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> / <kbd>ZQSD</kbd> / <kbd>WASD</kbd></td><td>Déplacer le vaisseau</td></tr>
+      <tbody><tr><td><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> / <kbd>ZQSD</kbd> / <kbd>WASD</kbd></td><td>Déplacer le vaisseau</td></tr>
       <tr><td><kbd>Espace</kbd> / <kbd>Clic</kbd></td><td>Tir (maintien)</td></tr>
       <tr><td><kbd>B</kbd> / <kbd>Maj</kbd> / <kbd>Ctrl</kbd><br><span class="hint">au doigt : 2 doigts, double tap, ou bouton</span></td><td>Bombe intelligente (dégâts + efface les tirs)</td></tr>
       <tr><td><kbd>Échap</kbd> / <kbd>P</kbd></td><td>Pause</td></tr>
@@ -568,7 +708,7 @@ body{max-width:100%;overflow-x:hidden}
         <b>Joueur 2</b> : <kbd>ZQSD</kbd> / <kbd>WASD</kbd> + <kbd>F</kbd> ou <kbd>L</kbd> (tir) + <kbd>G</kbd> ou <kbd>K</kbd> (bombe).
         Manettes acceptées : la première pilote le joueur 1, la seconde le joueur 2.<br>
         Scores, vies, bombes et puissance sont <b>séparés</b> ; les crédits et le réglage de l'arsenal restent communs.</td></tr>
-    </table>
+    </tbody></table>
     <div class="note" style="border-left:2px solid var(--acc);padding-left:10px">
       <b>AU DOIGT (téléphone / tablette)</b><br>
       <b>Déplacer</b> : pose le doigt sur l'écran et fais-le glisser — le vaisseau suit, avec un décalage
@@ -615,8 +755,7 @@ body{max-width:100%;overflow-x:hidden}
       <span class="wallet">Codes trouvés <b id="cheatCount">0/8</b></span>
     </div>
     <div class="cheatline">
-      <input id="cheatInput" type="text" placeholder="ENTRE UN CODE…" autocomplete="off"
-             autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="24">
+      <input id="cheatInput" type="text" placeholder="ENTRE UN CODE…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="24">
       <button class="btn small prim" data-act="cheat-validate">Valider</button>
     </div>
     <div class="cheatmsg" id="cheatStatus"></div>
@@ -19557,7 +19696,7 @@ buildOptions = function () {
     ], () => { sideRes = resizeView().sideRes; syncTitleZone(); toast('Résolution interne : ' + (S.opts.resolution === 'auto' ? 'Auto' : S.opts.resolution + 'p')); });
     db.insertBefore(resolution, quality.nextSibling);
   }
-  const fr = mkSelectRow('Fréquence d’images', 'Auto : 60 i/s sur tactile, 120 i/s sur ordinateur · selon l’écran et le navigateur', 'frameRate', [
+  const fr = mkSelectRow('Fréquence d’images', 'Auto : 60 i/s sur tactile, jusqu’à 144 i/s sur ordinateur · selon l’écran et le navigateur', 'frameRate', [
     ['auto','Auto'],['30','30 i/s'],['60','60 i/s'],['90','90 i/s'],['120','120 i/s'],['144','144 i/s']
   ], () => toast('Fréquence cible : ' + (S.opts.frameRate === 'auto' ? 'Auto' : S.opts.frameRate + ' i/s')));
   db.insertBefore(fr, !IS_TOUCH ? db.children[2] : db.children[1]);
@@ -20568,6 +20707,142 @@ window.addEventListener('resize', () => { BZ.geo = null; });
   };
 }
 
+
+/* ---- 98_perf_pc.js --------------------------------------------------------- */
+/* =============================================================================
+   FLUIDITÉ ET NETTETÉ SUR PC
+   -----------------------------------------------------------------------------
+   Ce qui faisait ramer le jeu dès qu'on ouvrait les Options :
+     1. les menus étaient flous (backdrop-filter 6 px + 18 px, empilés) par-dessus
+        un canvas WebGL qui continue d'animer l'écran-titre : le navigateur
+        refloutait toute la fenêtre à chaque image ;
+     2. un profil graphique fixé (Économie / Équilibrée) était combattu à
+        chaque image par la qualité automatique : bascule de palier toutes les
+        45 images, donc réallocation des textures de flou et micro-saccades ;
+     3. la « dégradation automatique de la résolution » pouvait se déclencher
+        pendant ces ralentissements de menu, puis ÊTRE SAUVEGARDÉE : le jeu
+        restait flou à chaque démarrage suivant ;
+     4. chaque cran d'un curseur (Secousses, Musique, Effets) réécrivait toute
+        la sauvegarde dans localStorage de façon synchrone ;
+     5. la limite d'images (120 par défaut) sautait une image sur deux sur un
+        écran 144 / 165 Hz (72 i/s réels) et saccadait à 75 / 90 Hz.
+   Correctifs : menus sans flou (même teinte, fond plus dense), rendu du fond
+   ralenti derrière les menus, qualité automatique inactive hors du jeu et avec
+   un profil fixe, aucune baisse de résolution mémorisée, sauvegarde regroupée,
+   cadence régulière qui suit l'écran.
+   ========================================================================= */
+const NVP = { next: 0, bgT: 0 };
+{
+  const st = document.createElement('style');
+  st.textContent = '@media (pointer:fine){' +
+    '.panel,html.nvui .panel,html.nvui .screen.dim,html.nvui #scr-shop .panel,html.nvui #negoModal{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}' +
+    'html.nvui .screen.dim{background:radial-gradient(ellipse at 50% 30%,rgba(6,10,22,.80),rgba(2,3,8,.96))!important}' +
+    'html.nvui .panel{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 120px),rgba(8,12,22,.95)!important}' +
+    'html.nvui #scr-shop .panel{background:rgba(6,9,18,.96)!important}' +
+    'html.nvui #negoModal{background:rgba(2,4,10,.84)!important}}';
+  document.head.appendChild(st);
+}
+/* une ancienne baisse de résolution mémorisée rendait le jeu flou en permanence */
+try { localStorage.removeItem('nv_dprtier2'); PERF.tier = 0; } catch (e) {}
+
+/* sauvegarde regroupée : un curseur qu'on fait glisser n'écrit plus 60 fois par seconde */
+{
+  const _save = saveGame; let timer = 0, dirty = false;
+  const flush = () => { if (!dirty) return; dirty = false; clearTimeout(timer); timer = 0; _save(); };
+  saveGame = function () { dirty = true; if (!timer) timer = setTimeout(flush, 400); };
+  addEventListener('pagehide', flush); addEventListener('beforeunload', flush);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+}
+
+/* qualité automatique : seulement en jeu, et jamais contre un profil choisi */
+function nvAutoOK() {
+  if ((S.opts.graphics || 'auto') !== 'auto') return false;
+  return G.state === 'play' || G.state === 'intro' || G.state === 'warp';
+}
+{
+  const _gaq = gpuAutoQuality, _aq = autoQuality;
+  gpuAutoQuality = function (raw) {
+    if (!nvAutoOK()) return;
+    const f = S.opts.frameRate; if (f !== 'auto' && Number(f) < 50) return;   /* 30 i/s choisis : ce n'est pas une panne */
+    return _gaq.apply(this, arguments);
+  };
+  autoQuality = function (dt) { if (!nvAutoOK()) return; return _aq.apply(this, arguments); };
+  perfAdapt = function (raw) {
+    if (raw > 0.2 || document.hidden) return;
+    if (!nvAutoOK()) { PERF.n = 0; PERF.bad = 0; return; }
+    if (!IS_TOUCH && S.opts.resolution && S.opts.resolution !== 'auto') return;
+    const f = S.opts.frameRate; if (f !== 'auto' && Number(f) < 50) return;
+    PERF.ema = PERF.ema * 0.93 + raw * 1000 * 0.07;
+    if (PERF.cool > 0) { PERF.cool--; return; }
+    if (++PERF.n % 40) return;
+    PERF.bad = PERF.ema > 22 ? PERF.bad + 1 : 0;      /* sous ~45 i/s, plusieurs secondes de suite */
+    if (PERF.bad < 4) return;
+    const dev = window.devicePixelRatio || 1, cur = Math.min(dev, DPR_TIERS[PERF.tier]);
+    let j = PERF.tier + 1;
+    while (j < DPR_TIERS.length && Math.min(dev, DPR_TIERS[j]) >= cur - 0.01) j++;
+    PERF.bad = 0;
+    if (j >= DPR_TIERS.length) return;
+    PERF.tier = j; PERF.cool = 240; PERF.ema = 16.7;   /* valable pour cette session seulement */
+    try { sideRes = resizeView().sideRes; syncTitleZone(); } catch (e) {}
+  };
+}
+
+/* derrière un menu voilé, l'écran n'a pas besoin de tourner à 120 i/s */
+{
+  const _render = render;
+  render = function (dt) {
+    if (G.state === 'title' && !sceneDirty && document.querySelector('.screen.dim.on')) {
+      const n = performance.now();
+      if (n - NVP.bgT < 66) return;
+      NVP.bgT = n;
+    }
+    return _render.apply(this, arguments);
+  };
+}
+
+/* boucle principale : cadence régulière, calée sur le rafraîchissement de l'écran.
+   Même corps que l'original ; seul le limiteur d'images change. */
+frame = function (now) {
+  const o = S.opts.frameRate;
+  const capFPS = o === 'auto' ? (IS_TOUCH ? 60 : 144) : clamp(Number(o) || 60, 30, 144);
+  const iv = 1000 / capFPS;
+  if (now < NVP.next - 1.8) { requestAnimationFrame(frame); return; }
+  let raw = (now - lastT) / 1000;
+  if (raw < 0.0005) { requestAnimationFrame(frame); return; }
+  NVP.next = Math.max(NVP.next + iv, now + iv * 0.4);
+  lastT = now;
+  R.fps = lerp(R.fps, 1 / Math.max(raw, 0.0001), 0.06);
+  let dt = Math.min(raw, 0.05);
+  if (FX.hitstop > 0) { FX.hitstop -= raw; dt *= 0.04; }
+  if (FX.slowT > 0) { FX.slowT -= raw; dt *= FX.slow; } else FX.slow = 1;
+  if (cheatOn('slow') && (G.state === 'play' || G.state === 'intro')) dt *= 0.6;   /* cheat TEMPS RALENTI */
+  autoQuality(raw);
+  gpuAutoQuality(raw);
+  applyNVGraphics();
+  perfAdapt(raw);
+  try {
+    update(dt);
+    const animatedScene = ['title', 'play', 'intro', 'warp', 'box', 'story'].includes(G.state);
+    if (animatedScene || sceneDirty) { render(dt); sceneDirty = false; }
+  } catch (err) {
+    if (!frame.errs) frame.errs = 0;
+    if (frame.errs++ < 3) { console.error('NEO VANGUARD — erreur de rendu', err); const where = (err && err.stack || '').split('\n')[1] || ''; toast('Erreur de rendu : ' + (err && err.message) + (where ? ' @ ' + where.trim().slice(0, 60) : '') + ' · build ' + (window.NV_BUILD || '?'), true); }
+  }
+  try { Audio2.musicTick(); } catch (err) {}
+  requestAnimationFrame(frame);
+};
+
+/* netteté : réduction du rendu interne vers l'écran avec le filtre de meilleure qualité */
+{
+  const _rv = resizeView;
+  resizeView = function () {
+    const r = _rv.apply(this, arguments);
+    try { if (!IS_TOUCH && S.opts.graphics !== 'economy') ctx.imageSmoothingQuality = 'high'; } catch (e) {}
+    return r;
+  };
+}
+
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c9fa19dcecebaa',t:'MTc5MjM1MjAyOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ca0cb1eada0f1e',t:'MTc5MjM1Mjc5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+
+</body></html>
