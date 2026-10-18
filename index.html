@@ -3117,8 +3117,10 @@ function autoQuality(dt) {
   R.qualT += dt;
   if (R.qualT < 1.1) return;
   R.qualT = 0;
-  if (R.fps < 46 && R.qual > 0.42) R.qual = Math.max(0.42, R.qual - 0.16);
-  else if (R.fps > 56 && R.qual < 1) R.qual = Math.min(1, R.qual + 0.07);
+  /* On baisse les effets avant que les saccades soient visibles, puis on les
+     réactive seulement après une marge stable pour éviter les oscillations. */
+  if (R.fps < 54 && R.qual > 0.42) R.qual = Math.max(0.42, R.qual - 0.16);
+  else if (R.fps > 58 && R.qual < 1) R.qual = Math.min(1, R.qual + 0.07);
   /* dernier recours : baisse la résolution interne du rendu HD.
      Important : ces réglages ne concernent QUE l'ère HD — sans ce garde-fou,
      le rétablissement de la qualité forçait un retour en HD pendant les
@@ -3202,7 +3204,10 @@ function shadeRow(x, y, w, h, t0, t1, colA, colB, s) {
 const FX = {
   shake: 0, shakeA: 0, flash: 0, flashCol: '#fff', hitstop: 0, slow: 1, slowT: 0,
   shakeT: 0,
-  addShake(a) { this.shake = Math.min(30, this.shake + a * (S.opts.shake || 100) / 100); },
+  addShake(a) {
+    const strength = S.opts.shake === undefined ? 100 : Math.max(0, Number(S.opts.shake) || 0);
+    this.shake = Math.min(30, this.shake + a * strength / 100);
+  },
   addFlash(a, col) { this.flash = Math.min(0.9, this.flash + a); this.flashCol = col || '#ffffff'; },
   stop(a) { this.hitstop = Math.max(this.hitstop, a); },
   update(dt) {
@@ -4285,7 +4290,7 @@ function gpuPresent() {
   u.uChan = new Float32Array([1 / GP.chan[0], 1 / GP.chan[1], 1 / GP.chan[2], 0]);
   u.uGain = new Float32Array([GP.gain[0], GP.gain[1], GP.gain[2], GP.lift]);
   /* flou de mouvement : la vitesse du monde, convertie en pixels d'écran */
-  u.uMB = (e >= 3 && !lowQ) ? (1.2 + clamp((SCROLL.boost - 1) * 0.9, 0, 1) * 3.4) * view.dpr * clamp(R.qual, 0.5, 1) : 0;
+  u.uMB = (e >= 3 && !lowQ && !IS_TOUCH) ? (1.2 + clamp((SCROLL.boost - 1) * 0.9, 0, 1) * 3.4) * view.dpr * clamp(R.qual, 0.5, 1) : 0;
   /* particules lumineuses : synchronisation de l'arène GPU */
   if (GPU.parts) {
     const pool = GPU.pool || [], n = pool.length, sx = PF.w / L_W, sy = PF.h / L_H;
@@ -7261,29 +7266,24 @@ function killEnemy(e) {
   if (cr > 0 && (big || e.elite || chance(0.3))) addPickup(e.x, e.y + 8, 'credit', Math.round(cr * (big || e.elite ? 1 : 3.2)));
 }
 function explode(x, y, size, c1, c2) {
-  const n = R.era === 0 ? 6 : Math.round(14 * size * (R.era >= 3 ? 2.2 : 1));
+  const q = clamp(R.qual, 0.45, 1);
+  const n = R.era === 0 ? 6 : Math.round(14 * size * (R.era >= 3 ? 2.2 : 1) * (0.72 + q * 0.28));
   for (let i = 0; i < n; i++) {
     const a = rnd(TAU), v = rnd(160, 40) * size;
     spawnPart({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(0.7, 0.25) * (R.era >= 3 ? 1.4 : 1),
       col: chance(0.5) ? c1 : c2, size: rnd(9, 4) * Math.min(2, size), drag: 0.88, glow: R.era >= 2, grav: R.era >= 3 ? 30 : 0 });
   }
-  SHOCK.push({ x, y, t: 0, life: R.era >= 3 ? 0.5 : 0.32, max: size * 26 * (R.era >= 3 ? 1.8 : 1), col: c2 });
+  addShock(x, y, size * 26 * (R.era >= 3 ? 1.8 : 1), c2, R.era >= 3 ? 0.5 : 0.32, 'blast');
   if (typeof NET !== 'undefined' && NET.role === 'host') netHookBoom(x, y, size);
 }
 const SHOCK = [];
-function updateShocks(dt) { for (let i = SHOCK.length - 1; i >= 0; i--) { SHOCK[i].t += dt; if (SHOCK[i].t > SHOCK[i].life) SHOCK.splice(i, 1); } }
-function drawShocks() {
-  if (R.era === 0) return;
-  useBuf(R.bufNear); const g = PAINT.g, K = PAINT.K;
-  g.globalCompositeOperation = 'lighter';
-  for (const s of SHOCK) {
-    const t = s.t / s.life, r = s.max * (0.3 + t * 1.1);
-    g.globalAlpha = (1 - t) * 0.7;
-    ring(s.x, s.y, r, 2 + 2 * (1 - t), s.col);
-  }
-  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+function addShock(x, y, max, col, life, kind) {
+  /* Garde un plafond strict : une cascade de morts ne peut pas faire grossir
+     le coût du rendu des ondes au fil d'une partie. */
+  if (SHOCK.length >= 64) SHOCK.splice(0, SHOCK.length - 63);
+  SHOCK.push({ x, y, t: 0, life, max, col, kind: kind || 'blast' });
 }
-
+function updateShocks(dt) { for (let i = SHOCK.length - 1; i >= 0; i--) { SHOCK[i].t += dt; if (SHOCK[i].t > SHOCK[i].life) SHOCK.splice(i, 1); } }
 /* -------------------------------- joueur ---------------------------------- */
 function hitPlayer(P, dmg, contact) {
   if (G.harvest) return;                   /* fenêtre de récolte : aucun risque */
@@ -7355,7 +7355,7 @@ function spawnBoss() {
     def, name: def.name + (extra ? ' MK-' + (extra + 1) : ''), x: L_W / 2, y: -300, hue: def.hue, body: def.body,
     r: def.r, hp: Math.round(def.hp * s.hp * Math.pow(1.35, extra) * (G.twoP && G.players && G.players.length > 1 ? 1.6 : 1) * (typeof BOSS_TOUGH !== 'undefined' ? BOSS_TOUGH[S.opts.diff] || 2.6 : 2.6)), maxHp: 0,
     t: 0, ph: 0, phT: 0, atkIdx: 0, atkT: 1.2, spiralA: 0, flash: 0, dead: false, deadT: 0,
-    enter: true, sc: def.sc * (1 + extra * 0.5), cr: Math.round(def.cr * DIFFS[S.opts.diff].credit * (1 + extra * 0.5) * G.stats.creditMul),
+    enter: true, entryCue: false, sc: def.sc * (1 + extra * 0.5), cr: Math.round(def.cr * DIFFS[S.opts.diff].credit * (1 + extra * 0.5) * G.stats.creditMul),
     parts: [], tele: 0, vx: 0, seed: rnd(TAU),
   };
   b.maxHp = b.hp;
@@ -7439,7 +7439,22 @@ function updateBoss(dt) {
   if (b.flash > 0) b.flash -= dt;
   for (const p of b.parts) { p.t += dt; if (p.flash > 0) p.flash -= dt; p.oa += dt * 0.5 * (p.dead ? 0 : 1); }
   /* entrée */
-  if (b.enter) { b.y = lerp2(b.y, 265, dt * 1.15); if (b.y > 256) b.enter = false; return; }
+  if (b.enter) {
+    b.y = lerp2(b.y, 265, dt * 1.15);
+    if (!b.entryCue && b.y > 30) {
+      b.entryCue = true;
+      addShock(b.x, b.y, Math.min(210, b.r * 1.55), TH.eBoss, 0.82, 'arrival');
+      FX.addFlash(R.era === 0 ? 0.04 : 0.12, TH.eBoss);
+      FX.addShake(R.era === 0 ? 1.2 : 3.2);
+      if (R.era >= 2 && R.qual > 0.5) for (let i = 0; i < 8; i++) {
+        const a = i / 8 * TAU;
+        spawnPart({ x: b.x, y: b.y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90,
+          life: 0.46, col: TH.eBossLite, size: 3, glow: true });
+      }
+    }
+    if (b.y > 256) b.enter = false;
+    return;
+  }
   /* état visuel : iris qui s'ouvre quand les têtes tombent, fumée quand la
      coque cède, étincelles sur les passages de phase */
   if (b.openT === undefined) b.openT = 0;
@@ -8211,13 +8226,30 @@ function drawPlayerBullets() {
 
 /* ------------------------------- ondes de choc ---------------------------- */
 function drawShocks() {
-  if (R.era === 0) return;
+  if (R.era === 0 && !SHOCK.some(s => s.kind === 'arrival')) return;
   useBuf(R.bufNear); const g = PAINT.g, K = PAINT.K;
   g.globalCompositeOperation = 'lighter';
   for (const s of SHOCK) {
-    const t = s.t / s.life, r = s.max * (0.3 + t * 1.1);
-    g.globalAlpha = (1 - t) * 0.7;
-    ring(s.x, s.y, r, 2 + 2 * (1 - t), s.col);
+    const t = clamp(s.t / s.life, 0, 1), r = s.max * (0.3 + t * 1.1);
+    if (R.era === 0) {
+      if (s.kind !== 'arrival') continue;
+      const pixel = 4, stepped = Math.max(pixel, Math.round(r / pixel) * pixel);
+      g.globalAlpha = (1 - t) * 0.68;
+      ring(s.x, s.y, stepped, pixel, TH.livery.gb[3]);
+      continue;
+    }
+    const fade = (1 - t) * (s.kind === 'arrival' ? 0.62 : 0.72);
+    g.globalAlpha = fade;
+    ring(s.x, s.y, r, (R.era >= 2 ? 2.4 : 1.6) + 1.8 * (1 - t), s.col);
+    /* Deuxième anneau fin : du volume sans nouvelles particules ni flou global. */
+    if (R.era >= 1 && R.qual > 0.42) {
+      g.globalAlpha = fade * (s.kind === 'arrival' ? 0.48 : 0.38);
+      ring(s.x, s.y, r * (s.kind === 'arrival' ? 0.72 : 0.58), 1.2, s.col);
+    }
+    if (s.kind === 'arrival' && R.era >= 2 && R.qual > 0.6) {
+      g.globalAlpha = fade * 0.22;
+      ring(s.x, s.y, r * 1.16, 1, TH.white);
+    }
   }
   g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
 }
