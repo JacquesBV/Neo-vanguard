@@ -378,6 +378,23 @@ body{max-width:100%;overflow-x:hidden}
 .btn[data-act$="-back"]:active{background:#1f5fd6!important;border-color:#5b93ff!important;color:#fff!important}
 @keyframes okBlinkBlue{0%{background-color:transparent}20%{background-color:#2f74ff;color:#fff}45%{background-color:transparent;color:inherit}65%{background-color:#2f74ff;color:#fff}100%{background-color:transparent;color:inherit}}
 .btn[data-act$="-back"].ok-blink{animation:okBlinkBlue .42s ease-out 1}
+
+/* Bilan de secteur : célébration nette, sans flou ni effet coûteux */
+.clear-celebration{position:relative;overflow:hidden;margin:8px 0 12px;padding:10px 13px 9px;border:1px solid color-mix(in srgb,var(--acc) 68%,#ffe066);background:linear-gradient(110deg,rgba(255,209,102,.12),rgba(56,224,255,.07) 54%,rgba(193,84,255,.09));box-shadow:inset 0 0 0 1px rgba(255,255,255,.035),0 5px 18px rgba(0,0,0,.22);animation:clearArrival .42s cubic-bezier(.2,.8,.2,1) both}
+.clear-celebration::after{content:"";position:absolute;top:0;bottom:0;left:-35%;width:24%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:skewX(-18deg);animation:clearSweep 1.05s .16s ease-out both}
+.clear-celebration-top{display:flex;align-items:center;gap:9px;color:var(--acc);font-size:10px;font-weight:800;letter-spacing:.18em}
+.clear-seal{position:relative;display:grid;place-items:center;width:25px;height:25px;flex:0 0 25px;border:2px solid #ffe066;border-radius:50%;box-shadow:0 0 0 2px rgba(255,209,102,.15),inset 0 0 8px rgba(255,209,102,.25);transform:rotate(-12deg)}
+.clear-seal::before,.clear-seal::after{content:"";position:absolute;top:18px;width:7px;height:9px;background:linear-gradient(180deg,#ffd166,#b87a23);clip-path:polygon(0 0,100% 0,78% 100%,50% 75%,20% 100%)}
+.clear-seal::before{left:2px;transform:rotate(12deg)}.clear-seal::after{right:2px;transform:rotate(-12deg)}.clear-seal i{width:9px;height:9px;background:#fff1ae;clip-path:polygon(50% 0,62% 35%,100% 50%,62% 65%,50% 100%,38% 65%,0 50%,38% 35%)}
+.clear-bonus-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;color:#cbd7ed;font-size:10px;letter-spacing:.11em}
+.clear-bonus-row>b{color:#ffe58b;font-size:clamp(22px,5vw,32px);line-height:1;font-weight:900;letter-spacing:.03em;text-shadow:0 0 12px rgba(255,209,102,.28);font-variant-numeric:tabular-nums}.clear-bonus-row small{font-size:.46em;letter-spacing:.12em}
+.clear-bonus-track{height:9px;overflow:hidden;border:1px solid rgba(255,224,130,.72);background:#070b14;box-shadow:inset 0 0 0 1px rgba(0,0,0,.6)}
+.clear-bonus-track>i{display:block;width:100%;height:100%;transform:scaleX(0);transform-origin:left center;background:repeating-linear-gradient(90deg,#fff0aa 0 3px,#ffd166 3px 13px,#f2a93b 13px 15px);box-shadow:0 0 9px rgba(255,209,102,.42);will-change:transform}
+.clear-bonus-status{margin-top:5px;text-align:right;color:#91a6c6;font-size:9px;letter-spacing:.15em}
+@keyframes clearArrival{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}@keyframes clearSweep{to{left:125%}}
+@media(max-width:600px){.clear-celebration{padding:9px 10px 8px}.clear-bonus-row{font-size:9px}.clear-bonus-status{font-size:8px;letter-spacing:.1em}#scr-clear>.panel{max-height:90dvh}}
+@media(prefers-reduced-motion:reduce){.clear-celebration,.clear-celebration::after{animation:none}.clear-bonus-track>i{will-change:auto}}
+
 </style>
 </head>
 <body class="era-3">
@@ -620,6 +637,12 @@ body{max-width:100%;overflow-x:hidden}
   <div class="panel narrow" style="max-width:560px">
     <h1 class="logo" style="font-size:clamp(22px,5vw,36px)">SECTEUR NEUTRALISÉ</h1>
     <div class="sub" id="clearSub">—</div>
+    <section class="clear-celebration" id="clearCelebration" aria-live="polite">
+      <div class="clear-celebration-top"><span class="clear-seal" aria-hidden="true"><i></i></span><span id="clearRewardTitle">—</span></div>
+      <div class="clear-bonus-row"><span id="clearBonusLabel">—</span><b>+<span id="clearBonusCount">0</span><small> CR</small></b></div>
+      <div id="clearBonusTrack" class="clear-bonus-track" role="progressbar" aria-label="" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="clearBonusFill"></i></div>
+      <div class="clear-bonus-status" id="clearBonusStatus">—</div>
+    </section>
     <div id="clearStats"></div>
     <div class="row">
       <button class="btn prim" data-act="next">▶ Secteur suivant</button>
@@ -2826,6 +2849,12 @@ const Audio2 = {
         const sc = [0, 4, 7, 12, 16, 19, 24, 28];
         sc.forEach((s, i) => this.voice(t + i * 0.07, { f: n2f(s, 523), dur: 0.16, type: e >= 3 ? 'sawtooth' : 'square', vol: 0.085, dest: d, send: SEND }));
         if (e >= 2) this.noise(t, { dur: 0.6, vol: 0.07, f: 4000, f2: 12000, type: 'bandpass', q: 0.8, dest: d, send: 0.35 });
+        break; }
+      case 'reward': {
+        /* fanfare courte et ascendante, jouée une seule fois à l'ouverture du bilan */
+        const sc = e >= 2 ? [0, 7, 12, 16, 19, 24, 28] : [0, 4, 7, 12, 16, 19];
+        sc.forEach((n, i) => this.voice(t + i * 0.075, { f: n2f(n, 523), dur: i === sc.length - 1 ? 0.42 : 0.18, type: e >= 3 ? 'triangle' : 'square', vol: 0.095, dest: d, pan: i % 2 ? 0.12 : -0.12, send: SEND }));
+        if (e >= 2) this.noise(t + 0.22, { dur: 0.34, vol: 0.045, f: 5200, f2: 9800, type: 'highpass', q: 0.8, dest: d, send: 0.22 });
         break; }
       case 'gameover': {
         const sc = e >= 2 ? [12, 8, 5, 3, 0, -4] : [12, 8, 5, 3, 0];
@@ -8454,6 +8483,33 @@ function drawHudFooter(P, ox, fy, dir, scl, withPwr) {
     }
   }
 }
+function drawHullGauge(P, x, y, width, scl, soloLabel) {
+  if (!P || width < 70) return;
+  const e = R.era, ratio = clamp((P.maxHp > 0 ? P.hp / P.maxHp : 0), 0, 1);
+  const label = soloLabel ? NXT('cl.hull') : 'P' + P.id;
+  const value = Math.round(ratio * 100) + '%';
+  const labelW = hudW(label, scl), valueW = hudW(value, scl);
+  const left = x + labelW + 8, right = x + width - valueW - 8;
+  const barW = Math.max(18, right - left), barH = 6, barY = y - 2.5;
+  const green = e === 0 ? TH.livery.gb[3] : TH.shield;
+  const amber = e === 0 ? TH.livery.gb[2] : TH.gold;
+  const red = e === 0 ? TH.livery.gb[1] : TH.danger;
+  const fill = ratio > 0.55 ? green : ratio > 0.28 ? amber : red;
+  const labelY = e >= 3 ? y + 1 : y - 3.5 * scl;
+  hudText(ctx, label, x, labelY, ratio > 0.28 ? (e === 0 ? TH.white : '#eaf4ff') : red, scl, { glow: e >= 2 && ratio <= 0.28 ? red : null });
+  hudText(ctx, value, x + width, labelY, fill, scl, { align: 'right', glow: e >= 2 && ratio <= 0.28 ? red : null });
+  ctx.fillStyle = e === 0 ? TH.bg2 : 'rgba(255,255,255,.12)';
+  ctx.fillRect(left, barY, barW, barH);
+  ctx.strokeStyle = e === 0 ? TH.livery.gb[2] : 'rgba(220,240,255,.45)';
+  ctx.lineWidth = e === 0 ? 1.5 : 1; ctx.strokeRect(left + 0.5, barY + 0.5, barW - 1, barH - 1);
+  const gap = 2, cells = Math.max(6, Math.min(16, Math.floor(barW / 12)));
+  const cellW = (barW - gap * (cells - 1) - 4) / cells, innerX = left + 2, innerY = barY + 2, innerH = barH - 4;
+  ctx.fillStyle = fill;
+  for (let i = 0; i < cells; i++) {
+    const amount = clamp(ratio * cells - i, 0, 1);
+    if (amount > 0) ctx.fillRect(innerX + i * (cellW + gap), innerY, Math.max(1, cellW * amount), innerH);
+  }
+}
 function drawHUD() {
   const e = R.era, P = G.player, st = G.stats, x0 = PF.x, y0 = PF.y, w = PF.w, h = PF.h;
   const acc = TH.acc, white = e === 0 ? TH.white : '#ffffff';
@@ -8462,7 +8518,7 @@ function drawHUD() {
   if (!st) return;
   ctx.save();
   /* bandeau supérieur */
-  const barH = e === 0 ? 26 : e === 3 ? 34 : 28;
+  const barH = e === 0 ? 42 : e === 3 ? 44 : 42;
   ctx.globalAlpha = e === 0 ? 1 : 0.62;
   ctx.fillStyle = e === 0 ? TH.bg : 'rgba(2,6,14,.72)';
   ctx.fillRect(x0, y0, w, barH);
@@ -8488,6 +8544,14 @@ function drawHUD() {
   }
   hudText(ctx, 'CR ' + fmt(NET.role === 'guest' ? (HUDNET.credits || 0) : (G.credits + S.credits)), twoP ? x0 + w / 2 : x0 + w - 8, y0 + 6, TH.gold, scl,
     { align: twoP ? 'center' : 'right', glow: TH.gold });
+
+  /* coque toujours lisible, y compris sur mobile où le pied du HUD est masqué */
+  const hullY = y0 + barH - 9;
+  if (twoP) {
+    const half = w / 2;
+    drawHullGauge(G.players[0], x0 + 8, hullY, half - 16, scl, false);
+    drawHullGauge(P2p, x0 + half + 8, hullY, half - 16, scl, false);
+  } else drawHullGauge(P || G.players[0], x0 + 8, hullY, w - 16, scl, true);
 
   /* pied de HUD : vies, bombes, puissance */
   const fy = y0 + h - (e === 0 ? 22 : 26) - (document.body.classList.contains('touch') ? 64 : 0);
@@ -11636,6 +11700,34 @@ function drawPetals() {
 }
 
 /* ------------------------------- écran de fin de secteur ------------------- */
+let clearBonusFrame = 0;
+function animateClearBonus(amount) {
+  const count = document.getElementById('clearBonusCount');
+  const fill = document.getElementById('clearBonusFill');
+  const track = document.getElementById('clearBonusTrack');
+  const status = document.getElementById('clearBonusStatus');
+  if (!count || !fill || !track || !status) return;
+  if (clearBonusFrame) cancelAnimationFrame(clearBonusFrame);
+  amount = Math.max(0, amount | 0);
+  count.textContent = '0'; fill.style.transform = 'scaleX(0)';
+  status.textContent = NXT('cl.calculating');
+  track.setAttribute('aria-label', NXT('cl.bonus'));
+  track.setAttribute('aria-valuemax', String(Math.max(1, amount)));
+  const finish = () => {
+    count.textContent = fmt(amount); fill.style.transform = 'scaleX(1)';
+    track.setAttribute('aria-valuenow', String(amount)); status.textContent = NXT('cl.credited');
+  };
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { finish(); return; }
+  const start = performance.now(), duration = 1450;
+  const step = now => {
+    const t = Math.min(1, (now - start) / duration), p = 1 - Math.pow(1 - t, 3);
+    count.textContent = fmt(Math.round(amount * p)); fill.style.transform = 'scaleX(' + p + ')';
+    track.setAttribute('aria-valuenow', String(Math.round(amount * p)));
+    if (t < 1) clearBonusFrame = requestAnimationFrame(step);
+    else { clearBonusFrame = 0; finish(); }
+  };
+  clearBonusFrame = requestAnimationFrame(step);
+}
 function showClearScreen() {
   bankRun();                                  /* les crédits gagnés sont versés */
   Audio2.stopMusic();
@@ -11645,9 +11737,12 @@ function showClearScreen() {
   if (G.daily) dailyBank();
   if (!G.netOnline) checkUnlocks();          /* en ligne, seul l'hôte archive */
   if (G.netOnline) { $('#clearSub').textContent = 'SECTEUR ' + G.level + ' — ' + ERAS[G.eraIdx].tag; }
-  Audio2.sfx(improved ? 'levelup' : 'ui');
+  Audio2.sfx('reward');
   if (improved) { speak('Médaille ' + MEDALS[med.idx].label + '.'); }
   $('#clearSub').textContent = 'SECTEUR ' + G.level + ' — ' + ERAS[G.eraIdx].tag;
+  $('#clearRewardTitle').textContent = NXT('cl.reward');
+  $('#clearBonusLabel').textContent = NXT('cl.bonus');
+  $('#clearBonusStatus').textContent = NXT('cl.calculating');
   const nextEra = eraOfLevel(Math.min(G.level + 1, MAX_LEVEL));
   const copy = MEDAL_COPY[LANG] || MEDAL_COPY.fr;
   const critRows = med.crit.map(c => `<div class="opt"><label>${c.ok ? '✔' : '✘'} ${c.k}</label><b style="color:${c.ok ? '#4dff9e' : '#7c8798'}">${c.t}</b></div>`).join('');
@@ -11662,6 +11757,7 @@ function showClearScreen() {
     <div class="opt"><label>Crédits disponibles</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>`;
   showScreen('clear');
   refreshUI();
+  animateClearBonus(G.lastBonus || 0);
 }
 
 /* ---------------------------------- entrées -------------------------------- */
@@ -15376,6 +15472,11 @@ function NXT(k) { const v = NX[k]; return v ? L(v[0]) : k; }
 Object.assign(NX, {
   'nw.wait':  ['EN ATTENTE DE L’HÔTE', 'WAITING FOR THE HOST', 'ESPERANDO AL ANFITRIÓN', 'À ESPERA DO ANFITRIÃO', 'ホストを待っています'],
   'nw.clear': ['SECTEUR NEUTRALISÉ', 'SECTOR NEUTRALISED', 'SECTOR NEUTRALIZADO', 'SETOR NEUTRALIZADO', 'セクター制圧'],
+  'cl.hull': ['COQUE', 'HULL', 'CASCO', 'CASCO', '機体'],
+  'cl.reward': ['RÉCOMPENSE VALIDÉE', 'REWARD CONFIRMED', 'RECOMPENSA CONFIRMADA', 'RECOMPENSA CONFIRMADA', '報酬確定'],
+  'cl.bonus': ['BONUS DE SECTEUR', 'SECTOR BONUS', 'BONIFICACIÓN DE SECTOR', 'BÓNUS DO SETOR', 'セクターボーナス'],
+  'cl.calculating': ['VERSEMENT DU BONUS…', 'BONUS TRANSFER IN PROGRESS…', 'TRANSFIRIENDO BONIFICACIÓN…', 'A TRANSFERIR O BÓNUS…', 'ボーナス送金中…'],
+  'cl.credited': ['BONUS AJOUTÉ AU COMPTE', 'BONUS ADDED TO ACCOUNT', 'BONIFICACIÓN AÑADIDA A LA CUENTA', 'BÓNUS ADICIONADO À CONTA', 'ボーナスを残高に追加'],
   'nw.launch':['DÉCOLLAGE IMMINENT', 'LAUNCH IMMINENT', 'DESPEGUE INMINENTE', 'DESCOLAGEM IMINENTE', 'まもなく出撃'],
   'nw.pause': ['PAUSE', 'PAUSED', 'PAUSA', 'PAUSA', 'ポーズ'],
   'nw.sector':['Secteur #', 'Sector #', 'Sector #', 'Setor #', 'セクター #'],
