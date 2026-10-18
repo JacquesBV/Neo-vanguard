@@ -20731,7 +20731,7 @@ window.addEventListener('resize', () => { BZ.geo = null; });
    un profil fixe, aucune baisse de résolution mémorisée, sauvegarde regroupée,
    cadence régulière qui suit l'écran.
    ========================================================================= */
-const NVP = { next: 0, bgT: 0 };
+const NVP = { next: 0, bgT: 0, idle: 0 };
 {
   const st = document.createElement('style');
   st.textContent = '@media (pointer:fine){' +
@@ -20787,24 +20787,23 @@ function nvAutoOK() {
   };
 }
 
-/* derrière un menu voilé, l'écran n'a pas besoin de tourner à 120 i/s */
+/* Menus (écran-titre, options, boutique…) : le jeu ne tourne PLUS derrière.
+   Une seule image est rendue à l'ouverture (et après un redimensionnement ou un
+   changement de moteur), puis tout reste figé : zéro simulation, zéro rendu. */
+function nvMenuFrozen() {
+  return G.state === 'title' && !sceneDirty && document.body.classList.contains('ui');
+}
 {
-  const _render = render;
-  render = function (dt) {
-    if (G.state === 'title' && !sceneDirty && document.querySelector('.screen.dim.on')) {
-      const n = performance.now();
-      if (n - NVP.bgT < 66) return;
-      NVP.bgT = n;
-    }
-    return _render.apply(this, arguments);
-  };
+  const _rv0 = resizeView, _ga = gpuApply;
+  resizeView = function () { sceneDirty = true; return _rv0.apply(this, arguments); };
+  gpuApply = function () { sceneDirty = true; return _ga.apply(this, arguments); };
 }
 
 /* boucle principale : cadence régulière, calée sur le rafraîchissement de l'écran.
    Même corps que l'original ; seul le limiteur d'images change. */
 frame = function (now) {
   const o = S.opts.frameRate;
-  const capFPS = o === 'auto' ? (IS_TOUCH ? 60 : 144) : clamp(Number(o) || 60, 30, 144);
+  const capFPS = nvCap();
   const iv = 1000 / capFPS;
   if (now < NVP.next - 1.8) { requestAnimationFrame(frame); return; }
   let raw = (now - lastT) / 1000;
@@ -20816,6 +20815,14 @@ frame = function (now) {
   if (FX.hitstop > 0) { FX.hitstop -= raw; dt *= 0.04; }
   if (FX.slowT > 0) { FX.slowT -= raw; dt *= FX.slow; } else FX.slow = 1;
   if (cheatOn('slow') && (G.state === 'play' || G.state === 'intro')) dt *= 0.6;   /* cheat TEMPS RALENTI */
+  if (nvMenuFrozen()) {                      /* menu ouvert : on ne simule ni ne dessine rien */
+    NVP.idle = (NVP.idle || 0) + raw;
+    if (NVP.idle > 0.25) { NVP.idle = 0; try { update(0.05); } catch (err) {} }
+    try { Audio2.musicTick(); } catch (err) {}
+    requestAnimationFrame(frame);
+    return;
+  }
+  NVP.idle = 0;
   autoQuality(raw);
   gpuAutoQuality(raw);
   applyNVGraphics();
@@ -20843,6 +20850,588 @@ frame = function (now) {
 }
 
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ca0cb1eada0f1e',t:'MTc5MjM1Mjc5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
+/* ---- 99_ship0.js ---- */
+
+/* =========================================================================
+   VAISSEAU DU JOUEUR — ÈRE GAME BOY
+   Redessiné à la main, pixel par pixel, d'après le chasseur de l'écran
+   titre : nez long et effilé, bande rouge en chevron qui enserre la verrière,
+   cockpit cerclé, grandes ailes en flèche, deux canons jumelés sous chaque
+   aile, nacelles avec prises d'air, tuyère centrale.
+   Seize pixels de large sur vingt-deux de haut, quatre teintes de la livrée :
+     0 = contour / verrière sombre     1 = bande rouge, prises d'air
+     2 = coque dans l'ombre            3 = coque éclairée
+   Chaque chaîne est la moitié gauche d'une rangée (miroir à droite).
+   ========================================================================= */
+(function () {
+  'use strict';
+  if (typeof bakeSprite !== 'function' || typeof spriteBox !== 'function') return;
+  var HALF = [
+    '.......0',
+    '......03',
+    '......03',
+    '......03',
+    '.....023',
+    '.....023',
+    '.....013',
+    '...01100',
+    '...03101',
+    '..203103',
+    '2.003101',
+    '2.003101',
+    '2.003100',
+    '2.003133',
+    '2.023133',
+    '.0223133',
+    '02223133',
+    '02222233',
+    '02222233',
+    '.0222033',
+    '...00103',
+    '.....0.0'
+  ];
+  var SW = 16, SH = HALF.length;
+  var SHIP0_BOX = { w: SW * 4, h: SH * 4 };             /* 4 pixels logiques par pixel d'art */
+  var CACHE = {};
+  function isShip0(id) { return id === 'falcon' && typeof R !== 'undefined' && R.era === 0; }
+
+  var _box = spriteBox;
+  spriteBox = function (id) { return isShip0(id) ? SHIP0_BOX : _box(id); };
+
+  var _bake = bakeSprite;
+  bakeSprite = function (id, era, kind, hue, sat, light, frame) {
+    if (id !== 'falcon' || era !== 0 || kind !== 'player') return _bake(id, era, kind, hue, sat, light, frame);
+    var gb = (typeof TH !== 'undefined' && TH.livery && TH.livery.gb) || ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'];
+    var flashCol = (typeof hitFxColor === 'function') ? hitFxColor(0) : gb[3];
+    var key = gb.join('|') + '|' + flashCol;
+    var rec = CACHE[key];
+    if (rec) return rec;
+    var c = document.createElement('canvas'); c.width = SW; c.height = SH;
+    var g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+    for (var y = 0; y < SH; y++) {
+      var half = HALF[y], row = half + half.split('').reverse().join('');
+      for (var x = 0; x < SW; x++) {
+        var ch = row.charAt(x); if (ch === '.') continue;
+        g.fillStyle = gb[ch.charCodeAt(0) - 48]; g.fillRect(x, y, 1, 1);
+      }
+    }
+    var cf = document.createElement('canvas'); cf.width = SW; cf.height = SH;
+    var gf = cf.getContext('2d'); gf.imageSmoothingEnabled = false;
+    gf.drawImage(c, 0, 0); gf.globalCompositeOperation = 'source-in';
+    gf.fillStyle = flashCol; gf.fillRect(0, 0, SW, SH);
+    rec = CACHE[key] = { c: c, cf: cf, W: SW, H: SH };
+    return rec;
+  };
+  window.__nvShip0 = { HALF: HALF, SW: SW, SH: SH };
+})();
+
+
+/* ---- 99_options_gfx.js ---- */
+/* =============================================================================
+   OPTIONS GRAPHIQUES REFAITES · PLEIN ÉCRAN ON/OFF · VOIX ROBOT SUR PC
+   -----------------------------------------------------------------------------
+   Onglet « Graphismes » (commun) : profil de qualité, plein écran, éclairage,
+   particules, secousses, FPS, lissage, CRT.
+   Onglet « Options PC »  : résolution, cadence jusqu'à 240 i/s, moteur de
+   rendu, cadre arcade, halo / aberration / grain / vignette / flou de
+   mouvement réglables au pourcent, filtrage haute qualité, pause auto.
+   Onglet « Options mobile » : économie de batterie, résolution, cadence,
+   moteur, vibrations, écran toujours allumé, boutons tactiles (taille,
+   opacité, main gauche).
+   L'ancien « Aperçu graphique » est supprimé : il ne changeait que le décor
+   des menus et laissait croire qu'il réglait la qualité du jeu.
+   ========================================================================= */
+(function () {
+  'use strict';
+  const T = (fr, en) => (typeof LANG !== 'undefined' && LANG === 'fr') ? fr : en;
+  const DEF = {
+    fxBloom: 100, fxCA: 100, fxGrain: 100, fxVig: 100, fxMB: 100, fxParts: 100, fxLight: 1, fxHQ: 1,
+    blurPause: 1, mobRes: 'auto', batt: 0, haptic: 1, awake: 1, tSize: 'm', tAlpha: 100, lefty: 0, voiceRobot: 60
+  };
+  const nvv = k => { const v = S.opts[k]; return v === undefined ? DEF[k] : v; };
+  window.nvv = nvv;
+  const battOn = () => IS_TOUCH && !!nvv('batt');
+
+  /* l'ancien aperçu graphique ne doit plus forcer une génération dans les menus */
+  try { S.opts.preview = 0; } catch (e) {}
+
+  /* ---------------------------------------------------------------- cadence */
+  window.nvCap = function () {
+    const o = S.opts.frameRate;
+    let cap = o === 'auto' ? (IS_TOUCH ? 60 : 144) : clamp(Number(o) || 60, 30, 240);
+    if (battOn()) cap = Math.min(cap, 30);
+    return cap;
+  };
+
+  /* ------------------------------------------------------ particules, lumière */
+  const partMul = () => clamp(nvv('fxParts') / 100, 0.1, 1) * (battOn() ? 0.55 : 1);
+  {
+    const _sp = spawnPart;
+    spawnPart = function (o) {
+      const m = partMul();
+      if (m < 0.995 && Math.random() > m) return null;
+      return _sp.apply(this, arguments);
+    };
+    const _al = addLight;
+    addLight = function () { if (!nvv('fxLight') || battOn()) return; return _al.apply(this, arguments); };
+  }
+
+  /* ----------------------------------------------- effets du moteur GPU (PC) */
+  {
+    const _gp = gpuPresent;
+    gpuPresent = function () {
+      try {
+        const s = GPU.tex && GPU.tex.source;
+        if (s && !s.__nvFx) {
+          const u0 = s.update;
+          s.update = function () {
+            try {
+              const u = GPU.u.uniforms, fx = u.uFx;
+              if (fx) { fx[0] *= nvv('fxCA') / 100; fx[2] *= nvv('fxVig') / 100; fx[3] *= nvv('fxGrain') / 100; }
+              u.uMB = (u.uMB || 0) * nvv('fxMB') / 100;
+              const b = nvv('fxBloom') / 100;
+              GPU.glow.alpha *= b; if (b < 0.01) GPU.glow.visible = false;
+            } catch (e) {}
+            return u0.apply(this, arguments);
+          };
+          s.__nvFx = true;
+        }
+      } catch (e) {}
+      return _gp.apply(this, arguments);
+    };
+  }
+
+  /* ------------------------------ résolution mobile, filtrage, cadence fixe */
+  {
+    const _rv = resizeView;
+    resizeView = function () {
+      if (IS_TOUCH) { const m = nvv('mobRes'); if (m !== 'auto') PERF.tier = clamp(parseInt(m, 10) || 0, 0, DPR_TIERS.length - 1); }
+      const r = _rv.apply(this, arguments);
+      try { if (!IS_TOUCH) ctx.imageSmoothingQuality = (nvv('fxHQ') && S.opts.graphics !== 'economy') ? 'high' : 'low'; } catch (e) {}
+      return r;
+    };
+    const _pa = perfAdapt;
+    perfAdapt = function () { if (IS_TOUCH && nvv('mobRes') !== 'auto') return; return _pa.apply(this, arguments); };
+  }
+
+  /* --------------------------------------------------------------- plein écran */
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+  const fsOK = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+  function fsSync() {
+    const on = !!fsEl();
+    document.querySelectorAll('[data-nvfs]').forEach(b => {
+      b.classList.toggle('on', on); b.textContent = on ? 'ON' : 'OFF'; b.setAttribute('aria-pressed', String(on));
+    });
+    document.querySelectorAll('.nvFsState').forEach(e => { e.textContent = on ? 'ON' : 'OFF'; e.style.color = on ? '#7dff9b' : '#9fb0cc'; });
+  }
+  toggleFullscreen = function () {
+    const el = document.documentElement;
+    if (!fsEl()) {
+      const rq = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (!rq) { toast(T('Plein écran indisponible sur cet appareil', 'Fullscreen is not available on this device'), true); return; }
+      try { const p = rq.call(el); if (p && p.catch) p.catch(() => { fsSync(); }); } catch (e) { fsSync(); }
+    } else {
+      const ex = document.exitFullscreen || document.webkitExitFullscreen;
+      if (ex) try { const p = ex.call(document); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+    }
+  };
+  document.addEventListener('fullscreenchange', fsSync);
+  document.addEventListener('webkitfullscreenchange', fsSync);
+  /* la tuile du menu titre affiche aussi l'état */
+  try {
+    const tile = document.querySelector('[data-act="fullscreen"] b');
+    if (tile && !tile.querySelector('.nvFsState')) {
+      const em = document.createElement('em'); em.className = 'nvFsState';
+      em.style.cssText = 'font-style:normal;margin-left:8px;font-size:.78em;letter-spacing:.12em';
+      tile.appendChild(em);
+    }
+  } catch (e) {}
+  fsSync();
+
+  /* -------------------------------------------------- tactile : boutons, haptique */
+  {
+    const st = document.createElement('style');
+    st.textContent =
+      'body.nvT-s .tbtn{font-size:11px;padding:8px 11px}' +
+      'body.nvT-l .tbtn{font-size:15px;padding:16px 21px}body.nvT-l .tbtn.prev{padding:16px 17px}' +
+      '#touchui .tbtn{opacity:var(--nvTa,1)}' +
+      'body.nvLeft #touchui{flex-direction:row-reverse;padding:0 12px 14px 46px}' +
+      'body.nvLeft #tpause{right:auto;left:max(6px,env(safe-area-inset-left))}' +
+      '#optBody .opt.nvOff{opacity:.45}' +
+      '#optBody .opt-sub{padding:10px 2px 2px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7fe3ff;border-top:1px solid rgba(127,227,255,.18);margin-top:6px;grid-column:1/-1}';
+    document.head.appendChild(st);
+  }
+  function touchApply() {
+    const b = document.body; if (!b) return;
+    b.classList.toggle('nvT-s', nvv('tSize') === 's');
+    b.classList.toggle('nvT-l', nvv('tSize') === 'l');
+    b.classList.toggle('nvLeft', !!nvv('lefty'));
+    b.style.setProperty('--nvTa', String(clamp(nvv('tAlpha'), 20, 100) / 100));
+  }
+  touchApply();
+  let lastVib = 0;
+  const vib = p => { try { if (IS_TOUCH && navigator.vibrate && nvv('haptic')) navigator.vibrate(p); } catch (e) {} };
+  if (typeof FX !== 'undefined' && FX.addShake) {
+    const _as = FX.addShake;
+    FX.addShake = function (n) {
+      const r = _as.apply(this, arguments);
+      if (IS_TOUCH && n >= 4 && G.state === 'play') { const t = performance.now(); if (t - lastVib > 150) { lastVib = t; vib(Math.min(70, Math.round(10 + n * 4))); } }
+      return r;
+    };
+  }
+  { const _ub = useBomb; useBomb = function () { const r = _ub.apply(this, arguments); vib([25, 30, 45]); return r; }; }
+  /* écran toujours allumé en partie (tactile) */
+  {
+    let wl = null, pending = false;
+    setInterval(() => {
+      if (!IS_TOUCH || !('wakeLock' in navigator)) return;
+      const want = !!nvv('awake') && !document.hidden && ['play', 'intro', 'pause', 'warp', 'story'].includes(G.state);
+      if (want && !wl && !pending) {
+        pending = true;
+        navigator.wakeLock.request('screen').then(l => { wl = l; l.addEventListener('release', () => { wl = null; }); }).catch(() => {}).then(() => { pending = false; });
+      } else if (!want && wl) { try { wl.release(); } catch (e) {} wl = null; }
+    }, 3000);
+  }
+  /* PC : pause automatique quand la fenêtre perd le focus */
+  addEventListener('blur', () => { try { if (!IS_TOUCH && nvv('blurPause') && G.state === 'play') pauseGame(); } catch (e) {} });
+
+  /* ============================================================ OPTIONS (UI) */
+  const PROFILE_INFO = {
+    auto: () => T('Le jeu ajuste lui-même la qualité et la résolution pendant la partie.', 'The game tunes quality and resolution by itself while you play.'),
+    economy: () => T('Fluidité maximale : résolution plafonnée à 0,8×, halo et aberration réduits.', 'Maximum smoothness: resolution capped at 0.8×, reduced glow and aberration.'),
+    balanced: () => T('Bon compromis : résolution plafonnée à 1,25×, effets complets.', 'Good balance: resolution capped at 1.25×, full effects.'),
+    ultra: () => T('Qualité maximale : résolution jusqu’à 2×, tous les effets.', 'Top quality: resolution up to 2×, every effect.')
+  };
+  const RESET_KEYS = ['fxBloom', 'fxCA', 'fxGrain', 'fxVig', 'fxMB', 'fxParts', 'fxLight', 'fxHQ'];
+
+  function mkSection(body, key, title, desc) {
+    const s = document.createElement('section'); s.className = 'opt-section'; s.dataset.section = key;
+    s.innerHTML = '<div class="opt-section-head"><h2 class="opt-section-title"></h2><p class="opt-section-desc"></p></div><div class="opt-section-body"></div>';
+    s.querySelector('.opt-section-title').textContent = title;
+    s.querySelector('.opt-section-desc').textContent = desc;
+    body.appendChild(s); return s.querySelector('.opt-section-body');
+  }
+  function mkRow(parent, label, hint) {
+    const d = document.createElement('div'); d.className = 'opt';
+    const w = document.createElement('div'), lab = document.createElement('label'); lab.textContent = label;
+    const h = document.createElement('span'); h.className = 'hint'; h.textContent = hint || ''; lab.appendChild(h); w.appendChild(lab);
+    const ctl = document.createElement('div'); ctl.className = 'ctl';
+    d.append(w, ctl); parent.appendChild(d);
+    return { d, ctl, hint: h };
+  }
+  function mkSeg(r, items, cur, pick) {
+    const seg = document.createElement('div'); seg.className = 'seg'; r.ctl.appendChild(seg);
+    const bs = items.map(([v, lab]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = lab; b.className = String(cur) === String(v) ? 'sel' : '';
+      b.onclick = () => { bs.forEach(x => x.className = ''); b.className = 'sel'; try { Audio2.sfx('ui'); } catch (e) {} pick(v, r); saveGame(); };
+      seg.appendChild(b); return b;
+    });
+    return seg;
+  }
+  function mkToggle(r, key, after, getv, setv) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'sw';
+    const get = getv || (() => !!nvv(key));
+    const paint = () => { const on = !!get(); b.classList.toggle('on', on); b.textContent = on ? 'ON' : 'OFF'; b.setAttribute('aria-pressed', String(on)); };
+    b.onclick = () => { if (setv) setv(!get()); else S.opts[key] = get() ? 0 : 1; paint(); try { Audio2.sfx('ui'); } catch (e) {} saveGame(); if (after) after(); };
+    paint(); r.ctl.appendChild(b); return b;
+  }
+  function mkSlider(r, key, min, max, step, fmt, after, live) {
+    const inp = document.createElement('input'); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = live ? live.get() : nvv(key);
+    const out = document.createElement('span'); out.style.cssText = 'min-width:48px;text-align:right;color:#ffe066';
+    const f = fmt || (v => v + '%'); out.textContent = f(+inp.value);
+    inp.oninput = () => { const v = +inp.value; if (live) live.set(v); else S.opts[key] = v; out.textContent = f(v); saveGame(); if (after) after(v); };
+    r.ctl.append(inp, out); return inp;
+  }
+  function mkSelect(r, key, entries, change) {
+    const sel = document.createElement('select'); sel.className = 'sw'; sel.style.maxWidth = 'min(100%, 290px)';
+    entries.forEach(([v, name]) => { const op = document.createElement('option'); op.value = v; op.textContent = name; sel.appendChild(op); });
+    { const cur = S.opts[key]; sel.value = String(cur === undefined ? (DEF[key] === undefined ? 'auto' : DEF[key]) : cur); }
+    sel.onchange = () => { S.opts[key] = sel.value; saveGame(); change(sel.value); try { Audio2.sfx('ui'); } catch (e) {} };
+    r.ctl.appendChild(sel); return sel;
+  }
+  const applyRes = () => { try { sideRes = resizeView().sideRes; syncTitleZone(); } catch (e) {} };
+  function gpuState() {
+    const o = S.opts;
+    return o.gpu === '2d' ? T('Rendu 2D imposé', '2D rendering forced')
+      : (GPU.ready ? 'GPU · ' + T('qualité ', 'quality ') + (GPU.q | 0) + '/2' + (GPU.fps > 0 ? ' · ' + GPU.fps + ' i/s' : '')
+        : (GPU.err ? T('GPU indisponible — ', 'GPU unavailable — ') + GPU.err
+          : (IS_TOUCH && (o.gpu === undefined || o.gpu === 'auto') ? T('Rendu 2D (auto sur téléphone)', '2D rendering (auto on phones)') : T('GPU en cours d’initialisation…', 'GPU starting…'))));
+  }
+  function engineRow(parent) {
+    const r = mkRow(parent, T('Moteur de rendu', 'Render engine'),
+      IS_TOUCH ? T('AUTO = 2D sur téléphone (plus sûr) · GPU = effets avancés, plus gourmand', 'AUTO = 2D on phones (safer) · GPU = advanced effects, heavier')
+        : T('WebGL 2 (PixiJS) : halo, aberration, onde de choc sur le GPU', 'WebGL 2 (PixiJS): glow, aberration, shockwave on the GPU'));
+    const st = document.createElement('span'); st.className = 'hint'; st.style.color = '#7fe3ff'; st.textContent = gpuState(); r.d.querySelector('label').appendChild(st);
+    mkSeg(r, [['auto', 'AUTO'], ['gpu', 'GPU'], ['2d', '2D']], S.opts.gpu === undefined ? 'auto' : S.opts.gpu, v => {
+      S.opts.gpu = v; gpuApply(); applyRes();
+      toast(v === '2d' ? T('Moteur : canevas 2D', 'Engine: 2D canvas') : (GPU.ready ? T('Moteur : WebGL 2 (GPU)', 'Engine: WebGL 2 (GPU)') : T('Moteur : GPU indisponible', 'Engine: GPU unavailable')), true);
+      st.textContent = gpuState();
+      document.querySelectorAll('#optBody .opt[data-gpufx]').forEach(e => e.classList.toggle('nvOff', v === '2d'));
+    });
+    return r;
+  }
+
+  const _prev = buildOptions;
+  buildOptions = function () {
+    _prev.apply(this, arguments);
+    const body = document.getElementById('optBody'); if (!body) return;
+    const o = S.opts;
+    if (o.preview) o.preview = 0;
+    /* on repart d'une page propre pour les deux onglets d'affichage */
+    ['display', 'displayAdvanced'].forEach(k => { const s = body.querySelector('[data-section="' + k + '"]'); if (s) s.remove(); });
+    const oldTabs = body.querySelector('#optTabs');
+    const names = {};
+    if (oldTabs) oldTabs.querySelectorAll('button').forEach(b => { names[b.dataset.tab] = b.textContent; });
+
+    /* ---------------------------------------------------------- Graphismes */
+    const g = mkSection(body, 'display', T('Graphismes', 'Graphics'), T('Qualité et effets communs à toutes les machines', 'Quality and effects shared by every device'));
+    {
+      const r = mkRow(g, T('Profil de qualité', 'Quality profile'), PROFILE_INFO[o.graphics || 'auto']());
+      mkSeg(r, [['auto', 'AUTO'], ['economy', T('PERFORMANCE', 'PERFORMANCE')], ['balanced', T('ÉQUILIBRÉ', 'BALANCED')], ['ultra', 'ULTRA']], o.graphics || 'auto', (v, rr) => {
+        o.graphics = v; applyNVGraphics(); applyRes(); rr.hint.textContent = PROFILE_INFO[v]();
+        toast(T('Profil : ', 'Profile: ') + v.toUpperCase(), true);
+      });
+    }
+    {
+      const r = mkRow(g, T('Plein écran', 'Fullscreen'), T('F pour basculer à tout moment', 'Press F to toggle at any time'));
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'sw'; b.dataset.nvfs = '1';
+      if (!fsOK) { b.textContent = T('INDISPONIBLE', 'N/A'); b.disabled = true; b.style.opacity = '.5'; }
+      else b.onclick = () => { try { Audio2.sfx('ui'); } catch (e) {} toggleFullscreen(); };
+      r.ctl.appendChild(b); fsSync();
+    }
+    mkToggle(mkRow(g, T('Éclairage dynamique', 'Dynamic lighting'), T('Les explosions éclairent le décor (secteurs 3 et +) · désactiver = plus fluide', 'Explosions light up the scenery (sectors 3+) · off = smoother')), 'fxLight');
+    mkSlider(mkRow(g, T('Densité des particules', 'Particle density'), T('Étincelles, débris, fumée · baisser aide les petites machines', 'Sparks, debris, smoke · lowering helps weak machines')), 'fxParts', 10, 100, 5);
+    mkSlider(mkRow(g, T('Secousses', 'Screen shake'), T('Intensité du screen-shake', 'Screen-shake strength')), 'shake', 0, 150, 5);
+    mkToggle(mkRow(g, T('Compteur FPS', 'FPS counter'), T('Affiche les performances et le nombre de particules', 'Shows performance and particle count')), 'fps');
+    mkToggle(mkRow(g, T('Lissage HD', 'HD smoothing'), T('Adoucit les pixels en secteur HD', 'Softens pixels in HD sectors')), 'smooth');
+    {
+      const r = mkRow(g, T('Scanlines CRT', 'CRT scanlines'), T('Lignes de balayage ; AUTO selon la génération graphique', 'Scan lines; AUTO follows the graphics generation'));
+      mkSeg(r, [['auto', 'AUTO'], ['on', 'ON'], ['off', 'OFF']], o.crt || 'auto', v => { o.crt = v; });
+    }
+    {
+      const r = mkRow(g, T('Réglages graphiques par défaut', 'Default graphics settings'), T('Remet profil, résolution, cadence et effets à zéro', 'Resets profile, resolution, frame rate and effects'));
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'sw'; b.textContent = T('↺ RÉINITIALISER', '↺ RESET');
+      b.onclick = () => {
+        RESET_KEYS.forEach(k => { delete o[k]; });
+        o.graphics = 'auto'; o.resolution = 'auto'; o.frameRate = 'auto'; o.mobRes = 'auto'; o.batt = 0; PERF.tier = 0;
+        applyNVGraphics(); applyRes(); saveGame(); try { Audio2.sfx('ui'); } catch (e) {}
+        toast(T('Réglages graphiques réinitialisés', 'Graphics settings reset'), true); buildOptions();
+      };
+      r.ctl.appendChild(b);
+    }
+
+    /* ------------------------------------------------------------- Options PC */
+    if (!IS_TOUCH) {
+      const p = mkSection(body, 'pc', T('Options PC', 'PC options'), T('Réglages poussés pour ordinateur : résolution, cadence, effets GPU', 'Advanced desktop settings: resolution, frame rate, GPU effects'));
+      mkSelect(mkRow(p, T('Résolution du rendu', 'Render resolution'), T('Résolution interne du jeu ; l’écran reste réglé par le système', 'Internal game resolution; the display itself is set by the system')), 'resolution', [
+        ['auto', T('Auto · adaptatif', 'Auto · adaptive')], ['720', '720p · ' + T('performance', 'performance')], ['900', '900p · ' + T('équilibrée', 'balanced')],
+        ['1080', '1080p · ' + T('nette', 'sharp')], ['1440', '1440p · ' + T('haute définition', 'high definition')], ['2160', '2160p · 4K']
+      ], () => { applyRes(); toast(T('Résolution interne : ', 'Internal resolution: ') + (o.resolution === 'auto' ? 'Auto' : o.resolution + 'p'), true); });
+      mkSelect(mkRow(p, T('Fréquence d’images', 'Frame rate'), T('Auto = jusqu’à 144 i/s, calé sur l’écran · 240 i/s pour les moniteurs rapides', 'Auto = up to 144 fps, locked to your display · 240 fps for fast monitors')), 'frameRate', [
+        ['auto', 'Auto'], ['30', '30 i/s'], ['60', '60 i/s'], ['75', '75 i/s'], ['90', '90 i/s'], ['120', '120 i/s'], ['144', '144 i/s'], ['165', '165 i/s'], ['240', '240 i/s']
+      ], () => toast(T('Fréquence cible : ', 'Target frame rate: ') + (o.frameRate === 'auto' ? 'Auto' : o.frameRate + ' i/s'), true));
+      engineRow(p);
+      const bz = body.querySelector('#bzOptRow');
+      if (bz) p.appendChild(bz);
+      const sub = document.createElement('div'); sub.className = 'opt-sub';
+      sub.textContent = T('Effets de post-traitement (moteur GPU)', 'Post-processing effects (GPU engine)'); p.appendChild(sub);
+      const fxRow = (key, label, hint, max) => {
+        const r = mkRow(p, label, hint); r.d.dataset.gpufx = '1'; r.d.classList.toggle('nvOff', o.gpu === '2d');
+        mkSlider(r, key, 0, max || 150, 5); return r;
+      };
+      fxRow('fxBloom', T('Halo lumineux (bloom)', 'Glow (bloom)'), T('0 % = coupé : une passe de flou en moins', '0% = off: one blur pass less'));
+      fxRow('fxCA', T('Aberration chromatique', 'Chromatic aberration'), T('Franges colorées sur les bords (secteurs 3 et +)', 'Colour fringes on the edges (sectors 3+)'));
+      fxRow('fxGrain', T('Grain de pellicule', 'Film grain'), T('Texture fine sur l’image', 'Fine texture over the picture'));
+      fxRow('fxVig', T('Vignettage', 'Vignette'), T('Assombrit les coins de l’écran', 'Darkens the screen corners'));
+      fxRow('fxMB', T('Flou de mouvement', 'Motion blur'), T('Traînée à grande vitesse (secteur HD)', 'Streaks at high speed (HD sector)'));
+      const sub2 = document.createElement('div'); sub2.className = 'opt-sub'; sub2.textContent = T('Confort', 'Comfort'); p.appendChild(sub2);
+      mkToggle(mkRow(p, T('Filtrage haute qualité', 'High-quality filtering'), T('Réduction nette de l’image vers l’écran · couper si le jeu rame', 'Sharper downscale to the screen · switch off if the game struggles')), 'fxHQ', applyRes);
+      mkToggle(mkRow(p, T('Pause automatique', 'Auto-pause'), T('Met la partie en pause quand la fenêtre perd le focus', 'Pauses the game when the window loses focus')), 'blurPause');
+    }
+
+    /* ---------------------------------------------------------- Options mobile */
+    if (IS_TOUCH) {
+      const m = mkSection(body, 'mobile', T('Options mobile', 'Mobile options'), T('Réglages dédiés au téléphone et à la tablette : batterie, fluidité, boutons tactiles', 'Phone and tablet settings: battery, smoothness, touch buttons'));
+      mkToggle(mkRow(m, T('Économie de batterie', 'Battery saver'), T('30 i/s, moitié moins de particules, pas d’éclairage dynamique : l’appareil chauffe moins', '30 fps, half the particles, no dynamic lighting: your device runs cooler')), 'batt', () => { applyRes(); });
+      mkSelect(mkRow(m, T('Résolution du rendu', 'Render resolution'), T('Plus bas = plus fluide et moins chaud · Auto s’adapte si ça ralentit', 'Lower = smoother and cooler · Auto adapts if it slows down')), 'mobRes', [
+        ['auto', T('Auto · adaptatif', 'Auto · adaptive')], ['0', T('Native · nette', 'Native · sharp')], ['1', T('Haute · 1,5×', 'High · 1.5×')],
+        ['2', T('Standard · 1,25×', 'Standard · 1.25×')], ['3', T('Économie · 1×', 'Saver · 1×')], ['4', T('Minimale · 0,8×', 'Minimal · 0.8×')]
+      ], v => { if (v === 'auto') PERF.tier = 0; applyRes(); toast(T('Résolution mobile : ', 'Mobile resolution: ') + v, true); });
+      mkSelect(mkRow(m, T('Fréquence d’images', 'Frame rate'), T('Auto = 60 i/s · 90 et 120 i/s pour les écrans rapides', 'Auto = 60 fps · 90 and 120 fps for fast screens')), 'frameRate', [
+        ['auto', 'Auto'], ['30', '30 i/s · ' + T('batterie', 'battery')], ['45', '45 i/s'], ['60', '60 i/s'], ['90', '90 i/s'], ['120', '120 i/s']
+      ], () => toast(T('Fréquence cible : ', 'Target frame rate: ') + (o.frameRate === 'auto' ? 'Auto' : o.frameRate + ' i/s'), true));
+      engineRow(m);
+      {
+        const ok = !!navigator.vibrate;
+        const r = mkRow(m, T('Vibrations', 'Haptics'), ok ? T('Retour haptique sur les gros impacts et les bombes', 'Haptic feedback on big hits and bombs') : T('Non pris en charge par ce navigateur', 'Not supported by this browser'));
+        const b = mkToggle(r, 'haptic', () => vib(30)); if (!ok) { b.disabled = true; b.style.opacity = '.5'; }
+      }
+      {
+        const ok = 'wakeLock' in navigator;
+        const r = mkRow(m, T('Écran toujours allumé', 'Keep screen awake'), ok ? T('Empêche la mise en veille pendant une partie', 'Stops the screen from sleeping during a run') : T('Non pris en charge par ce navigateur', 'Not supported by this browser'));
+        const b = mkToggle(r, 'awake'); if (!ok) { b.disabled = true; b.style.opacity = '.5'; }
+      }
+      const sub = document.createElement('div'); sub.className = 'opt-sub'; sub.textContent = T('Boutons tactiles', 'Touch buttons'); m.appendChild(sub);
+      mkSeg(mkRow(m, T('Taille des boutons', 'Button size'), T('Bombe et armes en bas de l’écran', 'Bomb and weapon buttons at the bottom')), [['s', T('PETITS', 'SMALL')], ['m', T('NORMAUX', 'NORMAL')], ['l', T('GRANDS', 'LARGE')]], nvv('tSize'), v => { S.opts.tSize = v; touchApply(); });
+      mkSlider(mkRow(m, T('Opacité des boutons', 'Button opacity'), T('Plus transparents, ils masquent moins l’action', 'More transparent, they hide less of the action')), 'tAlpha', 30, 100, 5, null, touchApply);
+      mkToggle(mkRow(m, T('Mode gaucher', 'Left-handed mode'), T('Inverse les boutons et déplace la pause à gauche', 'Swaps the buttons and moves pause to the left')), 'lefty', touchApply);
+    }
+
+    /* ------------------------------------------------------------ onglets */
+    if (oldTabs) oldTabs.remove();
+    const tabs = document.createElement('nav'); tabs.id = 'optTabs'; tabs.setAttribute('aria-label', T('Catégories des options', 'Option categories')); tabs.setAttribute('role', 'tablist');
+    body.insertBefore(tabs, body.firstChild);
+    const sections = [...body.querySelectorAll('.opt-section')];
+    const activate = key => {
+      S.opts.optTab = key;
+      tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === key)));
+      sections.forEach(sec => { sec.hidden = sec.dataset.section !== key; sec.setAttribute('aria-hidden', String(sec.hidden)); });
+    };
+    const defs = [['display', T('Graphismes', 'Graphics')],
+      [IS_TOUCH ? 'mobile' : 'pc', IS_TOUCH ? T('Options mobile', 'Mobile options') : T('Options PC', 'PC options')],
+      ['audio', names.audio || 'Audio'], ['interface', names.interface || 'Interface'], ['gameplay', names.gameplay || 'Gameplay'],
+      ['controls', names.controls || 'Commandes'], ['save', names.save || 'Sauvegarde']];
+    defs.forEach(([key, title]) => {
+      const panel = sections.find(sec => sec.dataset.section === key); if (!panel) return;
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.tab = key; b.textContent = title; b.setAttribute('role', 'tab'); b.setAttribute('aria-controls', 'opt-panel-' + key);
+      panel.id = 'opt-panel-' + key; panel.setAttribute('role', 'tabpanel');
+      b.onclick = () => { activate(key); saveGame(); try { Audio2.sfx('ui'); } catch (e) {} };
+      tabs.appendChild(b);
+    });
+    activate(tabs.querySelector('[data-tab="' + (o.optTab || 'display') + '"]') ? o.optTab : 'display');
+    fsSync();
+  };
+
+  /* ============================================================ VOIX DU DROÏDE
+     Pourquoi l'effet robot disparaissait sur PC :
+       · le choix automatique préférait « Google français », une voix EN LIGNE
+         qui ignore la hauteur et le débit (donc plus aucune voix grave) ;
+       · la liste de voix pouvait rester vide en cache ;
+       · le bourdonnement de fond était presque inaudible.
+     Correctifs : voix locales d'abord (elles obéissent à la hauteur), liste
+     jamais mise en cache vide, relance périodique de la synthèse (Chrome la
+     coupe vers 15 s) et surtout une vraie couche « robot » synthétisée par le
+     jeu (porteuse + formants + trémolo, battue sur le rythme des mots), qui
+     marche avec N'IMPORTE QUELLE voix, locale ou en ligne.                    */
+  if (DROID.ok) {
+    const ss = window.speechSynthesis;
+    const ROB = { n: null, timer: 0, lastB: 0, u0: 0 };
+    const MALE_PREF = /thomas|nicolas|paul|claude|henri|guy|daniel|george|jorge|diego|joaquim|ricardo|otoya|ichiro|male|homme/i;
+    function rate(v, wl, g) {
+      let s = 0;
+      if (v.localService) s += 100;
+      if (!v.localService && /google/i.test(v.name)) s -= 30;
+      if (/natural|neural|online/i.test(v.name)) s -= 20;
+      const vg = voGender(v);
+      if (vg === g) s += 30; else if (vg === 'unknown') s += 10;
+      if (g === 'male' && MALE_PREF.test(v.name)) s += 8;
+      if (/microsoft/i.test(v.name)) s += 4;
+      if (v.default) s += 2;
+      return s;
+    }
+    {
+      const _dv = droidVoice;
+      droidVoice = function (code) {
+        if (!DROID.ok) return null;
+        const all = ss.getVoices() || [];
+        if (!all.length) { DROID.voices = null; return _dv.call(this, code); }     /* jamais de liste vide en cache */
+        const wl = code.slice(0, 2).toLowerCase();
+        const mine = all.filter(v => v.lang.replace('_', '-').toLowerCase().startsWith(wl) && !voIsCanadianFr(v));
+        if (S.opts.voiceName) { const v = mine.find(x => x.name === S.opts.voiceName); if (v) return v; }
+        if (!mine.length) return null;
+        const g = S.opts.voiceGender || 'male';
+        let best = null, bs = -1e9;
+        for (const v of mine) { const s = rate(v, wl, g); if (s > bs) { bs = s; best = v; } }
+        return best;
+      };
+    }
+    /* la couche robot */
+    function robLevel() { return 0.085 * clamp(nvv('voiceRobot') / 100, 0, 1.5) * clamp((S.opts.voiceVol === undefined ? 100 : S.opts.voiceVol) / 100, 0, 1); }
+    function robPulse(k) {
+      const n = ROB.n; if (!n) return;
+      const t = Audio2.ctx.currentTime, L = robLevel() * (k || 1);
+      try {
+        n.env.gain.cancelScheduledValues(t);
+        n.env.gain.setTargetAtTime(L, t, 0.008);
+        n.env.gain.setTargetAtTime(L * 0.22, t + 0.07, 0.06);
+      } catch (e) {}
+    }
+    function robStart() {
+      if (ROB.n || S.opts.voiceStyle === 'human') return;
+      if (robLevel() <= 0.002 || !Audio2.ok || !Audio2.ctx || Audio2.muted) return;
+      try {
+        const c = Audio2.ctx, t = c.currentTime, fem = S.opts.voiceGender === 'female';
+        const f0 = fem ? 150 : 92;
+        const a = c.createOscillator(); a.type = 'sawtooth'; a.frequency.value = f0;
+        const b = c.createOscillator(); b.type = 'square'; b.frequency.value = f0 * 1.505; b.detune.value = 9;
+        const mix = c.createGain(); mix.gain.value = 0.5;
+        const f1 = c.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 700; f1.Q.value = 5;
+        const f2 = c.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 1250; f2.Q.value = 7;
+        const am = c.createGain(); am.gain.value = 0.5;
+        const lfo = c.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 31;
+        const lg = c.createGain(); lg.gain.value = 0.5; lfo.connect(lg); lg.connect(am.gain);
+        const env = c.createGain(); env.gain.value = 0.0001;
+        a.connect(mix); b.connect(mix); mix.connect(f1); mix.connect(f2); f1.connect(am); f2.connect(am); am.connect(env); env.connect(c.destination);
+        a.start(t); b.start(t); lfo.start(t);
+        ROB.n = { a, b, lfo, env }; ROB.lastB = 0;
+        robPulse(1);
+        /* si le moteur n'émet pas d'événements « mot » (voix en ligne), on bat la mesure nous-mêmes */
+        ROB.timer = setInterval(() => { if (performance.now() - ROB.lastB > 420) robPulse(0.55 + Math.random() * 0.45); }, 210);
+      } catch (e) { ROB.n = null; }
+    }
+    function robStop() {
+      clearInterval(ROB.timer); ROB.timer = 0;
+      const n = ROB.n; if (!n) return; ROB.n = null;
+      try {
+        const t = Audio2.ctx.currentTime;
+        n.env.gain.cancelScheduledValues(t); n.env.gain.setTargetAtTime(0.0001, t, 0.04);
+        n.a.stop(t + 0.25); n.b.stop(t + 0.25); n.lfo.stop(t + 0.25);
+      } catch (e) {}
+    }
+    {
+      const _hs = droidHumStart, _hp = droidHumStop;
+      droidHumStart = function () { try { robStart(); } catch (e) {} return _hs.apply(this, arguments); };
+      droidHumStop = function () { try { robStop(); } catch (e) {} return _hp.apply(this, arguments); };
+    }
+    /* les événements « mot » battent la mesure ; « start » arme la relance anti-coupure */
+    {
+      const _sp = ss.speak;
+      ss.speak = function (u) {
+        try {
+          u.addEventListener('boundary', () => { ROB.lastB = performance.now(); robPulse(1); });
+          u.addEventListener('start', () => { ROB.u0 = performance.now(); });
+        } catch (e) {}
+        return _sp.call(this, u);
+      };
+    }
+    setInterval(() => {
+      try { if (DROID.busy && ss.speaking && !ss.paused && performance.now() - ROB.u0 > 8000) { ss.pause(); ss.resume(); ROB.u0 = performance.now() - 2000; } } catch (e) {}
+    }, 5000);
+    /* curseur « Effet robot » dans les réglages de voix */
+    {
+      const _rows = voiceOptionsRows;
+      voiceOptionsRows = function (add) {
+        _rows(add);
+        const o = S.opts; if (!o.speech) return;
+        const r = add(`<div><label>${T('Effet robot', 'Robot effect')}<span class="hint">${T('Couche métallique ajoutée par le jeu : marche avec toutes les voix, y compris celles en ligne (☁)', 'Metallic layer added by the game: works with every voice, including online ones (☁)')}</span></label></div>
+          <div class="ctl"><input type="range" min="0" max="100" step="5" value="${nvv('voiceRobot')}"><span style="min-width:48px;text-align:right;color:#ffe066">${nvv('voiceRobot')}%</span></div>`);
+        const inp = r.querySelector('input'), out = r.querySelector('.ctl span');
+        inp.oninput = () => { o.voiceRobot = +inp.value; out.textContent = o.voiceRobot + '%'; saveGame(); };
+        inp.onchange = () => { try { voSample(null); } catch (e) {} };
+        const listen = r.previousElementSibling && r.previousElementSibling.querySelector('#voListen') ? r.previousElementSibling : null;
+        if (listen) listen.parentNode.insertBefore(r, listen);
+        const v = (() => { try { return droidVoice((LANGS.find(l => l.id === LANG) || LANGS[0]).code); } catch (e) { return null; } })();
+        if (v && !v.localService) {
+          const n = document.createElement('div'); n.className = 'opt';
+          n.innerHTML = `<div><label>☁ ${T('Voix en ligne sélectionnée', 'Online voice selected')}<span class="hint">${T('Ces voix ignorent la hauteur : choisis une voix locale (sans ☁) pour un timbre vraiment grave.', 'Online voices ignore pitch: pick a local voice (no ☁) for a truly deep timbre.')}</span></label></div><div class="ctl"></div>`;
+          r.parentNode.insertBefore(n, r);
+        }
+      };
+    }
+  }
+})();
+
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ca2de5596b7521',t:'MTc5MjM1NDE1MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 
 </body></html>
