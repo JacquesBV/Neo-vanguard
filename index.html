@@ -2075,7 +2075,7 @@ function defaultSave() {
     owned: { ships: ['falcon'], weapons: ['pulse'], upgrades: {}, liveries: ['squadron'], trails: ['pixel'], auras: ['none'], bombs: 2 },
     sel:   { ship: 'falcon', weapon: 'pulse', livery: 'squadron', trail: 'pixel', aura: 'none' },
     opts:  { music: 50, sfx: 70, shake: 100, crt: 'auto', smooth: false, diff: 1, gpu: 'auto',
-             mouse: false, autofire: false, fps: false, fpsCap: (window.matchMedia && matchMedia('(pointer: coarse)').matches) ? '60' : 'auto', preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1 },
+             mouse: false, autofire: false, fps: false, preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1 },
     cheats: { found: {}, on: {}, startLevel: 1 },
     perk: {},  /* bonus du marchand, également sauvegardés dans nv_perk */
     /* --- boucles d'addiction --- */
@@ -2926,12 +2926,7 @@ const Audio2 = {
   gameOverMusic() {
     this.init(); this.unlock(); if (!this.ok) return;
     this.mode = 'gameover'; this.step = 0;
-    /* Laisse la musique de partie s'effacer et la voix d'encouragement finir
-       avant de faire entrer la courte mélodie douce du game over. */
-    const hasOst = typeof MX !== 'undefined' && !!MX.cur;
-    const voiceLead = S.opts.speech && ('speechSynthesis' in window) ? 2.6 : 0;
-    this.nextT = this.ctx.currentTime + Math.max(hasOst ? 0.86 : 0.15, voiceLead);
-    this.running = true;
+    this.nextT = this.ctx.currentTime + 0.12; this.running = true;
   },
   stopMusic() { this.running = false; this.mode = 'off'; },
   setEra(era) { this.era = clamp(era, 0, 3); this.step = 0; if (this.ok) { this.nextT = Math.max(this.nextT, this.ctx.currentTime + 0.08); this.applyEraFx(); } },
@@ -3083,22 +3078,12 @@ const PERF = { tier: 0, ema: 16.7, n: 0, cool: 120, bad: 0 };
   } catch (e) {}
 })();
 const dpr = () => Math.min(window.devicePixelRatio || 1, DPR_TIERS[PERF.tier]);
-function fpsTarget() {
-  if (typeof IS_TOUCH !== 'undefined' && IS_TOUCH) return 60;
-  const cap = typeof S !== 'undefined' && S.opts ? S.opts.fpsCap : 'auto';
-  return cap === '144' ? 144 : cap === '120' ? 120 : 60;
-}
-function frameLimitMs() {
-  if (typeof IS_TOUCH !== 'undefined' && IS_TOUCH) return 1000 / 60;
-  const cap = typeof S !== 'undefined' && S.opts ? S.opts.fpsCap : 'auto';
-  return cap === 'auto' ? 0 : 1000 / fpsTarget();
-}
 function perfAdapt(raw) {
   if (raw > 0.2 || document.hidden) return;          /* onglet en arrière-plan, chargement : on ignore */
   PERF.ema = PERF.ema * 0.93 + raw * 1000 * 0.07;
   if (PERF.cool > 0) { PERF.cool--; return; }
   if (++PERF.n % 40) return;
-  PERF.bad = PERF.ema > (1000 / fpsTarget()) * 1.2 ? PERF.bad + 1 : 0; /* marge de 20 % sous la cadence choisie */
+  PERF.bad = PERF.ema > 20 ? PERF.bad + 1 : 0;       /* sous ~50 i/s de façon soutenue */
   if (PERF.bad < 2) return;
   const dev = window.devicePixelRatio || 1, cur = Math.min(dev, DPR_TIERS[PERF.tier]);
   let j = PERF.tier + 1;
@@ -3115,6 +3100,7 @@ let RES_SCALE = 1;                                   /* résolution interne du r
 /* écran tactile ? les boutons ARME / BOMBE ne s'affichent que là. */
 const IS_TOUCH = (window.matchMedia && matchMedia('(pointer: coarse)').matches) ||
                  ('ontouchstart' in window && Math.min(innerWidth, innerHeight) < 1000);
+const TOUCH_ACTOR_SCALE = 1.22; /* même profondeur et même échelle de contact pour tous les acteurs */
 
 const PF   = { x: 0, y: 0, w: 480, h: 860, s: 1 };   /* zone de jeu (unités logiques) */
 const L_W = 480, L_H = 860;                          /* référentiel des coordonnées de jeu */
@@ -3132,11 +3118,8 @@ function autoQuality(dt) {
   R.qualT += dt;
   if (R.qualT < 1.1) return;
   R.qualT = 0;
-  /* On baisse les effets avant que les saccades soient visibles, puis on les
-     réactive seulement après une marge stable pour éviter les oscillations. */
-  const goal = fpsTarget();
-  if (R.fps < goal * 0.90 && R.qual > 0.42) R.qual = Math.max(0.42, R.qual - 0.16);
-  else if (R.fps > goal * 0.97 && R.qual < 1) R.qual = Math.min(1, R.qual + 0.07);
+  if (R.fps < 46 && R.qual > 0.42) R.qual = Math.max(0.42, R.qual - 0.16);
+  else if (R.fps > 56 && R.qual < 1) R.qual = Math.min(1, R.qual + 0.07);
   /* dernier recours : baisse la résolution interne du rendu HD.
      Important : ces réglages ne concernent QUE l'ère HD — sans ce garde-fou,
      le rétablissement de la qualité forçait un retour en HD pendant les
@@ -3144,8 +3127,8 @@ function autoQuality(dt) {
   if (R.era === 3) {
     if (R.resTier === undefined) R.resTier = 0;
     const TIERS = [1, 0.78, 0.6];                 /* 1,60 / 1,25 / 0,96 */
-    if (R.resTier < 2 && R.fps < goal * 0.67) { R.resTier++; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
-    else if (R.resTier > 0 && R.fps > goal * 0.95) { R.resTier--; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
+    if (R.resTier < 2 && R.fps < 40) { R.resTier++; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
+    else if (R.resTier > 0 && R.fps > 57) { R.resTier--; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
     if (R.sec === 5) { R.S = eraS(5); }   /* seule la génération HD suit RES_SCALE */
   }
 }
@@ -3220,10 +3203,7 @@ function shadeRow(x, y, w, h, t0, t1, colA, colB, s) {
 const FX = {
   shake: 0, shakeA: 0, flash: 0, flashCol: '#fff', hitstop: 0, slow: 1, slowT: 0,
   shakeT: 0,
-  addShake(a) {
-    const strength = S.opts.shake === undefined ? 100 : Math.max(0, Number(S.opts.shake) || 0);
-    this.shake = Math.min(30, this.shake + a * strength / 100);
-  },
+  addShake(a) { this.shake = Math.min(30, this.shake + a * (S.opts.shake || 100) / 100); },
   addFlash(a, col) { this.flash = Math.min(0.9, this.flash + a); this.flashCol = col || '#ffffff'; },
   stop(a) { this.hitstop = Math.max(this.hitstop, a); },
   update(dt) {
@@ -3233,13 +3213,10 @@ const FX = {
 };
 
 /* --- particules ----------------------------------------------------------- */
-const PMAX = 4000;   /* plafond ; seules les particules vivantes sont parcourues */
-const parts = [], activeParts = [], freeParts = [];
-for (let i = 0; i < PMAX; i++) {
-  const p = { slot: i, on: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, col: '#fff', size: 2, drag: 0.9, grav: 0, glow: false, sq: true, flick: false };
-  parts.push(p); freeParts.push(p);
-}
-let pCount = 0;
+const PMAX = 4000;   /* dont la majorité est dessinée par le GPU (ères 2-3) */
+const parts = [];
+for (let i = 0; i < PMAX; i++) parts.push({ on: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, col: '#fff', size: 2, drag: 0.9, grav: 0, glow: false, sq: true, flick: false });
+let pIdx = 0, pCount = 0;
 /* --- sources lumineuses dynamiques ---------------------------------------
    Toute particule « glow » (explosion, impact, réacteur, tir de boss) dépose
    une lumière dans un anneau de 40 entrées. Ces lumières sont cuites dans un
@@ -3297,34 +3274,32 @@ function drawLights() {
 }
 function spawnPart(o) {
   const cap = ERAS[R.sec].maxParts * (0.45 + 0.55 * R.qual);
-  if (pCount >= cap) return null;
-  const p = freeParts.pop(); if (!p) return null;
+  if (pCount > cap) return null;
+  let p = null;
+  for (let i = 0; i < PMAX; i++) { const q = parts[(pIdx + i) % PMAX]; if (!q.on) { p = q; pIdx = (pIdx + i + 1) % PMAX; break; } }
+  if (!p) { p = parts[pIdx]; pIdx = (pIdx + 1) % PMAX; }
   p.on = true; p.x = o.x; p.y = o.y; p.vx = o.vx || 0; p.vy = o.vy || 0;
   p.life = p.max = o.life || 0.5; p.col = o.col || '#fff';
   p.size = o.size || 2; p.drag = o.drag === undefined ? 0.9 : o.drag;
   p.grav = o.grav || 0; p.glow = !!o.glow; p.flick = !!o.flick; p.sq = o.sq !== false; p.spin = o.spin || 0; p.a = o.a || 0;
   if (R.era === 0) { p.size = Math.max(1, Math.round(p.size / 2)); p.glow = false; }
-  activeParts.push(p); pCount = activeParts.length;
   if (p.glow) addLight(p.x, p.y, Math.min(26, Math.max(8, p.size * 2.6)), p.col, 0.3 + p.max * 0.7, p.size > 5 ? 1 : 0);
   return p;
 }
 function updateParts(dt) {
   updateLights(dt);
+  pCount = 0;
   const sp = R.era === 0 ? 0.55 : 1;   /* moins de particules à l'écran en 8-bit */
-  for (let i = activeParts.length - 1; i >= 0; i--) {
-    const p = activeParts[i];
-    p.life -= dt * (R.era === 0 && (p.slot % 3) ? 0 : 1); /* en ère 0, 1/3 « clignote » */
-    if (p.life <= 0) {
-      p.on = false;
-      activeParts[i] = activeParts[activeParts.length - 1]; activeParts.pop(); freeParts.push(p);
-      continue;
-    }
+  for (let i = 0; i < PMAX; i++) {
+    const p = parts[i]; if (!p.on) continue;
+    p.life -= dt * (R.era === 0 && (i % 3) ? 0 : 1) ; /* en ère 0, 1/3 « clignote » */
+    if (p.life <= 0) { p.on = false; continue; }
     const dr = Math.pow(p.drag, dt * 60);
     p.vx *= dr; p.vy *= dr; p.vy += p.grav * dt;
     p.x += p.vx * dt * sp; p.y += p.vy * dt * sp;
     p.a += p.spin * dt;
+    pCount++;
   }
-  pCount = activeParts.length;
 }
 /* les particules lumineuses partent au GPU : le canevas ne garde que les
    carrés bon marché des ères 8/16 bits, où la lumière se doit d'être franche */
@@ -3332,8 +3307,8 @@ function gpuPartsOn() { return !!(GPU.ready && R.era >= 2 && GPU.pool); }
 function drawParts() {
   const g = PAINT.g, k = PAINT.K;
   g.globalCompositeOperation = 'source-over';
-  for (let i = 0; i < activeParts.length; i++) {
-    const p = activeParts[i]; if (p.glow) continue;
+  for (let i = 0; i < PMAX; i++) {
+    const p = parts[i]; if (!p.on || p.glow) continue;
     const t = p.life / p.max;
     g.fillStyle = p.col;
     if (p.flick && (t * 8 | 0) % 2) continue;
@@ -3343,8 +3318,8 @@ function drawParts() {
   }
   if (gpuPartsOn()) { g.globalCompositeOperation = 'source-over'; return; }
   g.globalCompositeOperation = 'lighter';
-  for (let i = 0; i < activeParts.length; i++) {
-    const p = activeParts[i]; if (!p.glow) continue;
+  for (let i = 0; i < PMAX; i++) {
+    const p = parts[i]; if (!p.on || !p.glow) continue;
     const t = p.life / p.max;
     const s = Math.max(1, p.size * (0.35 + 0.8 * t));
     g.globalAlpha = clamp(t * 1.2, 0, 1);
@@ -4145,10 +4120,9 @@ function gpuAutoQuality(raw) {          /* raw est en secondes (frame()) */
   if (!GPU.ready) return;
   GPU.ms = GPU.ms * 0.9 + raw * 1000 * 0.1;
   if (++GPU.tick % 45) return;
-  const budget = 1000 / fpsTarget();
-  if (GPU.ms > budget * 1.10 && GPU.q > 0) { GPU.q--; gpuTier(); GPU.bad = 0; }
-  else if (GPU.ms < budget * 0.84 && GPU.q < 2) { GPU.q++; gpuTier(); GPU.bad = 0; }
-  else if (GPU.q === 0 && GPU.ms > budget * 1.55) {
+  if (GPU.ms > 24 && GPU.q > 0) { GPU.q--; gpuTier(); GPU.bad = 0; }
+  else if (GPU.ms < 13 && GPU.q < 2) { GPU.q++; gpuTier(); GPU.bad = 0; }
+  else if (GPU.q === 0 && GPU.ms > 33) {
     /* même au palier de secours le GPU ne tient pas la cadence : on rend la
        main au canevas 2D (uniquement si le moteur était en AUTO) */
     if (++GPU.bad > 3 && PERF.tier >= DPR_TIERS.length - 1 && (S.opts.gpu === undefined || S.opts.gpu === 'auto')) {
@@ -4301,19 +4275,18 @@ function gpuPresent() {
   }
   const u = GPU.u.uniforms;
   const lowQ = (GPU.q | 0) === 0;               /* palier de secours : plus d'aberration, de grain, de flou de mouvement ni de bloom */
-  const fx = u.uFx, rip = u.uRip;
-  fx[0] = lowQ ? 0 : ca * GPU.fxMul * view.dpr; fx[1] = scan; fx[2] = vig; fx[3] = lowQ ? 0 : grain * GPU.fxMul;
-  rip[0] = GPU.rip.x; rip[1] = GPU.rip.y; rip[2] = ripR; rip[3] = ripS;
+  u.uFx = new Float32Array([lowQ ? 0 : ca * GPU.fxMul * view.dpr, scan, vig, lowQ ? 0 : grain * GPU.fxMul]);
+  u.uRip = new Float32Array([GPU.rip.x, GPU.rip.y, ripR, ripS]);
   u.uTime = GPU.t;
   u.uWarp = warp;
-  /* étalonnage de la génération : on réutilise les uniforms, sans allocations par image */
-  const GP = GRADE_P[clamp(e, 0, 3)], grade = u.uGrade, tint = u.uTint, chan = u.uChan, gain = u.uGain;
-  grade[0] = GP.sat; grade[1] = GP.con; grade[2] = GP.gam; grade[3] = 0;
-  tint[0] = GP.sh[0]; tint[1] = GP.sh[1]; tint[2] = GP.sh[2]; tint[3] = 1;
-  chan[0] = 1 / GP.chan[0]; chan[1] = 1 / GP.chan[1]; chan[2] = 1 / GP.chan[2]; chan[3] = 0;
-  gain[0] = GP.gain[0]; gain[1] = GP.gain[1]; gain[2] = GP.gain[2]; gain[3] = GP.lift;
+  /* étalonnage de la génération : courbes cuites en paramètres (voir GRADE_P) */
+  const GP = GRADE_P[clamp(e, 0, 3)];
+  u.uGrade = new Float32Array([GP.sat, GP.con, GP.gam, 0]);
+  u.uTint = new Float32Array([GP.sh[0], GP.sh[1], GP.sh[2], 1]);
+  u.uChan = new Float32Array([1 / GP.chan[0], 1 / GP.chan[1], 1 / GP.chan[2], 0]);
+  u.uGain = new Float32Array([GP.gain[0], GP.gain[1], GP.gain[2], GP.lift]);
   /* flou de mouvement : la vitesse du monde, convertie en pixels d'écran */
-  u.uMB = (e >= 3 && !lowQ && !IS_TOUCH) ? (1.2 + clamp((SCROLL.boost - 1) * 0.9, 0, 1) * 3.4) * view.dpr * clamp(R.qual, 0.5, 1) : 0;
+  u.uMB = (e >= 3 && !lowQ) ? (1.2 + clamp((SCROLL.boost - 1) * 0.9, 0, 1) * 3.4) * view.dpr * clamp(R.qual, 0.5, 1) : 0;
   /* particules lumineuses : synchronisation de l'arène GPU */
   if (GPU.parts) {
     const pool = GPU.pool || [], n = pool.length, sx = PF.w / L_W, sy = PF.h / L_H;
@@ -4322,9 +4295,9 @@ function gpuPresent() {
        modeste on en garde un tiers, l'image ne s'écroule pas pour autant.    */
     const q = GPU.q | 0, limit = q >= 2 ? n : q === 1 ? Math.round(n * 0.4) : Math.round(n * 0.18);
     if (gpuPartsOn()) {
-      for (let i = 0; i < activeParts.length && k < limit; i++) {
-        const pt = activeParts[i];
-        if (!pt.glow) continue;
+      for (let i = 0; i < PMAX && k < limit; i++) {
+        const pt = parts[i];
+        if (!pt.on || !pt.glow) continue;
         const t = clamp(pt.life / pt.max, 0, 1);
         const sp = pool[k++];
         const sz = Math.max(2, pt.size * (0.35 + 0.8 * t)) * sx * (e >= 3 ? 1.9 : 1.5);
@@ -5810,7 +5783,7 @@ function drawSpriteTo(g, K, id, x, y, opt = {}) {
   /* Sur écran tactile, les vaisseaux et objets étaient difficiles à distinguer
      dans le cadre vertical. Agrandir seulement les sprites en jeu garde le HUD,
      les menus et les dimensions de la zone de jeu à leur taille d'origine. */
-  const touchBoost = IS_TOUCH && G.state === 'play' && opt.kind !== 'player' ? 1.22 : 1;
+  const touchBoost = IS_TOUCH && G.state === 'play' && opt.kind !== 'player' ? TOUCH_ACTOR_SCALE : 1;
   const w = box.w * (opt.scale || 1) * touchBoost * (opt.sx === undefined ? 1 : opt.sx), h = box.h * (opt.scale || 1) * touchBoost;
   const hue = opt.hue === undefined ? 200 : opt.hue;
   const sat = opt.sat === undefined ? 0.55 : opt.sat;
@@ -7289,24 +7262,29 @@ function killEnemy(e) {
   if (cr > 0 && (big || e.elite || chance(0.3))) addPickup(e.x, e.y + 8, 'credit', Math.round(cr * (big || e.elite ? 1 : 3.2)));
 }
 function explode(x, y, size, c1, c2) {
-  const q = clamp(R.qual, 0.45, 1);
-  const n = R.era === 0 ? 6 : Math.round(14 * size * (R.era >= 3 ? 2.2 : 1) * (0.72 + q * 0.28));
+  const n = R.era === 0 ? 6 : Math.round(14 * size * (R.era >= 3 ? 2.2 : 1));
   for (let i = 0; i < n; i++) {
     const a = rnd(TAU), v = rnd(160, 40) * size;
     spawnPart({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(0.7, 0.25) * (R.era >= 3 ? 1.4 : 1),
       col: chance(0.5) ? c1 : c2, size: rnd(9, 4) * Math.min(2, size), drag: 0.88, glow: R.era >= 2, grav: R.era >= 3 ? 30 : 0 });
   }
-  addShock(x, y, size * 26 * (R.era >= 3 ? 1.8 : 1), c2, R.era >= 3 ? 0.5 : 0.32, 'blast');
+  SHOCK.push({ x, y, t: 0, life: R.era >= 3 ? 0.5 : 0.32, max: size * 26 * (R.era >= 3 ? 1.8 : 1), col: c2 });
   if (typeof NET !== 'undefined' && NET.role === 'host') netHookBoom(x, y, size);
 }
 const SHOCK = [];
-function addShock(x, y, max, col, life, kind) {
-  /* Garde un plafond strict : une cascade de morts ne peut pas faire grossir
-     le coût du rendu des ondes au fil d'une partie. */
-  if (SHOCK.length >= 64) SHOCK.splice(0, SHOCK.length - 63);
-  SHOCK.push({ x, y, t: 0, life, max, col, kind: kind || 'blast' });
-}
 function updateShocks(dt) { for (let i = SHOCK.length - 1; i >= 0; i--) { SHOCK[i].t += dt; if (SHOCK[i].t > SHOCK[i].life) SHOCK.splice(i, 1); } }
+function drawShocks() {
+  if (R.era === 0) return;
+  useBuf(R.bufNear); const g = PAINT.g, K = PAINT.K;
+  g.globalCompositeOperation = 'lighter';
+  for (const s of SHOCK) {
+    const t = s.t / s.life, r = s.max * (0.3 + t * 1.1);
+    g.globalAlpha = (1 - t) * 0.7;
+    ring(s.x, s.y, r, 2 + 2 * (1 - t), s.col);
+  }
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+}
+
 /* -------------------------------- joueur ---------------------------------- */
 function hitPlayer(P, dmg, contact) {
   if (G.harvest) return;                   /* fenêtre de récolte : aucun risque */
@@ -7378,7 +7356,7 @@ function spawnBoss() {
     def, name: def.name + (extra ? ' MK-' + (extra + 1) : ''), x: L_W / 2, y: -300, hue: def.hue, body: def.body,
     r: def.r, hp: Math.round(def.hp * s.hp * Math.pow(1.35, extra) * (G.twoP && G.players && G.players.length > 1 ? 1.6 : 1) * (typeof BOSS_TOUGH !== 'undefined' ? BOSS_TOUGH[S.opts.diff] || 2.6 : 2.6)), maxHp: 0,
     t: 0, ph: 0, phT: 0, atkIdx: 0, atkT: 1.2, spiralA: 0, flash: 0, dead: false, deadT: 0,
-    enter: true, entryCue: false, sc: def.sc * (1 + extra * 0.5), cr: Math.round(def.cr * DIFFS[S.opts.diff].credit * (1 + extra * 0.5) * G.stats.creditMul),
+    enter: true, sc: def.sc * (1 + extra * 0.5), cr: Math.round(def.cr * DIFFS[S.opts.diff].credit * (1 + extra * 0.5) * G.stats.creditMul),
     parts: [], tele: 0, vx: 0, seed: rnd(TAU),
   };
   b.maxHp = b.hp;
@@ -7462,22 +7440,7 @@ function updateBoss(dt) {
   if (b.flash > 0) b.flash -= dt;
   for (const p of b.parts) { p.t += dt; if (p.flash > 0) p.flash -= dt; p.oa += dt * 0.5 * (p.dead ? 0 : 1); }
   /* entrée */
-  if (b.enter) {
-    b.y = lerp2(b.y, 265, dt * 1.15);
-    if (!b.entryCue && b.y > 30) {
-      b.entryCue = true;
-      addShock(b.x, b.y, Math.min(210, b.r * 1.55), TH.eBoss, 0.82, 'arrival');
-      FX.addFlash(R.era === 0 ? 0.04 : 0.12, TH.eBoss);
-      FX.addShake(R.era === 0 ? 1.2 : 3.2);
-      if (R.era >= 2 && R.qual > 0.5) for (let i = 0; i < 8; i++) {
-        const a = i / 8 * TAU;
-        spawnPart({ x: b.x, y: b.y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90,
-          life: 0.46, col: TH.eBossLite, size: 3, glow: true });
-      }
-    }
-    if (b.y > 256) b.enter = false;
-    return;
-  }
+  if (b.enter) { b.y = lerp2(b.y, 265, dt * 1.15); if (b.y > 256) b.enter = false; return; }
   /* état visuel : iris qui s'ouvre quand les têtes tombent, fumée quand la
      coque cède, étincelles sur les passages de phase */
   if (b.openT === undefined) b.openT = 0;
@@ -7722,7 +7685,7 @@ function gameOver() {
   bankRun();
   runArchive();
   Audio2.boss = false; Audio2.stopMusic(); Audio2.gameOverMusic();
-  speak(svt('overVoice'));
+  speak('Mission échouée.');
   continueArm();
   buildOverScreen();
 }
@@ -7788,25 +7751,6 @@ function playerEnergy() {
   return LV_ENG;
 }
 function drawPlayers() { for (const P of G.players) drawPlayer(P); }
-/* Taille visuelle stable en pixels CSS, quel que soit le téléphone, le niveau
-   ou le chasseur sélectionné. PF.s convertit les unités logiques en pixels
-   d'écran ; cette échelle n'affecte pas le rayon de collision P.r. */
-function playerDisplayScale(box) {
-  if (G.state !== 'play' && G.state !== 'pause') return 1;
-  const touch = IS_TOUCH;
-  const two = G.players.length > 1;
-  const ratio = touch ? (two ? 0.138 : 0.155) : (two ? 0.089 : 0.105);
-  const minPx = touch ? (two ? 68 : 78) : (two ? 50 : 56);
-  const maxRatio = touch ? (two ? 0.16 : 0.18) : (two ? 0.10 : 0.12);
-  const fieldH = Math.max(1, PF.h || L_H * PF.s);
-  const targetPx = Math.min(fieldH * maxRatio, Math.max(fieldH * ratio, minPx));
-  /* Les silhouettes 8 bits ont des pixels plus massifs : un léger retrait
-     conserve leur lisibilité sans qu'elles dominent le décor. */
-  const eraFactor = R.era === 0 ? (touch ? 0.80 : 0.90)
-    : R.era === 1 ? (touch ? 0.88 : 0.95)
-    : (touch ? 0.90 : 0.95);
-  return targetPx / Math.max(1, box.h * (PF.s || 1)) * eraFactor;
-}
 function drawPlayer(pl) {
   const P = pl || G.player; if (!P || !P.alive) return;
   useBuf(R.bufNear);
@@ -7816,6 +7760,8 @@ function drawPlayer(pl) {
     else g.globalAlpha = 0.55 + 0.45 * Math.sin(P.inv * 22);
   }
   const x = P.x, y = P.y, bank = P.bank || 0;
+  const playerTouchScale = IS_TOUCH && G.state === 'play'
+    ? TOUCH_ACTOR_SCALE : 1;
   const h = playerHull();
   const hue = h.hue, sat = h.sat, light = h.light;
   playerEnergy();
@@ -7823,7 +7769,6 @@ function drawPlayer(pl) {
   /* --- réacteurs animés (sous le sprite) --- */
   const fl = 0.75 + Math.sin(P.anim * 34) * 0.22;
   const baseBox = spriteBox(S.sel.ship);
-  const playerTouchScale = playerDisplayScale(baseBox);
   const box = { w: baseBox.w * playerTouchScale, h: baseBox.h * playerTouchScale };
   const jets = EXH[S.sel.ship] || [{ x: -0.08, y: 0.45, r: 0.03 }, { x: 0.08, y: 0.45, r: 0.03 }];
   for (const j of jets) {
@@ -7915,53 +7860,76 @@ function drawPlayer(pl) {
 }
 
 /* ------------------------------- ennemis ---------------------------------- */
+function drawEnemyOne(en, g, K, e) {
+  const th = ETHEME[en.kind] || ETHEME.drone;
+  const flash = en.flash > 0 ? (e === 0 ? 1 : 0.9) : 0;
+  const alpha = en.spawnT !== undefined && en.spawnT > 0 ? clamp(1 - en.spawnT, 0.15, 1) : 1;
+  let rot = 0, sc = 1;
+  if (en.kind === 'splitter') rot = en.t * 0.9;
+  else if (en.kind === 'drone' || en.kind === 'swarmlet') rot = Math.sin(en.t * 2 + en.phase) * 0.22;
+  else if (en.kind === 'runner') rot = Math.sin(en.t * 3 + en.phase) * 0.1;
+  else if (en.kind === 'carrier') sc = 1 + Math.sin(en.t * 1.6) * 0.01;
+  /* ombre/réflexion sur le sol pour les ères basses */
+  if (e <= 1) { g.globalAlpha = 0.25; fr(en.x - spriteBox(EID[en.kind]).w * 0.28, en.y + spriteBox(EID[en.kind]).h * 0.36, spriteBox(EID[en.kind]).w * 0.56, 4, TH.bg); g.globalAlpha = 1; }
+  drawSpriteTo(g, K, EID[en.kind], en.x, en.y, { kind: 'enemy', hue: th.hue, sat: th.sat, light: th.light, rot: rot + (ENEMY_FLIP[en.kind] ? Math.PI : 0), scale: sc * (ETYPES[en.kind] && ETYPES[en.kind].scale || 1), flash, alpha,
+    frame: (Math.floor(en.t * (en.kind === 'swarmlet' ? 16 : en.kind === 'elite' ? 6 : 9) + (en.phase * 4 | 0)) & 3) });
+  /* --- pièces animées par-dessus le sprite --- */
+  if (en.kind === 'turret') {           /* canon qui balaie */
+    g.save(); g.translate(en.x * K, en.y * K); g.rotate(Math.sin(en.t * 1.5 + en.phase) * 0.6);
+    fr(-3, 0, 6, 26, e === 0 ? TH.livery.gb[2] : TH.eLite);
+    fr(-2, 20, 4, 8, e === 0 ? TH.livery.gb[3] : TH.white);
+    g.restore();
+  } else if (en.kind === 'shielder' && en.guardOn) {   /* arc de garde */
+    g.globalCompositeOperation = e >= 2 ? 'lighter' : 'source-over';
+    g.strokeStyle = e === 0 ? TH.livery.gb[3] : TH.eLite;
+    g.lineWidth = Math.max(1, (e === 0 ? 3 : 4) * K);
+    g.beginPath(); g.arc(en.x * K, en.y * K, 34 * K, 0.12 * Math.PI, 0.88 * Math.PI); g.stroke();
+    g.globalCompositeOperation = 'source-over';
+  } else if (en.kind === 'carrier') {   /* soute lumineuse */
+    const glow = (Math.sin(en.t * 3) + 1) / 2;
+    fr(en.x - 26, en.y + 30, 52 * (0.4 + glow * 0.6), 5, e === 0 ? TH.livery.gb[3] : TH.eb);
+  } else if (en.kind === 'splitter') {  /* cœur pulsant */
+    const pu = 0.7 + 0.3 * Math.sin(en.t * 5);
+    if (e === 0) fr(en.x - 3, en.y - 3, 6 * pu, 6 * pu, TH.livery.gb[3]);
+    else { circle(en.x, en.y, 7 * pu, TH.eb); if (e >= 2) { g.globalCompositeOperation = 'lighter'; circle(en.x, en.y, 12 * pu, 'rgba(255,120,200,.35)'); g.globalCompositeOperation = 'source-over'; } }
+  } else if (en.elite) {                /* joyau central */
+    const pu = 0.7 + 0.3 * Math.sin(en.t * 4);
+    circle(en.x, en.y, 9 * pu, e === 0 ? TH.livery.gb[3] : '#fff');
+    if (e >= 2) { g.globalCompositeOperation = 'lighter'; circle(en.x, en.y, 16 * pu, 'rgba(255,180,120,.3)'); g.globalCompositeOperation = 'source-over'; }
+  }
+  /* barre de vie */
+  if (typeof drawEnemyExtra === 'function') drawEnemyExtra(en, g, K, e);
+  if ((en.elite || en.kind === 'carrier' || en.mini) && en.hp < en.maxHp) {
+    const w = en.mini ? 96 : 62, hb = 4;
+    fr(x0s(en) - w / 2, en.y - spriteBox(EID[en.kind]).h * 0.6, w, hb, 'rgba(0,0,0,.6)');
+    fr(x0s(en) - w / 2, en.y - spriteBox(EID[en.kind]).h * 0.6, w * (en.hp / en.maxHp), hb, TH.eb);
+  }
+}
 function drawEnemies() {
   useBuf(R.bufNear);
   const g = PAINT.g, K = PAINT.K, e = R.era;
-  for (const en of G.enemies) {
-    const th = ETHEME[en.kind] || ETHEME.drone;
-    const flash = en.flash > 0 ? (e === 0 ? 1 : 0.9) : 0;
-    const alpha = en.spawnT !== undefined && en.spawnT > 0 ? clamp(1 - en.spawnT, 0.15, 1) : 1;
-    let rot = 0, sc = 1;
-    if (en.kind === 'splitter') rot = en.t * 0.9;
-    else if (en.kind === 'drone' || en.kind === 'swarmlet') rot = Math.sin(en.t * 2 + en.phase) * 0.22;
-    else if (en.kind === 'runner') rot = Math.sin(en.t * 3 + en.phase) * 0.1;
-    else if (en.kind === 'carrier') sc = 1 + Math.sin(en.t * 1.6) * 0.01;
-    /* ombre/réflexion sur le sol pour les ères basses */
-    if (e <= 1) { g.globalAlpha = 0.25; fr(en.x - spriteBox(EID[en.kind]).w * 0.28, en.y + spriteBox(EID[en.kind]).h * 0.36, spriteBox(EID[en.kind]).w * 0.56, 4, TH.bg); g.globalAlpha = 1; }
-    drawSpriteTo(g, K, EID[en.kind], en.x, en.y, { kind: 'enemy', hue: th.hue, sat: th.sat, light: th.light, rot: rot + (ENEMY_FLIP[en.kind] ? Math.PI : 0), scale: sc * (ETYPES[en.kind] && ETYPES[en.kind].scale || 1), flash, alpha,
-      frame: (Math.floor(en.t * (en.kind === 'swarmlet' ? 16 : en.kind === 'elite' ? 6 : 9) + (en.phase * 4 | 0)) & 3) });
-    /* --- pièces animées par-dessus le sprite --- */
-    if (en.kind === 'turret') {           /* canon qui balaie */
-      g.save(); g.translate(en.x * K, en.y * K); g.rotate(Math.sin(en.t * 1.5 + en.phase) * 0.6);
-      fr(-3, 0, 6, 26, e === 0 ? TH.livery.gb[2] : TH.eLite);
-      fr(-2, 20, 4, 8, e === 0 ? TH.livery.gb[3] : TH.white);
-      g.restore();
-    } else if (en.kind === 'shielder' && en.guardOn) {   /* arc de garde */
-      g.globalCompositeOperation = e >= 2 ? 'lighter' : 'source-over';
-      g.strokeStyle = e === 0 ? TH.livery.gb[3] : TH.eLite;
-      g.lineWidth = Math.max(1, (e === 0 ? 3 : 4) * K);
-      g.beginPath(); g.arc(en.x * K, en.y * K, 34 * K, 0.12 * Math.PI, 0.88 * Math.PI); g.stroke();
-      g.globalCompositeOperation = 'source-over';
-    } else if (en.kind === 'carrier') {   /* soute lumineuse */
-      const glow = (Math.sin(en.t * 3) + 1) / 2;
-      fr(en.x - 26, en.y + 30, 52 * (0.4 + glow * 0.6), 5, e === 0 ? TH.livery.gb[3] : TH.eb);
-    } else if (en.kind === 'splitter') {  /* cœur pulsant */
-      const pu = 0.7 + 0.3 * Math.sin(en.t * 5);
-      if (e === 0) fr(en.x - 3, en.y - 3, 6 * pu, 6 * pu, TH.livery.gb[3]);
-      else { circle(en.x, en.y, 7 * pu, TH.eb); if (e >= 2) { g.globalCompositeOperation = 'lighter'; circle(en.x, en.y, 12 * pu, 'rgba(255,120,200,.35)'); g.globalCompositeOperation = 'source-over'; } }
-    } else if (en.elite) {                /* joyau central */
-      const pu = 0.7 + 0.3 * Math.sin(en.t * 4);
-      circle(en.x, en.y, 9 * pu, e === 0 ? TH.livery.gb[3] : '#fff');
-      if (e >= 2) { g.globalCompositeOperation = 'lighter'; circle(en.x, en.y, 16 * pu, 'rgba(255,180,120,.3)'); g.globalCompositeOperation = 'source-over'; }
-    }
-    /* barre de vie */
-    if (typeof drawEnemyExtra === 'function') drawEnemyExtra(en, g, K, e);
-    if ((en.elite || en.kind === 'carrier' || en.mini) && en.hp < en.maxHp) {
-      const w = en.mini ? 96 : 62, hb = 4;
-      fr(x0s(en) - w / 2, en.y - spriteBox(EID[en.kind]).h * 0.6, w, hb, 'rgba(0,0,0,.6)');
-      fr(x0s(en) - w / 2, en.y - spriteBox(EID[en.kind]).h * 0.6, w * (en.hp / en.maxHp), hb, TH.eb);
-    }
+  for (const en of G.enemies) drawEnemyOne(en, g, K, e);
+}
+/* Joueurs, ennemis et boss partagent le même plan de jeu. Le tableau réutilisé
+   limite les allocations : un acteur plus bas à l'écran passe devant l'autre. */
+const DEPTH_ACTORS = [];
+function drawActorsDepthSorted() {
+  useBuf(R.bufNear);
+  const g = PAINT.g, K = PAINT.K, e = R.era;
+  let n = 0;
+  const add = (y, type, value) => {
+    const actor = DEPTH_ACTORS[n] || (DEPTH_ACTORS[n] = {});
+    actor.y = y; actor.type = type; actor.value = value; n++;
+  };
+  for (const en of G.enemies) add(en.y, 0, en);
+  for (const pl of (G.players || [])) if (pl && pl.alive && !pl.out) add(pl.y, 1, pl);
+  if (G.boss) add(G.boss.y, 2, G.boss);
+  DEPTH_ACTORS.length = n;
+  DEPTH_ACTORS.sort((a, b) => a.y - b.y || a.type - b.type);
+  for (const actor of DEPTH_ACTORS) {
+    if (actor.type === 0) drawEnemyOne(actor.value, g, K, e);
+    else if (actor.type === 1) drawPlayer(actor.value);
+    else drawBoss();
   }
 }
 function x0s(en) { return en.x; }
@@ -8249,30 +8217,13 @@ function drawPlayerBullets() {
 
 /* ------------------------------- ondes de choc ---------------------------- */
 function drawShocks() {
-  if (R.era === 0 && !SHOCK.some(s => s.kind === 'arrival')) return;
+  if (R.era === 0) return;
   useBuf(R.bufNear); const g = PAINT.g, K = PAINT.K;
   g.globalCompositeOperation = 'lighter';
   for (const s of SHOCK) {
-    const t = clamp(s.t / s.life, 0, 1), r = s.max * (0.3 + t * 1.1);
-    if (R.era === 0) {
-      if (s.kind !== 'arrival') continue;
-      const pixel = 4, stepped = Math.max(pixel, Math.round(r / pixel) * pixel);
-      g.globalAlpha = (1 - t) * 0.68;
-      ring(s.x, s.y, stepped, pixel, TH.livery.gb[3]);
-      continue;
-    }
-    const fade = (1 - t) * (s.kind === 'arrival' ? 0.62 : 0.72);
-    g.globalAlpha = fade;
-    ring(s.x, s.y, r, (R.era >= 2 ? 2.4 : 1.6) + 1.8 * (1 - t), s.col);
-    /* Deuxième anneau fin : du volume sans nouvelles particules ni flou global. */
-    if (R.era >= 1 && R.qual > 0.42) {
-      g.globalAlpha = fade * (s.kind === 'arrival' ? 0.48 : 0.38);
-      ring(s.x, s.y, r * (s.kind === 'arrival' ? 0.72 : 0.58), 1.2, s.col);
-    }
-    if (s.kind === 'arrival' && R.era >= 2 && R.qual > 0.6) {
-      g.globalAlpha = fade * 0.22;
-      ring(s.x, s.y, r * 1.16, 1, TH.white);
-    }
+    const t = s.t / s.life, r = s.max * (0.3 + t * 1.1);
+    g.globalAlpha = (1 - t) * 0.7;
+    ring(s.x, s.y, r, 2 + 2 * (1 - t), s.col);
   }
   g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
 }
@@ -8419,9 +8370,7 @@ function drawWorld(dt) {
   drawShocks();
   drawPickups();
   drawProps();
-  drawEnemies();
-  drawBoss();
-  drawPlayers();
+  drawActorsDepthSorted();
   drawGhost();
   drawEBullets();
   drawPlayerBullets();
@@ -9108,12 +9057,6 @@ function buildOptions() {
   section('display', 'Affichage et performances', 'Rendu, fluidité et effets visuels');
   slider('shake', 'Secousses', 'Intensité du screen-shake', 0, 150, v => v + '%');
   sw('fps', 'Compteur FPS', 'Affiche les performances et le nombre de particules');
-  const dc = add(`<div><label>Cadence sur PC<span class="hint">AUTO suit l’écran ; les écrans tactiles restent à 60 i/s</span></label></div><div class="ctl"><div class="seg"></div></div>`);
-  [['auto','AUTO'],['60','60'],['120','120'],['144','144']].forEach(([v, lab]) => {
-    const b = document.createElement('button'); b.textContent = lab; b.className = (o.fpsCap || 'auto') === v ? 'sel' : '';
-    b.onclick = () => { o.fpsCap = v; saveGame(); buildOptions(); };
-    dc.querySelector('.seg').appendChild(b);
-  });
   sw('smooth', 'Lissage HD', 'Adoucit les pixels en secteur HD');
   const d2 = add(`<div><label>Scanlines CRT<span class="hint">Filtre sur le rendu HD uniquement</span></label></div>
     <div class="ctl"><div class="seg"></div></div>`);
@@ -10039,9 +9982,7 @@ function startLevel(level) {
   G.secKills = 0; G.secGraze = 0; G.comboMax = G.combo | 0; G.levelT = 0; G.nobombMsg = 0;
   /* coop en ligne : l'invité démarre exactement quand le secteur commence */
   if (typeof NET !== 'undefined' && NET.role === 'host' && NET.state === 'ready') netSend('w|go|' + level);
-  for (const p of activeParts) { p.on = false; freeParts.push(p); }
-  activeParts.length = 0; pCount = 0;
-  for (const f of FTs) f.on = false;
+  for (const p of parts) p.on = false; for (const f of FTs) f.on = false;
   G.boss = null; G.plan = buildPlan(level); G.waveIdx = 0; G.waveT = 0; G.phase = 'waves';
   buildTerrain(level);
   decorReset(); decorInitLevel(level);
@@ -11987,8 +11928,7 @@ function wirePointer() {
 /* --------------------------------- boucle ---------------------------------- */
 let lastT = performance.now();
 function frame(now) {
-  const limit = frameLimitMs();
-  if (limit && now - lastT < limit - 0.35) { requestAnimationFrame(frame); return; }
+  if (now - lastT < 10.5) { requestAnimationFrame(frame); return; }   /* 120 Hz -> 60 i/s : moitié moins de travail GPU */
   let raw = (now - lastT) / 1000; lastT = now;
   R.fps = lerp(R.fps, 1 / Math.max(raw, 0.0001), 0.06);
   let dt = Math.min(raw, 0.05);
@@ -19261,7 +19201,6 @@ const SVT = {
   koImp:  ['Fichier de sauvegarde invalide', 'Invalid save file', 'Archivo de partida no válido', 'Ficheiro de jogo inválido', '無効なセーブファイルです'],
   koRd:   ['Lecture du fichier impossible', 'Could not read the file', 'No se pudo leer el archivo', 'Não foi possível ler o ficheiro', 'ファイルを読めません'],
   gameover:['Retente ta chance une prochaine fois.', 'Better luck next time.', 'Inténtalo de nuevo la próxima vez.', 'Tente a sorte da próxima vez.', '次こそ、もう一度挑戦しよう。'],
-  overVoice:['Courage, pilote. On repart quand tu veux.', 'Keep your head up, pilot. We fly again when you’re ready.', 'Ánimo, piloto. Volvemos a despegar cuando quieras.', 'Força, piloto. Voltamos a voar quando quiseres.', '大丈夫、パイロット。また飛び立つ時は君が決めていい。'],
   clrd:   ['Point de reprise effacé', 'Checkpoint cleared', 'Punto de reanudación borrado', 'Ponto de retoma apagado', 'チェックポイントを削除しました']
 };
 function svt(k, a, b) {
