@@ -395,6 +395,19 @@ body{max-width:100%;overflow-x:hidden}
 @media(max-width:600px){.clear-celebration{padding:9px 10px 8px}.clear-bonus-row{font-size:9px}.clear-bonus-status{font-size:8px;letter-spacing:.1em}#scr-clear>.panel{max-height:90dvh}}
 @media(prefers-reduced-motion:reduce){.clear-celebration,.clear-celebration::after{animation:none}.clear-bonus-track>i{will-change:auto}}
 
+
+/* Options : navigation par onglets, utilisable au doigt et au clavier. */
+#optTabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;overflow-x:auto;padding:8px 2px 10px;margin:0 0 4px;
+  background:linear-gradient(180deg,var(--bg1) 82%,transparent);scrollbar-width:thin;overscroll-behavior-x:contain}
+#optTabs button{flex:0 0 auto;min-height:38px;padding:8px 12px;border:1px solid color-mix(in srgb,var(--acc) 32%,transparent);
+  background:rgba(8,12,22,.94);color:#a9bcdd;font:inherit;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+#optTabs button[aria-selected="true"]{color:#02040a;background:var(--acc);border-color:var(--acc);box-shadow:0 0 14px color-mix(in srgb,var(--acc) 35%,transparent)}
+#optBody .opt-section[hidden]{display:none}
+#optBody .opt-section{scroll-margin-top:54px}
+#optBody .opt-section[data-section="displayAdvanced"]{border-color:rgba(144,122,255,.35)}
+#optBody .opt-section[data-section="displayAdvanced"] .opt-section-title{color:#b7a8ff}
+@media(max-width:600px){#optTabs{margin:0 -4px;padding:8px 4px 10px}#optTabs button{font-size:9px;padding:8px 10px}}
+
 </style>
 </head>
 <body class="era-3">
@@ -2098,7 +2111,8 @@ function defaultSave() {
     owned: { ships: ['falcon'], weapons: ['pulse'], upgrades: {}, liveries: ['squadron'], trails: ['pixel'], auras: ['none'], bombs: 2 },
     sel:   { ship: 'falcon', weapon: 'pulse', livery: 'squadron', trail: 'pixel', aura: 'none' },
     opts:  { music: 50, sfx: 70, shake: 100, crt: 'auto', smooth: false, diff: 1, gpu: 'auto',
-             mouse: false, autofire: false, fps: false, preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1 },
+             mouse: false, autofire: false, fps: false, preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1,
+             resolution: 'auto', frameRate: 'auto', graphics: 'auto', optTab: 'display' },
     cheats: { found: {}, on: {}, startLevel: 1 },
     perk: {},  /* bonus du marchand, également sauvegardés dans nv_perk */
     /* --- boucles d'addiction --- */
@@ -3106,7 +3120,19 @@ const PERF = { tier: 0, ema: 16.7, n: 0, cool: 120, bad: 0 };
     if (sv >= 0 && sv < DPR_TIERS.length) PERF.tier = touch ? Math.min(sv, 1) : sv;
   } catch (e) {}
 })();
-const dpr = () => Math.min(window.devicePixelRatio || 1, DPR_TIERS[PERF.tier]);
+const dpr = () => {
+  const native = Math.min(window.devicePixelRatio || 1, DPR_TIERS[PERF.tier]);
+  const opts = S && S.opts || {};
+  let cap = Infinity;
+  if (opts.graphics === 'economy') cap = 0.8;
+  else if (opts.graphics === 'balanced') cap = 1.25;
+  else if (opts.graphics === 'ultra') cap = 2;
+  if (!IS_TOUCH && opts.resolution && opts.resolution !== 'auto') {
+    const h = Math.max(1, visibleSize()[1]);
+    cap = Math.min(cap, Number(opts.resolution) / h);
+  }
+  return Math.min(native, cap);
+};
 function perfAdapt(raw) {
   if (raw > 0.2 || document.hidden) return;          /* onglet en arrière-plan, chargement : on ignore */
   PERF.ema = PERF.ema * 0.93 + raw * 1000 * 0.07;
@@ -7709,12 +7735,29 @@ function bankRun() {
   saveGame();
 }
 function gameOver() {
+  if (G.state === 'over') return;
   G.state = 'over'; G.player.alive = false;
   if (typeof NET !== 'undefined' && NET.role === 'host') netSend('z|over|' + Math.round(G.score));
   bankRun();
   runArchive();
-  Audio2.boss = false; Audio2.stopMusic(); Audio2.gameOverMusic();
-  speak('Mission échouée.');
+  Audio2.boss = false; Audio2.stopMusic();
+  const gameOverLines = {
+    fr: 'Pilote, mission terminée. Reprends ton souffle. Le Vanguard reste à tes côtés.',
+    en: 'Pilot, mission complete. Catch your breath. The Vanguard is still with you.',
+    es: 'Piloto, misión terminada. Respira. El Vanguard sigue a tu lado.',
+    pt: 'Piloto, missão terminada. Respira. O Vanguard continua ao teu lado.',
+    ja: 'パイロット、任務終了。ひと息つこう。ヴァンガードは君と共にいる。'
+  };
+  const langId = typeof LANG === 'string' ? LANG : 'fr';
+  const speaking = typeof droidSay === 'function' && droidSay(gameOverLines[langId] || gameOverLines.fr, { tag: 'gameover', interrupt: true });
+  if (speaking) {
+    const started = performance.now();
+    const waitForVoice = () => {
+      if (!droidBusy('gameover') || performance.now() - started > 16000) Audio2.gameOverMusic();
+      else setTimeout(waitForVoice, 180);
+    };
+    setTimeout(waitForVoice, 180);
+  } else Audio2.gameOverMusic();
   continueArm();
   buildOverScreen();
 }
@@ -12024,7 +12067,8 @@ function wirePointer() {
 /* --------------------------------- boucle ---------------------------------- */
 let lastT = performance.now();
 function frame(now) {
-  if (now - lastT < 10.5) { requestAnimationFrame(frame); return; }   /* 120 Hz -> 60 i/s : moitié moins de travail GPU */
+  const capFPS = S.opts.frameRate === 'auto' ? (IS_TOUCH ? 60 : 120) : clamp(Number(S.opts.frameRate) || 60, 30, 144);
+  if (now - lastT < 1000 / capFPS - 0.35) { requestAnimationFrame(frame); return; }
   let raw = (now - lastT) / 1000; lastT = now;
   R.fps = lerp(R.fps, 1 / Math.max(raw, 0.0001), 0.06);
   let dt = Math.min(raw, 0.05);
@@ -12033,6 +12077,7 @@ function frame(now) {
   if (cheatOn('slow') && (G.state === 'play' || G.state === 'intro')) dt *= 0.6;   /* cheat TEMPS RALENTI */
   autoQuality(raw);
   gpuAutoQuality(raw);
+  applyNVGraphics();
   perfAdapt(raw);
   try {
     update(dt);
@@ -12077,7 +12122,7 @@ function boot() {
 
 /* ---- 00_build.js ---- */
 /* horodatage du build : visible dans la console et dans les messages d'erreur */
-window.NV_BUILD = '2026-10-17 07:11';
+window.NV_BUILD = '2026-10-18 options-audio-gameover';
 console.log('%cNEO VANGUARD build ' + window.NV_BUILD, 'color:#4be7ff;font-weight:bold');
 
 
@@ -15054,7 +15099,7 @@ function droidPage() {
     const st = G.state;
     if (st === 'pause') { if (!DROID.paused && DROID.busy) { DROID.paused = true; try { window.speechSynthesis.pause(); } catch (e) {} droidHumStop(); } }
     else if (DROID.paused) { DROID.paused = false; try { window.speechSynthesis.resume(); } catch (e) {} if (DROID.busy) droidHumStart(); }
-    if (st !== 'story' && st !== 'pause' && droidBusy()) droidStop();
+    if (st !== 'story' && st !== 'pause' && !(st === 'over' && droidBusy('gameover')) && droidBusy()) droidStop();
   };
   const _showScreen = showScreen;
   showScreen = function (id) {
@@ -19456,6 +19501,91 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && (G.
   setInterval(apply, 400);
   apply();
 })();
+
+/* ---- Options v2 : onglets, profils graphiques, résolution et cadence ---- */
+Object.assign(S.opts, {
+  resolution: S.opts.resolution || 'auto',
+  frameRate: S.opts.frameRate || 'auto',
+  graphics: S.opts.graphics || 'auto',
+  optTab: S.opts.optTab || 'display'
+});
+function applyNVGraphics() {
+  const g = S.opts.graphics || 'auto';
+  if (g !== 'auto') {
+    const q = g === 'economy' ? 0 : g === 'balanced' ? 1 : 2;
+    if (GPU.ready && GPU.q !== q) { GPU.q = q; gpuTier(); }
+    R.qual = g === 'economy' ? 0.5 : g === 'balanced' ? 0.75 : 1;
+  }
+}
+const nvPreviousBuildOptions = buildOptions;
+buildOptions = function () {
+  nvPreviousBuildOptions.apply(this, arguments);
+  const body = document.getElementById('optBody');
+  if (!body) return;
+  const display = body.querySelector('[data-section="display"]');
+  if (!display) return;
+  const advanced = document.createElement('section');
+  advanced.className = 'opt-section'; advanced.dataset.section = 'displayAdvanced';
+  advanced.innerHTML = '<div class="opt-section-head"><h2 class="opt-section-title">Affichage avancé</h2><p class="opt-section-desc">Réglages fins pour les performances et les effets</p></div><div class="opt-section-body"></div>';
+  body.insertBefore(advanced, display.nextSibling);
+  const db = display.querySelector('.opt-section-body'), ab = advanced.querySelector('.opt-section-body');
+  display.querySelector('.opt-section-title').textContent = 'Affichage classique';
+  display.querySelector('.opt-section-desc').textContent = 'Qualité, résolution et fluidité';
+  [...db.children].forEach(row => {
+    const label = row.querySelector('label');
+    const text = label ? label.textContent.toLowerCase() : '';
+    if (/secousses|compteur fps|lissage hd|scanlines crt|moteur de rendu|aperçu graphique/.test(text)) ab.appendChild(row);
+  });
+  const mkSelectRow = (label, hint, key, entries, change) => {
+    const row = document.createElement('div'); row.className = 'opt';
+    const lab = document.createElement('label'); lab.textContent = label;
+    const sub = document.createElement('span'); sub.className = 'hint'; sub.textContent = hint; lab.appendChild(sub);
+    const ctl = document.createElement('div'); ctl.className = 'ctl';
+    const sel = document.createElement('select'); sel.className = 'sw'; sel.style.maxWidth = 'min(100%, 290px)';
+    entries.forEach(([v, name]) => { const op = document.createElement('option'); op.value = v; op.textContent = name; sel.appendChild(op); });
+    sel.value = S.opts[key] || 'auto';
+    sel.onchange = () => { S.opts[key] = sel.value; saveGame(); change(); applyNVGraphics(); Audio2.sfx('ui'); };
+    ctl.appendChild(sel); row.append(lab, ctl); return row;
+  };
+  const quality = mkSelectRow('Qualité graphique', 'Auto conseillé · économie · équilibrée · ultra', 'graphics', [
+    ['auto','Automatique'],['economy','Économie / fluidité'],['balanced','Équilibrée'],['ultra','Ultra']
+  ], () => { applyNVGraphics(); sideRes = resizeView().sideRes; syncTitleZone(); toast('Qualité graphique : ' + (S.opts.graphics === 'auto' ? 'automatique' : S.opts.graphics)); });
+  db.insertBefore(quality, db.firstChild);
+  if (!IS_TOUCH) {
+    const resolution = mkSelectRow('Résolution du rendu PC', 'Résolution interne du jeu ; la résolution du moniteur reste contrôlée par le système', 'resolution', [
+      ['auto','Auto · adaptatif'],['720','720p · performance'],['900','900p · équilibrée'],['1080','1080p · nette'],['1440','1440p · haute définition']
+    ], () => { sideRes = resizeView().sideRes; syncTitleZone(); toast('Résolution interne : ' + (S.opts.resolution === 'auto' ? 'Auto' : S.opts.resolution + 'p')); });
+    db.insertBefore(resolution, quality.nextSibling);
+  }
+  const fr = mkSelectRow('Fréquence d’images', 'Auto : 60 i/s sur tactile, 120 i/s sur ordinateur · selon l’écran et le navigateur', 'frameRate', [
+    ['auto','Auto'],['30','30 i/s'],['60','60 i/s'],['90','90 i/s'],['120','120 i/s'],['144','144 i/s']
+  ], () => toast('Fréquence cible : ' + (S.opts.frameRate === 'auto' ? 'Auto' : S.opts.frameRate + ' i/s')));
+  db.insertBefore(fr, !IS_TOUCH ? db.children[2] : db.children[1]);
+  const tabs = document.createElement('nav'); tabs.id = 'optTabs'; tabs.setAttribute('aria-label','Catégories des options'); tabs.setAttribute('role','tablist');
+  const tabDefs = [
+    ['display','Affichage classique'],['displayAdvanced','Affichage avancé'],['audio','Audio'],
+    ['interface','Interface'],['gameplay','Gameplay'],['controls','Commandes'],['save','Sauvegarde']
+  ];
+  body.insertBefore(tabs, body.firstChild);
+  const sections = [...body.querySelectorAll('.opt-section')];
+  const activate = key => {
+    S.opts.optTab = key;
+    tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === key)));
+    sections.forEach(sec => { sec.hidden = sec.dataset.section !== key; sec.setAttribute('aria-hidden', String(sec.hidden)); });
+  };
+  tabDefs.forEach(([key,title]) => {
+    if (!sections.some(sec => sec.dataset.section === key)) return;
+    const b = document.createElement('button'); b.type='button'; b.dataset.tab=key; b.textContent=title; b.setAttribute('role','tab'); b.setAttribute('aria-controls','opt-panel-'+key);
+    const panel = sections.find(sec => sec.dataset.section === key); panel.id = 'opt-panel-'+key; panel.setAttribute('role','tabpanel');
+    b.onclick = () => { activate(key); saveGame(); Audio2.sfx('ui'); };
+    tabs.appendChild(b);
+  });
+  activate(tabs.querySelector(`[data-tab="${S.opts.optTab}"]`) ? S.opts.optTab : 'display');
+  applyNVGraphics();
+};
+/* La voix de fin doit continuer pendant l’écran Game Over ; son démarrage est
+   lancé avec le son déjà déverrouillé par la partie, puis la musique suit. */
+
 </script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bd9b21c941d646',t:'MTc5MjIyMjMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
