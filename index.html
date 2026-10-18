@@ -2075,7 +2075,7 @@ function defaultSave() {
     owned: { ships: ['falcon'], weapons: ['pulse'], upgrades: {}, liveries: ['squadron'], trails: ['pixel'], auras: ['none'], bombs: 2 },
     sel:   { ship: 'falcon', weapon: 'pulse', livery: 'squadron', trail: 'pixel', aura: 'none' },
     opts:  { music: 50, sfx: 70, shake: 100, crt: 'auto', smooth: false, diff: 1, gpu: 'auto',
-             mouse: false, autofire: false, fps: false, preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1 },
+             mouse: false, autofire: false, fps: false, fpsCap: (window.matchMedia && matchMedia('(pointer: coarse)').matches) ? '60' : 'auto', preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1 },
     cheats: { found: {}, on: {}, startLevel: 1 },
     perk: {},  /* bonus du marchand, également sauvegardés dans nv_perk */
     /* --- boucles d'addiction --- */
@@ -3083,12 +3083,22 @@ const PERF = { tier: 0, ema: 16.7, n: 0, cool: 120, bad: 0 };
   } catch (e) {}
 })();
 const dpr = () => Math.min(window.devicePixelRatio || 1, DPR_TIERS[PERF.tier]);
+function fpsTarget() {
+  if (typeof IS_TOUCH !== 'undefined' && IS_TOUCH) return 60;
+  const cap = typeof S !== 'undefined' && S.opts ? S.opts.fpsCap : 'auto';
+  return cap === '144' ? 144 : cap === '120' ? 120 : 60;
+}
+function frameLimitMs() {
+  if (typeof IS_TOUCH !== 'undefined' && IS_TOUCH) return 1000 / 60;
+  const cap = typeof S !== 'undefined' && S.opts ? S.opts.fpsCap : 'auto';
+  return cap === 'auto' ? 0 : 1000 / fpsTarget();
+}
 function perfAdapt(raw) {
   if (raw > 0.2 || document.hidden) return;          /* onglet en arrière-plan, chargement : on ignore */
   PERF.ema = PERF.ema * 0.93 + raw * 1000 * 0.07;
   if (PERF.cool > 0) { PERF.cool--; return; }
   if (++PERF.n % 40) return;
-  PERF.bad = PERF.ema > 20 ? PERF.bad + 1 : 0;       /* sous ~50 i/s de façon soutenue */
+  PERF.bad = PERF.ema > (1000 / fpsTarget()) * 1.2 ? PERF.bad + 1 : 0; /* marge de 20 % sous la cadence choisie */
   if (PERF.bad < 2) return;
   const dev = window.devicePixelRatio || 1, cur = Math.min(dev, DPR_TIERS[PERF.tier]);
   let j = PERF.tier + 1;
@@ -3124,8 +3134,9 @@ function autoQuality(dt) {
   R.qualT = 0;
   /* On baisse les effets avant que les saccades soient visibles, puis on les
      réactive seulement après une marge stable pour éviter les oscillations. */
-  if (R.fps < 54 && R.qual > 0.42) R.qual = Math.max(0.42, R.qual - 0.16);
-  else if (R.fps > 58 && R.qual < 1) R.qual = Math.min(1, R.qual + 0.07);
+  const goal = fpsTarget();
+  if (R.fps < goal * 0.90 && R.qual > 0.42) R.qual = Math.max(0.42, R.qual - 0.16);
+  else if (R.fps > goal * 0.97 && R.qual < 1) R.qual = Math.min(1, R.qual + 0.07);
   /* dernier recours : baisse la résolution interne du rendu HD.
      Important : ces réglages ne concernent QUE l'ère HD — sans ce garde-fou,
      le rétablissement de la qualité forçait un retour en HD pendant les
@@ -3133,8 +3144,8 @@ function autoQuality(dt) {
   if (R.era === 3) {
     if (R.resTier === undefined) R.resTier = 0;
     const TIERS = [1, 0.78, 0.6];                 /* 1,60 / 1,25 / 0,96 */
-    if (R.resTier < 2 && R.fps < 40) { R.resTier++; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
-    else if (R.resTier > 0 && R.fps > 57) { R.resTier--; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
+    if (R.resTier < 2 && R.fps < goal * 0.67) { R.resTier++; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
+    else if (R.resTier > 0 && R.fps > goal * 0.95) { R.resTier--; RES_SCALE = TIERS[R.resTier]; R.lowRes = R.resTier > 0; setEra(3, true); }
     if (R.sec === 5) { R.S = eraS(5); }   /* seule la génération HD suit RES_SCALE */
   }
 }
@@ -3222,10 +3233,13 @@ const FX = {
 };
 
 /* --- particules ----------------------------------------------------------- */
-const PMAX = 4000;   /* dont la majorité est dessinée par le GPU (ères 2-3) */
-const parts = [];
-for (let i = 0; i < PMAX; i++) parts.push({ on: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, col: '#fff', size: 2, drag: 0.9, grav: 0, glow: false, sq: true, flick: false });
-let pIdx = 0, pCount = 0;
+const PMAX = 4000;   /* plafond ; seules les particules vivantes sont parcourues */
+const parts = [], activeParts = [], freeParts = [];
+for (let i = 0; i < PMAX; i++) {
+  const p = { slot: i, on: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, col: '#fff', size: 2, drag: 0.9, grav: 0, glow: false, sq: true, flick: false };
+  parts.push(p); freeParts.push(p);
+}
+let pCount = 0;
 /* --- sources lumineuses dynamiques ---------------------------------------
    Toute particule « glow » (explosion, impact, réacteur, tir de boss) dépose
    une lumière dans un anneau de 40 entrées. Ces lumières sont cuites dans un
@@ -3283,32 +3297,34 @@ function drawLights() {
 }
 function spawnPart(o) {
   const cap = ERAS[R.sec].maxParts * (0.45 + 0.55 * R.qual);
-  if (pCount > cap) return null;
-  let p = null;
-  for (let i = 0; i < PMAX; i++) { const q = parts[(pIdx + i) % PMAX]; if (!q.on) { p = q; pIdx = (pIdx + i + 1) % PMAX; break; } }
-  if (!p) { p = parts[pIdx]; pIdx = (pIdx + 1) % PMAX; }
+  if (pCount >= cap) return null;
+  const p = freeParts.pop(); if (!p) return null;
   p.on = true; p.x = o.x; p.y = o.y; p.vx = o.vx || 0; p.vy = o.vy || 0;
   p.life = p.max = o.life || 0.5; p.col = o.col || '#fff';
   p.size = o.size || 2; p.drag = o.drag === undefined ? 0.9 : o.drag;
   p.grav = o.grav || 0; p.glow = !!o.glow; p.flick = !!o.flick; p.sq = o.sq !== false; p.spin = o.spin || 0; p.a = o.a || 0;
   if (R.era === 0) { p.size = Math.max(1, Math.round(p.size / 2)); p.glow = false; }
+  activeParts.push(p); pCount = activeParts.length;
   if (p.glow) addLight(p.x, p.y, Math.min(26, Math.max(8, p.size * 2.6)), p.col, 0.3 + p.max * 0.7, p.size > 5 ? 1 : 0);
   return p;
 }
 function updateParts(dt) {
   updateLights(dt);
-  pCount = 0;
   const sp = R.era === 0 ? 0.55 : 1;   /* moins de particules à l'écran en 8-bit */
-  for (let i = 0; i < PMAX; i++) {
-    const p = parts[i]; if (!p.on) continue;
-    p.life -= dt * (R.era === 0 && (i % 3) ? 0 : 1) ; /* en ère 0, 1/3 « clignote » */
-    if (p.life <= 0) { p.on = false; continue; }
+  for (let i = activeParts.length - 1; i >= 0; i--) {
+    const p = activeParts[i];
+    p.life -= dt * (R.era === 0 && (p.slot % 3) ? 0 : 1); /* en ère 0, 1/3 « clignote » */
+    if (p.life <= 0) {
+      p.on = false;
+      activeParts[i] = activeParts[activeParts.length - 1]; activeParts.pop(); freeParts.push(p);
+      continue;
+    }
     const dr = Math.pow(p.drag, dt * 60);
     p.vx *= dr; p.vy *= dr; p.vy += p.grav * dt;
     p.x += p.vx * dt * sp; p.y += p.vy * dt * sp;
     p.a += p.spin * dt;
-    pCount++;
   }
+  pCount = activeParts.length;
 }
 /* les particules lumineuses partent au GPU : le canevas ne garde que les
    carrés bon marché des ères 8/16 bits, où la lumière se doit d'être franche */
@@ -3316,8 +3332,8 @@ function gpuPartsOn() { return !!(GPU.ready && R.era >= 2 && GPU.pool); }
 function drawParts() {
   const g = PAINT.g, k = PAINT.K;
   g.globalCompositeOperation = 'source-over';
-  for (let i = 0; i < PMAX; i++) {
-    const p = parts[i]; if (!p.on || p.glow) continue;
+  for (let i = 0; i < activeParts.length; i++) {
+    const p = activeParts[i]; if (p.glow) continue;
     const t = p.life / p.max;
     g.fillStyle = p.col;
     if (p.flick && (t * 8 | 0) % 2) continue;
@@ -3327,8 +3343,8 @@ function drawParts() {
   }
   if (gpuPartsOn()) { g.globalCompositeOperation = 'source-over'; return; }
   g.globalCompositeOperation = 'lighter';
-  for (let i = 0; i < PMAX; i++) {
-    const p = parts[i]; if (!p.on || !p.glow) continue;
+  for (let i = 0; i < activeParts.length; i++) {
+    const p = activeParts[i]; if (!p.glow) continue;
     const t = p.life / p.max;
     const s = Math.max(1, p.size * (0.35 + 0.8 * t));
     g.globalAlpha = clamp(t * 1.2, 0, 1);
@@ -4129,9 +4145,10 @@ function gpuAutoQuality(raw) {          /* raw est en secondes (frame()) */
   if (!GPU.ready) return;
   GPU.ms = GPU.ms * 0.9 + raw * 1000 * 0.1;
   if (++GPU.tick % 45) return;
-  if (GPU.ms > 24 && GPU.q > 0) { GPU.q--; gpuTier(); GPU.bad = 0; }
-  else if (GPU.ms < 13 && GPU.q < 2) { GPU.q++; gpuTier(); GPU.bad = 0; }
-  else if (GPU.q === 0 && GPU.ms > 33) {
+  const budget = 1000 / fpsTarget();
+  if (GPU.ms > budget * 1.10 && GPU.q > 0) { GPU.q--; gpuTier(); GPU.bad = 0; }
+  else if (GPU.ms < budget * 0.84 && GPU.q < 2) { GPU.q++; gpuTier(); GPU.bad = 0; }
+  else if (GPU.q === 0 && GPU.ms > budget * 1.55) {
     /* même au palier de secours le GPU ne tient pas la cadence : on rend la
        main au canevas 2D (uniquement si le moteur était en AUTO) */
     if (++GPU.bad > 3 && PERF.tier >= DPR_TIERS.length - 1 && (S.opts.gpu === undefined || S.opts.gpu === 'auto')) {
@@ -4284,16 +4301,17 @@ function gpuPresent() {
   }
   const u = GPU.u.uniforms;
   const lowQ = (GPU.q | 0) === 0;               /* palier de secours : plus d'aberration, de grain, de flou de mouvement ni de bloom */
-  u.uFx = new Float32Array([lowQ ? 0 : ca * GPU.fxMul * view.dpr, scan, vig, lowQ ? 0 : grain * GPU.fxMul]);
-  u.uRip = new Float32Array([GPU.rip.x, GPU.rip.y, ripR, ripS]);
+  const fx = u.uFx, rip = u.uRip;
+  fx[0] = lowQ ? 0 : ca * GPU.fxMul * view.dpr; fx[1] = scan; fx[2] = vig; fx[3] = lowQ ? 0 : grain * GPU.fxMul;
+  rip[0] = GPU.rip.x; rip[1] = GPU.rip.y; rip[2] = ripR; rip[3] = ripS;
   u.uTime = GPU.t;
   u.uWarp = warp;
-  /* étalonnage de la génération : courbes cuites en paramètres (voir GRADE_P) */
-  const GP = GRADE_P[clamp(e, 0, 3)];
-  u.uGrade = new Float32Array([GP.sat, GP.con, GP.gam, 0]);
-  u.uTint = new Float32Array([GP.sh[0], GP.sh[1], GP.sh[2], 1]);
-  u.uChan = new Float32Array([1 / GP.chan[0], 1 / GP.chan[1], 1 / GP.chan[2], 0]);
-  u.uGain = new Float32Array([GP.gain[0], GP.gain[1], GP.gain[2], GP.lift]);
+  /* étalonnage de la génération : on réutilise les uniforms, sans allocations par image */
+  const GP = GRADE_P[clamp(e, 0, 3)], grade = u.uGrade, tint = u.uTint, chan = u.uChan, gain = u.uGain;
+  grade[0] = GP.sat; grade[1] = GP.con; grade[2] = GP.gam; grade[3] = 0;
+  tint[0] = GP.sh[0]; tint[1] = GP.sh[1]; tint[2] = GP.sh[2]; tint[3] = 1;
+  chan[0] = 1 / GP.chan[0]; chan[1] = 1 / GP.chan[1]; chan[2] = 1 / GP.chan[2]; chan[3] = 0;
+  gain[0] = GP.gain[0]; gain[1] = GP.gain[1]; gain[2] = GP.gain[2]; gain[3] = GP.lift;
   /* flou de mouvement : la vitesse du monde, convertie en pixels d'écran */
   u.uMB = (e >= 3 && !lowQ && !IS_TOUCH) ? (1.2 + clamp((SCROLL.boost - 1) * 0.9, 0, 1) * 3.4) * view.dpr * clamp(R.qual, 0.5, 1) : 0;
   /* particules lumineuses : synchronisation de l'arène GPU */
@@ -4304,9 +4322,9 @@ function gpuPresent() {
        modeste on en garde un tiers, l'image ne s'écroule pas pour autant.    */
     const q = GPU.q | 0, limit = q >= 2 ? n : q === 1 ? Math.round(n * 0.4) : Math.round(n * 0.18);
     if (gpuPartsOn()) {
-      for (let i = 0; i < PMAX && k < limit; i++) {
-        const pt = parts[i];
-        if (!pt.on || !pt.glow) continue;
+      for (let i = 0; i < activeParts.length && k < limit; i++) {
+        const pt = activeParts[i];
+        if (!pt.glow) continue;
         const t = clamp(pt.life / pt.max, 0, 1);
         const sp = pool[k++];
         const sz = Math.max(2, pt.size * (0.35 + 0.8 * t)) * sx * (e >= 3 ? 1.9 : 1.5);
@@ -9090,6 +9108,12 @@ function buildOptions() {
   section('display', 'Affichage et performances', 'Rendu, fluidité et effets visuels');
   slider('shake', 'Secousses', 'Intensité du screen-shake', 0, 150, v => v + '%');
   sw('fps', 'Compteur FPS', 'Affiche les performances et le nombre de particules');
+  const dc = add(`<div><label>Cadence sur PC<span class="hint">AUTO suit l’écran ; les écrans tactiles restent à 60 i/s</span></label></div><div class="ctl"><div class="seg"></div></div>`);
+  [['auto','AUTO'],['60','60'],['120','120'],['144','144']].forEach(([v, lab]) => {
+    const b = document.createElement('button'); b.textContent = lab; b.className = (o.fpsCap || 'auto') === v ? 'sel' : '';
+    b.onclick = () => { o.fpsCap = v; saveGame(); buildOptions(); };
+    dc.querySelector('.seg').appendChild(b);
+  });
   sw('smooth', 'Lissage HD', 'Adoucit les pixels en secteur HD');
   const d2 = add(`<div><label>Scanlines CRT<span class="hint">Filtre sur le rendu HD uniquement</span></label></div>
     <div class="ctl"><div class="seg"></div></div>`);
@@ -10015,7 +10039,9 @@ function startLevel(level) {
   G.secKills = 0; G.secGraze = 0; G.comboMax = G.combo | 0; G.levelT = 0; G.nobombMsg = 0;
   /* coop en ligne : l'invité démarre exactement quand le secteur commence */
   if (typeof NET !== 'undefined' && NET.role === 'host' && NET.state === 'ready') netSend('w|go|' + level);
-  for (const p of parts) p.on = false; for (const f of FTs) f.on = false;
+  for (const p of activeParts) { p.on = false; freeParts.push(p); }
+  activeParts.length = 0; pCount = 0;
+  for (const f of FTs) f.on = false;
   G.boss = null; G.plan = buildPlan(level); G.waveIdx = 0; G.waveT = 0; G.phase = 'waves';
   buildTerrain(level);
   decorReset(); decorInitLevel(level);
@@ -11961,7 +11987,8 @@ function wirePointer() {
 /* --------------------------------- boucle ---------------------------------- */
 let lastT = performance.now();
 function frame(now) {
-  if (now - lastT < 10.5) { requestAnimationFrame(frame); return; }   /* 120 Hz -> 60 i/s : moitié moins de travail GPU */
+  const limit = frameLimitMs();
+  if (limit && now - lastT < limit - 0.35) { requestAnimationFrame(frame); return; }
   let raw = (now - lastT) / 1000; lastT = now;
   R.fps = lerp(R.fps, 1 / Math.max(raw, 0.0001), 0.06);
   let dt = Math.min(raw, 0.05);
