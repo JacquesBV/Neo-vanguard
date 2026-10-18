@@ -17360,7 +17360,36 @@ narrativeInstall();
     #nvFinale .nvf-credit-signoff{margin:16px 0 0;color:#8ca2c7;font:700 12px/1.9 var(--mono,monospace);letter-spacing:.2em;}
     #nvFinale .nvf-fast{position:absolute;z-index:5;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:calc(100vw - 32px);border:1px solid rgba(118,225,255,.5);border-radius:999px;padding:12px 18px;background:rgba(5,14,28,.9);color:#a9f1ff;font:800 10px/1.2 var(--ui-font,system-ui,sans-serif);letter-spacing:.12em;white-space:nowrap;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 0 24px rgba(53,198,240,.15);}
     #nvFinale .nvf-fast.fast{background:rgba(36,125,153,.9);color:#fff;box-shadow:0 0 30px rgba(87,226,255,.4);}
-    #nvFinale .nvf-outro{display:none;position:absolute;inset:0;z-index:6;align-items:center;justify-content:center;text-align:center;background:#02040a;color:#fff;padding:24px;}
+    #nvFinale .nvf-reward{display:none;position:absolute;inset:0;z-index:7;align-items:center;justify-content:center;overflow:hidden;padding:calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));text-align:center;background:radial-gradient(ellipse at 50% 46%,rgba(8,88,119,.34),transparent 45%),radial-gradient(ellipse at 50% 100%,rgba(230,160,53,.09),transparent 38%),#02040a;}
+    #nvFinale .nvf-reward.on{display:flex;animation:nvfIn .65s ease both;}
+    #nvFinale .nvf-reward-inner{width:min(720px,100%);display:flex;flex-direction:column;align-items:center;}
+    #nvFinale .nvf-reward-kicker{margin:0 0 9px;color:#ffd783;font:800 10px/1.4 var(--mono,monospace);letter-spacing:.32em;text-shadow:0 0 18px rgba(255,195,93,.3);}
+    #nvFinale .nvf-reward-title{margin:0;color:#f7fbff;font:900 clamp(24px,5.5vw,42px)/1.05 var(--ui-font,system-ui,sans-serif);letter-spacing:.09em;text-shadow:0 3px 24px #000;}
+    #nvFinale .nvf-reward-sub{margin:10px 0 0;max-width:520px;color:#b8cbe4;font:400 clamp(13px,2.1vw,16px)/1.5 var(--ui-font,system-ui,sans-serif);}
+    #nvFinale .nvf-reward-object{position:relative;display:block;width:min(82vw,390px);height:min(41vh,330px);min-height:230px;margin:5px auto 0;padding:0;border:0;background:transparent;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;filter:drop-shadow(0 20px 26px rgba(0,0,0,.45));}
+    #nvFinale .nvf-reward-object svg{width:100%;height:100%;overflow:visible;animation:nvfRelicFloat 3.8s ease-in-out infinite;}
+    #nvFinale .nvf-reward-object:focus-visible{outline:2px solid #7deaff;outline-offset:5px;border-radius:28px;}
+    #nvFinale .nvf-reward-object:active{transform:scale(.97);}
+    #nvFinale .nvf-reward-aura{position:absolute;left:50%;top:48%;width:min(54vw,240px);height:min(54vw,240px);border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(44,225,255,.25),rgba(36,166,217,.08) 44%,transparent 72%);opacity:.75;transition:opacity .7s,transform .7s;pointer-events:none;}
+    #nvFinale .nvf-reward.opened .nvf-reward-aura{opacity:1;transform:translate(-50%,-50%) scale(1.55);}
+    #nvFinale .nvf-reward-lid-left,#nvFinale .nvf-reward-lid-right{transition:transform .85s cubic-bezier(.16,.8,.2,1);transform-box:fill-box;}
+    #nvFinale .nvf-reward.opened .nvf-reward-lid-left{transform:translate(-42px,-19px) rotate(-12deg);}
+    #nvFinale .nvf-reward.opened .nvf-reward-lid-right{transform:translate(42px,-19px) rotate(12deg);}
+    #nvFinale .nvf-reward-core{opacity:.35;transform:scale(.62);transform-origin:260px 218px;transition:opacity .8s,transform .9s cubic-bezier(.16,.8,.2,1);}
+    #nvFinale .nvf-reward.opened .nvf-reward-core{opacity:1;transform:scale(1);}
+    #nvFinale .nvf-reward-charge{width:min(230px,62vw);height:3px;margin:-3px auto 14px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;}
+    #nvFinale .nvf-reward-charge i{display:block;width:100%;height:100%;background:linear-gradient(90deg,#55dfff,#ffe09a);transform:scaleX(0);transform-origin:left;}
+    #nvFinale .nvf-reward.charging .nvf-reward-charge i{animation:nvfCharge .85s linear forwards;}
+    @keyframes nvfCharge{to{transform:scaleX(1)}}
+    @keyframes nvfRelicFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+    #nvFinale .nvf-reward-hint{margin:0;color:#7eeaff;font:800 10px/1.4 var(--mono,monospace);letter-spacing:.19em;text-shadow:0 0 16px rgba(66,211,255,.34);}
+    #nvFinale .nvf-reward-reveal{display:none;margin-top:15px;color:#fff;animation:nvfIn .5s ease both;}
+    #nvFinale .nvf-reward.opened .nvf-reward-reveal{display:block;}
+    #nvFinale .nvf-reward-reveal strong{display:block;color:#ffe5a7;font:900 clamp(17px,4vw,23px)/1.2 var(--mono,monospace);letter-spacing:.12em;}
+    #nvFinale .nvf-reward-reveal p{margin:7px 0 13px;color:#c8d7ed;font:400 13px/1.45 var(--ui-font,system-ui,sans-serif);}
+    #nvFinale .nvf-reward-next{display:none;min-height:48px;padding:11px 20px;border:1px solid rgba(113,228,255,.7);border-radius:8px;background:linear-gradient(135deg,#73eaff,#47b9e8);color:#06121c;font:900 10px var(--ui-font,system-ui,sans-serif);letter-spacing:.17em;cursor:pointer;box-shadow:0 0 22px rgba(85,207,255,.25);}
+    #nvFinale .nvf-reward.opened .nvf-reward-next{display:inline-flex;align-items:center;justify-content:center;}
+    #nvFinale .nvf-outro{display:none;position:absolute;inset:0;z-index:8;align-items:center;justify-content:center;text-align:center;background:#02040a;color:#fff;padding:24px;}
     #nvFinale .nvf-outro.on{display:flex;animation:nvfIn .8s ease both;}
     #nvFinale .nvf-outro-inner{width:min(760px,100%);}
     #nvFinale .nvf-outro-label{margin:0 0 26px;color:#7ceeff;font:700 11px/1.4 var(--mono,monospace);letter-spacing:.34em;}
@@ -17378,11 +17407,13 @@ narrativeInstall();
       #nvFinale .nvf-controls button{padding:9px 11px;font-size:10px;letter-spacing:.08em;}
     }
     @media(max-height:620px){#nvFinale .nvf-copy{max-height:68dvh;padding-top:14px}#nvFinale .nvf-title{font-size:24px;margin-bottom:8px}#nvFinale .nvf-body{font-size:13px;line-height:1.4}#nvFinale .nvf-controls{margin-top:10px}}
+    @media(max-height:620px){#nvFinale .nvf-reward-object{height:30vh;min-height:175px;}#nvFinale .nvf-reward-sub{margin-top:6px}#nvFinale .nvf-reward-reveal{margin-top:8px}}
     @media(prefers-reduced-motion:reduce){#nvFinale *,#nvFinale *:before{animation:none!important;transition:none!important;}}
   `;
   const style=document.createElement('style');style.id='nv-finale-style';style.textContent=css;document.head.appendChild(style);
   const root=document.createElement('section');root.id='nvFinale';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Épilogue Neo-vanguard');
   root.innerHTML='<div class="nvf-art"><img alt=""></div><div class="nvf-shade"></div><header class="nvf-hud"><span class="nvf-brand">NEO-VANGUARD · ÉPILOGUE</span><span class="nvf-progress"><i></i></span><span class="nvf-count"></span><button type="button" class="nvf-skip"></button></header><article class="nvf-copy"><div class="nvf-copy-inner"><p class="nvf-kicker"></p><h1 class="nvf-title"></h1><div class="nvf-name"></div><p class="nvf-body"></p><p class="nvf-score"></p><nav class="nvf-controls"><button type="button" class="nvf-prev"></button><button type="button" class="nvf-next"></button></nav></div></article><section class="nvf-credits" aria-label="Générique"><div class="nvf-roll"></div><button type="button" class="nvf-fast"></button></section><section class="nvf-outro"><div class="nvf-outro-inner"><p class="nvf-outro-label"></p><h1><span>NEO</span>VANGUARD</h1><button type="button" class="nvf-continue"></button></div></section>';
+  root.insertAdjacentHTML('beforeend',`<section class="nvf-reward" aria-live="polite"><div class="nvf-reward-inner"><p class="nvf-reward-kicker"></p><h2 class="nvf-reward-title"></h2><p class="nvf-reward-sub"></p><div class="nvf-reward-aura"></div><button type="button" class="nvf-reward-object" aria-label="Ouvrir le Cœur de l’Archive"><svg viewBox="0 0 520 440" aria-hidden="true"><defs><linearGradient id="nvfMetal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f3e3bd"/><stop offset=".2" stop-color="#728398"/><stop offset=".48" stop-color="#26384e"/><stop offset=".7" stop-color="#d8c69e"/><stop offset="1" stop-color="#43556d"/></linearGradient><linearGradient id="nvfDarkMetal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4b5e73"/><stop offset=".5" stop-color="#121b2b"/><stop offset="1" stop-color="#657991"/></linearGradient><linearGradient id="nvfGold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff1bd"/><stop offset=".45" stop-color="#d7a84e"/><stop offset="1" stop-color="#765127"/></linearGradient><linearGradient id="nvfCrystal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f0ffff"/><stop offset=".25" stop-color="#8ef5ff"/><stop offset=".65" stop-color="#21bce8"/><stop offset="1" stop-color="#15559f"/></linearGradient><radialGradient id="nvfCoreGlow"><stop stop-color="#bafaff" stop-opacity=".95"/><stop offset=".36" stop-color="#49dfff" stop-opacity=".45"/><stop offset="1" stop-color="#00a9ff" stop-opacity="0"/></radialGradient></defs><ellipse cx="260" cy="396" rx="150" ry="24" fill="#000" opacity=".42"/><ellipse cx="260" cy="388" rx="118" ry="12" fill="#55dcff" opacity=".24"/><g class="nvf-reward-core"><circle cx="260" cy="218" r="112" fill="url(#nvfCoreGlow)"/><path d="M260 124 323 187 260 294 197 187Z" fill="url(#nvfCrystal)" stroke="#d7ffff" stroke-width="3"/><path d="m260 124 4 85-67-22Zm63 63-63 85 4-63Zm-126 0 67 22-4 63Z" fill="#dcffff" opacity=".42"/><path d="M260 143v154M218 187h84" stroke="#eaffff" stroke-opacity=".6" stroke-width="2"/><circle cx="260" cy="210" r="5" fill="#fff"/><path d="M260 99v-20m0 238v-20m-102-79h-20m224 0h-20" stroke="#a4f6ff" stroke-width="4" stroke-linecap="round"/></g><g class="nvf-reward-lid-left"><path d="M112 153 260 78v60l-105 55v145l-43-23Z" fill="url(#nvfMetal)" stroke="#f8e4b5" stroke-width="3"/><path d="m128 164 116-59v19l-97 50v140l-19-10Z" fill="url(#nvfDarkMetal)"/><path d="m112 153 43 22v163l-43-23Z" fill="#101827" stroke="#b9c5d2" stroke-width="2"/><path d="m130 177 12 6v12l-12-6zm0 125 12 6v12l-12-6z" fill="url(#nvfGold)"/></g><g class="nvf-reward-lid-right"><path d="M408 153 260 78v60l105 55v145l43-23Z" fill="url(#nvfMetal)" stroke="#f8e4b5" stroke-width="3"/><path d="m392 164-116-59v19l97 50v140l19-10Z" fill="url(#nvfDarkMetal)"/><path d="m408 153-43 22v163l43-23Z" fill="#101827" stroke="#b9c5d2" stroke-width="2"/><path d="m390 177-12 6v12l12-6zm0 125-12 6v12l12-6z" fill="url(#nvfGold)"/></g><path d="m112 318 148 76 148-76-148 69Z" fill="url(#nvfDarkMetal)" stroke="#d9c18f" stroke-width="3"/><path d="m166 343 94 48 94-48" fill="none" stroke="url(#nvfGold)" stroke-width="5"/><path d="m244 75 16-18 16 18-16 16Z" fill="url(#nvfGold)" stroke="#fff0c3" stroke-width="2"/><path d="M174 126 260 82l86 44" fill="none" stroke="#effbff" stroke-opacity=".75" stroke-width="3"/><circle cx="166" cy="185" r="5" fill="#8ef5ff"/><circle cx="354" cy="185" r="5" fill="#8ef5ff"/><path d="m95 159 16-8m314 8-16-8" stroke="#fff1c2" stroke-width="3" stroke-linecap="round"/></svg></button><div class="nvf-reward-charge"><i></i></div><p class="nvf-reward-hint"></p><div class="nvf-reward-reveal"><strong></strong><p></p><button type="button" class="nvf-reward-next"></button></div></div></section>`);
   document.body.appendChild(root);
   const $=(sel)=>root.querySelector(sel);
   const pages=[
@@ -17407,6 +17438,13 @@ narrativeInstall();
     fast:['MAINTENIR POUR ACCÉLÉRER · ESPACE','HOLD TO SPEED UP · SPACE','MANTÉN PARA ACELERAR · ESPACIO','MANTÉM PARA ACELERAR · ESPAÇO','長押しで早送り · SPACE'],
     press:['APPUYEZ POUR CONTINUER','PRESS TO CONTINUE','PULSA PARA CONTINUAR','TOCA PARA CONTINUAR','タップして続ける'],
     endLabel:['FIN DE TRANSMISSION','END OF TRANSMISSION','FIN DE TRANSMISIÓN','FIM DA TRANSMISSÃO','通信終了'],
+    rewardKicker:['RÉCOMPENSE LÉGENDAIRE','LEGENDARY REWARD','RECOMPENSA LEGENDARIA','RECOMPENSA LENDÁRIA','伝説の報酬'],
+    rewardTitle:['LE CŒUR DE L’ARCHIVE','THE HEART OF THE ARCHIVE','EL CORAZÓN DEL ARCHIVO','O CORAÇÃO DO ARQUIVO','アーカイブの心臓'],
+    rewardSub:['Une dernière mémoire attend son pilote. Ouvre le sceau.','One final memory awaits its pilot. Open the seal.','Un último recuerdo espera a su piloto. Abre el sello.','Uma última memória aguarda o piloto. Abra o selo.','最後の記憶がパイロットを待っている。封印を解け。'],
+    rewardHint:['TOUCHE OU MAINTIENS POUR OUVRIR','TAP OR HOLD TO OPEN','TOCA O MANTÉN PARA ABRIR','TOQUE OU SEGURE PARA ABRIR','タップまたは長押しで開く'],
+    rewardOpened:['MÉMOIRE RESTITUÉE','MEMORY RESTORED','MEMORIA RESTAURADA','MEMÓRIA RESTAURADA','記憶を取り戻した'],
+    rewardMessage:['VESTA — le dernier fragment est à toi.','VESTA — the final fragment is yours.','VESTA — el último fragmento es tuyo.','VESTA — o fragmento final é seu.','ヴェスタ ― 最後の欠片はあなたのもの。'],
+    rewardNext:['DÉCOUVRIR LE TITRE','REVEAL THE TITLE','VER EL TÍTULO','VER O TÍTULO','タイトルを見る'],
   };
   const li=()=>Math.max(0,LANGS.findIndex(x=>x.id===LANG));
   const localized=(key)=>L(tx(key));
@@ -17443,6 +17481,23 @@ narrativeInstall();
   const renderCredits=()=>creditGroups.map(group=>'<section class="nvf-credit-group"><h2>'+group.title[li()]+'</h2>'+group.roles.map(role=>'<div class="nvf-credit-row"><span>'+role[li()]+'</span><b>KABRAK</b></div>').join('')+'</section>').join('')+'<p class="nvf-credit-signoff">NEO-VANGUARD<br>© 2026 KABRAK ENTERTAINMENT</p>';
   let creditsAnimation=null,creditsFast=false,imageTimer=0;
   const setCreditsFast=on=>{creditsFast=!!on;if(creditsAnimation){creditsAnimation.playbackRate=creditsFast?4:1;}const b=$('.nvf-fast');if(b)b.classList.toggle('fast',creditsFast);};
+  let rewardHoldTimer=0;
+  const showReward=()=>{
+    $('.nvf-fast').hidden=true;$('.nvf-hud').style.display='none';$('.nvf-outro').classList.remove('on');
+    const reward=$('.nvf-reward');reward.classList.remove('opened','charging');reward.classList.add('on');
+    $('.nvf-reward-kicker').textContent=UI.rewardKicker[li()];$('.nvf-reward-title').textContent=UI.rewardTitle[li()];$('.nvf-reward-sub').textContent=UI.rewardSub[li()];$('.nvf-reward-hint').textContent=UI.rewardHint[li()];
+    $('.nvf-reward-reveal strong').textContent=UI.rewardOpened[li()];$('.nvf-reward-reveal p').textContent=UI.rewardMessage[li()];$('.nvf-reward-next').textContent=UI.rewardNext[li()];
+    root.setAttribute('aria-label',UI.rewardTitle[li()]);
+  };
+  const openReward=()=>{
+    const reward=$('.nvf-reward');if(!reward.classList.contains('on')||reward.classList.contains('opened'))return;
+    clearTimeout(rewardHoldTimer);reward.classList.remove('charging');reward.classList.add('opened');
+    if(Audio2&&Audio2.sfx)Audio2.sfx('coin');
+    $('.nvf-reward-object').setAttribute('aria-label',UI.rewardOpened[li()]);
+  };
+  const showTitleOutro=()=>{
+    $('.nvf-reward').classList.remove('on');$('.nvf-outro-label').textContent=UI.endLabel[li()];$('.nvf-continue').textContent=UI.press[li()];$('.nvf-outro').classList.add('on');$('.nvf-continue').focus({preventScroll:true});
+  };
   const startCreditsRoll=()=>{
     const roll=$('.nvf-roll');roll.innerHTML=renderCredits();
     const height=window.innerHeight||document.documentElement.clientHeight||800;
@@ -17451,8 +17506,7 @@ narrativeInstall();
     creditsAnimation.playbackRate=creditsFast?4:1;
     creditsAnimation.onfinish=()=>{
       if(!pages[index]||!pages[index].credits)return;
-      $('.nvf-fast').hidden=true;$('.nvf-hud').style.display='none';$('.nvf-outro').classList.add('on');
-      $('.nvf-continue').focus({preventScroll:true});
+      showReward();
     };
   };
   const showPage=(n)=>{
@@ -17461,6 +17515,7 @@ narrativeInstall();
     if(creditsAnimation){creditsAnimation.cancel();creditsAnimation=null;}
     setCreditsFast(false);
     const page=pages[index], img=$('.nvf-art img'), credits=!!page.credits;
+    $('.nvf-reward').classList.remove('on');
     root.classList.toggle('nvf-wristband',!!page.wristband);
     $('.nvf-outro').classList.remove('on');$('.nvf-fast').hidden=false;$('.nvf-hud').style.display='';
     $('.nvf-art').style.display=credits?'none':'';$('.nvf-shade').style.display=credits?'none':'';
@@ -17497,6 +17552,10 @@ narrativeInstall();
   $('.nvf-next').addEventListener('click',()=>advance(1));
   $('.nvf-skip').addEventListener('click',()=>{if(Audio2&&Audio2.sfx)Audio2.sfx('back');closeFinale();});
   const finishCredits=()=>{if(creditsAnimation){creditsAnimation.cancel();creditsAnimation=null;}root.classList.remove('on');document.body.style.overflow=previousOverflow;standaloneStart=false;backToTitle();};
+  $('.nvf-reward-object').addEventListener('click',openReward);
+  $('.nvf-reward-object').addEventListener('pointerdown',e=>{if(!$('.nvf-reward').classList.contains('on')||$('.nvf-reward').classList.contains('opened'))return;e.preventDefault();try{e.currentTarget.setPointerCapture(e.pointerId);}catch(err){}$('.nvf-reward').classList.add('charging');rewardHoldTimer=setTimeout(openReward,850);});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>$('.nvf-reward-object').addEventListener(type,()=>{clearTimeout(rewardHoldTimer);$('.nvf-reward').classList.remove('charging');}));
+  $('.nvf-reward-next').addEventListener('click',showTitleOutro);
   $('.nvf-continue').addEventListener('click',finishCredits);
   const fastButton=$('.nvf-fast');
   fastButton.addEventListener('pointerdown',e=>{e.preventDefault();try{fastButton.setPointerCapture(e.pointerId);}catch(err){}setCreditsFast(true);});
@@ -17506,6 +17565,11 @@ narrativeInstall();
   root.addEventListener('pointerup',e=>{if(pages[index]&&pages[index].credits)return;if(touchX===null)return;const dx=e.clientX-touchX,dy=e.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.2)advance(dx<0?1:-1);},{passive:true});
   document.addEventListener('keydown',e=>{
     if(!root.classList.contains('on'))return;
+    if($('.nvf-reward').classList.contains('on')){
+      if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closeFinale();return;}
+      if(['Enter',' ','Spacebar'].includes(e.key)){e.preventDefault();e.stopImmediatePropagation();if($('.nvf-reward').classList.contains('opened'))showTitleOutro();else openReward();return;}
+      return;
+    }
     if(pages[index]&&pages[index].credits){
       if($('.nvf-outro').classList.contains('on')&&['Enter',' ','Spacebar'].includes(e.key)){e.preventDefault();e.stopImmediatePropagation();finishCredits();return;}
       if([' ','Spacebar','ArrowDown'].includes(e.key)){e.preventDefault();e.stopImmediatePropagation();setCreditsFast(true);return;}
