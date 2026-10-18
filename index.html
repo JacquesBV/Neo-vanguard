@@ -133,6 +133,8 @@ body.touch.playing #tpause{display:block}
 .opt{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.08);flex-wrap:wrap}
 .opt label{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#cfdcf5}
 .opt .hint{display:block;font-size:10px;color:#8ba0c2;letter-spacing:.04em;text-transform:none;margin-top:3px}
+.medal-guide{margin:10px 0 4px;padding:10px 12px;border-left:3px solid var(--acc);background:rgba(56,224,255,.07);color:#cfe3ff;font-size:11px;line-height:1.5;letter-spacing:.025em}
+.medal-guide b{display:block;margin-bottom:3px;color:var(--acc);font-size:10px;letter-spacing:.13em}
 #optBody{display:flex;flex-direction:column;gap:14px}
 .opt-section{min-width:0;padding:12px 14px 6px;border:1px solid color-mix(in srgb,var(--acc) 22%,rgba(255,255,255,.06));background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(0,0,0,.12))}
 .opt-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 2px 9px;border-bottom:1px solid color-mix(in srgb,var(--acc) 34%,transparent)}
@@ -11625,13 +11627,14 @@ function showClearScreen() {
   if (improved) { speak('Médaille ' + MEDALS[med.idx].label + '.'); }
   $('#clearSub').textContent = 'SECTEUR ' + G.level + ' — ' + ERAS[G.eraIdx].tag;
   const nextEra = eraOfLevel(Math.min(G.level + 1, MAX_LEVEL));
+  const copy = MEDAL_COPY[LANG] || MEDAL_COPY.fr;
   const critRows = med.crit.map(c => `<div class="opt"><label>${c.ok ? '✔' : '✘'} ${c.k}</label><b style="color:${c.ok ? '#4dff9e' : '#7c8798'}">${c.t}</b></div>`).join('');
   $('#clearStats').innerHTML = `
     <div class="opt"><label>Médaille du secteur${improved ? ' — <span style=\"color:#4dff9e\">NOUVELLE</span>' : ''}</label><b style="color:${MEDALS[med.idx].col}">${MEDALS[med.idx].label}</b></div>
+    <div class="medal-guide"><b>${copy.title}</b>${copy.help}</div>
     ${critRows}
     <div class="opt"><label>Bonus de secteur</label><b style="color:#ffe066">+${fmt(G.lastBonus || 0)} CR</b></div>
     <div class="opt"><label>Score</label><b>${fmt(G.score)}</b></div>
-    <div class="opt"><label>Ennemis détruits</label><b>${fmt(G.kills)}</b></div>
     <div class="opt"><label>Aucune perte</label><b>${G.noDeath ? '<span style="color:#4dff9e">OUI (+350 CR)</span>' : 'non'}</b></div>
     <div class="opt"><label>Prochain moteur graphique</label><b style="color:${UIACC[nextEra][0]}">${ERALIST[nextEra].tag}</b></div>
     <div class="opt"><label>Crédits disponibles</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>`;
@@ -18054,18 +18057,31 @@ function fireSuper(P) {
 }
 
 /* --- médailles de secteur ------------------------------------------------- */
+const MEDAL_COPY = {
+  fr: { title:'DÉFIS DE MÉDAILLE · 1 coche = 1 point', help:'Les nombres sont des seuils minimums, pas le total d’ennemis du secteur. Les vagues peuvent ajouter des adversaires. Ces défis améliorent la médaille sans bloquer le secteur suivant.',
+    killsGoal:n=>`Abattre au moins ${fmt(n)} ennemis`, killsDone:n=>`${fmt(n)} abattus`, noLoss:'Terminer sans perdre de vie', yes:'RÉUSSI', todo:'À FAIRE', combo:'Atteindre le combo ×2,50', graze:'Frôler 120 tirs ennemis' },
+  en: { title:'MEDAL CHALLENGES · 1 check = 1 point', help:'These numbers are minimum thresholds, not the sector enemy total. Waves can bring in more enemies. Challenges improve your medal but do not block the next sector.',
+    killsGoal:n=>`Defeat at least ${fmt(n)} enemies`, killsDone:n=>`${fmt(n)} defeated`, noLoss:'Finish without losing a life', yes:'COMPLETE', todo:'TO DO', combo:'Reach a ×2.50 combo', graze:'Graze 120 enemy shots' },
+  es: { title:'RETOS DE MEDALLA · 1 marca = 1 punto', help:'Estas cifras son mínimos, no el total de enemigos del sector. Pueden llegar refuerzos. Los retos mejoran la medalla, pero no bloquean el siguiente sector.',
+    killsGoal:n=>`Derrotar al menos a ${fmt(n)} enemigos`, killsDone:n=>`${fmt(n)} derrotados`, noLoss:'Terminar sin perder vidas', yes:'LOGRADO', todo:'PENDIENTE', combo:'Alcanzar un combo ×2,50', graze:'Rozar 120 disparos enemigos' },
+  pt: { title:'DESAFIOS DE MEDALHA · 1 marca = 1 ponto', help:'Estes números são mínimos, não o total de inimigos do setor. Podem surgir reforços. Os desafios melhoram a medalha, mas não bloqueiam o próximo setor.',
+    killsGoal:n=>`Derrotar pelo menos ${fmt(n)} inimigos`, killsDone:n=>`${fmt(n)} derrotados`, noLoss:'Terminar sem perder vidas', yes:'CONCLUÍDO', todo:'POR FAZER', combo:'Alcançar um combo ×2,50', graze:'Roçar 120 disparos inimigos' },
+  ja: { title:'メダルチャレンジ · 1項目につき1ポイント', help:'表示数は最低条件で、セクターに登場する敵の総数ではありません。増援が現れることもあります。未達成の項目があっても次のセクターへ進めます。',
+    killsGoal:n=>`敵を${fmt(n)}機以上撃破`, killsDone:n=>`${fmt(n)}機撃破`, noLoss:'ライフを失わずクリア', yes:'達成', todo:'未達成', combo:'コンボ×2.50に到達', graze:'敵弾を120回かすめる' }
+};
 function medalOf(level) {
   const par = medalPar(level);
+  const copy = MEDAL_COPY[LANG] || MEDAL_COPY.fr;
   let pts = 0; const crit = [];
   const kills = G.secKills | 0, graze = G.secGraze | 0;
   const okKills = kills >= par;
   const okNoDeath = G.noDeath;
   const okCombo = (G.comboMax | 0) >= 30;
   const okGraze = graze >= 120;
-  crit.push({ k: 'Ennemis détruits', ok: okKills, t: fmt(kills) + ' / ' + fmt(par) });
-  crit.push({ k: 'Aucune perte', ok: okNoDeath, t: okNoDeath ? 'OUI' : 'non' });
-  crit.push({ k: 'Combo ×2,50', ok: okCombo, t: '×' + (1 + Math.min(G.comboMax | 0, COMBO_CAP) * COMBO_STEP).toFixed(2) });
-  crit.push({ k: '120 frôlements', ok: okGraze, t: fmt(graze) + ' / 120' });
+  crit.push({ k: copy.killsGoal(par), ok: okKills, t: copy.killsDone(kills) });
+  crit.push({ k: copy.noLoss, ok: okNoDeath, t: okNoDeath ? copy.yes : copy.todo });
+  crit.push({ k: copy.combo, ok: okCombo, t: '×' + (1 + Math.min(G.comboMax | 0, COMBO_CAP) * COMBO_STEP).toLocaleString(LANG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) });
+  crit.push({ k: copy.graze, ok: okGraze, t: fmt(graze) + ' / 120' });
   for (const c of crit) if (c.ok) pts++;
   return { idx: pts, crit };
 }
