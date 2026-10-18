@@ -7765,7 +7765,8 @@ function playerDisplayScale(box) {
   /* Les silhouettes 8 bits ont des pixels plus massifs : un léger retrait
      conserve leur lisibilité sans qu'elles dominent le décor. */
   const eraFactor = R.era === 0 ? (touch ? 0.80 : 0.90)
-    : R.era === 1 ? (touch ? 0.88 : 0.95) : 1;
+    : R.era === 1 ? (touch ? 0.88 : 0.95)
+    : (touch ? 0.90 : 0.95);
   return targetPx / Math.max(1, box.h * (PF.s || 1)) * eraFactor;
 }
 function drawPlayer(pl) {
