@@ -21432,6 +21432,69 @@ frame = function (now) {
   }
 })();
 
-</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ca2de5596b7521',t:'MTc5MjM1NDE1MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+
+/* ---- 99_menus_pc.js ---- */
+/* =============================================================================
+   MENUS PC : ils occupent enfin la place de l'écran
+   -----------------------------------------------------------------------------
+   Sur un grand écran, options, boutique, records, codes... restaient dans une
+   boîte de 680 à 1000 px, au milieu d'un grand vide. Sur PC (souris), tout ce
+   qui n'est pas le jeu est maintenant mis à l'échelle de la fenêtre (textes,
+   boutons, cartes) et les panneaux s'élargissent : les options passent sur
+   deux colonnes, la boutique et les codes affichent plus de cartes par ligne.
+   Le tactile et les petites fenêtres gardent exactement l'ancienne mise en page.
+   ========================================================================= */
+(function () {
+  'use strict';
+  const root = document.documentElement;
+  function nvzApply() {
+    const W = innerWidth, H = innerHeight;
+    const pc = !IS_TOUCH && W >= 900 && H >= 560;
+    const z = pc ? clamp(Math.min(W / 1280, H / 760), 1, 1.7) : 1;
+    root.style.setProperty('--nvz', z.toFixed(3));
+    root.style.setProperty('--nvzt', (pc ? clamp(H / 1040, 1, Math.min(1.4, z)) : 1).toFixed(3));   /* l'écran titre doit tenir en hauteur */
+    root.classList.toggle('nvpc', pc);
+  }
+  nvzApply();
+  addEventListener('resize', nvzApply);
+  document.addEventListener('fullscreenchange', () => { setTimeout(nvzApply, 60); setTimeout(nvzApply, 400); });
+  const st = document.createElement('style');
+  st.textContent = `
+  html.nvpc .panel{zoom:var(--nvz);max-height:calc(94vh / var(--nvz));width:min(1000px,calc(96vw / var(--nvz)))}
+  html.nvpc .panel.narrow{width:min(680px,calc(94vw / var(--nvz)))}
+  html.nvpc #scr-options .panel.narrow{width:min(1180px,calc(96vw / var(--nvz)))}
+  html.nvpc #scr-shop .panel{width:min(1560px,calc(96vw / var(--nvz)))}
+  html.nvpc #scr-records .panel,html.nvpc #scr-cheats .panel{width:min(1320px,calc(96vw / var(--nvz)))}
+  html.nvpc #scr-help .panel.narrow,html.nvpc #scr-credits .panel.narrow{width:min(860px,calc(94vw / var(--nvz)))}
+  html.nvpc #scr-online .panel.narrow{width:min(860px,calc(94vw / var(--nvz)))}
+  html.nvpc #scr-online .panel.narrow,html.nvpc #scr-victory .panel.narrow,html.nvpc #scr-clear .panel.narrow,
+  html.nvpc #scr-pause .panel.narrow,html.nvpc #scr-over .panel.narrow{max-width:none}
+  html.nvpc #scr-victory .panel.narrow,html.nvpc #scr-clear .panel.narrow,html.nvpc #scr-over .panel.narrow{width:min(720px,calc(94vw / var(--nvz)))}
+  html.nvpc #scr-pause .panel.narrow{width:min(480px,calc(94vw / var(--nvz)))}
+  /* options : deux colonnes quand le panneau est large */
+  html.nvpc #scr-options .opt-section-body{container-type:inline-size}
+  @container (min-width:900px){
+    #scr-options .opt-section-body>.opt{grid-column:auto}
+  }
+  html.nvpc #scr-options .opt-section{padding:14px 18px 10px}
+  @media (min-width:1500px){
+    html.nvpc #scr-options .opt-section-body{display:block;columns:2;column-gap:34px}
+    html.nvpc #scr-options .opt-section-body>.opt{break-inside:avoid}
+    html.nvpc #scr-options .opt-section-body>.opt-sub{column-span:all;margin-top:10px}
+  }
+  /* boutique : cartes plus nombreuses par ligne */
+  html.nvpc #scr-shop .grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  html.nvpc .hangar{grid-template-columns:minmax(300px,420px) 1fr}
+  /* codes : plusieurs colonnes */
+  html.nvpc #scr-cheats #cheatGrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  /* menu titre : colonne de gauche plus grande, sans manger tout le visuel */
+  html.nvpc #nvTitle .nv-left{zoom:var(--nvzt)}
+  /* fenêtres modales de la boutique / négociation */
+  html.nvpc #buyModal>*,html.nvpc #negoModal>*{zoom:min(var(--nvz),1.5)}
+  `;
+  document.head.appendChild(st);
+})();
+
+</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ca3db13e21acc1',t:'MTc5MjM1NDc5OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 
 </body></html>
