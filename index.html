@@ -2926,7 +2926,12 @@ const Audio2 = {
   gameOverMusic() {
     this.init(); this.unlock(); if (!this.ok) return;
     this.mode = 'gameover'; this.step = 0;
-    this.nextT = this.ctx.currentTime + 0.12; this.running = true;
+    /* Laisse la musique de partie s'effacer et la voix d'encouragement finir
+       avant de faire entrer la courte mélodie douce du game over. */
+    const hasOst = typeof MX !== 'undefined' && !!MX.cur;
+    const voiceLead = S.opts.speech && ('speechSynthesis' in window) ? 2.6 : 0;
+    this.nextT = this.ctx.currentTime + Math.max(hasOst ? 0.86 : 0.15, voiceLead);
+    this.running = true;
   },
   stopMusic() { this.running = false; this.mode = 'off'; },
   setEra(era) { this.era = clamp(era, 0, 3); this.step = 0; if (this.ok) { this.nextT = Math.max(this.nextT, this.ctx.currentTime + 0.08); this.applyEraFx(); } },
@@ -7699,7 +7704,7 @@ function gameOver() {
   bankRun();
   runArchive();
   Audio2.boss = false; Audio2.stopMusic(); Audio2.gameOverMusic();
-  speak('Mission échouée.');
+  speak(svt('overVoice'));
   continueArm();
   buildOverScreen();
 }
@@ -19229,6 +19234,7 @@ const SVT = {
   koImp:  ['Fichier de sauvegarde invalide', 'Invalid save file', 'Archivo de partida no válido', 'Ficheiro de jogo inválido', '無効なセーブファイルです'],
   koRd:   ['Lecture du fichier impossible', 'Could not read the file', 'No se pudo leer el archivo', 'Não foi possível ler o ficheiro', 'ファイルを読めません'],
   gameover:['Retente ta chance une prochaine fois.', 'Better luck next time.', 'Inténtalo de nuevo la próxima vez.', 'Tente a sorte da próxima vez.', '次こそ、もう一度挑戦しよう。'],
+  overVoice:['Courage, pilote. On repart quand tu veux.', 'Keep your head up, pilot. We fly again when you’re ready.', 'Ánimo, piloto. Volvemos a despegar cuando quieras.', 'Força, piloto. Voltamos a voar quando quiseres.', '大丈夫、パイロット。また飛び立つ時は君が決めていい。'],
   clrd:   ['Point de reprise effacé', 'Checkpoint cleared', 'Punto de reanudación borrado', 'Ponto de retoma apagado', 'チェックポイントを削除しました']
 };
 function svt(k, a, b) {
