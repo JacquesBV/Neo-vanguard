@@ -22719,7 +22719,7 @@ const NV_BASE = {
   24: (t, sy) => {           /* centre de commandement : écrans, carte holographique, alerte rouge */
     NG.fillStyle = '#080a12'; NG.fillRect(0, 0, L_W * NK, L_H * NK);
     ntiles(80, sy, 7, (c, r, x, y, id) => { nf(x, y, 79, 1, 'rgba(88,224,255,.08)'); nf(x, y, 1, 79, 'rgba(88,224,255,.08)'); if (nrand(id) > 0.82) nf(x + 8, y + 8, 40, 26, nhsl(190 + nrand(id + 2) * 40, 90, 55, 0.1 + 0.08 * Math.sin(t * 3 + id))); });
-    const cx = L_W / 2, cy = 470; for (let i = 1; i <= 4; i++) nr(cx, cy, i * 62, 1.5, 'rgba(88,224,255,.2)'); const a = t * 0.9; nl(cx, cy, cx + Math.cos(a) * 250, cy + Math.sin(a) * 250, 2, 'rgba(88,224,255,.3)');
+    const cx = L_W / 2, cy = 470; for (let i = 1; i <= 3; i++) nr(cx, cy, i * 80, 1.2, 'rgba(88,224,255,.06)');   /* emblème au sol, fixe et très discret : rien qui ressemble au radar */
     const al = 0.07 + 0.07 * Math.max(0, Math.sin(t * 3)); nf(0, 0, 10, L_H, 'rgba(255,74,58,' + (al * 4) + ')'); nf(L_W - 10, 0, 10, L_H, 'rgba(255,74,58,' + (al * 4) + ')');
     nglow(cx, 120, 220, 'rgba(255,74,58,' + al + ')');
   },
