@@ -22935,6 +22935,33 @@ const NV_BASE = {
 
 try { document.title = document.title.replace(/ · v7.*$/, '') + ' · v7 base VORAX'; } catch (e) {}
 
+
+/* ---- cheat « saut » : un clic sur un secteur lance la mission tout de suite --------------------- */
+{
+  let direct = false;
+  const _beginBrief = beginBrief;
+  beginBrief = function (level) {
+    if (!direct) return _beginBrief(level);
+    direct = false;
+    level = clamp(Math.round(level) || 1, 1, MAX_LEVEL);
+    const e = eraOfLevel(level);
+    if (R.sec !== e) { R.sec = e; computeTheme(e, S.sel.livery); setEra(ERAS[e].sty, true); }
+    hideScreens();
+    startLevel(level);
+    FX.addFlash(0.22, TH.pGlow);
+  };
+  document.addEventListener('click', ev => {
+    const lvb = ev.target && ev.target.closest ? ev.target.closest('[data-cheat-lv]') : null;
+    if (!lvb || G.state !== 'cheats' || !cheatFound('jump')) return;
+    ev.stopPropagation(); ev.preventDefault();
+    S.cheats.startLevel = clamp(+lvb.dataset.cheatLv | 0, 1, MAX_LEVEL);
+    Audio2.init(); Audio2.unlock(); Audio2.sfx('ui');
+    saveGame(); hideScreens();
+    direct = true; G.state = 'play'; newRun();
+    direct = false;
+  }, true);
+}
+
 window.NVX = { NV_MINI1, nvMini2, nvFireMul, nvBossHp, NV_ROBOT, NV_SCENE, NV_BASE };
 }
 </script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c04db41c4ed13b',t:'MTc5MjI1MDU5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
