@@ -2235,15 +2235,15 @@ const ERAS = [
   { id: 1, sty: 1, S: 1 / 3,  sq: 'hs',   sys: '8-BIT+',   tag: '8-BIT ÉTENDU · HOME SYSTEM',
     name: 'WIREFRAME',
     VW: 256, VH: 224, intScale: true,  ramp: 7,   maxParts: 420,  starLayers: 3, trail: 1 },
-  { id: 2, sty: 2, S: 1 / 2,  sq: 's16',                /* une seule boîte */  sys: '16-BIT',   tag: '16-BIT · SUPER 16 / NEON DRIVE',
-    name: 'NEON DRIVE',
+  { id: 2, sty: 2, S: 1 / 2,  sq: 's16',                /* SNES puis Mega Drive */  sys: '16-BIT',   tag: '16-BIT · SUPER NINTENDO / MEGA DRIVE',
+    name: '16-BIT RIVALRY',
     VW: 320, VH: 240, intScale: false, ramp: 15,  maxParts: 1500, starLayers: 4, trail: 2 },
-  { id: 3, sty: 2, S: 0.58,   sq: 'arc', sys: 'ARC-24',  tag: '24-BIT · ARCADIA · SALLE D\'ARCADE',
-    name: 'INSERT COIN',
+  { id: 3, sty: 2, S: 0.62,   sq: 'arc', sys: 'NEO-GEO MVS',  tag: '16-BIT · NEO GEO MVS',
+    name: 'ARCADE POWER',
     VW: 320, VH: 224, intScale: false, ramp: 31,  maxParts: 2600, starLayers: 5, trail: 3,
     arcade: true },
   { id: 4, sty: 3, S: 0.74,   sq: 'ncd',   sys: '32-BIT CD', tag: '32-BIT · CD-ROM · NOVA CD',
-    name: 'POLYGON DAWN',
+    name: 'CD-ROM · POLYGON DAWN',
     VW: 320, VH: 240, intScale: false, ramp: 63,  maxParts: 2200, starLayers: 4, trail: 2,
     dither: true },
   { id: 5, sty: 3, S: null,   sq: 'hd',    sys: 'HD',        tag: 'HD · RENDU VECTORIEL TEMPS RÉEL',
@@ -2257,7 +2257,7 @@ const SYS_SHORT = { 'KDM-01': 'KDM-01', '8-BIT+': '8-BIT', '16-BIT': '16-BIT',
 const ERALIST = [
   { sys: 'KDM-01',   tag: '8-BIT · POCKET',         note: '4 teintes, 160×144, trames ordonnées, aucun dégradé.' },
   { sys: '8-BIT+',   tag: '8-BIT+ · HOME SYSTEM',    note: '16 couleurs, parallaxe 2 plans, sprites animés.' },
-  { sys: '16-BIT',   tag: '16-BIT · SUPER 16 / ND',  note: 'Palette étendue, rotation, transparences, particules.' },
+  { sys: '16-BIT',   tag: '16-BIT · SNES → MEGA DRIVE', note: 'Dégradés et parallaxes SNES, puis contraste et trames Mega Drive.' },
   { sys: 'ARC-24',   tag: '24-BIT · ARCADIA',        note: 'Palette arcade de 32 teintes, grosses sprites, bornes, monnayeur.' },
   { sys: '32-BIT CD', tag: '32-BIT · CD-ROM',        note: 'Résolution réduite assumée, tramage ordonné, 3D filaire, brouillard.' },
   { sys: 'HD',       tag: 'HD · TEMPS RÉEL',         note: 'Vectoriel lissé, bloom, aberration, 1000+ particules.' },
@@ -3182,6 +3182,22 @@ const R = {
   sec: 0,          /* secteur (0-5) : la génération jouée. R.era en est le STYLE. */
   fog: null,
 };
+/* Profil matériel véritable : le 16-bit est séparé en SNES et Mega Drive,
+   puis le bloc arcade passe au Neo Geo MVS. Les consoles CD et HD gardent leur rendu. */
+const HW_PROFILES = {
+  pocket: { id:'pocket', label:'KODAMA POCKET', artScale:0.25, tones:3, nebulaLayers:1, nebulaAlpha:0, ditherAlpha:0, scanAlpha:0.08 },
+  home8: { id:'home8', label:'8-BIT HOME SYSTEM', artScale:0.40, tones:5, nebulaLayers:2, nebulaAlpha:0.12, ditherAlpha:0.22, scanAlpha:0.045 },
+  snes: { id:'snes', label:'SUPER NINTENDO', artScale:0.56, tones:9, satBoost:1.06, lightBoost:0.015, nebulaLayers:4, nebulaAlpha:0.34, ditherAlpha:0.035, scanAlpha:0.022, bloom:0.12 },
+  megadrive: { id:'megadrive', label:'MEGA DRIVE', artScale:0.60, tones:7, satBoost:1.22, lightBoost:-0.015, nebulaLayers:3, nebulaAlpha:0.25, ditherAlpha:0.09, scanAlpha:0.035, bloom:0.055 },
+  neogeo: { id:'neogeo', label:'NEO GEO MVS', artScale:0.70, tones:11, satBoost:1.10, lightBoost:0.025, nebulaLayers:5, nebulaAlpha:0.44, ditherAlpha:0.018, scanAlpha:0.05, bloom:0.24 },
+  cd32: { id:'cd32', label:'32-BIT CD-ROM', artScale:0.60, tones:12, nebulaLayers:4, nebulaAlpha:0.30, ditherAlpha:0.14, scanAlpha:0.025 },
+  hd: { id:'hd', label:'HD ANIME', artScale:0.60, tones:12, nebulaLayers:6, nebulaAlpha:0.50, ditherAlpha:0.04, scanAlpha:0 },
+};
+function visualHardware() {
+  const sec = clamp((R.sec | 0), 0, 5);
+  if (sec === 2) return stageOfLevel(G.level) < 2 ? HW_PROFILES.snes : HW_PROFILES.megadrive;
+  return [HW_PROFILES.pocket, HW_PROFILES.home8, HW_PROFILES.snes, HW_PROFILES.neogeo, HW_PROFILES.cd32, HW_PROFILES.hd][sec];
+}
 /* qualité adaptative : si la machine rame, on réduit les effets les plus lourds */
 function autoQuality(dt) {
   R.qualT += dt;
@@ -3456,15 +3472,15 @@ function drawStars(layer, idx, dt, speedMul) {
 /* nébuleuses (ère ≥ 2) */
 function drawNebulae(layer, dt) {
   const g = layer.g; PAINT = { g, K: layer.K };
-  const t = SCROLL.y * 0.0006;
-  for (let i = 0; i < 3; i++) {
+  const hw = visualHardware(), t = SCROLL.y * (hw.id === 'megadrive' ? 0.00082 : 0.0006);
+  for (let i = 0; i < hw.nebulaLayers; i++) {
     const cx = L_W * (0.5 + 0.42 * Math.sin(t * (1 + i * 0.3) + i * 2.1));
     const cy = ((t * 420 * (0.6 + i * 0.2) + i * 320) % (L_H + 400)) - 200;
     const r = 120 + i * 60;
     const grd = g.createRadialGradient(cx * layer.K, cy * layer.K, 0, cx * layer.K, cy * layer.K, r * layer.K);
     grd.addColorStop(0, (i % 2 ? TH.neb2 : TH.neb1) + '');
     grd.addColorStop(1, 'rgba(0,0,0,0)');
-    g.globalAlpha = R.era === 3 ? 0.5 : 0.34;
+    g.globalAlpha = hw.nebulaAlpha * (1 - i * 0.075);
     g.globalCompositeOperation = 'lighter';
     g.fillStyle = grd; g.beginPath(); g.arc(cx * layer.K, cy * layer.K, r * layer.K, 0, TAU); g.fill();
   }
@@ -3692,7 +3708,7 @@ function setEra(era, silent) {
   R.bufB    = reuseBuf(R.bufB,    w * 0.55, h * 0.55);
   R.bufFG   = reuseBuf(R.bufFG,   w, h);   /* décor de premier plan (poutrelles) */
   R.bufLight = reuseBuf(R.bufLight, w * 0.25, h * 0.25);   /* sources lumineuses */
-  R.smooth  = !E.intScale && R.era >= 2;
+  R.smooth  = R.era >= 3;
   R.vig = null;
   document.body.className = 'era-' + R.era + ' sec-' + R.sec +
     (S.opts.smooth && R.era >= 2 ? ' smooth' : '') +
@@ -3792,16 +3808,17 @@ function drawBackdrop() {
     if (R.era >= 1) {
       /* fond tramé : deux teintes voisines en damier, comme une cartouche
          qui n'a pas assez de couleurs pour un vrai dégradé */
-      ctx.globalAlpha = R.era >= 3 ? 0.14 : 0.30;
+      ctx.globalAlpha = visualHardware().ditherAlpha;
       ctx.fillStyle = ditherPattern(); ctx.fillRect(0, 0, W, H);
       ctx.globalAlpha = 1;
       /* bandes horizontales plus claires : le clin d'oeil « HDMA » 16 bits */
-      ctx.globalAlpha = 0.05;
-      ctx.fillStyle = TH.bg3;
-      for (let y = (Math.floor(performance.now() * 0.02) % 8); y < H; y += 8) ctx.fillRect(0, y, W, 3);
+      if (visualHardware().id === 'snes') {
+        ctx.globalAlpha = 0.07; ctx.fillStyle = TH.bg3;
+        for (let y = (Math.floor(performance.now() * 0.02) % 8); y < H; y += 8) ctx.fillRect(0, y, W, 2);
+      }
       ctx.globalAlpha = 1;
     }
-    if (R.era >= 1) { /* grille de fond technique */
+    if (R.era >= 1 && (R.sec === 1 || R.sec >= 4)) { /* grille réservée aux générations home/CD/HD */
       ctx.strokeStyle = 'rgba(120,200,255,.045)'; ctx.lineWidth = 1;
       ctx.beginPath();
       for (let x = 0; x < W; x += 48) { ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, H); }
@@ -3877,10 +3894,11 @@ function drawMachineFrame() {
     if (det) { ctx.globalAlpha = 0.55;
       hText(ctx, '8-BIT SYSTEM', x0 + w0 - 12, y0 + h0 - B * 0.24, { color: '#3a3020', size: Math.max(8, B * 0.34), weight: 800, align: 'right' }); }
   } else if (sec === 2) {                   /* Super 16 : les quatre barres  */
-    const cols = ['#2b6fd6', '#38a852', '#e8c33a', '#d0433a'];
+    const isMD = visualHardware().id === 'megadrive';
+    const cols = isMD ? ['#f5f5f5', '#858a92', '#252832', '#d64335'] : ['#2b6fd6', '#38a852', '#e8c33a', '#d0433a'];
     for (let i = 0; i < 4; i++) { ctx.fillStyle = cols[i]; ctx.fillRect(x0 + 12 + i * (B * 0.26), y0 + h0 - B * 0.62, B * 0.20, B * 0.34); }
     if (det) { ctx.globalAlpha = 0.5;
-      hText(ctx, 'SUPER 16', x0 + w0 - 12, y0 + h0 - B * 0.30, { color: '#d8d8e0', size: Math.max(8, B * 0.32), weight: 800, align: 'right' }); }
+      hText(ctx, visualHardware().label, x0 + w0 - 12, y0 + h0 - B * 0.30, { color: '#d8d8e0', size: Math.max(8, B * 0.32), weight: 800, align: 'right' }); }
   } else if (sec === 3) {                   /* borne : monnayeur et bandeau  */
     ctx.fillStyle = '#c8a24a';
     ctx.fillRect(x0 + 8, y0 + h0 - B * 0.78, w0 - 16, Math.max(1, B * 0.09));
@@ -3914,7 +3932,7 @@ function drawMachineFrame() {
 let GLASS = null, GLASS_KEY = '', FRAME_SKIN = '#111';
 function drawScreenGlass() {
   const sec = G.eraIdx, e = R.era;
-  const key = [PF.x, PF.y, PF.w, PF.h, sec].join('|');
+  const key = [PF.x, PF.y, PF.w, PF.h, sec, visualHardware().id].join('|');
   const r = e === 0 ? 10 : e === 5 ? 8 : 5;
   ctx.save();
   /* coins arrondis : la coque mord sur les angles de l'image */
@@ -3944,8 +3962,9 @@ function drawScreenGlass() {
     const g2 = c.getContext('2d');
     if (sec === 0) { g2.fillStyle = 'rgba(0,0,0,.20)'; for (let i = 0; i < 4; i++) { g2.fillRect(i, 0, 1, 4); g2.fillRect(0, i, 4, 1); } }
     else if (sec === 1) { g2.fillStyle = 'rgba(0,0,0,.14)'; g2.fillRect(0, 0, 4, 1); g2.fillRect(0, 2, 4, 1); }
-    else if (sec === 2) { g2.fillStyle = 'rgba(0,0,0,.10)'; g2.fillRect(0, 0, 4, 1); }
-    else if (sec === 3) { g2.fillStyle = 'rgba(0,0,0,.13)'; g2.fillRect(0, 0, 4, 1); g2.fillRect(0, 2, 2, 1); }
+    else if (sec === 2 && visualHardware().id === 'snes') { g2.fillStyle = 'rgba(0,0,0,.08)'; g2.fillRect(0, 0, 4, 1); }
+    else if (sec === 2) { g2.fillStyle = 'rgba(0,0,0,.12)'; g2.fillRect(0, 0, 4, 1); g2.fillRect(2, 2, 2, 1); }
+    else if (sec === 3) { g2.fillStyle = 'rgba(0,0,0,.14)'; g2.fillRect(0, 0, 4, 1); g2.fillRect(0, 2, 4, 1); }
     else if (sec === 4) { g2.fillStyle = 'rgba(0,0,0,.09)'; for (let i = 0; i < 4; i += 2) g2.fillRect(i, 0, 1, 1); }
     GLASS = ctx.createPattern(c, 'repeat'); GLASS_KEY = key;
   }
@@ -3990,7 +4009,7 @@ function postProcess(dstW, dstH) {
   if (R.era === 0) return out;
   /* liseré lumineux simple en 8-bit+ */
   if (R.era === 1) { bloomPass(0.10, 0.5); return out; }
-  if (R.era === 2) { bloomPass(0.20 * R.qual, 0.45); return out; }
+  if (R.era === 2) { const hw = visualHardware(); bloomPass((hw.bloom || 0.08) * R.qual, 0.45); return out; }
   /* HD : bloom double passe + léger étirement des blancs */
   if (R.qual > 0.5) bloomPass(0.42 * R.qual, 0.42);
   return out;
@@ -4322,7 +4341,7 @@ function gpuPresent() {
   const e = R.era, q = R.qual, crt = S.opts.crt;
   let ca = 0, scan = 0, vig = 0, grain = 0, bloom = 0, warp = 0;
   if (e === 1) { bloom = 0.10; scan = crt === 'on' ? 0.06 : 0; }
-  else if (e === 2) { bloom = 0.16 * q; ca = 1.6; vig = 0.34; scan = crt === 'on' ? 0.05 : 0; }
+  else if (e === 2) { const hw = visualHardware(); bloom = (hw.bloom || 0.08) * q; ca = 0; vig = hw.id === 'neogeo' ? 0.30 : 0.18; scan = crt === 'on' ? 0.035 : 0; }
   else if (e >= 3) {
     bloom = 0.26 * q; ca = 3.2 * q; vig = 0.52; grain = 0.020 * q;
     scan = crt === 'on' ? 0.10 : 0; warp = crt === 'on' ? 0.06 : 0;
@@ -4446,6 +4465,22 @@ function presentFrame() {
   }
   ctx.imageSmoothingEnabled = R.smooth;
   ctx.drawImage(img.c, 0, 0, img.w, img.h, PF.x, PF.y, PF.w, PF.h);
+  /* signature CRT légère par machine, avec un traitement distinct de ses pixels */
+  const hw = visualHardware();
+  if (hw.scanAlpha > 0 && hw.id !== 'pocket') {
+    ctx.save(); ctx.beginPath(); ctx.rect(PF.x, PF.y, PF.w, PF.h); ctx.clip();
+    if (hw.id === 'snes') {
+      const gr = ctx.createLinearGradient(PF.x, PF.y, PF.x, PF.y + PF.h);
+      gr.addColorStop(0, 'rgba(80,150,255,.045)'); gr.addColorStop(0.5, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,100,80,.035)');
+      ctx.fillStyle = gr; ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
+    }
+    ctx.fillStyle = `rgba(4,7,18,${hw.scanAlpha})`;
+    const step = hw.id === 'neogeo' ? 3 : 4;
+    for (let y = PF.y + ((Math.floor(G.t * 8) % step)); y < PF.y + PF.h; y += step) ctx.fillRect(PF.x, y, PF.w, 1);
+    if (hw.id === 'megadrive') { ctx.globalAlpha = 0.045; ctx.fillStyle = '#e4f3ff'; for (let y = PF.y + 1; y < PF.y + PF.h; y += 4) ctx.fillRect(PF.x, y, PF.w, 1); }
+    if (hw.id === 'neogeo') { ctx.globalAlpha = 0.05; ctx.fillStyle = '#ffb552'; ctx.fillRect(PF.x, PF.y, PF.w, PF.h); }
+    ctx.restore();
+  }
 
   /* 4. aberration chromatique + aberration radiale (HD) */
   if (!onGpu && R.era >= 2 && R.qual > 0.55) {
@@ -5455,7 +5490,7 @@ for (const k in BOSS_RIG) SIL[k] = BOSS_RIG[k];
 /* ------------------------- RASTÉRISATION & OMBRAGE ----------------------- */
 /* grille de matériaux → grille de tons (avec contour, lumière du haut,
    assombrissement du bas et tramage), puis rendu en canvas.                 */
-function rasterize(parts, W, H, era) {
+function rasterize(parts, W, H, era, hw) {
   const mat = new Uint8Array(W * H);
   const nx = (x) => (x / W) * 2 - 1, ny = (y) => (y / H) * 2 - 1;
   const boxes = [];                       /* bbox pixel de chaque piece (greebles) */
@@ -5497,7 +5532,7 @@ function rasterize(parts, W, H, era) {
       dist[i] = Math.min(dist[i], d);
     }
   }
-  const tones = ERA_TONES[era];
+  const tones = hw && hw.tones || ERA_TONES[era];
   const tone = new Uint8Array(W * H);
   const light = new Float32Array(W * H);   /* éclairement 0..1 (cel-shading HD) */
   const edge = new Uint8Array(W * H);      /* 1 = pixel de contour → trait d'encre */
@@ -5521,6 +5556,8 @@ function rasterize(parts, W, H, era) {
     if (era >= 1 && solid(x, y - 1) && !solid(x, y - 2)) t = Math.max(t, 0.92);
     if (era >= 2 && ((solid(x - 1, y) && !solid(x - 2, y)) || (solid(x + 1, y) && !solid(x + 2, y)))) t = Math.max(t, 0.7);
     if (era >= 2) t = t > 0.5 ? Math.min(1, t * 1.12) : t * 0.86;   /* contraste neon */
+    if (hw && hw.id === 'megadrive') t = clamp(0.5 + (t - 0.5) * 1.2, 0, 1); /* aplats francs, ombres denses */
+    if (hw && hw.id === 'neogeo') t = clamp(t * 1.08 + (t > 0.65 ? 0.035 : 0), 0, 1); /* hautes lumières d'arcade */
     /* 8 bits : la Pocket ne connait que 4 teintes, et un damier etale sur tout
        le sprite le transforme en bouillie. On ecrase les demi-teintes, il ne
        reste qu'un liseré trame a la frontiere entre deux tons.              */
@@ -5748,13 +5785,16 @@ function bakeSprite(id, era, kind, hue, sat, light, frame) {
   frame = (frame | 0) & 3;
   /* la couleur de flash entre dans la clé : elle change avec l'ère ET avec
      la livrée (les quatre teintes 8 bits sont celles de la livrée).      */
-  const key = `${id}|${era}|${kind}|${Math.round(hue)}|${Math.round(sat * 20)}|${Math.round(light * 20)}|${TWK_SIG}|${frame}|${hitFxColor(era)}`;
+  const hw = visualHardware();
+  sat = clamp(sat * (hw.satBoost || 1), 0, 1);
+  light = clamp(light + (hw.lightBoost || 0), 0.1, 0.95);
+  const key = `${hw.id}|${id}|${era}|${kind}|${Math.round(hue)}|${Math.round(sat * 20)}|${Math.round(light * 20)}|${TWK_SIG}|${frame}|${hitFxColor(era)}`;
   if (BAKE.has(key)) return BAKE.get(key);
   const def = SIL[id];
-  const tones = ERA_TONES[era];
-  /* résolution d'art = taille logique × densité de pixels de l'ère :
-     la silhouette occupe la même place à l'écran, mais gagne en définition */
-  const KERA = [0.25, 0.4, 0.55, 0.6][era];   /* définition de l'art selon l'ère */
+  const tones = hw.tones || ERA_TONES[era];
+  /* Résolution de sprite propre à la machine : gros sprites Neo Geo,
+     pixels plus fins sur 16-bit, silhouettes strictes en 8-bit. */
+  const KERA = era === 2 ? hw.artScale : [0.25, 0.4, 0.55, 0.6][era];
   const box = spriteBox(id);
   const H = Math.max(6, Math.round(box.h * KERA));
   const W = Math.max(5, Math.round(H * (box.w / box.h)));
@@ -5762,7 +5802,7 @@ function bakeSprite(id, era, kind, hue, sat, light, frame) {
      (aimants, barils) ne bougeraient pas d'un pixel après arrondi.          */
   const amp = Math.max(POSE_AMP[id] || 0, 2.2 / Math.max(6, W));
   const parts = poseParts(def.parts, frame, ANIM_N, amp);
-  const { mat, tone, light: lit, edge } = rasterize(parts, W, H, era);   /* lit = éclairement, light = luminosité de base */
+  const { mat, tone, light: lit, edge } = rasterize(parts, W, H, era, hw);   /* lit = éclairement, light = luminosité de base */
   if (era <= 1) smoothTone(tone, mat, W, H, era === 0 ? 2 : 1);   /* bandes propres */
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
@@ -5872,7 +5912,7 @@ function drawSpriteTo(g, K, id, x, y, opt = {}) {
   baked = bakeSprite(id, R.era, kind, hue, sat, light, opt.frame);
   const px = w * K, py = h * K;
   g.save();
-  g.imageSmoothingEnabled = R.era === 2 && R.qual > 0.6;
+  g.imageSmoothingEnabled = false; /* rendu pixel net pour les moteurs 8/16-bit */
   if (opt.rot || opt.flip) { g.translate(x * K, y * K); if (opt.rot) g.rotate(opt.rot); }
   else g.translate(x * K, y * K);
   if (opt.alpha !== undefined) g.globalAlpha = opt.alpha;
@@ -7443,10 +7483,11 @@ function bossPartsAlive(b) { return b.parts.filter(p => !p.dead).length; }
 function bossDamage(dmg, part) {
   CUR_OWN = CUR_OWN || 1;
   const b = G.boss; if (!b || b.dead) return;
-  if (part) { part.hp -= dmg; part.flash = 0.1; if (part.hp <= 0 && !part.dead) { part.dead = true; explode(part.x, part.y, 2, TH.eBoss, TH.eBossLite); Audio2.sfx('explode', { big: true }); FX.addShake(9); } }
+  if (part) { part.hp -= dmg; part.flash = 0.1; if (R.era >= 1) for (let i = 0; i < (R.era >= 3 ? 3 : 2); i++) spawnPart({ x: part.x + rnd(8, -8), y: part.y + rnd(8, -8), vx: rnd(95, -95), vy: rnd(75, -120), life: 0.22, col: TH.eBossLite, size: R.era >= 3 ? 2.5 : 2, glow: R.era >= 2 }); if (part.hp <= 0 && !part.dead) { part.dead = true; explode(part.x, part.y, 2, TH.eBoss, TH.eBossLite); Audio2.sfx('explode', { big: true }); FX.addShake(9); } }
   else {
     if (b.parts.length && bossPartsAlive(b) > 0) { bossDamage(dmg * 0.25, nearestPart(b)); return; }
     b.hp -= dmg; b.flash = 0.08;
+    if (R.era >= 1) for (let i = 0; i < (R.era >= 3 ? 3 : 2); i++) spawnPart({ x: b.x + rnd(18, -18), y: b.y + rnd(15, -15), vx: rnd(95, -95), vy: rnd(75, -120), life: 0.22, col: TH.eBossLite, size: R.era >= 3 ? 2.5 : 2, glow: R.era >= 2 });
   }
   b.by = CUR_OWN;
   if (b.hp <= 0) bossDie();
@@ -7949,7 +7990,7 @@ function drawPlayer(pl) {
 /* ------------------------------- ennemis ---------------------------------- */
 function drawEnemyOne(en, g, K, e) {
   const th = ETHEME[en.kind] || ETHEME.drone;
-  const flash = en.flash > 0 ? (e === 0 ? 1 : 0.9) : 0;
+  const flash = en.flash > 0 ? (e === 0 ? 1 : e === 1 ? 0.42 : 0.22) : 0;
   const alpha = 1;
   let rot = 0, sc = 1;
   if (en.kind === 'splitter') rot = en.t * 0.9;
@@ -8032,7 +8073,7 @@ function drawProps() {
     if (e <= 1) { g.globalAlpha = 0.25; fr(p.x - p.r * 0.5, p.y + p.r * 0.7, p.r, 4, TH.bg); g.globalAlpha = 1; }
     drawSpriteTo(g, K, p.T.id, p.x, p.y + bob, {
       kind: 'enemy', hue: th.hue, sat: th.sat, light: th.light,
-      rot: p.ang, scale: 1, flash: p.flash > 0 ? 0.9 : 0,
+      rot: p.ang, scale: 1, flash: p.flash > 0 ? (e === 0 ? 0.9 : e === 1 ? 0.42 : 0.24) : 0,
       frame: Math.floor(p.t * 6) & 3,
     });
     /* témoins lumineux propres à chaque objet */
@@ -8074,7 +8115,7 @@ function drawBoss() {
   const hullDark = e === 0 ? gb[0] : TH.eDark, hullMid = e === 0 ? gb[1] : TH.bg3;
   const hullLit = e === 0 ? gb[2] : TH.eLite, energy = e === 0 ? gb[3] : TH.eBossLite, bossCol = e === 0 ? gb[2] : TH.eBoss;
   const hue = (b.def.hue === undefined ? 288 : b.def.hue), sat = 0.6, light = e === 0 ? 0.5 : 0.44;
-  const body = { kind: 'boss', hue, sat, light, flash: b.flash > 0 ? 0.85 : 0 };
+  const body = { kind: 'boss', hue, sat, light, flash: b.flash > 0 ? (e === 0 ? 0.85 : e === 1 ? 0.34 : 0.18) : 0 };
   const P2 = G.player;
   const spin = { rot: 0 };
   /* halo : le boss est toujours éclairé par le dessous (moteurs, noyaux) */
@@ -8147,7 +8188,7 @@ function drawBoss() {
       if (!p.dead) {
         const lunge = Math.sin(p.t * 2.2) * 7;
         drawSpriteTo(g, K, 'bHead', p.x + Math.cos(ang) * lunge, p.y + Math.sin(ang) * lunge + 14,   /* pose : mâchoires */
-          { ...body, rot: ang - Math.PI / 2, scale: 0.92, flash: p.flash > 0 ? 0.9 : 0,
+          { ...body, rot: ang - Math.PI / 2, scale: 0.92, flash: p.flash > 0 ? (e === 0 ? 0.9 : e === 1 ? 0.42 : 0.24) : 0,
             frame: Math.floor(p.t * (p.atkT > 0 ? 14 : 7)) & 3 });
         if (e >= 1) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.30; circle(p.x, p.y + 10, 20, bossCol); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
       } else {
@@ -13037,7 +13078,7 @@ function bossMoveExt(b, dt) {
     const g = PAINT.g, K = PAINT.K, e = R.era, x = b.x, y = b.y, t = b.t;
     const gb = TH.livery.gb;
     const energy = e === 0 ? gb[3] : TH.eBossLite, bossCol = e === 0 ? gb[2] : TH.eBoss, hullMid = e === 0 ? gb[1] : TH.bg3;
-    const bodyOpt = { kind: 'boss', hue: b.def.hue, sat: 0.6, light: e === 0 ? 0.5 : 0.44, flash: b.flash > 0 ? 0.85 : 0 };
+    const bodyOpt = { kind: 'boss', hue: b.def.hue, sat: 0.6, light: e === 0 ? 0.5 : 0.44, flash: b.flash > 0 ? (e === 0 ? 0.85 : e === 1 ? 0.34 : 0.18) : 0 };
     const P2 = G.player;
     if (body === 4) {
       /* ROI-MONNAYEUR : les rouleaux tournent, le levier s'abaisse à chaque attaque */
@@ -13075,7 +13116,7 @@ function bossMoveExt(b, dt) {
         g.globalAlpha = 0.35; fr(Math.min(x, p.x), Math.min(y, p.y), 1, 1, 'rgba(0,0,0,0)'); g.globalAlpha = 1;
         g.strokeStyle = p.dead ? hullMid : energy; g.lineWidth = Math.max(1, 2 * K);
         g.beginPath(); g.moveTo(x * K, y * K); g.lineTo(p.x * K, p.y * K); g.stroke();
-        if (!p.dead) drawSpriteTo(g, K, 'bHead', p.x, p.y + 10, { ...bodyOpt, rot: ang - Math.PI / 2, scale: 0.86, flash: p.flash > 0 ? 0.9 : 0, frame: Math.floor(p.t * 8) & 3 });
+        if (!p.dead) drawSpriteTo(g, K, 'bHead', p.x, p.y + 10, { ...bodyOpt, rot: ang - Math.PI / 2, scale: 0.86, flash: p.flash > 0 ? (e === 0 ? 0.9 : e === 1 ? 0.42 : 0.24) : 0, frame: Math.floor(p.t * 8) & 3 });
         else { circle(p.x, p.y, 8, hullMid); circle(p.x, p.y, 4, energy); }
       }
       drawBossSprite(x, y, body, bodyOpt);
@@ -21957,7 +21998,7 @@ const nvMiniHp = L => 140 + 7 * (clamp(L | 0 || 1, 1, MAX_LEVEL) - 1);
   drawEnemyOne = function (en, g, K, e) {
     if (!NVK[en.kind]) return _drawEnemyOne(en, g, K, e);
     const th = ETHEME[en.kind] || ETHEME.drone, T = ETYPES[en.kind] || {};
-    const flash = en.flash > 0 ? (e === 0 ? 1 : 0.9) : 0;
+    const flash = en.flash > 0 ? (e === 0 ? 1 : e === 1 ? 0.42 : 0.22) : 0;
     let alpha = 1;
     const sb = spriteBox(EID[en.kind]);
     if (e <= 1) { g.globalAlpha = 0.25 * alpha; fr(en.x - sb.w * 0.28, en.y + sb.h * 0.36, sb.w * 0.56, 4, TH.bg); g.globalAlpha = 1; }
@@ -22070,48 +22111,131 @@ function nvSpawnMini(kind) {
   radioSay('cmd', L('Signature lourde en approche : ') + L(ENAMES[kind]) + L('. Reste mobile.'));
   return e;
 }
+/* 24 séquences de secteurs conçues à la main. Chaque code est une formation de combat,
+   pas un tirage de roster : ouverture, motif-signature, contre-attaque, respiration et finale. */
+const NV_STAGE_ACTS = [
+  'V RUSH PAIRED SWEEP RING COLUMN MINE V SHIELD DIVE GATE',
+  'COLUMN PAIRED RUSH MINE SWEEP V SHIELD MIRROR DIVE GATE',
+  'RING RUSH SWEEP COLUMN PAIRED SNAKE MINE V DIVE SHIELD GATE',
+  'MINE COLUMN PAIRED SWEEP RUSH SHIELD RING V DIVE MIRROR GATE',
+  'V SWEEP COLUMN PAIRED DASH RING SNAKE SHIELD MINE DIVE GATE',
+  'PAIRED DASH RUSH COLUMN SHIELD SWEEP MINE SNAKE RING V GATE',
+  'COLUMN MINE SWEEP PAIRED DASH RING SHIELD V SNAKE DIVE GATE',
+  'RUSH SHIELD COLUMN DASH PAIRED MINE SWEEP RING SNAKE V GATE',
+  'RING CLOAK SWEEP PAIRED MINE COLUMN ORBIT SHIELD DASH V GATE',
+  'COLUMN ORBIT RUSH SWEEP CLOAK MIRROR MINE SNAKE SHIELD DIVE GATE',
+  'CLOAK MINE PAIRED ORBIT COLUMN SWEEP DASH RING SHIELD V GATE',
+  'ORBIT COLUMN MINE SWEEP CLOAK PAIRED RUSH SHIELD SNAKE V GATE',
+  'V MIRROR SIEGE COLUMN DASH RING PAIRED MEDIC SWEEP SHIELD GATE',
+  'MINE SIEGE SWEEP MIRROR PRISM COLUMN DASH PAIRED RING V GATE',
+  'SIEGE MIRROR COLUMN MINE PAIRED SWEEP MEDIC DASH SHIELD V GATE',
+  'PRISM SIEGE DASH COLUMN RING MIRROR MINE SWEEP MEDIC V GATE',
+  'SNIPER CLOAK SIEGE COLUMN ORBIT MINE PAIRED DASH PRISM SHIELD GATE',
+  'DRILL PRISM MIRROR SIEGE SNAKE SNIPER DASH ORBIT COLUMN V GATE',
+  'MINE PRISM SIEGE CLOAK MIRROR SNIPER COLUMN MEDIC DASH RING GATE',
+  'ORBIT SIEGE SNIPER MINE PRISM PAIRED DRILL MIRROR DASH V GATE',
+  'WALL MINE SNIPER DASH CLOAK SIEGE COLUMN MIRROR CARRIER SHIELD GATE',
+  'CARRIER DRILL SIEGE MIRROR PRISM MINE DASH WALL SNIPER V GATE',
+  'PULSAR ORBIT SIEGE SNIPER PRISM CLOAK MINE MIRROR CARRIER V GATE',
+  'WALL CARRIER PRISM SIEGE DRILL PULSAR SNIPER MIRROR CLOAK V GATE',
+].map(x => x.split(' '));
+const NV_STAGE_FINALES = [
+  'RUSH MIRROR SNAKE COLUMN PAIRED DIVE V GATE', 'MINE DASH COLUMN PAIRED SWEEP SHIELD RUSH GATE',
+  'SNAKE V RING MIRROR SWEEP DIVE COLUMN GATE', 'MINE PAIRED SHIELD COLUMN RING DIVE RUSH GATE',
+  'DASH V SWEEP COLUMN SNAKE MIRROR RING GATE', 'PAIRED RUSH DASH SHIELD COLUMN SWEEP SNAKE GATE',
+  'WALL MINE SWEEP PAIRED DASH SHIELD RING GATE', 'SHIELD DASH COLUMN RUSH MINE SNAKE V GATE',
+  'CLOAK ORBIT MIRROR DASH MINE SHIELD SWEEP GATE', 'ORBIT SNAKE CLOAK COLUMN MIRROR DASH SHIELD GATE',
+  'CLOAK DASH ORBIT MINE PAIRED SHIELD SNAKE GATE', 'ORBIT MINE CLOAK SWEEP SNAKE DASH V GATE',
+  'SIEGE DASH MEDIC MIRROR RING COLUMN SWEEP GATE', 'PRISM SIEGE DASH MINE MIRROR COLUMN RING GATE',
+  'MEDIC SIEGE MIRROR DASH MINE SWEEP SHIELD GATE', 'PRISM DASH SIEGE MIRROR MEDIC COLUMN V GATE',
+  'SNIPER PRISM CLOAK MIRROR SIEGE DASH WALL GATE', 'DRILL SNAKE PRISM MIRROR SNIPER DASH SIEGE GATE',
+  'PRISM CLOAK MEDIC SNIPER MIRROR SIEGE DASH GATE', 'SIEGE ORBIT SNIPER DRILL MIRROR DASH PRISM GATE',
+  'WALL CARRIER SIEGE SNIPER CLOAK MIRROR DASH GATE', 'CARRIER DRILL PRISM WALL SIEGE MIRROR SNIPER GATE',
+  'PULSAR PRISM ORBIT SIEGE SNIPER CARRIER MIRROR GATE', 'WALL DRILL CARRIER PULSAR SIEGE CLOAK VORAX GATE',
+].map(x => x.split(' '));
+
+function nvDesignWave(code, index, level, pool) {
+  const dl = nvDL(level), pass = Math.floor(index / NV_STAGE_ACTS[level - 1].length);
+  const heat = 1 + dl * 0.45 + pass * 0.16;
+  const pick = (n, preferred) => {
+    for (const k of preferred || []) if (pool.includes(k)) return k;
+    return pool[(n + level + pass) % pool.length];
+  };
+  const count = (base, cap) => clamp(Math.round(base * heat), 1, cap || 9);
+  const spawnAt = (kind, x, y, opt) => spawnEnemy(kind, clamp(x, 24, L_W - 24), y, opt || {});
+  const line = (kind, n, x, gap, opt) => { for (let j = 0; j < n; j++) spawnAt(kind, x, -35 - j * gap, opt); };
+  const a = pick(index * 2, ['drone','stinger','runner','swooper','dasher']);
+  const b = pick(index * 3 + 1, ['turret','bomber','shielder','crawler','gunship']);
+  const c = pick(index * 5 + 2, ['kamikaze','mine','lancer','serpent','drillbot','prism']);
+  const n = count(3 + (index % 3));
+  switch (code) {
+    case 'V': formV(a, count(4, 8)); break;
+    case 'RUSH': nvForm(pick(index, ['kamikaze','dasher','runner','swooper']), count(4, 8)); break;
+    case 'PAIRED': line(a, count(3, 6), L_W * 0.27, 44); line(b, count(3, 6), L_W * 0.73, 44); break;
+    case 'SWEEP': nvForm(pick(index, ['swooper','runner','dasher']), count(4, 7)); break;
+    case 'RING': nvForm(pick(index, ['orbiter','bladespin','bouncer','pulsar']), count(2, 5)); break;
+    case 'COLUMN': line(a, count(4, 8), L_W * (index % 2 ? 0.34 : 0.66), 43); line(b, count(3, 6), L_W * (index % 2 ? 0.66 : 0.34), 52); break;
+    case 'MINE': nvForm(pick(index, ['mine','layer','drillbot','bouncer']), count(3, 7)); line(a, 2 + (level > 10 ? 1 : 0), L_W / 2, 70); break;
+    case 'SHIELD': nvForm(pick(index, ['shielder','phalanx','tanker','carrier']), count(2, 5)); nvForm(a, count(3, 6)); break;
+    case 'DIVE': nvForm(pick(index, ['kamikaze','dasher','swooper','runner']), count(4, 8)); break;
+    case 'GATE': {
+      const heavy = pick(index + 2, ['carrier','gunship','pulsar','tanker','phalanx','turret']);
+      spawnAt(heavy, L_W * 0.5, -85, { ty: 170, hpMul: 1 + dl * 0.25 });
+      line(a, count(2, 5), L_W * 0.25, 48); line(c, count(2, 5), L_W * 0.75, 48); break;
+    }
+    case 'SNAKE': nvForm(pick(index, ['serpent','weaver','splitter','runner']), count(4, 7)); break;
+    case 'MIRROR': line(a, count(3, 5), L_W * 0.22, 48); line(a, count(3, 5), L_W * 0.78, 48); nvForm(b, count(2, 4)); break;
+    case 'DASH': nvForm(pick(index, ['dasher','kamikaze','lancer','runner']), count(3, 6)); line(b, 2, L_W * 0.5, 58, { ty: 150 }); break;
+    case 'CLOAK': nvForm(pick(index, ['cloaker','phantom','shielder','stinger']), count(2, 5)); nvForm(a, count(3, 6)); break;
+    case 'ORBIT': nvForm(pick(index, ['orbiter','pulsar','bladespin','bouncer']), count(2, 4)); line(a, 3, L_W * 0.5, 55); break;
+    case 'SIEGE': nvForm(pick(index, ['gunship','tanker','carrier','turret','phalanx']), count(2, 4)); line(c, 2 + (level > 14 ? 1 : 0), L_W * 0.5, 70); break;
+    case 'PRISM': nvForm(pick(index, ['prism','pulsar','lancer','missileer']), count(2, 4)); nvForm(a, count(3, 6)); break;
+    case 'MEDIC': nvForm(pick(index, ['medic','shielder','bomber']), 1); nvForm(b, count(2, 4)); nvForm(a, count(3, 5)); break;
+    case 'SNIPER': nvForm(pick(index, ['sniper','lancer','missileer','turret']), count(2, 4)); nvForm(pick(index + 1, ['kamikaze','dasher','swooper']), count(3, 6)); break;
+    case 'DRILL': nvForm(pick(index, ['drillbot','layer','mine','bouncer']), count(3, 5)); line(a, 3, L_W * (index % 2 ? 0.3 : 0.7), 62); break;
+    case 'WALL': {
+      const wall = pick(index, ['crawler','turret','layer','tanker']);
+      line(wall, count(3, 5), 24, 66); line(wall, count(3, 5), L_W - 24, 66); nvForm(a, count(2, 4)); break;
+    }
+    case 'CARRIER': nvForm('carrier', 1); nvForm(pick(index, ['gunship','tanker','phalanx']), count(2, 4)); nvForm(a, count(3, 5)); break;
+    case 'PULSAR': nvForm(pick(index, ['pulsar','orbiter','prism','bladespin']), count(2, 4)); nvForm(pick(index + 1, ['kamikaze','dasher','swooper']), count(4, 7)); break;
+    case 'VORAX': nvForm(pick(index, ['carrier','gunship','pulsar','phalanx']), count(2, 3)); nvForm(pick(index + 1, ['drillbot','dasher','kamikaze']), count(3, 6)); break;
+    default: nvForm(a, n);
+  }
+}
+
 buildPlan = function (level) {
   level = clamp(level | 0 || 1, 1, MAX_LEVEL);
-  const L0 = level, dl = nvDL(L0), pool = NV_POOL[L0 - 1];
-  const plan = []; let t = 2.2;
-  const W = (dt, fn, skip) => { t += dt; plan.push({ t, fn, skip }); };
+  const L0 = level, dl = nvDL(L0), plan = [], act = NV_STAGE_ACTS[L0 - 1], finale = NV_STAGE_FINALES[L0 - 1];
+  let t = 2.0;
   const waves = 12 + Math.round(L0 * 0.5);
-  const gap = 4.8 - 1.7 * dl;
-  const base = 16 * (1 + 0.115 * (L0 - 1));                    /* budget de menace d'une vague */
-  const prof = [0.85, 1.0, 1.15, 0.9, 1.1, 1.25, 0.95, 1.05];
-  const nElite = L0 < 3 ? 0 : 1 + Math.floor((L0 - 3) / 5);
-  const miniAt = [Math.round(waves * 0.34), Math.round(waves * 0.68), Math.round(waves * 0.9)];
-  const nMini = 1 + (L0 >= 9 ? 1 : 0) + (L0 >= 17 ? 1 : 0);
-  const eliteAt = []; for (let i = 0; i < nElite; i++) eliteAt.push(Math.round(waves * (0.2 + 0.7 * (i + 0.5) / nElite)));
-
-  let cyc = 0; const order = pool.slice().sort(() => Math.random() - 0.5);
-  const nextKind = () => order[cyc++ % order.length];
-  W(0, () => formV('drone', 4 + (L0 > 6 ? 1 : 0)));
-  for (let i = 1; i <= waves; i++) {
-    const kinds = [], counts = [];
-    let rem = base * prof[i % prof.length] * (i === 1 ? 0.7 : 1);
-
-    for (let f = 0; f < 3 && rem > base * 0.18; f++) {
-      const k = nextKind(), th = nvThreat(k);
-      const n = clamp(Math.round(rem / th), 1, nvCap(k));
-      kinds.push(k); counts.push(n); rem -= n * th; 
-      if (f === 0 && rem < base * 0.3) break;
-    }
-    W(i === 1 ? 4.0 : gap * (1 + (i % 3 === 0 ? 0.12 : -0.04)), () => { for (let f = 0; f < kinds.length; f++) nvForm(kinds[f], counts[f]); });
-    for (let m = 0; m < nMini; m++) if (miniAt[m] === i) { const kind = m === 1 ? nvMini2(L0) : NV_MINI1[L0 - 1]; W(5.0, () => nvSpawnMini(kind), true); }
-    if (eliteAt.indexOf(i) >= 0) W(2.2, () => { spawnEnemy('elite', L_W / 2 + rnd(90, -90), -90, { ty: 250, hpMul: 0.9 + lvEq() * 0.1 }); Audio2.sfx('alert'); }, true);
+  const cadence = 4.45 - dl * 0.75;
+  const W = (dt, fn, skip) => { t += dt; plan.push({ t, fn, skip: !!skip }); };
+  W(0, () => formV('drone', L0 < 5 ? 4 : 5));
+  const miniCount = 1 + (L0 >= 9 ? 1 : 0) + (L0 >= 17 ? 1 : 0);
+  const miniAt = [0.34, 0.68, 0.91].slice(0, miniCount).map(x => Math.round((waves - 1) * x));
+  for (let i = 0; i < waves; i++) {
+    const motif = i < act.length ? act[i] : finale[(i - act.length) % finale.length];
+    const beat = i % 4;
+    /* Des respirations courtes après les vagues lourdes créent une vraie ponctuation d'arcade. */
+    const rest = motif === 'GATE' || motif === 'CARRIER' || motif === 'VORAX' ? 1.05 : (beat === 3 ? 0.7 : 0);
+    W(cadence + rest, () => nvDesignWave(motif, i, L0, NV_POOL[L0 - 1]));
+    const m = miniAt.indexOf(i);
+    if (m >= 0) { const kind = m === 1 ? nvMini2(L0) : NV_MINI1[L0 - 1]; W(2.3, () => nvSpawnMini(kind), true); }
   }
-  /* normalisation : on « joue à blanc » le plan pour mesurer sa vraie menace, puis on cale PV et cadence de
-     tir sur une courbe lisse du niveau — quel que soit le tirage de types, chaque secteur est plus dur */
+  /* Le boss arrive après une courte fenêtre de lecture du dernier motif. */
+  W(1.25, () => {}, true);
+  /* Courbe de menace lissée : le poids des nouvelles formations ne crée pas de pic injuste. */
   {
     const real = spawnEnemy, keep = G.enemies.length; let hp = 0, fire = 0;
     G.nvHpNorm = 1; G.nvFireNorm = 1;
     spawnEnemy = function (k, x, y, o) { const e = real(k, x, y, o); hp += e.hp; if (e.fire) fire += (e.fire.n || 1) / Math.max(0.25, e.fire.cd || 2); return e; };
-    try { for (const p of plan) if (!p.skip) p.fn(); } catch (err) { console.warn('plan à blanc', err); }
+    try { for (const p of plan) if (!p.skip) p.fn(); } catch (err) { console.warn('plan de secteur', err); }
     finally { spawnEnemy = real; G.enemies.length = keep; }
-    const T_end = plan.length ? plan[plan.length - 1].t : 60, q = L0 - 1;
-    const hpT = (2.6 + 0.55 * q + 0.032 * q * q) * T_end, fT = (6.5 + 1.0 * q + 0.085 * q * q) / 60 * T_end;
-    G.nvDry = { hp, fire, T: T_end };
+    const T = plan.length ? plan[plan.length - 1].t : 60, q = L0 - 1;
+    const hpT = (2.6 + 0.55 * q + 0.032 * q * q) * T;
+    const fT = (6.5 + 1.0 * q + 0.085 * q * q) / 60 * T;
+    G.nvDry = { hp, fire, T };
     G.nvHpNorm = clamp(hpT / Math.max(1, hp), 0.55, 1.7);
     G.nvFireNorm = fire > 0 ? clamp(fire / fT, 0.55, 1.8) : 1;
   }
@@ -22460,7 +22584,7 @@ function nvRobotPre(b, dt) {
     const g = PAINT.g, K = PAINT.K, e = R.era, x = b.x, y = b.y, t = b.t;
     const gb = TH.livery.gb;
     const energy = e === 0 ? gb[3] : TH.eBossLite, bossCol = e === 0 ? gb[2] : TH.eBoss, hullMid = e === 0 ? gb[1] : TH.bg3, lite = e === 0 ? gb[3] : TH.eLite;
-    const bo = { kind: 'boss', hue: b.def.hue, sat: 0.6, light: e === 0 ? 0.5 : 0.44, flash: b.flash > 0 ? 0.85 : 0 };
+    const bo = { kind: 'boss', hue: b.def.hue, sat: 0.6, light: e === 0 ? 0.5 : 0.44, flash: b.flash > 0 ? (e === 0 ? 0.85 : e === 1 ? 0.34 : 0.18) : 0 };
     const P2 = G.player, add = (fn) => { if (e >= 1) { g.globalCompositeOperation = 'lighter'; fn(); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; } };
     const pu = 0.8 + 0.2 * Math.sin(t * 5);
     const lerpA = (a, bb, k) => a + (bb - a) * k;
@@ -22469,7 +22593,7 @@ function nvRobotPre(b, dt) {
       for (const p of b.parts) {
         g.strokeStyle = p.dead ? hullMid : energy; g.lineWidth = Math.max(1, 2 * K);
         g.beginPath(); g.moveTo(x * K, y * K); g.lineTo(p.x * K, p.y * K); g.stroke();
-        if (!p.dead) drawSpriteTo(g, K, spr, p.x, p.y, { ...bo, rot: Math.atan2(p.y - y, p.x - x) - Math.PI / 2, scale: sc, flash: p.flash > 0 ? 0.9 : 0, frame: Math.floor(p.t * 8) & 3 });
+        if (!p.dead) drawSpriteTo(g, K, spr, p.x, p.y, { ...bo, rot: Math.atan2(p.y - y, p.x - x) - Math.PI / 2, scale: sc, flash: p.flash > 0 ? (e === 0 ? 0.9 : e === 1 ? 0.42 : 0.24) : 0, frame: Math.floor(p.t * 8) & 3 });
         else { circle(p.x, p.y, 8, hullMid); circle(p.x, p.y, 4, energy); }
       }
     };
@@ -22528,7 +22652,7 @@ function nvDrawRobot(b, bo, g, K, e, energy, bossCol, hullMid, lite) {
     const part = b.parts[side < 0 ? 0 : 1], dead = part && part.dead;
     const px = x + side * N.shX, py = y + N.shY;
     g.save(); g.translate(px * K, py * K); g.rotate(nvArmTheta(b, side));
-    drawBossSprite(0, N.armH * 0.5, 25, { ...bo, scale: N.armSc, flash: part && part.flash > 0 ? 0.9 : 0, light: dead ? 0.3 : bo.light });
+    drawBossSprite(0, N.armH * 0.5, 25, { ...bo, scale: N.armSc, flash: part && part.flash > 0 ? (R.era === 0 ? 0.9 : R.era === 1 ? 0.42 : 0.24) : 0, light: dead ? 0.3 : bo.light });
     g.restore();
     if (dead && chance(0.08)) spawnPart({ x: px + side * 14, y: py + 120, vx: rnd(30, -30), vy: rnd(-10, -50), life: 0.6, col: TH.eBossLite, size: 3, glow: true });
     if (!dead && part) circle(part.x, part.y, 5 + 2 * pu, energy);
@@ -22563,7 +22687,7 @@ function nvDrawRobot(b, bo, g, K, e, energy, bossCol, hullMid, lite) {
     const p = b.parts[2 + k]; if (!p) continue;
     if (p.dead) { circle(p.x, p.y, 8, hullMid); circle(p.x, p.y, 4, energy); continue; }
     const ang = P2 && P2.alive ? Math.atan2(P2.y - p.y, P2.x - p.x) : Math.PI / 2;
-    drawSpriteTo(g, K, 'bTurret', p.x, p.y, { ...bo, rot: ang - Math.PI / 2, scale: 0.68, flash: p.flash > 0 ? 0.9 : 0 });
+    drawSpriteTo(g, K, 'bTurret', p.x, p.y, { ...bo, rot: ang - Math.PI / 2, scale: 0.68, flash: p.flash > 0 ? (e === 0 ? 0.9 : e === 1 ? 0.42 : 0.24) : 0 });
   }
 }
 {
