@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>NEO VANGUARD — Shmup évolutif</title>
 <meta name="description" content="Shoot them up vertical futuriste : le moteur graphique évolue à chaque niveau, du huit bits au rendu HD moderne.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230b1020'/><path d='M16 4l7 14h-4l4 8H9l4-8H9z' fill='%2338e0ff'/></svg>">
@@ -3726,18 +3726,13 @@ function setEra(era, silent) {
 }
 
 /* --- redimensionnement ---------------------------------------------------- */
-/* Taille réellement visible : on prend la plus petite des mesures disponibles
-   (fenêtre, zone fixe #stage, élément racine). Sur certains téléphones
-   innerWidth/innerHeight annoncent une valeur plus grande que l'écran visible
-   (barres de navigation, zoom du navigateur) : le jeu était alors dessiné trop
-   grand et la partie droite sortait de l'écran. */
+/* Taille du viewport de mise en page, mesurée sur la scène fixe. Sur mobile,
+   visualViewport varie avec les barres du navigateur et le pinch : l'utiliser
+   pour recalculer le canvas produisait un dézoom/rezoom pendant la partie. */
 function visibleSize() {
   const st = document.getElementById('stage'), de = document.documentElement;
-  const vv = window.visualViewport;
-  let W = window.innerWidth, H = window.innerHeight;
-  const cand = [[st && st.clientWidth, st && st.clientHeight], [de && de.clientWidth, de && de.clientHeight],
-                [vv && vv.scale <= 1.01 ? vv.width : 0, vv && vv.scale <= 1.01 ? vv.height : 0]];
-  for (const [w, h] of cand) { if (w > 40) W = Math.min(W, w); if (h > 40) H = Math.min(H, h); }
+  const W = (st && st.clientWidth) || de.clientWidth || window.innerWidth;
+  const H = (st && st.clientHeight) || de.clientHeight || window.innerHeight;
   return [Math.max(1, Math.floor(W)), Math.max(1, Math.floor(H))];
 }
 function resizeView() {
@@ -19565,9 +19560,10 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && (G.
   };
   addEventListener('resize', () => { apply(); setTimeout(apply, 250); });
   addEventListener('orientationchange', () => { setTimeout(apply, 120); setTimeout(apply, 500); });
-  if (window.visualViewport) visualViewport.addEventListener('resize', apply);
+  /* Le visualViewport suit aussi l'interface du navigateur et les gestes de
+     zoom. On garde le cadrage du jeu stable pendant ces changements ; les vrais
+     changements d'orientation, de fenêtre et de plein écran restent recalculés. */
   document.addEventListener('fullscreenchange', () => { setTimeout(apply, 120); setTimeout(apply, 500); });
-  setInterval(apply, 400);
   apply();
 })();
 
@@ -23401,7 +23397,7 @@ html.nvui .chips .chip{border-radius:999px}
     const offset=(((SCROLL.y||0)*factor)%tileH+tileH)%tileH;
     g.save();g.globalAlpha=R.sec===2?.58:R.sec===3?.64:R.sec===4?.70:.76;
     g.globalCompositeOperation='source-over';g.imageSmoothingEnabled=R.sec>=4;
-    for(let yy=-offset-tileH;yy<H+tileH;yy+=tileH)g.drawImage(plate,0,yy,W,tileH);
+    for(let yy=offset-tileH;yy<H+tileH;yy+=tileH)g.drawImage(plate,0,yy,W,tileH);
     /* protect bullet and boss readability while preserving the new backdrop */
     const shade=g.createLinearGradient(0,0,0,H);shade.addColorStop(0,'rgba(2,7,20,.10)');shade.addColorStop(.5,'rgba(2,7,20,.22)');shade.addColorStop(1,'rgba(2,7,20,.16)');
     g.globalAlpha=1;g.fillStyle=shade;g.fillRect(0,0,W,H);
