@@ -519,7 +519,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
       </div>
       <div class="chips">
         <span class="chip">RECORD <b id="tBest">0</b></span>
-        <span class="chip">CRÉDITS <b id="tCredits">0</b></span>
+        <span class="chip">COINS <b id="tCredits">0</b></span>
         <span class="chip">SECTEUR MAX <b id="tMax">1</b>/24</span>
         <span class="chip">KILLS <b id="tKills">0</b></span>
         <span class="chip streak" id="tStreak">SÉRIE 0 J</span>
@@ -577,7 +577,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
   <div class="panel">
     <div class="phead">
       <span class="ptitle">Boutique orbitale</span>
-      <span class="wallet">CRÉDITS <b id="shopCredits">0</b></span>
+      <span class="wallet">COINS <b id="shopCredits">0</b></span>
     </div>
     <div class="shop-trade-modes" id="shopTradeModes" aria-label="Acheter ou vendre"></div>
     <div class="shop-intro" id="shopIntro" aria-live="polite"></div>
@@ -647,17 +647,17 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
     </div>
     <div class="note">
       <b>Ramassez les modules</b> lâchés par les ennemis : <span class="pill">P</span> puissance de tir (max 5),
-      <span class="pill">B</span> bouclier, <span class="pill">V</span> coque, <span class="pill">CR</span> crédits, <span class="pill">✹</span> bombe.<br>
-      Les <b>crédits</b> gagnés en mission sont conservés : dépensez-les en boutique pour améliorer vaisseaux, armes et équipements.
+      <span class="pill">B</span> bouclier, <span class="pill">V</span> coque, <span class="pill">$</span> coins, <span class="pill">✹</span> bombe.<br>
+      Les <b>coins</b> gagnés en mission sont conservés : dépensez-les en boutique pour améliorer vaisseaux, armes et équipements.
     </div>
     <div class="row"><button class="btn small" data-act="help-back">◀ Retour</button></div>
   </div>
 </div>
 
-<!-- ============ CRÉDITS ============ -->
+<!-- ============ GÉNÉRIQUE ============ -->
 <div class="screen dim" id="scr-credits">
   <div class="panel narrow">
-    <div class="phead"><span class="ptitle">Crédits</span><span class="wallet">v1.0</span></div>
+    <div class="phead"><span class="ptitle">Coins</span><span class="wallet">v1.0</span></div>
     <div class="note" style="font-size:12.5px">
       <b>NEO VANGUARD</b> — shoot them up vertical top-down à moteur graphique évolutif.<br><br>
       Code, pixel art procédural, moteur audio chiptune et rendu HD : <b>générés sur mesure</b> pour ce projet.<br>
@@ -735,7 +735,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
     <div class="sub" id="clearSub">—</div>
     <section class="clear-celebration" id="clearCelebration" aria-live="polite">
       <div class="clear-celebration-top"><span class="clear-seal" aria-hidden="true"><i></i></span><span id="clearRewardTitle">—</span></div>
-      <div class="clear-bonus-row"><span id="clearBonusLabel">—</span><b>+<span id="clearBonusCount">0</span><small> CR</small></b></div>
+      <div class="clear-bonus-row"><span id="clearBonusLabel">—</span><b>+<span id="clearBonusCount">0</span><small> COINS</small></b></div>
       <div id="clearBonusTrack" class="clear-bonus-track" role="progressbar" aria-label="" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="clearBonusFill"></i></div>
       <div class="clear-bonus-status" id="clearBonusStatus">—</div>
     </section>
@@ -771,7 +771,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
     <div id="overStats"></div>
     <div id="overCont" class="continue off">
       <span class="cd">CONTINUER ? <b id="overContCd">9</b></span>
-      <button class="btn prim" data-act="over-continue">▶ Continuer · 3 CR</button>
+      <button class="btn prim" data-act="over-continue">▶ Continuer · 3 COINS</button>
       <span class="note">Reprends la mission au même endroit. Le rang et le record en tiendront compte.</span>
     </div>
     <div class="row">
@@ -844,10 +844,19 @@ function lBuild() {
 }
 
 /* --- traduction d'une chaîne --------------------------------------------- */
+function coinizeUI(value) {
+  if (value === null || value === undefined) return value;
+  const text = String(value);
+  /* Le titre de la page des crédits de création n'est pas la monnaie. */
+  if (/^\s*(?:cr[eé]dits|credits|créditos)\s*$/i.test(text)) return text;
+  return text
+    .replace(/cr[eé]dit[a-záéíóú]*/gi, word => word === word.toUpperCase() ? 'COINS' : word[0] === word[0].toUpperCase() ? 'Coins' : 'coins')
+    .replace(/(^|[^A-Za-zÀ-ÖØ-öø-ÿ])CR(?![A-Za-zÀ-ÖØ-öø-ÿ])/giu, (match, prefix) => prefix + (/\d$/.test(prefix) ? ' ' : '') + 'COINS');
+}
 function L(s) {
   if (s === null || s === undefined) return s;
   const raw = String(s);
-  if (LANG === 'fr' || !raw) return raw;
+  if (LANG === 'fr' || !raw) return coinizeUI(raw);
   let hit = LCACHE.get(raw);
   if (hit === undefined) {
     if (!LIDX) lBuild();
@@ -859,7 +868,7 @@ function L(s) {
     hit = core ? m[kc] : undefined;
     if (hit === undefined && core) hit = m[lnorm(core.toUpperCase())];
     if (hit === undefined && core) hit = mlc[kc.toLowerCase()];
-    if (hit === undefined) { hit = ''; LCACHE.set(raw, ''); return raw; }   /* pas de traduction */
+    if (hit === undefined) { hit = ''; LCACHE.set(raw, ''); return coinizeUI(raw); }   /* pas de traduction */
     let out = String(hit);
     /* l'appelant écrit en capitales (HUD, jaquettes) : on capitalise aussi */
     if (core === core.toUpperCase() && /[A-ZÀ-ÞŒ]/.test(core)) out = out.toUpperCase();
@@ -871,7 +880,7 @@ function L(s) {
     LCACHE.set(raw, mm[1] + out + mm[3]);
     hit = mm[1] + out + mm[3];
   }
-  return hit || raw;
+  return coinizeUI(hit || raw);
 }
 
 /* --- langue courante ------------------------------------------------------ */
@@ -2448,7 +2457,7 @@ const UPGRADES = [
   { id:'drone',  name:'SATELLITES',  price:600, max:3, step:'+1 drone d\'escorte' },
   { id:'shield', name:'BOUCLIER',    price:700, max:3, step:'+1 charge · régénération' },
   { id:'magnet', name:'AIMANT',      price:320, max:4, step:'+45% de rayon de collecte' },
-  { id:'credit', name:'NÉGOCE',      price:420, max:4, step:'+15% de crédits gagnés' },
+  { id:'credit', name:'NÉGOCE',      price:420, max:4, step:'+15% de coins gagnés' },
   { id:'dmg',    name:'SURCHARGE',   price:520, max:5, step:'+8% de dégâts' },
   { id:'luck',   name:'TÉLÉMÉTRIE',  price:380, max:3, step:'Meilleures chances de bonus' },
   { id:'bomb',   name:'BOMBES',      price:200, max:9, step:'+1 bombe (consommable)', consumable:true },
@@ -2480,7 +2489,7 @@ const CHEATS = [
     desc:'Le temps s\'écoule à 60% : idéal pour slalomer entre les salves.',
     hint:'le film de 1999' },
   { id:'rich',   code:'banque',    name:'JACKPOT', type:'action',
-    desc:'Crédite immédiatement 50 000 crédits pour la boutique.',
+    desc:'Ajoute immédiatement 50 000 coins au compte boutique.',
     hint:'l\'endroit où l\'on garde son argent' },
   { id:'unlock', code:'sesame',    name:'OUVRE-TOI', type:'action',
     desc:'Débloque vaisseaux, armes, livrées, traînées, auras et équipements au maximum.',
@@ -2712,6 +2721,7 @@ function hTextW(g, str, size, weight) {
 }
 /* HUD : sélectionne automatiquement le style de texte de l'ère */
 function hudText(g, str, x, y, col, size, opt = {}) {
+  str = coinizeUI(str);
   col = eraCol(col);
   if (TH.ramp >= 255) return hText(g, str, x, y, Object.assign({ color: col, size: size * 7 }, opt));
   return pixText(g, str, x, y, col, size, opt);
@@ -3626,7 +3636,7 @@ function eraCol(col) {
 function popText(x, y, txt, col, size) {
   col = eraCol(col);
   const f = FTs[ftIdx++ % FTs.length];
-  f.on = true; f.x = x; f.y = y; f.txt = txt; f.col = col; f.t = 1; f.size = size || 8;
+  f.on = true; f.x = x; f.y = y; f.txt = coinizeUI(txt); f.col = col; f.t = 1; f.size = size || 8;
   return f;
 }
 function updateFTs(dt) { for (const f of FTs) if (f.on) { f.t -= dt * 0.9; f.y -= dt * 26; if (f.t <= 0) f.on = false; } }
@@ -7400,16 +7410,16 @@ const PKIND = {
   power:  { ch: 'P', col: '#ffd166', name: 'PUISSANCE', hue: 45,  sat: 0.62 },
   shield: { ch: 'B', col: '#4be7ff', name: 'BOUCLIER',  hue: 190, sat: 0.70 },
   hull:   { ch: 'V', col: '#4dff9e', name: 'COQUE',     hue: 138, sat: 0.55 },
-  credit: { ch: '$', col: '#ffe066', name: 'CRÉDITS',   hue: 52,  sat: 0.75 },
+  credit: { ch: '$', col: '#ffe066', name: 'COINS',   hue: 52,  sat: 0.75 },
   bomb:   { ch: 'O', col: '#ff7ad9', name: 'BOMBE',     hue: 320, sat: 0.66 },
   scrap:  { ch: 'F', col: '#c7a779', name: 'FERRAILLE', hue: 31,  sat: 0.30 },
   crystal:{ ch: 'C', col: '#68e8ff', name: 'CRISTAL',   hue: 190, sat: 0.82 },
   circuit:{ ch: 'D', col: '#95ffaf', name: 'CIRCUIT',   hue: 140, sat: 0.72 },
 };
 const MATERIALS = [
-  { id: 'scrap', name: 'Ferraille d’armure', short: 'FERRAILLE', desc: 'Fragments de coque récupérés sur les chasseurs détruits.', price: 25 },
-  { id: 'crystal', name: 'Cristal d’étoile', short: 'CRISTAL', desc: 'Éclat énergétique rare, prisé par les ateliers du secteur.', price: 60 },
-  { id: 'circuit', name: 'Circuit ancien', short: 'CIRCUIT', desc: 'Composant intact extrait des appareils d’élite et des transporteurs.', price: 120 },
+  { id: 'scrap', name: 'Ferraille d’armure', short: 'FERRAILLE', desc: 'Fragments de coque récupérés sur les chasseurs détruits.', rarity: 'COURANT', price: 25 },
+  { id: 'crystal', name: 'Cristal d’étoile', short: 'CRISTAL', desc: 'Éclat énergétique rare, prisé par les ateliers du secteur.', rarity: 'RARE', price: 75 },
+  { id: 'circuit', name: 'Circuit ancien', short: 'CIRCUIT', desc: 'Composant intact extrait des appareils d’élite et des transporteurs.', rarity: 'TECHNOLOGIE', price: 160 },
 ];
 function addPickup(x, y, kind, value) {
   const pu = { x, y, vx: rnd(50, -50), vy: rnd(70, 30), kind, value: value || 0, t: 0, mag: false };
@@ -8113,7 +8123,7 @@ function bossDie() {
   b.dead = true; b.deadT = 0;
   addScore(byId(b.by || 1), b.sc * mult());
   G.credits += b.cr; G.runCredits += b.cr;
-  popText(b.x, b.y, '+' + fmt(b.cr) + ' CR', TH.gold, 12);
+  popText(b.x, b.y, '+' + fmt(b.cr) + ' COINS', TH.gold, 12);
   Audio2.sfx('explode', { big: true }); FX.addFlash(0.8, TH.white); FX.addShake(26); FX.stop(0.14);
   FX.slow = 0.28; FX.slowT = 1.6;
   for (let i = 0; i < 40; i++) { const a = rnd(TAU), v = rnd(420, 90); spawnPart({ x: b.x, y: b.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(1.4, 0.5), col: pick([TH.eBoss, TH.eBossLite, TH.gold, TH.white]), size: rnd(9, 3), drag: 0.92, glow: true }); }
@@ -8859,6 +8869,45 @@ function drawCoinGB(g, K, x, y, pop, spin, kind, gb) {
     else { m(0, 0, 1, 1); m(0, -1.5, 1, 1); m(0, 1.5, 1, 1); m(-1.5, 0, 1, 1); m(1.5, 0, 1, 1); }  /* bombe : éclat */
   }
 }
+const MATERIAL_PICKUP_ART = {
+  scrap: [
+    '..0000000000000..','.0122222222222210.','012333333333333210','012331123333333210',
+    '012333221133333210','012333311133333210','012333111333333210','012333333333333210',
+    '.0122222222222210.','..0000000000000..'
+  ],  crystal: [
+    '.......0........','......010.......','.....01210......','....0123310.....',
+    '...012333310....','..01233333310...','.0123333333310..','012333333333310.',
+    '.0123333333310..','..01233333310...','...012333310....','....0122210.....',
+    '.....01110......','......010.......','.......0........'
+  ],
+  circuit: [
+    '....0.0.0.0......','....0.0.0.0......','..00000000000....','..01222222210....',
+    '0.012333333210.0.','0.012311113210.0.','..012310013210....','..012310013210....',
+    '0.012311113210.0.','0.012333333210.0.','..01222222210....','..00000000000....',
+    '....0.0.0.0......','....0.0.0.0......'
+  ]
+};
+/* Matériaux de mission : silhouettes pixel-art dédiées, opaques et lisibles.
+   La Game Boy reprend ses quatre tons actifs ; les autres ères ont leurs propres teintes. */
+function drawMaterialPickup(g, K, x, y, pop, kind, era, gb) {
+  const art = MATERIAL_PICKUP_ART[kind]; if (!art) return;
+  const palettes = era === 0 ? [gb[0], gb[1], gb[2], gb[3]] : kind === 'scrap'
+    ? ['#32251d','#6f5038','#bd8650','#ffe0a0']
+    : kind === 'crystal' ? ['#09263d','#136d91','#35c9ee','#d8fbff']
+    : ['#092a27','#176b5b','#31c7a1','#d0fff0'];
+  const px = Math.max(1, Math.round(K * (era === 0 ? 1.2 : 1.25)));
+  const width = kind === 'crystal' ? 16 : 18, height = art.length;
+  const ox = Math.round(x * K - width * px / 2), oy = Math.round(y * K - height * px / 2);
+  g.save(); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  for (let ry = 0; ry < height; ry++) for (let rx = 0; rx < art[ry].length; rx++) {
+    const ch = art[ry][rx]; if (ch === '.') continue;
+    const ix = Math.max(0, Math.min(3, Number(ch)));
+    g.fillStyle = palettes[ix];
+    const indent = (width - art[ry].length) / 2;
+    g.fillRect(Math.round(ox + (rx + indent) * px), oy + ry * px, px, px);
+  }
+  g.restore();
+}
 /* Jetons de butin opaques : petit contour dur, face pleine et symbole lisible. */
 function drawOpaqueLootToken(g, K, x, y, pop, spin, kind, era, def) {
   const mat = MATERIALS.find(m => m.id === kind), credit = kind === 'credit';
@@ -8911,9 +8960,11 @@ function drawPickups() {
       circle(x, y, 26 * pop, def.col); g.globalAlpha = 1;
       g.globalCompositeOperation = 'source-over';
     }
-    if (k.kind === 'credit' || MATERIALS.some(m => m.id === k.kind)) {
+    if (k.kind === 'credit') {
       if (e === 0) drawCoinGB(g, K, x, y, pop, spin, k.kind, gb);
       else drawOpaqueLootToken(g, K, x, y, pop, spin, k.kind, e, def);
+    } else if (MATERIALS.some(m => m.id === k.kind)) {
+      drawMaterialPickup(g, K, x, y, pop, k.kind, e, gb);
     } else if (e === 0) {
       /* ---- LA PIÈCE (8 bits) ---------------------------------------------
          Un ramassable ne peut pas être une caisse à « ? » : la Pocket n'a pas de
@@ -9011,7 +9062,7 @@ function drawWorld(dt) {
 /* ============================ INTERFACE & HUD ============================= */
 function toast(msg, bad) {
   const d = document.createElement('div');
-  d.textContent = String(L(msg)); if (bad) d.className = 'bad';
+  d.textContent = coinizeUI(L(msg)); if (bad) d.className = 'bad';
   $('#toast').appendChild(d);
   setTimeout(() => { d.style.transition = 'opacity .4s'; d.style.opacity = '0'; setTimeout(() => d.remove(), 420); }, 1600);
 }
@@ -9199,13 +9250,13 @@ function drawHUD() {
        sa pièce quand on ne joue pas ;
      · CD-ROM : on compte les pistes du disque.                            */
   if (R.sec === 3 && G.state === 'play' && !twoP) {
-    hudText(ctx, 'CREDIT 01', x0 + w - 8 - hudW('CR 000000', scl) - 12, y0 + 6, TH.eMain, scl, { align: 'right' });
+    hudText(ctx, 'COIN 01', x0 + w - 8 - hudW('COINS 000000', scl) - 12, y0 + 6, TH.eMain, scl, { align: 'right' });
     if (Math.floor(G.t * 1.6) % 4 < 2) hudText(ctx, 'PRESS START', x0 + w / 2, y0 + barH + 26, TH.gold, scl, { align: 'center', glow: TH.gold });
   }
   if (R.sec === 4 && G.state === 'play' && !twoP) {
-    hudText(ctx, 'DISQUE 01 · TRACK ' + String(G.level).padStart(2, '0'), x0 + w - 8 - hudW('CR 000000', scl) - 12, y0 + 6, TH.acc, scl, { align: 'right' });
+    hudText(ctx, 'DISQUE 01 · TRACK ' + String(G.level).padStart(2, '0'), x0 + w - 8 - hudW('COINS 000000', scl) - 12, y0 + 6, TH.acc, scl, { align: 'right' });
   }
-  hudText(ctx, 'CR ' + fmt(NET.role === 'guest' ? (HUDNET.credits || 0) : (G.credits + S.credits)), twoP ? x0 + w / 2 : x0 + w - 8, y0 + 6, TH.gold, scl,
+  hudText(ctx, 'COINS ' + fmt(NET.role === 'guest' ? (HUDNET.credits || 0) : (G.credits + S.credits)), twoP ? x0 + w / 2 : x0 + w - 8, y0 + 6, TH.gold, scl,
     { align: twoP ? 'center' : 'right', glow: TH.gold });
 
   /* coque toujours lisible, y compris sur mobile où le pied du HUD est masqué */
@@ -9418,7 +9469,7 @@ function drawSidePanels(sideRes) {
     ctx.fillStyle = i === 3 ? TH.gold : TH.acc; ctx.fillRect(x + 8, by + 10, (panW - 16) * clamp(v, 0, 1), 5);
   });
   hudText(ctx, 'SECTEUR ' + G.level + ' · ' + ERAS[R.sec].sys, x + 8, y + 178, TH.acc2, 1);
-  hudText(ctx, 'CRÉDITS ' + fmt(S.credits + G.credits), x + 8, y + 192, TH.gold, 1);
+  hudText(ctx, 'COINS ' + fmt(S.credits + G.credits), x + 8, y + 192, TH.gold, 1);
   hudText(ctx, 'KILLS ' + G.kills + '  BEST ' + fmt(S.best), x + 8, y + 204, TH.ui, 1);
   ctx.restore();
 }
@@ -9571,7 +9622,7 @@ const SHOP_GUIDE = {
   weapons: ['ARMES, TIRS ET SURVIE', 'Choisis une arme, son style de projectile ou des bombes. Les skins changent uniquement l’apparence des tirs.'],
   upgrades: ['PROGRESSION PERMANENTE', 'Chaque achat améliore directement ton équipement. Le prix augmente avec le niveau : vérifie l’effet avant de confirmer.'],
   custom: ['APPARENCE DU VAISSEAU', 'Livrées, traînées et auras sont purement visuelles : elles ne modifient pas les performances.'],
-  materials: ['COMPTOIR DE RACHAT · BUTIN DE MISSION', 'Échange les matériaux récupérés contre des crédits. Chaque fiche indique le cours unitaire et la valeur de ton stock.'],
+  materials: ['COMPTOIR DE RACHAT · BUTIN DE MISSION', 'Échange les matériaux récupérés contre des coins. Chaque fiche indique le cours unitaire et la valeur de ton stock.'],
 };
 function shopNavigate(mode, tab) {
   const nextMode = mode || shopMode, nextTab = tab || shopTab;
@@ -9660,7 +9711,7 @@ function shopStatValues(st) {
     'Drones': `${st.drones}`,
     'Dégâts': `${Math.round(st.dmgMul * 100)}%`,
     'Collecte': `${Math.round(st.magnet)} px`,
-    'Crédits gagnés': `${Math.round(st.creditMul * 100)}%`,
+    'Coins gagnés': `${Math.round(st.creditMul * 100)}%`,
     'Télémétrie': `${st.luck}`,
   };
 }
@@ -9688,7 +9739,7 @@ function shopItemCard(key, it) {
     ${compare ? `<div class="shop-compare">${compare}</div>` : ''}
     ${(it.gb || it.hull) ? `<div style="display:flex;gap:3px;margin-top:6px">${liverySwatch(it).map(c => `<span style="flex:1;height:8px;background:${c}"></span>`).join('')}</div>` : ''}
     ${it.main ? `<div class="bullet-swatch" aria-label="Aperçu des couleurs de tir"><i style="background:${it.glow};color:${it.glow}"></i><i style="background:${it.main};color:${it.main}"></i><i style="background:${it.lite};color:${it.lite}"></i></div>` : ''}
-    <div class="cprice${owned ? ' owned' : (S.credits < it.price ? ' cant' : '')}">${owned ? (equipped ? 'SÉLECTIONNÉ' : 'ÉQUIPER') : fmt(it.price) + ' CR'}</div>`;
+    <div class="cprice${owned ? ' owned' : (S.credits < it.price ? ' cant' : '')}">${owned ? (equipped ? 'SÉLECTIONNÉ' : 'ÉQUIPER') : fmt(it.price) + ' COINS'}</div>`;
   el.onclick = () => { ownsOrBuy(key, selKey, it); };
   return el;
 }
@@ -9699,7 +9750,7 @@ function buildBombCard(grid) {
     <div class="cdesc">Efface les tirs ennemis et inflige de lourds dégâts de zone. Les bombes achetées alimentent le stock permanent.</div>
     <div class="bar"><i style="width:${l / 9 * 100}%"></i></div>
     <div class="stat"><span>STOCK : ${l}/9</span><span>${l >= 9 ? 'PLEIN' : 'MAX. 9'}</span></div>
-    <div class="cprice${l >= 9 ? ' cant' : (S.credits < 200 ? ' cant' : '')}">${l >= 9 ? 'STOCK PLEIN' : 'ACHETER · ' + fmt(200) + ' CR'}</div>`;
+    <div class="cprice${l >= 9 ? ' cant' : (S.credits < 200 ? ' cant' : '')}">${l >= 9 ? 'STOCK PLEIN' : 'ACHETER · ' + fmt(200) + ' COINS'}</div>`;
   if (l < 9) el.onclick = () => buy('bombs', 'bomb');
   grid.appendChild(el);
   const note = document.createElement('div'); note.className = 'shop-inline-note';
@@ -9717,7 +9768,7 @@ function sellMaterial(id, amount) {
   if (!mat || qty < 1 || qty > owned) return false;
   S.materials[id] = owned - qty;
   const gain = qty * mat.price; S.credits += gain;
-  saveGame(); Audio2.sfx('coin'); toast(`+${fmt(gain)} CR · ${mat.name} vendu${qty > 1 ? 's' : ''}`);
+  saveGame(); Audio2.sfx('coin'); toast(`+${fmt(gain)} COINS · ${mat.name} vendu${qty > 1 ? 's' : ''}`);
   merchantSay('sold'); buildShop(); refreshUI();
   return true;
 }
@@ -9725,7 +9776,7 @@ function buildMaterialsStore(grid) {
   const totalQty = MATERIALS.reduce((n, m) => n + Math.max(0, Math.floor(Number(S.materials[m.id]) || 0)), 0);
   const totalValue = MATERIALS.reduce((n, m) => n + Math.max(0, Math.floor(Number(S.materials[m.id]) || 0)) * m.price, 0);
   const head = document.createElement('section'); head.className = 'material-market-head';
-  head.innerHTML = `<div class="material-market-kicker">COMPTOIR DE RACHAT <span>· GROZZMO</span></div><div class="material-market-copy">Dépose ici le butin récupéré pendant tes missions. Le cours est garanti et le paiement est immédiat.</div><div class="material-market-stats"><div><small>RESSOURCES EN CALE</small><b>${fmt(totalQty)}</b></div><div><small>VALEUR DE REPRISE</small><b>${fmt(totalValue)} <i>CR</i></b></div></div>`;
+  head.innerHTML = `<div class="material-market-kicker">COMPTOIR DE RACHAT <span>· GROZZMO</span></div><div class="material-market-copy">Dépose ici le butin récupéré pendant tes missions. Le cours est garanti et le paiement est immédiat.</div><div class="material-market-stats"><div><small>RESSOURCES EN CALE</small><b>${fmt(totalQty)}</b></div><div><small>VALEUR DE REPRISE</small><b>${fmt(totalValue)} <i>COINS</i></b></div></div>`;
   grid.appendChild(head);
   const note = document.createElement('div'); note.className = 'shop-inline-note material-market-note';
   note.innerHTML = '<b>RACHAT AU COMPTOIR</b><span>Ferraille courante · cristaux rares · circuits d’élite. Les matériaux tombent des ennemis et appareils détruits.</span>';
@@ -9734,11 +9785,11 @@ function buildMaterialsStore(grid) {
   for (const [index, mat] of MATERIALS.entries()) {
     const qty = Math.max(0, Math.floor(Number(S.materials[mat.id]) || 0));
     const card = document.createElement('section'); card.className = 'material-card' + (qty ? ' stocked' : ' empty');
-    card.innerHTML = `<div class="material-card-art material-art-${mat.id}">${materialGlyph(mat.id)}<span>${['COMMUN','RARE','TECHNOLOGIE'][index]}</span></div>
-      <div class="material-card-info"><div class="material-name-row"><h3>${mat.name}</h3><span class="material-unit-price">${fmt(mat.price)} <small>CR / U</small></span></div>
-      <p>${mat.desc}</p><div class="material-stock-row"><span>EN CALE <b>${fmt(qty)}</b></span><span>REPRISE TOTALE <b>${fmt(qty * mat.price)} CR</b></span></div>
-      <div class="material-actions"><button class="material-sell-one" data-sell="1" ${qty ? '' : 'disabled'}>VENDRE 1 <b>+${fmt(mat.price)} CR</b></button>
-      <button class="material-sell-all" data-sell="all" ${qty ? '' : 'disabled'}>CÉDER LE STOCK <b>+${fmt(qty * mat.price)} CR</b></button></div></div>`;
+    card.innerHTML = `<div class="material-card-art material-art-${mat.id}">${materialGlyph(mat.id)}<span>${mat.rarity || ['COURANT','RARE','TECHNOLOGIE'][index]}</span></div>
+      <div class="material-card-info"><div class="material-name-row"><h3>${mat.name}</h3><span class="material-unit-price">${fmt(mat.price)} <small>COINS / U</small></span></div>
+      <p>${mat.desc}</p><div class="material-stock-row"><span>EN CALE <b>${fmt(qty)}</b></span><span>REPRISE TOTALE <b>${fmt(qty * mat.price)} COINS</b></span></div>
+      <div class="material-actions"><button class="material-sell-one" data-sell="1" ${qty ? '' : 'disabled'}>VENDRE 1 <b>+${fmt(mat.price)} COINS</b></button>
+      <button class="material-sell-all" data-sell="all" ${qty ? '' : 'disabled'}>CÉDER LE STOCK <b>+${fmt(qty * mat.price)} COINS</b></button></div></div>`;
     card.querySelector('[data-sell="1"]').onclick = () => sellMaterial(mat.id, 1);
     card.querySelector('[data-sell="all"]').onclick = () => sellMaterial(mat.id, qty);
     board.appendChild(card);
@@ -9787,7 +9838,7 @@ function buildShop() {
         ${compare ? `<div class="shop-compare">${compare}</div>` : ''}
         <div class="bar"><i style="width:${l / u.max * 100}%"></i></div>
         <div class="stat"><span>NIVEAU ${l}/${u.max}</span><span>${maxed ? 'MAX' : 'PROCHAIN : ' + (l + 1)}</span></div>
-        <div class="cprice${maxed ? ' owned' : (S.credits < cost ? ' cant' : '')}">${maxed ? 'NIVEAU MAXIMAL' : fmt(cost) + ' CR · NIVEAU ' + (l + 1)}</div>`;
+        <div class="cprice${maxed ? ' owned' : (S.credits < cost ? ' cant' : '')}">${maxed ? 'NIVEAU MAXIMAL' : fmt(cost) + ' COINS · NIVEAU ' + (l + 1)}</div>`;
       if (!maxed) el.onclick = () => buy('upgrades', u.id);
       grid.appendChild(el);
     }
@@ -9818,8 +9869,8 @@ function buildShop() {
     materials: 'Vends une unité ou tout le stock d’une ressource. La revente crédite immédiatement ton compte.',
   };
   $('#shopNote').innerHTML = shopMode === 'sell'
-    ? `Paiement immédiat après chaque reprise. <b>Valeur totale de ta cale : ${fmt(MATERIALS.reduce((n,m)=>n+(Number(S.materials[m.id])||0)*m.price,0))} CR.</b>`
-    : `${notes[shopTab] || notes.hangar} <b>Solde : ${fmt(S.credits)} crédits.</b> Les achats et équipements sont sauvegardés.`;
+    ? `Paiement immédiat après chaque reprise. <b>Valeur totale de ta cale : ${fmt(MATERIALS.reduce((n,m)=>n+(Number(S.materials[m.id])||0)*m.price,0))} COINS.</b>`
+    : `${notes[shopTab] || notes.hangar} <b>Solde : ${fmt(S.credits)} coins.</b> Les achats et équipements sont sauvegardés.`;
 }
 function liverySwatch(it) {
   if (!it.hull) return it.gb || [];
@@ -9838,7 +9889,7 @@ function buy(listKey, id, price) {
   let cost = price;
   if (listKey === 'upgrades') cost = upgCost(UPGRADES.find(u => u.id === id));
   if (listKey === 'bombs') cost = 200;
-  if (S.credits < cost) { toast('Crédits insuffisants', true); Audio2.sfx('back'); return false; }
+  if (S.credits < cost) { toast('Coins insuffisants', true); Audio2.sfx('back'); return false; }
   S.credits -= cost;
   if (listKey === 'bombs') upgs().bomb = Math.min(9, D.lv('bomb') + 1);
   else if (listKey === 'upgrades') upgs()[id] = D.lv(id) + 1;
@@ -10105,8 +10156,8 @@ function showVictoryScreen() {
     <div class="opt"><label>Ennemis détruits</label><b>${fmt(G.kills)}</b></div>
     <div class="opt"><label>Boss abattus</label><b>${MAX_LEVEL}</b></div>
     <div class="opt"><label>Aucune perte</label><b>${G.noDeath ? '<span style="color:#4dff9e">OUI</span>' : 'non'}</b></div>
-    <div class="opt"><label>Prime de campagne</label><b style="color:#ffe066">+${fmt(bonus)} CR</b></div>
-    <div class="opt"><label>Crédits disponibles</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>
+    <div class="opt"><label>Prime de campagne</label><b style="color:#ffe066">+${fmt(bonus)} COINS</b></div>
+    <div class="opt"><label>Coins disponibles</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>
     <div class="opt"><label>Moteurs graphiques vus</label><b>${ERALIST.map(e => e.sys).join(' · ')}</b></div>`;
   showScreen('victory');
   refreshUI();
@@ -10128,7 +10179,7 @@ function buildOverScreen() {
     <div class="opt"><label>Meilleur score</label><b>${fmt(best)}</b></div>
     <div class="opt"><label>Secteur atteint</label><b>${G.level} (${ERAS[G.eraIdx].sys})</b></div>
     <div class="opt"><label>Ennemis détruits</label><b>${fmt(G.kills)}</b></div>
-    <div class="opt"><label>Crédits gagnés (conservés)</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>`;
+    <div class="opt"><label>Coins gagnés (conservés)</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>`;
   continueUi();
   showScreen('over');
   refreshUI();
@@ -12576,11 +12627,11 @@ function showClearScreen() {
     <div class="opt"><label>Médaille du secteur${improved ? ' — <span style=\"color:#4dff9e\">NOUVELLE</span>' : ''}</label><b style="color:${MEDALS[med.idx].col}">${MEDALS[med.idx].label}</b></div>
     <div class="medal-guide"><b>${copy.title}</b>${copy.help}</div>
     ${critRows}
-    <div class="opt"><label>Bonus de secteur</label><b style="color:#ffe066">+${fmt(G.lastBonus || 0)} CR</b></div>
+    <div class="opt"><label>Bonus de secteur</label><b style="color:#ffe066">+${fmt(G.lastBonus || 0)} COINS</b></div>
     <div class="opt"><label>Score</label><b>${fmt(G.score)}</b></div>
-    <div class="opt"><label>Aucune perte</label><b>${G.noDeath ? '<span style="color:#4dff9e">OUI (+350 CR)</span>' : 'non'}</b></div>
+    <div class="opt"><label>Aucune perte</label><b>${G.noDeath ? '<span style="color:#4dff9e">OUI (+350 COINS)</span>' : 'non'}</b></div>
     <div class="opt"><label>Prochain moteur graphique</label><b style="color:${UIACC[nextEra][0]}">${ERALIST[nextEra].tag}</b></div>
-    <div class="opt"><label>Crédits disponibles</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>`;
+    <div class="opt"><label>Coins disponibles</label><b style="color:#ffe066">${fmt(S.credits)}</b></div>`;
   showScreen('clear');
   refreshUI();
   animateClearBonus(G.lastBonus || 0);
@@ -15426,7 +15477,7 @@ function openConfirm(listKey, id, price) {
   $('#bmName').textContent = L(it.name) + (listKey === 'upgrades' ? ' · ' + L('NIVEAU') + ' ' + (D.lv(id) + 1) : '');
   $('#bmDesc').innerHTML = L(it.desc || it.note || it.step || '') + (it.perk ? '<br><b style="color:#ffd166">' + L(it.perk) + '</b>' : '');
   $('#bmPrice').className = 'bmprice' + (can ? '' : ' cant');
-  $('#bmPrice').textContent = L('PRIX') + ' ' + fmt(cost) + ' CR  ·  ' + L('SOLDE') + ' ' + fmt(S.credits) + ' → ' + fmt(S.credits - cost) + ' CR';
+  $('#bmPrice').textContent = L('PRIX') + ' ' + fmt(cost) + ' COINS  ·  ' + L('SOLDE') + ' ' + fmt(S.credits) + ' → ' + fmt(S.credits - cost) + ' COINS';
   $('#bmQuote').textContent = L(can ? MLINES.confirm[Math.floor(Math.random() * MLINES.confirm.length)] : MLINES.poor[Math.floor(Math.random() * MLINES.poor.length)]);
   $('#bmYes').style.display = can ? '' : 'none';
   const cv = $('#bmHolo');
@@ -15795,7 +15846,7 @@ function droidHumStop() {
 }
 
 /* ---- la file de lecture ---------------------------------------------------- */
-const DROID_ACRO = new Set(['CD', 'ROM', 'HD', 'HQ', 'CR', 'IA', 'AI', 'GPU', 'CPU', 'OK', 'ADN', 'DNA', 'SOS', 'PNJ', 'NPC', 'UI', 'TV', 'VR', 'XP', 'PC', 'MK', 'LED', 'CRT', 'RAM', 'USB', 'ID', 'EN', 'FR', 'ES', 'PT', 'JA']);
+const DROID_ACRO = new Set(['CD', 'ROM', 'HD', 'HQ', 'IA', 'AI', 'GPU', 'CPU', 'OK', 'ADN', 'DNA', 'SOS', 'PNJ', 'NPC', 'UI', 'TV', 'VR', 'XP', 'PC', 'MK', 'LED', 'CRT', 'RAM', 'USB', 'ID', 'EN', 'FR', 'ES', 'PT', 'JA']);
 function droidWords(s) {
   /* VORAX → Vorax, ARCHIVE-ZÉRO → Archive-Zéro, L'EMPIRE → L'Empire ; les sigles connus restent épelés */
   return s.replace(/[A-ZÀ-ÖØ-ÞŒÆ][A-ZÀ-ÖØ-Þ0-9]+(?:['’][A-ZÀ-ÖØ-ÞŒÆ]+)?/g, w => {
@@ -16691,7 +16742,7 @@ function closeNego() { $('#negoModal').classList.remove('on'); if (typeof buildS
     const cost = CONFIRM.price, off = Math.round(cost * S.perk.disc), net = cost - off;
     const can = S.credits >= net;
     $('#bmPrice').className = 'bmprice' + (can ? '' : ' cant');
-    $('#bmPrice').textContent = L('PRIX') + ' ' + fmt(cost) + ' CR  −' + Math.round(S.perk.disc * 100) + ' % = ' + fmt(net) + ' CR  ·  ' + L('SOLDE') + ' ' + fmt(S.credits) + ' → ' + fmt(S.credits - net) + ' CR';
+    $('#bmPrice').textContent = L('PRIX') + ' ' + fmt(cost) + ' COINS  −' + Math.round(S.perk.disc * 100) + ' % = ' + fmt(net) + ' COINS  ·  ' + L('SOLDE') + ' ' + fmt(S.credits) + ' → ' + fmt(S.credits - net) + ' COINS';
     if (can) { $('#bmYes').style.display = ''; CONFIRM.discNet = net; }
   };
   const _yes = confirmYes;
@@ -19233,7 +19284,7 @@ function checkUnlocks() {
     for (const k in u.give) for (const id of u.give[k]) if (!S.owned[k].includes(id)) S.owned[k].push(id);
     S.credits += 500;
     saveGame();
-    toast(L('Déblocage') + ' — ' + L(u.label) + ' (+500 CR)');
+    toast(L('Déblocage') + ' — ' + L(u.label) + ' (+500 COINS)');
     speak(L('Déblocage') + ' : ' + L(u.label) + '.');
   }
 }
@@ -19358,7 +19409,7 @@ function doContinue() {
   saveGame(); hideScreens();
   G.state = 'play'; G.phaseT = 0;
   FX.addFlash(0.5, TH.pGlite || TH.pLite);
-  toast(L('Reprendre la partie') + ' — ' + (1 + G.continues) + ' CR');
+  toast(L('Reprendre la partie') + ' — ' + (1 + G.continues) + ' COINS');
   speak(L('Continuer') + '.');
 }
 
@@ -20473,7 +20524,7 @@ const BZ_SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
 /* textes du cadre : fr, en, es, pt (le japonais reprend l'anglais) */
 const BZT = {
   score: ['SCORE', 'SCORE', 'PUNTOS', 'PONTOS'], hi: ['RECORD', 'HI-SCORE', 'RÉCORD', 'RECORDE'],
-  cred: ['CRÉDITS', 'CREDITS', 'CRÉDITOS', 'CRÉDITOS'], sector: ['SECTEUR', 'SECTOR', 'SECTOR', 'SETOR'],
+  cred: ['COINS', 'COINS', 'COINS', 'COINS'], sector: ['SECTEUR', 'SECTOR', 'SECTOR', 'SETOR'],
   ship: ['ÉTAT DU VAISSEAU', 'SHIP STATUS', 'ESTADO DE LA NAVE', 'ESTADO DA NAVE'],
   hull: ['COQUE', 'HULL', 'CASCO', 'CASCO'], shield: ['BOUCLIER', 'SHIELD', 'ESCUDO', 'ESCUDO'],
   none: ['AUCUN', 'NONE', 'NINGUNO', 'NENHUM'],
@@ -24560,7 +24611,7 @@ html.nvui .chips .chip{border-radius:999px}
   let hideTimer=0;
   function announceReward(r){
     const lang=['fr','en','es','pt'].includes(LANG)?LANG:'fr',L=labels[lang];
-    const cash=r&&r.credits?` +${fmt(r.credits)} ${lang==='fr'?'CR':lang==='ja'?'CR':'CR'}`:'';
+    const cash=r&&r.credits?` +${fmt(r.credits)} COINS`:'';
     const bomb=r&&r.bomb?` · ${lang==='fr'?'BOMBE +1':lang==='en'?'BOMB +1':lang==='es'?'BOMBA +1':'BOMBA +1'}`:'';
     const score=r&&r.score?` · ${lang==='fr'?'SCORE':lang==='en'?'SCORE':lang==='es'?'PUNTOS':'PONTOS'} ${fmt(r.score)}`:'';
     title.textContent=L[0];detail.textContent=L[1]+bomb+cash+score;
@@ -24602,7 +24653,7 @@ html.nvui .chips .chip{border-radius:999px}
       const row=document.createElement('div');row.className='opt';
       const label=document.createElement('label'),value=document.createElement('b');
       label.textContent='Récompense performance';value.style.color=r.bomb?'#ffd166':'#76e7ff';
-      value.textContent=(r.bomb?'BOMBE +1':'')+(r.bomb&&r.credits?' · ':'')+(r.credits?'+'+fmt(r.credits)+' CR':'');
+      value.textContent=(r.bomb?'BOMBE +1':'')+(r.bomb&&r.credits?' · ':'')+(r.credits?'+'+fmt(r.credits)+' COINS':'');
       row.append(label,value);const stats=document.getElementById('clearStats');if(stats)stats.appendChild(row);
     }
     return out;
