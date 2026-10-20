@@ -3858,6 +3858,7 @@ function updateTerrain(dt, scroll) {
 }
 function drawTerrain(layer) {
   const g = layer.g, K = layer.K, e = R.era;
+  if (e === 0) return;   /* ère 0 : ces fosses sont inoffensives mais se lisaient comme des pièges */
   const gb = (TH.livery && TH.livery.gb) || ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'];
   const cBg = e === 0 ? gb[0] : TH.bg, cMid = e === 0 ? gb[1] : TH.bg2,
         cLit = e === 0 ? gb[2] : TH.pDark, cHi = e === 0 ? gb[3] : TH.white;
@@ -6779,6 +6780,20 @@ function decorCanvas(ci, w, h, seed, K) {
   const prev = PAINT; PAINT = { g, K };
   try { CHUNKS[ci].statique(0, 0, w, h, seed % 4); } catch (e) { console.warn('bake décor', e); }
   PAINT = prev;
+  if (R.era === 0 && TH.livery && TH.livery.gb) {   /* lisibilité : le décor inoffensif descend d'un ton */
+    try {
+      const pal = TH.livery.gb.map(hx => [parseInt(hx.slice(1, 3), 16), parseInt(hx.slice(3, 5), 16), parseInt(hx.slice(5, 7), 16)]);
+      const im = g.getImageData(0, 0, c.width, c.height), d = im.data;
+      for (let q = 0; q < d.length; q += 4) {
+        if (d[q + 3] < 8) continue;
+        let bi = 0, bd = 1e9;
+        for (let k = 0; k < 4; k++) { const dr = d[q] - pal[k][0], dg = d[q + 1] - pal[k][1], db = d[q + 2] - pal[k][2], dd = dr * dr + dg * dg + db * db; if (dd < bd) { bd = dd; bi = k; } }
+        const o = pal[Math.max(0, bi - 1)];
+        d[q] = o[0]; d[q + 1] = o[1]; d[q + 2] = o[2]; d[q + 3] = 255;
+      }
+      g.putImageData(im, 0, 0);
+    } catch (e2) { console.warn('décor ère 0', e2); }
+  }
   rec = { c };
   DBake.set(key, rec);
   if (DBake.size > 220) DBake.clear();
@@ -6874,9 +6889,25 @@ function decorBlit(list, layer) {
   for (const c of list) {
     const rec = decorCanvas(c.ci, c.w, c.h, c.seed, K);
     const dx = Math.round(c.x * K), dy = Math.round(c.y * K);
+    if (R.era === 0 && TH.livery && TH.livery.gb) {
+      if (!rec.sh) {   /* silhouette sombre du gabarit, cuite une fois */
+        const sc = document.createElement('canvas'); sc.width = rec.c.width; sc.height = rec.c.height;
+        const sq = sc.getContext('2d'); sq.drawImage(rec.c, 0, 0);
+        sq.globalCompositeOperation = 'source-in'; sq.fillStyle = TH.livery.gb[0]; sq.fillRect(0, 0, sc.width, sc.height);
+        rec.sh = sc;
+      }
+      g.globalAlpha = 0.7; g.drawImage(rec.sh, dx + Math.round(9 * K), dy + Math.round(15 * K)); g.globalAlpha = 1;
+    }
     g.drawImage(rec.c, dx, dy);
     const ch = CHUNKS[c.ci];
-    if (ch.anim) ch.anim(c.x, c.y, c.w, c.h, DEC.t, c.seed);
+    if (ch.anim) {
+      if (R.era === 0 && TH.livery && TH.livery.gb) {   /* animation conservée, mais dans les tons assombris du décor */
+        const gb = TH.livery.gb, keys = ['white', 'bg', 'bg2', 'bg3'], old = {};
+        const dim = hx => { const i = gb.findIndex(v => String(v).toLowerCase() === String(hx).toLowerCase()); return i < 0 ? hx : gb[Math.max(0, i - 1)]; };
+        for (const k of keys) { old[k] = TH[k]; TH[k] = dim(TH[k]); }
+        try { ch.anim(c.x, c.y, c.w, c.h, DEC.t, c.seed); } finally { for (const k of keys) TH[k] = old[k]; }
+      } else ch.anim(c.x, c.y, c.w, c.h, DEC.t, c.seed);
+    }
   }
 }
 /* Vitesse du sol de la station (secteurs 1-2) : c'est le calque le plus
@@ -6921,6 +6952,35 @@ function decorDrawFloor(layer) {
     }
   }
   decorBlit(DEC.floor, layer);
+  if (R.era === 0) depthHaze(layer);
+}
+/* Profondeur ère 0 : le sol et le décor sont « loin » — une brume tramée dans le ton le plus sombre
+   les recule, plus dense en haut de l'écran, absente près du vaisseau. Les acteurs, dessinés
+   au-dessus sans brume, paraissent donc flotter devant le fond.                                */
+const HAZE = { key: '', p50: null, p25: null };
+function drawPlayerCore(pl) {
+  const P = pl || G.player;
+  if (R.era !== 0 || !P || !P.alive || P.out || !(TH.livery && TH.livery.gb)) return;
+  useBuf(R.bufNear);   /* cœur de collision : 4 px clairs cerclés de sombre, au centre exact du hitbox */
+  fr(P.x - 8, P.y - 8, 16, 16, TH.livery.gb[0]); fr(P.x - 4, P.y - 4, 8, 8, TH.livery.gb[3]);
+};
+function depthHaze(layer) {
+  const g = layer.g, K = layer.K, gb = TH.livery && TH.livery.gb; if (!gb) return;
+  const u = Math.max(1, Math.round(4 * K)), key = gb[0] + '|' + u;
+  if (HAZE.key !== key) {
+    const mk = (cells) => {
+      const c = document.createElement('canvas'); c.width = c.height = u * 2;
+      const q = c.getContext('2d'); q.fillStyle = gb[0];
+      for (const [cx, cy] of cells) q.fillRect(cx * u, cy * u, u, u);
+      return g.createPattern(c, 'repeat');
+    };
+    HAZE.p50 = mk([[0, 0], [1, 1]]); HAZE.p25 = mk([[0, 0]]); HAZE.key = key;
+  }
+  const W = layer.c.width, H = layer.c.height;
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = HAZE.p50; g.fillRect(0, 0, W, Math.round(H * 0.30));
+  g.fillStyle = HAZE.p25; g.fillRect(0, Math.round(H * 0.30), W, H - Math.round(H * 0.30));
+  g.restore();
 }
 function decorDrawSpace(layer, which) { decorBlit(which === 'mid' ? DEC.mid : DEC.far, layer); }
 function decorDrawFore(buf) { decorBlit(DEC.fore, buf); }
@@ -8334,6 +8394,7 @@ function drawPlayer(pl) {
   /* L'invulnérabilité protège sans rendre le vaisseau translucide. */
   if (P.inv > 0 && e <= 1 && Math.floor(P.inv * 16) % 2) return;
   const x = P.x, y = P.y, bank = P.bank || 0;
+  if (e === 0 && TH.livery && TH.livery.gb) { g.globalAlpha = 0.55; fr(x - 16, y + 30, 32, 6, TH.livery.gb[0]); g.globalAlpha = 1; }
   const playerTouchScale = IS_TOUCH && G.state === 'play'
     ? TOUCH_ACTOR_SCALE : 1;
   const h = playerHull();
@@ -8444,7 +8505,8 @@ function drawEnemyOne(en, g, K, e) {
   else if (en.kind === 'runner') rot = Math.sin(en.t * 3 + en.phase) * 0.1;
   else if (en.kind === 'carrier') sc = 1 + Math.sin(en.t * 1.6) * 0.01;
   /* ombre/réflexion sur le sol pour les ères basses */
-  if (e <= 1) { g.globalAlpha = 0.25; fr(en.x - spriteBox(EID[en.kind]).w * 0.28, en.y + spriteBox(EID[en.kind]).h * 0.36, spriteBox(EID[en.kind]).w * 0.56, 4, TH.bg); g.globalAlpha = 1; }
+  if (e === 0) { const sb = spriteBox(EID[en.kind]); g.globalAlpha = 0.55; fr(en.x - sb.w * 0.3, en.y + sb.h * 0.36 + 14, sb.w * 0.6, 6, TH.livery.gb[0]); g.globalAlpha = 1; }
+  else if (e <= 1) { g.globalAlpha = 0.25; fr(en.x - spriteBox(EID[en.kind]).w * 0.28, en.y + spriteBox(EID[en.kind]).h * 0.36, spriteBox(EID[en.kind]).w * 0.56, 4, TH.bg); g.globalAlpha = 1; }
   drawSpriteTo(g, K, EID[en.kind], en.x, en.y, { kind: 'enemy', hue: th.hue, sat: th.sat, light: th.light, rot: rot + (ENEMY_FLIP[en.kind] ? Math.PI : 0), scale: sc * (ETYPES[en.kind] && ETYPES[en.kind].scale || 1), flash, alpha,
     frame: (Math.floor(en.t * (en.kind === 'swarmlet' ? 16 : en.kind === 'elite' ? 6 : 9) + (en.phase * 4 | 0)) & 3) });
   /* --- pièces animées par-dessus le sprite --- */
@@ -8502,7 +8564,7 @@ function drawActorsDepthSorted() {
   DEPTH_ACTORS.sort((a, b) => (a.type === 1 ? 1 : 0) - (b.type === 1 ? 1 : 0) || a.y - b.y || a.type - b.type);
   for (const actor of DEPTH_ACTORS) {
     if (actor.type === 0) drawEnemyOne(actor.value, g, K, e);
-    else if (actor.type === 1) drawPlayer(actor.value);
+    else if (actor.type === 1) { drawPlayer(actor.value); drawPlayerCore(actor.value); }
     else drawBoss();
   }
 }
@@ -8516,12 +8578,20 @@ function drawProps() {
   for (const p of G.props) {
     const th = PTHEME[p.kind] || PTHEME.crate;
     const bob = Math.sin(p.t * 2.2) * 1.5;
-    if (e <= 1) { g.globalAlpha = 0.25; fr(p.x - p.r * 0.5, p.y + p.r * 0.7, p.r, 4, TH.bg); g.globalAlpha = 1; }
+    if (e === 0) { g.globalAlpha = 0.55; fr(p.x - p.r * 0.6, p.y + p.r * 0.7 + 12, p.r * 1.2, 6, gb[0]); g.globalAlpha = 1; }
+    else if (e <= 1) { g.globalAlpha = 0.25; fr(p.x - p.r * 0.5, p.y + p.r * 0.7, p.r, 4, TH.bg); g.globalAlpha = 1; }
     drawSpriteTo(g, K, p.T.id, p.x, p.y + bob, {
       kind: 'enemy', hue: th.hue, sat: th.sat, light: th.light,
       rot: p.ang, scale: 1, flash: p.flash > 0 ? (e === 0 ? 0.9 : e === 1 ? 0.42 : 0.24) : 0,
       frame: Math.floor(p.t * 6) & 3,
     });
+    if (e === 0) {   /* signal « danger au contact » : crochets clairs, clignotants */
+      const hr = p.r * 0.95, cx = p.x, cy = p.y + bob, a = 8, tk = 3, bl = Math.floor(p.t * 3) % 2 === 0 ? gb[3] : gb[2];
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+        fr(cx + sx * hr - (sx > 0 ? a : 0), cy + sy * hr - (sy > 0 ? tk : 0), a, tk, bl);
+        fr(cx + sx * hr - (sx > 0 ? tk : 0), cy + sy * hr - (sy > 0 ? a : 0), tk, a, bl);
+      }
+    }
     /* témoins lumineux propres à chaque objet */
     if (p.kind === 'barrel') {   /* voyant rouge qui clignote de plus en plus vite */
       const rate = p.hp < p.maxHp ? 12 : 4;
@@ -9159,6 +9229,57 @@ function drawHullGauge(P, x, y, width, scl, soloLabel) {
     if (amount > 0) ctx.fillRect(innerX + i * (cellW + gap), innerY, Math.max(1, cellW * amount), innerH);
   }
 }
+/* Fréquence radio brouillée : onde porteuse hachée, spectre qui saute, déchirures, et un
+   cadran dont les chiffres se « décryptent » un à un avant de se rebrouiller.            */
+function drawRadioStatic(ctx, x, y, s, t, col, col2, bg) {
+  const cols = 24, u = s / cols, tick = Math.floor(t * 14);
+  const rn = i => { let h = (tick * 374761393 + i * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x, y, s, s); ctx.clip();
+  ctx.globalAlpha *= 1; ctx.fillStyle = bg; ctx.fillRect(x, y, s, s);
+  const base = ctx.globalAlpha;
+  ctx.globalAlpha = base * 0.28; ctx.fillStyle = col2;
+  for (let i = 1; i < 5; i++) ctx.fillRect(x, y + Math.round(s * i / 5), s, 1);
+  for (let i = 1; i < 6; i++) ctx.fillRect(x + Math.round(s * i / 6), y, 1, s);
+  ctx.globalAlpha = base;
+  /* onde : porteuse modulée, par tronçons brouillés (le bruit remplace le signal) */
+  const mid = y + s * 0.27, amp = s * 0.19; let prev = mid;
+  for (let c = 0; c < cols * 2; c++) {
+    const px = x + c * u / 2, garble = (Math.floor((c + tick) / 6) % 4 === 0) || rn(c + 500) > 0.93;
+    const v = garble ? (rn(c + 200) - 0.5) * 2.2 : Math.sin(c * 0.95 + t * 16) * Math.sin(c * 0.17 - t * 2.3);
+    const yy = mid + Math.max(-1, Math.min(1, v)) * amp;
+    ctx.fillStyle = garble ? col2 : col;
+    ctx.fillRect(px, Math.min(yy, prev), Math.max(1, u / 2), Math.max(2, Math.abs(yy - prev) + 2));
+    prev = yy;
+  }
+  /* cadran : fréquence qui se verrouille chiffre par chiffre, puis se rebrouille */
+  const target = '146.52', cyc = (t * 0.55) % 1, locked = Math.floor(cyc * 8);
+  let txt = '';
+  for (let i = 0; i < target.length; i++) {
+    const ch = target[i];
+    txt += (ch === '.' || i < locked - 1 && cyc < 0.78) ? ch : '0123456789ABCDEF'[Math.floor(rn(700 + i) * 16)];
+  }
+  ctx.globalAlpha = base * 0.85; ctx.fillStyle = bg; ctx.fillRect(x, y + s * 0.47, s, s * 0.2);
+  ctx.globalAlpha = base; ctx.fillStyle = col2; ctx.fillRect(x, y + s * 0.47, s, 1); ctx.fillRect(x, y + s * 0.67 - 1, s, 1);
+  hudText(ctx, txt, x + s / 2, y + s * 0.505, cyc < 0.78 && locked > 5 ? col : col2, Math.max(1.2, s / 38), { align: 'center' });
+  /* spectre : barres qui sautent, avec des pertes de porteuse */
+  for (let c = 0; c < cols; c++) {
+    const env = 0.5 + 0.5 * Math.sin(c * 0.5 + t * 3.1) * Math.sin(c * 0.23 - t * 1.7), jam = rn(c) > 0.74;
+    const hb = Math.max(u, Math.round((jam ? rn(c + 99) : env * 0.55 + rn(c + 40) * 0.3) * s * 0.3 / u) * u);
+    ctx.fillStyle = jam ? col2 : col; ctx.fillRect(x + c * u + 1, y + s - hb, Math.max(1, u - 2), hb);
+  }
+  /* déchirures horizontales + neige */
+  ctx.fillStyle = col;
+  for (let k = 0; k < 4; k++) if (rn(300 + k) > 0.5) {
+    const ry = y + rn(310 + k) * s, rw = s * (0.15 + rn(320 + k) * 0.6);
+    ctx.globalAlpha = base * 0.85; ctx.fillRect(x + rn(330 + k) * (s - rw), ry, rw, Math.max(1, u * 0.4));
+  }
+  ctx.globalAlpha = base * 0.7; ctx.fillStyle = col2;
+  for (let k = 0; k < 26; k++) ctx.fillRect(x + rn(900 + k) * s, y + rn(950 + k) * s, Math.max(1, u * 0.5), Math.max(1, u * 0.5));
+  /* balayage vertical */
+  ctx.globalAlpha = base * 0.6; ctx.fillStyle = col; ctx.fillRect(x + ((t * 0.9) % 1) * s, y, Math.max(1, u * 0.4), s);
+  ctx.restore();
+}
 function drawBossWarning() {
   const e = R.era, x0 = PF.x, y0 = PF.y, w = PF.w, h = PF.h;
   const t = Math.max(0, G.bossWarnT || 0), appear = clamp(t / 0.32, 0, 1);
@@ -9210,7 +9331,7 @@ function drawBossWarning() {
   ctx.fillStyle = e === 0 ? TH.bg2 : 'rgba(255,45,75,.18)';
   ctx.fillRect(ix, iy, icon, icon);
   ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.strokeRect(ix + 1, iy + 1, icon - 2, icon - 2);
-  hudText(ctx, '!', ix + icon / 2, iy + icon * 0.18, secondary, modern ? 6.5 : 5.5, { align:'center', glow:modern ? secondary : null });
+  drawRadioStatic(ctx, ix, iy, icon, t, accent, secondary, e === 0 ? TH.bg : 'rgba(10,2,8,.9)');
   const tx = ix + icon + 13, textCx = tx + (bx + cardW - 12 - tx) / 2;
   hudText(ctx, title, textCx, by + 12, accent, titleSize, { align:'center', glow:modern ? accent : null });
   hudText(ctx, name.toUpperCase(), textCx, by + 38, e === 0 ? TH.livery.gb[3] : '#ffffff', nameSize, { align:'center', glow:modern ? accent : null });
@@ -21354,7 +21475,7 @@ function bzStatusPanel(x, y, w, h, C) {
     if (b.parts && b.parts.length) bzT('MODULES ' + parts + '/' + b.parts.length, x + w - 22, y + h - 14, 14, '#9fb2d6', { weight: 700, align: 'right', ls: 1 });
     return;
   }
-  bzPanel(x, y, w, h, bzt('mission'), G.phase === 'bossWarn' ? '!' : null, C.a1);
+  bzPanel(x, y, w, h, bzt('mission'), G.phase === 'bossWarn' ? 'RF~' : null, C.a1);
   const cw = (w - 44) / 3, sec = Math.floor(G.t || 0), mm = String(Math.floor(sec / 60)).padStart(2, '0'), ss = String(sec % 60).padStart(2, '0');
   const rk = rankOf();
   const cols = [[bzt('kills'), fmt(G.kills | 0), '#fff'], [bzt('time'), mm + ':' + ss, '#fff'], [bzt('rank'), rk.id, rk.col]];
@@ -24275,7 +24396,7 @@ const NV_BASE = {
   };
   decorDrawFloor = function (layer) {
     useBuf(layer);
-    const slate = 64, s = Math.max(0, SCROLL.y) * FLOOR_SPD, lv = G.level | 0;
+    const slate = 64, s = Math.max(0, SCROLL.y) * (R.era === 0 ? 0.30 : FLOOR_SPD), lv = G.level | 0;
     const start = Math.floor(-s / slate) - 1, off = start * slate + s;
     for (let i = 0; off + i * slate < L_H + slate; i++) {
       const y = off + i * slate, row = start + i;
@@ -24299,6 +24420,7 @@ const NV_BASE = {
         }
       }
     }
+    if (R.era === 0) depthHaze(layer);
     decorBlit(DEC.floor, layer);
   };
 }
@@ -24874,5 +24996,172 @@ html.nvui .chips .chip{border-radius:999px}
   } catch (err) { console.warn('NV auto device profile', err); }
 })();
 </script>
+<script id="guardian-silo-art">
+(() => {
+  /* ===== GARDIEN DU SILO — boss du secteur 1 et mini-boss de mi-parcours =====
+     Une porte de silo blindée qui s'ouvre pour tirer : iris à huit pétales, œil-noyau
+     qui suit le vaisseau, épaulières à vérins, couronne de radars, quatre bouches de
+     feu, fumées, fissures progressives. Tout est vectoriel : lisible en 4 tons.      */
+  const NAME = 'GARDIEN DU SILO', TAU2 = Math.PI * 2;
+  function pal() {
+    if (R.era === 0 && TH.livery && TH.livery.gb) { const q = TH.livery.gb; return { d: q[0], m: q[2], l: q[3], h: q[3], glow: q[3], mono: true }; }
+    return { d: '#060a13', m: '#243449', l: '#5b7696', h: '#d6e7ff', glow: '#ffb347', mono: false };
+  }
+  function drawGuardian(o) {
+    const g = PAINT.g, K = PAINT.K, P = pal(), cx = o.x, cy = o.y, S = o.s, t = o.t, open = o.open, dmg = o.dmg || 0, phase = o.phase || 0;
+    const X = v => (cx + v * S) * K, Y = v => (cy + v * S) * K;
+    const poly = (pts, fill) => { g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1]))); g.closePath(); g.fillStyle = fill; g.fill(); };
+    const rect = (x, y, w, h, fill) => { g.fillStyle = fill; g.fillRect(Math.round(X(x)), Math.round(Y(y)), Math.max(1, Math.round(w * S * K)), Math.max(1, Math.round(h * S * K))); };
+    const disc = (x, y, r, fill) => { g.beginPath(); g.arc(X(x), Y(y), Math.max(0.5, r * S * K), 0, TAU2); g.fillStyle = fill; g.fill(); };
+    const ringA = (x, y, r, w, col, a0, a1) => { g.beginPath(); g.arc(X(x), Y(y), r * S * K, a0 === undefined ? 0 : a0, a1 === undefined ? TAU2 : a1); g.lineWidth = Math.max(1, w * S * K); g.strokeStyle = col; g.stroke(); };
+    const strokeP = (pts, w, col) => { g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1]))); g.closePath(); g.lineWidth = Math.max(1, w * S * K); g.strokeStyle = col; g.lineJoin = 'miter'; g.stroke(); };
+    const seg = (x1, y1, x2, y2, w, col) => { g.beginPath(); g.moveTo(X(x1), Y(y1)); g.lineTo(X(x2), Y(y2)); g.lineWidth = Math.max(1, w * S * K); g.strokeStyle = col; g.stroke(); };
+    g.save();
+    /* ombre portée : le gardien flotte au-dessus du sol */
+    g.globalAlpha = 0.4; g.beginPath(); g.ellipse(X(0), Y(122), 78 * S * K, 9 * S * K, 0, 0, TAU2); g.fillStyle = P.d; g.fill(); g.globalAlpha = 1;
+    if (o.boss) {
+    /* Couronne gyroscopique animée : elle donne au Gardien une vraie
+       silhouette de boss, distincte des tourelles ordinaires du silo. */
+    const spin = t * (phase >= 2 ? 1.05 : 0.62);
+    g.globalAlpha = 0.62;
+    ringA(0, 2, 126, 3.2, P.d, spin, spin + Math.PI * 1.72);
+    ringA(0, 2, 119, 2.2, P.mono ? P.h : P.l, -spin * 0.72, -spin * 0.72 + Math.PI * 1.28);
+    for (let i = 0; i < 6; i++) {
+      const a = spin + i * TAU2 / 6, x1 = Math.cos(a) * 118, y1 = 2 + Math.sin(a) * 118;
+      const x2 = Math.cos(a + 0.13) * 130, y2 = 2 + Math.sin(a + 0.13) * 130;
+      seg(x1, y1, x2, y2, 5.5, (phase >= 2 && i % 2 === 0) ? P.glow : P.h);
+      disc(x2, y2, 3.2 + 1.2 * Math.sin(t * 7 + i), P.h);
+    }
+    g.globalAlpha = 1;
+    /* plaques de blindage mobiles et canons latéraux à recul */
+    for (const sg of [-1, 1]) {
+      const recoil = o.fire > 0.2 ? Math.sin(t * 35 + sg) * 8 * o.fire : Math.sin(t * 2 + sg) * 2;
+      const pivotX = sg * 101, pivotY = 18 + Math.sin(t * 1.8 + sg) * 4;
+      g.save(); g.translate(X(pivotX), Y(pivotY)); g.rotate(sg * (0.07 + Math.sin(t * 1.25 + sg) * 0.055));
+      g.translate(-X(pivotX), -Y(pivotY));
+      poly([[sg * 92, -18], [sg * 125, -28], [sg * 142, -12], [sg * 138, 27], [sg * 110, 38], [sg * 94, 22]], P.d);
+      strokeP([[sg * 92, -18], [sg * 125, -28], [sg * 142, -12], [sg * 138, 27], [sg * 110, 38], [sg * 94, 22]], 2.8, P.l);
+      poly([[sg * 101, -12], [sg * 128, -20], [sg * 135, -10], [sg * 132, 20], [sg * 111, 29], [sg * 101, 17]], P.m);
+      rect(sg * 119 - 5, 22, 10, 28 + recoil, P.d); rect(sg * 119 - 3, 24, 6, 26 + recoil, P.l);
+      rect(sg * 119 - 2, 47 + recoil, 4, 12, P.h);
+      for (let j = 0; j < 3; j++) rect(sg * (106 + j * 9), -3, 4, 12, (Math.floor(t * 9 + j) % 3 === 0) ? P.h : P.d);
+      g.restore();
+    }
+    }
+    /* tuyères sous la coque */
+    for (const sg of [-1, 1]) for (const k of [0, 1]) {
+      const fx = sg * (30 + k * 26), L = 16 + 9 * Math.sin(t * 22 + sg + k * 2) + open * 6;
+      poly([[fx - 8, 84], [fx + 8, 84], [fx + 3, 84 + L], [fx - 3, 84 + L]], P.l);
+      poly([[fx - 4, 84], [fx + 4, 84], [fx, 84 + L * 0.62]], P.h);
+    }
+    /* épaulières blindées + vérins */
+    for (const sg of [-1, 1]) {
+      poly([[sg * 70, -64], [sg * 108, -50], [sg * 114, 50], [sg * 88, 80], [sg * 70, 62]], P.d);
+      strokeP([[sg * 70, -64], [sg * 108, -50], [sg * 114, 50], [sg * 88, 80], [sg * 70, 62]], 3.2, P.mono ? P.h : P.l);
+      poly([[sg * 74, -58], [sg * 104, -46], [sg * 108, 46], [sg * 86, 72], [sg * 74, 56]], P.m);
+      poly([[sg * 74, -58], [sg * 104, -46], [sg * 102, -38], [sg * 74, -48]], P.l);        /* arête éclairée */
+      for (let i = 0; i < 6; i++) {                                                           /* chevrons de danger */
+        const yy = -28 + i * 15, a = sg * 78, b2 = sg * 104;
+        poly([[a, yy], [a + sg * 8, yy], [b2, yy + 11], [b2 - sg * 8, yy + 11]], i % 2 ? P.d : P.l);
+      }
+      const col = Math.sin(t * 1.3 + sg) * 7;                                                 /* vérin coulissant */
+      rect(sg * 98 - 3, -52, 6, 100, P.d); rect(sg * 98 - 1.5, -50, 3, 96, P.l);
+      rect(sg * 98 - 6, -8 + col, 12, 14, P.d); rect(sg * 98 - 4, -6 + col, 8, 10, P.h);
+      for (const ry of [-40, 36]) disc(sg * 80, ry, 2.6, P.h);
+    }
+    /* coque principale : octogone de béton armé */
+    const hull = [[-72, -88], [72, -88], [94, -44], [94, 44], [72, 90], [-72, 90], [-94, 44], [-94, -44]];
+    poly(hull, P.d);
+    strokeP(hull, 3.4, P.mono ? P.h : P.l);
+    poly(hull.map(p => [p[0] * 0.95, p[1] * 0.95]), P.m);
+    poly([[-68, -84], [68, -84], [88, -46], [78, -46], [62, -76], [-62, -76], [-78, -46], [-88, -46]], P.l);   /* biseau haut */
+    for (const yy of [-52, 54]) { rect(-86, yy, 172, 3, P.d); rect(-86, yy + 3, 172, 1.6, P.l); }
+    for (const xx of [-44, 44]) rect(xx - 1.5, -50, 3, 104, P.d);
+    for (let i = 0; i < 9; i++) { rect(-80 + i * 20, -47, 3, 3, P.h); rect(-80 + i * 20, 61, 3, 3, P.h); }
+    /* couronne : capot de ventilation, radars, balise */
+    poly([[-30, -100], [30, -100], [42, -82], [-42, -82]], P.d);
+    poly([[-26, -96], [26, -96], [36, -84], [-36, -84]], P.m);
+    for (let i = 0; i < 5; i++) { const on = Math.floor(t * 5 + i) % 5 === 0; rect(-20 + i * 9, -94, 6, 6, on ? P.h : P.d); }
+    for (const sg of [-1, 1]) {
+      const ax = sg * 58, ay = -92, rot = Math.sin(t * 0.8 + sg) * 0.55;
+      rect(ax - 2, ay, 4, 14, P.d);
+      g.save(); g.translate(X(ax), Y(ay)); g.rotate(rot);
+      g.beginPath(); g.ellipse(0, 0, 17 * S * K, 7 * S * K, 0, Math.PI, TAU2); g.fillStyle = P.l; g.fill();
+      g.beginPath(); g.ellipse(0, 0, 17 * S * K, 7 * S * K, 0, Math.PI, TAU2); g.lineWidth = Math.max(1, 2 * S * K); g.strokeStyle = P.d; g.stroke();
+      g.fillStyle = P.h; g.fillRect(-0.5 * S * K, -13 * S * K, Math.max(1, 1.6 * S * K), 10 * S * K);
+      g.restore();
+    }
+    if (Math.floor(t * 2.2) % 2 === 0) { rect(-1.5, -112, 3, 12, P.d); disc(0, -114, 3.6, P.h); }
+    /* porte de silo : anneau de boulons, iris à huit pétales, noyau-œil */
+    const dx = 0, dy = 6;
+    disc(dx, dy, 60, P.d); disc(dx, dy, 56, P.l); disc(dx, dy, 51, P.d);
+    for (let i = 0; i < 12; i++) { const a = i * TAU2 / 12 + 0.26; disc(dx + Math.cos(a) * 53.5, dy + Math.sin(a) * 53.5, 2.4, i % 2 ? P.d : P.h); }
+    for (let i = 0; i < 8; i++) { const a0 = i * TAU2 / 8 + t * (0.2 + phase * 0.12); if (i % 2 === 0) ringA(dx, dy, 58, 3.4, (phase >= 2 && i === Math.floor(t * 4) % 8) ? P.glow : P.h, a0, a0 + 0.5); }
+    const pulse = 0.74 + 0.26 * Math.sin(t * 5.2) + o.fire * 0.5;
+    disc(dx, dy, 44, P.d);
+    disc(dx, dy, 38 * (0.62 + 0.38 * open), P.mono ? P.m : P.glow);
+    disc(dx, dy, 28 * (0.55 + 0.45 * open) * Math.min(1.1, pulse), P.mono ? P.l : P.h);
+    const lx = clampN(o.lookX, -1, 1) * 9 * S, ly = clampN(o.lookY, -0.4, 1) * 7 * S;
+    disc(dx + lx / S, dy + ly / S, 13 * (0.55 + 0.45 * open), P.d);
+    disc(dx + lx / S, dy + ly / S, 8.5 * (0.55 + 0.45 * open), P.h);
+    disc(dx + lx / S - 2.5, dy + ly / S - 2.5, 2.6, P.d);
+    for (let i = 0; i < 8; i++) {
+      const a = i * TAU2 / 8 + 0.3927 + t * 0.12 * (1 - open), rin = 10 + open * 32, rout = 47, w = 0.2;
+      const pts = [[rin * Math.cos(a - w), rin * Math.sin(a - w)], [rout * Math.cos(a - w * 0.82), rout * Math.sin(a - w * 0.82)], [rout * Math.cos(a + w * 0.82), rout * Math.sin(a + w * 0.82)], [rin * Math.cos(a + w), rin * Math.sin(a + w)]];
+      poly(pts.map(p => [dx + p[0], dy + p[1]]), P.d);
+      const s2 = 0.82; poly(pts.map(p => [dx + (p[0] - Math.cos(a) * 0) * s2 + p[0] * 0.1, dy + p[1] * s2 + p[1] * 0.1]), i % 2 ? P.m : P.l);
+      seg(dx + Math.cos(a) * (rin + 4), dy + Math.sin(a) * (rin + 4), dx + Math.cos(a) * (rout - 5), dy + Math.sin(a) * (rout - 5), 1.8, P.d);
+    }
+    /* quatre bouches de feu sous la coque */
+    for (const bx of [-54, -20, 20, 54]) {
+      const rec = o.fire * 5;
+      rect(bx - 7, 88, 14, 20 - rec, P.d); rect(bx - 5, 88, 10, 18 - rec, P.m); rect(bx - 2, 104 - rec, 4, 4, P.l);
+      if (o.fire > 0.15) { disc(bx, 112 - rec, 6 + o.fire * 6, P.h); }
+    }
+    /* fumée des évents */
+    for (const sg of [-1, 1]) for (let i = 0; i < 3; i++) {
+      const ph = (t * 0.45 + i * 0.33 + (sg > 0 ? 0.17 : 0)) % 1;
+      g.globalAlpha = (1 - ph) * 0.4; disc(sg * 62 - sg * ph * 8, -92 - ph * 40, 4 + ph * 12, P.m); g.globalAlpha = 1;
+    }
+    /* dégâts : fissures, étincelles */
+    if (dmg > 0.3) { seg(-60, -40, -34, -10, 2, P.d); seg(-34, -10, -44, 18, 2, P.d); seg(60, 20, 38, 44, 2, P.d); seg(10, -80, 24, -58, 2, P.d); }
+    if (dmg > 0.6) { seg(-70, 30, -48, 52, 2.4, P.d); seg(50, -46, 70, -22, 2.4, P.d); if (Math.floor(t * 12) % 3 === 0) { disc(-40 + Math.sin(t * 9) * 8, 20, 3, P.h); disc(60, -30 + Math.cos(t * 7) * 6, 3, P.h); } }
+    if (dmg > 0.8 && Math.floor(t * 8) % 2) { rect(-90, -20, 12, 40, P.d); }
+    if (o.flash > 0) { g.globalAlpha = 0.55; poly(hull, P.h); g.globalAlpha = 1; }
+    g.restore();
+  }
+  function clampN(v, a, b) { return v < a ? a : v > b ? b : v; }
+  const oldBoss = drawBoss;
+  drawBoss = function () {
+    const b = G.boss;
+    if (!b || !b.def || b.def.name !== NAME) return oldBoss();
+    useBuf(R.bufNear);
+    const P2 = (typeof nearestPlayer === 'function' ? nearestPlayer(b.x, b.y) : G.player) || G.player;
+    if (b._ptA !== undefined && b.atkT > b._ptA + 0.15) b._fireT = 0.22;
+    b._ptA = b.atkT; b._fireT = Math.max(0, (b._fireT || 0) - 1 / 60);
+    const wantOpen = clampN(1 - b.atkT / 0.7, 0, 1) * 0.75 + 0.25 * (b.ph > 0 ? 1 : 0.4) + (b._fireT > 0 ? 0.25 : 0);
+    b._open = (b._open === undefined ? 0 : b._open) + (wantOpen - (b._open === undefined ? 0 : b._open)) * 0.12;
+    const dx = P2 ? P2.x - b.x : 0, dy = P2 ? P2.y - b.y : 1, d = Math.hypot(dx, dy) || 1;
+    drawGuardian({ x: b.x, y: b.y + Math.sin(b.t * 1.6) * 2, s: 0.9, t: b.t || 0, boss: true, phase: b.ph || 0, open: clampN(b._open, 0, 1), fire: clampN(b._fireT / 0.22, 0, 1),
+      lookX: dx / d, lookY: dy / d, dmg: 1 - b.hp / Math.max(1, b.maxHp), flash: b.flash });
+  };
+  const oldEnemy = drawEnemyOne;
+  drawEnemyOne = function (en, g, K, e) {
+    if (en.kind !== 'mGuardian') return oldEnemy(en, g, K, e);
+    const P2 = (typeof nearestPlayer === 'function' ? nearestPlayer(en.x, en.y) : G.player) || G.player;
+    const dx = P2 ? P2.x - en.x : 0, dy = P2 ? P2.y - en.y : 1, d = Math.hypot(dx, dy) || 1;
+    if (en._pf !== undefined && en.fireT > en._pf + 0.2) en._ft = 0.2;
+    en._pf = en.fireT; en._ft = Math.max(0, (en._ft || 0) - 1 / 60);
+    const wantOpen = clampN(1 - (en.fireT || 1) / 0.6, 0, 1) * 0.7 + (en._ft > 0 ? 0.3 : 0.1);
+    en._open = (en._open || 0) + (wantOpen - (en._open || 0)) * 0.12;
+    drawGuardian({ x: en.x, y: en.y, s: Math.max(0.3, (en.r || 40) / 96 * 1.15), t: en.t || 0, open: clampN(en._open, 0, 1), fire: clampN(en._ft / 0.2, 0, 1),
+      lookX: dx / d, lookY: dy / d, dmg: 1 - en.hp / Math.max(1, en.maxHp), flash: en.flash > 0 ? 1 : 0 });
+    const pp = pal(), w = 96 * Math.max(0.3, (en.r || 40) / 96 * 1.15) * 0.9;
+    if (en.hp < en.maxHp) { fr(en.x - w / 2, en.y - (en.r || 40) * 1.5, w, 4, pp.d); fr(en.x - w / 2, en.y - (en.r || 40) * 1.5, w * en.hp / en.maxHp, 4, pp.h); }
+  };
+  window.__drawGuardian = drawGuardian;
+})();
+</script>
+
 </body>
 </html>
