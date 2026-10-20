@@ -579,6 +579,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
       <span class="ptitle">Boutique orbitale</span>
       <span class="wallet">CRÉDITS <b id="shopCredits">0</b></span>
     </div>
+    <div class="shop-trade-modes" id="shopTradeModes" aria-label="Acheter ou vendre"></div>
     <div class="shop-intro" id="shopIntro" aria-live="polite"></div>
     <div class="tabs" id="shopTabs" aria-label="Rayons de la boutique"></div>
     <div class="grid" id="shopGrid"></div>
@@ -9558,10 +9559,11 @@ function drawEraBanner(t) {
 }
 
 /* ------------------------------ boutique ----------------------------------- */
-let shopTab = 'hangar';
+let shopTab = 'hangar', shopMode = 'buy';
+const SHOP_NAV_STACK = [];
 const SHOP_TABS = [
   ['hangar', 'Hangar'], ['ships', 'Vaisseaux'], ['weapons', 'Armes & tirs'],
-  ['upgrades', 'Modules'], ['custom', 'Apparence'], ['materials', 'Matériaux'],
+  ['upgrades', 'Modules'], ['custom', 'Apparence'],
 ];
 const SHOP_GUIDE = {
   hangar: ['HANGAR · CONFIGURATION ACTIVE', 'Choisis ton vaisseau, tes armes, le style des tirs, la livrée, la traînée et l’aura. Les jauges résument les performances.'],
@@ -9569,8 +9571,71 @@ const SHOP_GUIDE = {
   weapons: ['ARMES, TIRS ET SURVIE', 'Choisis une arme, son style de projectile ou des bombes. Les skins changent uniquement l’apparence des tirs.'],
   upgrades: ['PROGRESSION PERMANENTE', 'Chaque achat améliore directement ton équipement. Le prix augmente avec le niveau : vérifie l’effet avant de confirmer.'],
   custom: ['APPARENCE DU VAISSEAU', 'Livrées, traînées et auras sont purement visuelles : elles ne modifient pas les performances.'],
-  materials: ['MATÉRIAUX · RACHAT DU BUTIN', 'Revends les ressources récupérées pendant les missions. Le prix unitaire est indiqué sur chaque carte.'],
+  materials: ['COMPTOIR DE RACHAT · BUTIN DE MISSION', 'Échange les matériaux récupérés contre des crédits. Chaque fiche indique le cours unitaire et la valeur de ton stock.'],
 };
+function shopNavigate(mode, tab) {
+  const nextMode = mode || shopMode, nextTab = tab || shopTab;
+  if (nextMode !== shopMode || nextTab !== shopTab) SHOP_NAV_STACK.push({ mode: shopMode, tab: shopTab });
+  shopMode = nextMode; shopTab = nextTab;
+  Audio2.sfx('ui'); buildShop();
+}
+function backWithinShop() {
+  const screen = document.getElementById('scr-shop');
+  if (!screen || !screen.classList.contains('on')) return false;
+  const confirm = document.getElementById('buyModal');
+  if (confirm && confirm.classList.contains('on')) { closeConfirm(); return true; }
+  const nego = document.getElementById('negoModal');
+  if (nego && nego.classList.contains('on')) {
+    if (NEGO.closable) closeNego();
+    else toast('Termine la négociation avant de quitter');
+    return true;
+  }
+  if (SHOP_NAV_STACK.length) {
+    const prev = SHOP_NAV_STACK.pop(); shopMode = prev.mode; shopTab = prev.tab;
+    Audio2.sfx('back'); buildShop(); return true;
+  }
+  return false;
+}
+function openShopFrom(screenName) {
+  G.prevScreen = screenName; G.state = 'shop';
+  shopMode = 'buy'; shopTab = 'hangar'; SHOP_NAV_STACK.length = 0;
+  buildShop(); showScreen('shop'); refreshUI();
+}
+function ensureShopTradeStyles() {
+  if (document.getElementById('shopTradeStyles')) return;
+  const style = document.createElement('style'); style.id = 'shopTradeStyles';
+  style.textContent = `
+    #shopTradeModes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px;padding:5px;border:1px solid rgba(160,190,230,.16);border-radius:13px;background:linear-gradient(135deg,rgba(31,49,75,.72),rgba(7,13,25,.92));}
+    #shopTradeModes .trade-mode{min-height:54px;display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 14px;border:1px solid rgba(152,181,218,.25);border-radius:9px;background:rgba(12,20,35,.88);color:#c6d2e4;font:inherit;text-align:left;cursor:pointer;transition:transform .16s,border-color .16s,background .16s,box-shadow .16s;touch-action:manipulation}
+    #shopTradeModes .trade-mode .trade-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:rgba(93,190,255,.12);font-size:18px}
+    #shopTradeModes .trade-mode b{display:block;font-size:12px;letter-spacing:.16em}
+    #shopTradeModes .trade-mode small{display:block;margin-top:3px;color:#91a3bc;font-size:9px;letter-spacing:.08em}
+    #shopTradeModes .trade-mode:hover{transform:translateY(-1px);border-color:#a8dfff}
+    #shopTradeModes .trade-mode.sel[data-mode="buy"]{border-color:#71dcff;background:linear-gradient(120deg,rgba(29,119,159,.46),rgba(9,28,48,.98));color:#f1fbff;box-shadow:0 0 18px rgba(74,202,255,.22),inset 0 0 0 1px rgba(130,225,255,.16)}
+    #shopTradeModes .trade-mode.sel[data-mode="sell"]{border-color:#ffd36a;background:linear-gradient(120deg,rgba(145,91,17,.46),rgba(33,25,15,.98));color:#fff8e8;box-shadow:0 0 18px rgba(255,194,61,.24),inset 0 0 0 1px rgba(255,222,140,.18)}
+    #shopTabs.shop-tabs-hidden{display:none!important}
+    #scr-shop .material-market-head{grid-column:1/-1;padding:18px 20px;border:1px solid rgba(255,202,91,.34);border-radius:13px;background:radial-gradient(ellipse at 92% 0,rgba(255,182,55,.18),transparent 44%),linear-gradient(130deg,rgba(38,34,27,.94),rgba(10,17,28,.98));box-shadow:inset 0 1px rgba(255,255,255,.08),0 10px 24px rgba(0,0,0,.22)}
+    .material-market-kicker{color:#ffd36a;font-size:13px;font-weight:900;letter-spacing:.18em}.material-market-kicker span{color:#a9bad0;font-size:10px}
+    .material-market-copy{max-width:680px;margin-top:6px;color:#d2deed;font-size:12px;line-height:1.5}
+    .material-market-stats{display:flex;gap:12px;margin-top:14px}.material-market-stats>div{flex:1;padding:9px 12px;border:1px solid rgba(179,204,230,.17);border-radius:8px;background:rgba(3,9,18,.54)}
+    .material-market-stats small{display:block;color:#99acc4;font-size:8px;font-weight:800;letter-spacing:.14em}.material-market-stats b{display:block;margin-top:4px;color:#f5f8ff;font-size:18px;letter-spacing:.05em}.material-market-stats i{color:#ffd36a;font-size:10px;font-style:normal}
+    #scr-shop .material-market-note{display:flex;flex-direction:column;gap:4px;padding:12px 15px;border-color:rgba(255,199,69,.22);border-radius:8px;background:rgba(255,188,52,.045)}
+    .material-market-note b{color:#ffd36a;font-size:9px;letter-spacing:.15em}.material-market-note span{color:#aebed2;font-size:10px;line-height:1.45}
+    #scr-shop .material-board{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    #scr-shop .material-card{min-width:0;display:grid;grid-template-columns:82px minmax(0,1fr);gap:14px;padding:15px;border:1px solid rgba(149,190,224,.24);border-radius:12px;background:linear-gradient(145deg,rgba(19,34,51,.97),rgba(7,13,24,.98));box-shadow:0 10px 22px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.05)}
+    #scr-shop .material-card.stocked{border-color:rgba(89,216,196,.44)}#scr-shop .material-card.empty{opacity:.72}
+    .material-card-art{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:94px;border:1px solid rgba(158,197,221,.18);border-radius:9px;background:radial-gradient(circle at 50% 38%,rgba(84,211,226,.15),rgba(3,9,17,.9) 72%)}
+    .material-card-art svg{width:57px;height:57px;filter:drop-shadow(0 0 9px rgba(111,221,242,.32))}.material-card-art>span{color:#b6c7d9;font-size:7px;font-weight:900;letter-spacing:.15em}
+    .material-art-scrap{background:radial-gradient(circle at 50% 38%,rgba(215,170,106,.2),rgba(3,9,17,.9) 72%)}.material-art-crystal{background:radial-gradient(circle at 50% 38%,rgba(65,210,255,.23),rgba(3,9,17,.9) 72%)}.material-art-circuit{background:radial-gradient(circle at 50% 38%,rgba(84,241,181,.2),rgba(3,9,17,.9) 72%)}
+    .material-card-info{min-width:0}.material-name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.material-name-row h3{margin:0;color:#f3f7ff;font-size:14px;line-height:1.25}.material-unit-price{flex:none;color:#ffd36a;font-size:13px;font-weight:900;white-space:nowrap}.material-unit-price small{color:#aebed2;font-size:8px;letter-spacing:.08em}
+    .material-card-info p{margin:6px 0 9px;color:#aebbd0;font-size:10px;line-height:1.4}.material-stock-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0;border-top:1px solid rgba(165,193,220,.14);border-bottom:1px solid rgba(165,193,220,.14)}.material-stock-row span{color:#95a8c1;font-size:8px;font-weight:800;letter-spacing:.1em}.material-stock-row b{display:block;margin-top:3px;color:#e8f3ff;font-size:13px;letter-spacing:.04em}.material-stock-row span:last-child b{color:#ffd36a}
+    #scr-shop .material-actions{display:grid;grid-template-columns:1fr 1.2fr;gap:7px;margin-top:9px}#scr-shop .material-actions button{min-height:42px;padding:7px 8px;border:1px solid rgba(127,199,223,.3);border-radius:7px;background:rgba(22,43,59,.95);color:#eaf6ff;font:inherit;font-size:9px;font-weight:900;letter-spacing:.07em;cursor:pointer}#scr-shop .material-actions button b{display:block;margin-top:3px;color:#9af0d4;font-size:10px;letter-spacing:.02em}
+    #scr-shop .material-actions .material-sell-all{border-color:rgba(255,211,106,.58);background:linear-gradient(135deg,rgba(115,79,24,.85),rgba(46,34,16,.98));color:#fff2ce;box-shadow:inset 0 1px rgba(255,255,255,.08)}#scr-shop .material-actions .material-sell-all b{color:#ffdc7e}
+    #scr-shop .material-actions button:active{transform:translateY(1px);filter:brightness(1.18)}#scr-shop .material-actions button:disabled{border-color:rgba(160,177,197,.14);background:rgba(14,21,31,.75);color:#738197;box-shadow:none;cursor:not-allowed}#scr-shop .material-actions button:disabled b{color:#728096}
+    @media(max-width:620px){#shopTradeModes{gap:6px;padding:4px}#shopTradeModes .trade-mode{min-height:56px;padding:8px 5px;gap:7px}#shopTradeModes .trade-mode b{font-size:11px}#shopTradeModes .trade-mode small{font-size:7px}#scr-shop .material-board{grid-template-columns:1fr;gap:10px}#scr-shop .material-card{grid-template-columns:68px minmax(0,1fr);gap:10px;padding:11px}#scr-shop .material-card-art{min-height:88px}#scr-shop .material-card-art svg{width:49px;height:49px}.material-name-row h3{font-size:13px}.material-market-stats b{font-size:16px}}
+  `;
+  document.head.appendChild(style);
+}
 function shopRoute(tab) {
   if (tab === 'liveries' || tab === 'trails' || tab === 'auras') return 'custom';
   if (tab === 'bulletSkins' || tab === 'projectiles') return 'weapons';
@@ -9641,6 +9706,11 @@ function buildBombCard(grid) {
   note.textContent = `Chargées au début de chaque mission : 3 + ton stock, dans la limite de 5 en vol.`;
   grid.appendChild(note);
 }
+function materialGlyph(id) {
+  if (id === 'crystal') return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 54 22 44 55 31 61 13 46 9 22Z" fill="#3bc7f3" stroke="#b8f7ff" stroke-width="2.5"/><path d="m32 4 1 57 11-6 10-33ZM9 22l23-18 1 57-20-15Z" fill="#80edff" opacity=".72"/><path d="m20 24 12-12 1 32-12-9Z" fill="#e0ffff" opacity=".82"/></svg>`;
+  if (id === 'circuit') return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M15 14h34v36H15z" rx="4" fill="#17394a" stroke="#79f4d0" stroke-width="3"/><path d="M21 21h22v22H21z" fill="#29b894" stroke="#d0fff0" stroke-width="2"/><path d="M25 27h14v10H25z" fill="#10202c"/><path d="M7 20h8m-8 9h8m-8 9h8m34-18h8m-8 9h8m-8 9h8M22 6v8m10-8v8m10-8v8M22 50v8m10-8v8m10-8v8" stroke="#c8fff0" stroke-width="3" stroke-linecap="round"/></svg>`;
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="m11 18 10-9h23l9 11-6 34H18Z" fill="#8c7661" stroke="#e7c79b" stroke-width="3"/><path d="m11 18 17 5 1 28-11 3Zm33 2 9 0-6 34H29l-1-31Z" fill="#c8a77b"/><path d="m21 9 7 14 16-3M28 23l-4 13 8 15m12-30-7 10 8 9" fill="none" stroke="#f5deb7" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
+}
 function sellMaterial(id, amount) {
   const mat = MATERIALS.find(m => m.id === id), qty = Math.max(0, Math.floor(Number(amount) || 0));
   const owned = Math.max(0, Math.floor(Number(S.materials[id]) || 0));
@@ -9652,37 +9722,58 @@ function sellMaterial(id, amount) {
   return true;
 }
 function buildMaterialsStore(grid) {
-  const note = document.createElement('div'); note.className = 'shop-inline-note';
-  note.textContent = 'Les matériaux tombent parfois des ennemis. Les circuits anciens sont réservés aux ennemis d’élite et aux gros appareils.';
+  const totalQty = MATERIALS.reduce((n, m) => n + Math.max(0, Math.floor(Number(S.materials[m.id]) || 0)), 0);
+  const totalValue = MATERIALS.reduce((n, m) => n + Math.max(0, Math.floor(Number(S.materials[m.id]) || 0)) * m.price, 0);
+  const head = document.createElement('section'); head.className = 'material-market-head';
+  head.innerHTML = `<div class="material-market-kicker">COMPTOIR DE RACHAT <span>· GROZZMO</span></div><div class="material-market-copy">Dépose ici le butin récupéré pendant tes missions. Le cours est garanti et le paiement est immédiat.</div><div class="material-market-stats"><div><small>RESSOURCES EN CALE</small><b>${fmt(totalQty)}</b></div><div><small>VALEUR DE REPRISE</small><b>${fmt(totalValue)} <i>CR</i></b></div></div>`;
+  grid.appendChild(head);
+  const note = document.createElement('div'); note.className = 'shop-inline-note material-market-note';
+  note.innerHTML = '<b>RACHAT AU COMPTOIR</b><span>Ferraille courante · cristaux rares · circuits d’élite. Les matériaux tombent des ennemis et appareils détruits.</span>';
   grid.appendChild(note);
-  for (const mat of MATERIALS) {
+  const board = document.createElement('div'); board.className = 'material-board';
+  for (const [index, mat] of MATERIALS.entries()) {
     const qty = Math.max(0, Math.floor(Number(S.materials[mat.id]) || 0));
-    const card = document.createElement('section'); card.className = 'card shop-item material-item';
-    card.innerHTML = `<span class="badge">RESSOURCE · ${fmt(mat.price)} CR / UNITÉ</span>
-      <div class="cname">${mat.name}</div><div class="cdesc">${mat.desc}</div>
-      <div class="stat"><span>EN CALE</span><b>${fmt(qty)}</b></div>
-      <div class="material-actions"><button class="btn small" data-sell="1" ${qty ? '' : 'disabled'}>Vendre 1 · ${fmt(mat.price)} CR</button>
-      <button class="btn small prim" data-sell="all" ${qty ? '' : 'disabled'}>Tout vendre · ${fmt(qty * mat.price)} CR</button></div>`;
+    const card = document.createElement('section'); card.className = 'material-card' + (qty ? ' stocked' : ' empty');
+    card.innerHTML = `<div class="material-card-art material-art-${mat.id}">${materialGlyph(mat.id)}<span>${['COMMUN','RARE','TECHNOLOGIE'][index]}</span></div>
+      <div class="material-card-info"><div class="material-name-row"><h3>${mat.name}</h3><span class="material-unit-price">${fmt(mat.price)} <small>CR / U</small></span></div>
+      <p>${mat.desc}</p><div class="material-stock-row"><span>EN CALE <b>${fmt(qty)}</b></span><span>REPRISE TOTALE <b>${fmt(qty * mat.price)} CR</b></span></div>
+      <div class="material-actions"><button class="material-sell-one" data-sell="1" ${qty ? '' : 'disabled'}>VENDRE 1 <b>+${fmt(mat.price)} CR</b></button>
+      <button class="material-sell-all" data-sell="all" ${qty ? '' : 'disabled'}>CÉDER LE STOCK <b>+${fmt(qty * mat.price)} CR</b></button></div></div>`;
     card.querySelector('[data-sell="1"]').onclick = () => sellMaterial(mat.id, 1);
     card.querySelector('[data-sell="all"]').onclick = () => sellMaterial(mat.id, qty);
-    grid.appendChild(card);
+    board.appendChild(card);
   }
+  grid.appendChild(board);
 }
 function buildShop() {
+  ensureShopTradeStyles();
   shopTab = shopRoute(shopTab);
   $('#shopCredits').textContent = fmt(S.credits);
-  const guide = SHOP_GUIDE[shopTab] || SHOP_GUIDE.ships;
+  const modes = $('#shopTradeModes'); modes.innerHTML = '';
+  for (const [mode, icon, title, caption] of [
+    ['buy', '▣', 'ACHETER', 'ÉQUIPEMENT & AMÉLIORATIONS'],
+    ['sell', '↗', 'VENDRE', 'MATÉRIAUX DE MISSION'],
+  ]) {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = 'trade-mode' + (shopMode === mode ? ' sel' : ''); b.dataset.mode = mode;
+    b.setAttribute('aria-pressed', shopMode === mode ? 'true' : 'false');
+    b.innerHTML = `<span class="trade-icon" aria-hidden="true">${icon}</span><span><b>${title}</b><small>${caption}</small></span>`;
+    b.onclick = () => shopNavigate(mode, shopTab); modes.appendChild(b);
+  }
+  const guide = shopMode === 'sell' ? SHOP_GUIDE.materials : (SHOP_GUIDE[shopTab] || SHOP_GUIDE.ships);
   $('#shopIntro').innerHTML = `<b>${guide[0]}</b><span>${guide[1]}</span>`;
-  const tabs = $('#shopTabs'); tabs.innerHTML = '';
+  const tabs = $('#shopTabs'); tabs.innerHTML = ''; tabs.classList.toggle('shop-tabs-hidden', shopMode === 'sell');
   for (const [id, label] of SHOP_TABS) {
     const b = document.createElement('button');
     b.className = 'tab' + (shopTab === id ? ' sel' : '');
     b.textContent = label; b.setAttribute('aria-pressed', shopTab === id ? 'true' : 'false');
-    b.onclick = () => { shopTab = id; Audio2.sfx('ui'); buildShop(); };
+    b.onclick = () => shopNavigate('buy', id);
     tabs.appendChild(b);
   }
   const grid = $('#shopGrid'); grid.innerHTML = '';
-  if (shopTab === 'upgrades') {
+  if (shopMode === 'sell') {
+    buildMaterialsStore(grid);
+  } else if (shopTab === 'upgrades') {
     for (const u of UPGRADES.filter(x => !x.consumable)) {
       const l = D.lv(u.id), maxed = l >= u.max, cost = upgCost(u);
       let compare = '';
@@ -9717,8 +9808,6 @@ function buildShop() {
     }
   } else if (shopTab === 'ships') {
     SHIPS.forEach(it => grid.appendChild(shopItemCard('ships', it)));
-  } else if (shopTab === 'materials') {
-    buildMaterialsStore(grid);
   }
   const notes = {
     hangar: 'Ton équipement sélectionné est sauvegardé automatiquement. Les changements sont appliqués à la prochaine mission.',
@@ -9728,7 +9817,9 @@ function buildShop() {
     custom: 'Les éléments visuels ne changent ni les dégâts ni les performances. Tu peux les équiper à tout moment.',
     materials: 'Vends une unité ou tout le stock d’une ressource. La revente crédite immédiatement ton compte.',
   };
-  $('#shopNote').innerHTML = `${notes[shopTab]} <b>Solde : ${fmt(S.credits)} crédits.</b> Les achats et équipements sont sauvegardés.`;
+  $('#shopNote').innerHTML = shopMode === 'sell'
+    ? `Paiement immédiat après chaque reprise. <b>Valeur totale de ta cale : ${fmt(MATERIALS.reduce((n,m)=>n+(Number(S.materials[m.id])||0)*m.price,0))} CR.</b>`
+    : `${notes[shopTab] || notes.hangar} <b>Solde : ${fmt(S.credits)} crédits.</b> Les achats et équipements sont sauvegardés.`;
 }
 function liverySwatch(it) {
   if (!it.hull) return it.gb || [];
@@ -12513,6 +12604,7 @@ function pressPrimary() {
   return false;
 }
 function pressBack() {
+  if (backWithinShop()) return true;
   const el = document.querySelector('.screen.on [data-act$="-back"], .screen.on [data-act="abort"]');
   if (el) { el.click(); return true; }
   return false;
@@ -12649,8 +12741,8 @@ function wireButtons() {
       case 'touch-weapon': cycleWeapon(1); break;
       case 'touch-weapon-next': cycleWeapon(1); break;
       case 'touch-weapon-prev': cycleWeapon(-1); break;
-      case 'shop': G.prevScreen = G.state; G.state = 'shop'; buildShop(); showScreen('shop'); refreshUI(); break;
-      case 'shop-back': gotoReturn(); break;
+      case 'shop': openShopFrom(G.state); break;
+      case 'shop-back': if (!backWithinShop()) gotoReturn(); break;
       case 'options': G.prevScreen = G.state; G.state = 'options'; buildOptions(); showScreen('options'); break;
       case 'opt-back': gotoReturn(); break;
       case 'opt-defaults': {
@@ -12680,14 +12772,14 @@ function wireButtons() {
            qui repartait en ère 8 bits). Sinon, comportement d'origine. */
         if (!G.twoP && !G.daily && !G.netOnline && !(typeof NET !== 'undefined' && NET.role !== 'off') && campValid(S.camp)) { continueCampaign(); break; }
         newRun(); break;   /* on rejoue dans le même mode */
-      case 'over-shop': G.prevScreen = 'over'; G.state = 'shop'; buildShop(); showScreen('shop'); break;
+      case 'over-shop': openShopFrom('over'); break;
       case 'over-menu': backToTitle(); break;
       case 'vic-replay': newRun(); break;
-      case 'vic-shop': G.prevScreen = 'victory'; G.state = 'shop'; buildShop(); showScreen('shop'); break;
+      case 'vic-shop': openShopFrom('victory'); break;
       case 'vic-menu': backToTitle(); break;
       case 'next': startNextLevel(); break;
       case 'box-skip': boxSkip(); break;
-      case 'clear-shop': G.prevScreen = 'clear'; G.state = 'shop'; buildShop(); showScreen('shop'); break;
+      case 'clear-shop': openShopFrom('clear'); break;
     }
   });
   /* valider un code avec la touche Entrée */
@@ -16529,7 +16621,10 @@ function ensureNegoUI() {
   #negoModal .nc{display:flex;flex-direction:column;gap:8px}
   #negoModal .nc button{text-align:left;font-size:12px;padding:9px 12px}
   #negoModal .np{margin-top:12px;font-size:11px;color:var(--acc);letter-spacing:.08em;line-height:1.5}
-  #negoBtn{margin-left:auto;align-self:center;flex:none}
+  #negoBtn{margin-left:auto;align-self:center;flex:none;min-height:48px;padding:12px 22px!important;border:2px solid #fff0a3!important;border-radius:10px!important;background:linear-gradient(180deg,#ffe98a 0%,#ffc83d 55%,#e99a18 100%)!important;color:#101522!important;font-size:14px!important;font-weight:900!important;letter-spacing:.09em;text-shadow:0 1px 0 rgba(255,255,255,.45)!important;box-shadow:0 0 0 3px rgba(255,200,61,.16),0 0 22px rgba(255,190,45,.58),inset 0 1px rgba(255,255,255,.75)!important;cursor:pointer;transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+  #negoBtn:hover,#negoBtn:focus-visible{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 0 0 4px rgba(255,220,105,.25),0 0 30px rgba(255,190,45,.82),inset 0 1px rgba(255,255,255,.85)!important;outline:3px solid rgba(255,239,163,.75);outline-offset:3px}
+  #negoBtn:active{transform:translateY(1px);filter:brightness(.96)}
+  #negoBtn:disabled{filter:grayscale(.65);opacity:.72;box-shadow:none!important;cursor:not-allowed}
   `;
   document.head.appendChild(st);
   const m = document.createElement('div'); m.id = 'negoModal';
@@ -17503,8 +17598,8 @@ narrativeInstall();
   html.nvui #merchantBar .mname{font-size:15px;letter-spacing:.18em;color:#ffe066;text-shadow:0 2px 10px rgba(0,0,0,.8)}
   html.nvui #merchantBubble{font-family:var(--ui-font);font-size:13.5px;line-height:1.45;color:#eef3ff;background:rgba(10,14,26,.72);border:1px solid rgba(255,255,255,.12);border-left:3px solid #ffe066;border-radius:0 10px 10px 0;padding:9px 12px;min-height:40px}
   html.nvui #merchantBar .mactions{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
-  html.nvui #negoBtn{margin:0;align-self:auto}
-  @media (max-width:560px){html.nvui #merchantBar .mrow{flex-direction:column;align-items:stretch}html.nvui #merchantBar img{width:72px;height:72px}html.nvui #merchantBar .mactions{justify-content:stretch}html.nvui #negoBtn{width:100%}}
+  html.nvui #merchantBar #negoBtn{margin:0;align-self:auto;min-height:52px;padding:13px 24px!important;font-size:14px!important}
+  @media (max-width:560px){html.nvui #merchantBar .mrow{flex-direction:column;align-items:stretch}html.nvui #merchantBar img{width:72px;height:72px}html.nvui #merchantBar .mactions{justify-content:stretch}html.nvui #merchantBar #negoBtn{width:100%;min-height:56px;font-size:15px!important;letter-spacing:.1em}}
 
   /* --- modale de négociation --- */
   html.nvui #negoModal{background:rgba(2,4,10,.6);backdrop-filter:blur(6px)}
@@ -22195,7 +22290,7 @@ frame = function (now) {
       tabs.appendChild(b);
     });
     const shopLink = document.createElement('button'); shopLink.type = 'button'; shopLink.className = 'opt-shop-link'; shopLink.textContent = T('HANGAR & BOUTIQUE', 'HANGAR & SHOP'); shopLink.setAttribute('aria-label', T('Ouvrir le Hangar et la boutique', 'Open hangar and shop'));
-    shopLink.onclick = () => { shopTab = 'hangar'; showScreen('shop'); buildShop(); try { Audio2.sfx('ui'); } catch (e) {} };
+    shopLink.onclick = () => { shopMode = 'buy'; shopTab = 'hangar'; SHOP_NAV_STACK.length = 0; showScreen('shop'); buildShop(); try { Audio2.sfx('ui'); } catch (e) {} };
     tabs.appendChild(shopLink);
     activate(tabs.querySelector('[data-tab="' + (o.optTab || 'display') + '"]') ? o.optTab : 'display');
     fsSync();
