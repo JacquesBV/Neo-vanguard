@@ -10426,7 +10426,7 @@ function tryCheatCode(raw) {
   const card = document.querySelector(`[data-cheat-card="${c.id}"]`);
   if (card) {
     card.classList.remove('cheat-card-reveal'); void card.offsetWidth; card.classList.add('cheat-card-reveal');
-    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }), 80);
   }
   refreshUI();
 }
@@ -17881,7 +17881,7 @@ narrativeInstall();
     moreOpen = !moreOpen; left.classList.toggle('more-open', moreOpen);
     more.setAttribute('aria-expanded', String(moreOpen));
     more.textContent = NXT(moreOpen ? 'ui.less' : 'ui.more');
-    if (moreOpen) grid.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (moreOpen) grid.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
   });
   const status = document.createElement('div'); status.className = 'nv-status';
   const chips = scr.querySelector('.chips'); if (chips) status.appendChild(chips);
@@ -18459,7 +18459,7 @@ narrativeInstall();
     MC.items = collect();
     MC.items.forEach((el, i) => el.classList.toggle('cur', i === MC.idx));
     const el = MC.items[MC.idx];
-    if (el && scroll) { try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} }
+    if (el && scroll) { try { el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); } catch (e) {} }
   }
   function move(d) {
     const n = MC.items.length; if (!n) return;
@@ -25997,6 +25997,23 @@ html.nvui .chips .chip{border-radius:999px}
 })();
 </script>
 
+<script id="nv-no-horizontal-drift">
+/* Sur PC, la navigation au clavier ou un défilement « doux » pouvait faire
+   glisser horizontalement un conteneur censé être fixe (overflow caché) :
+   tout l'écran partait vers le côté. Seuls les vrais bandeaux à défilement
+   horizontal (overflow-x auto/scroll) ont le droit de défiler en largeur.   */
+(() => {
+  const fixX = el => {
+    if (!el || !el.scrollLeft) return;
+    const root = el === document.scrollingElement || el === document.documentElement || el === document.body;
+    const ox = root ? 'hidden' : getComputedStyle(el).overflowX;
+    if (root || ox === 'hidden' || ox === 'clip' || ox === 'visible') el.scrollLeft = 0;
+  };
+  document.addEventListener('scroll', e => fixX(e.target === document ? document.scrollingElement : e.target), true);
+  addEventListener('scroll', () => { if (scrollX) scrollTo(0, scrollY); }, { passive: true });
+  setInterval(() => { fixX(document.scrollingElement); fixX(document.body); if (scrollX) scrollTo(0, scrollY); for (const id of ['nvTitle', 'game', 'wrap', 'app', 'stage']) fixX(document.getElementById(id)); }, 1000);
+})();
+</script>
 <script id="nv24-final-rework">
 /* =============================================================================
    SECTEUR 24 — refonte complète : le sas, le couloir, le grand sas et VORAX.
