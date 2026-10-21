@@ -1,0 +1,11 @@
+{
+  "project": "Neo-Vanguard",
+  "level": 24,
+  "reference": "Vorax introductory frame from the game",
+  "assets": [
+    {"file":"vorax-intro-matched-spritesheet.png","format":"PNG","layout":"2x2","nominal_cell_px":[634,620],"poses":["idle","charge","hands through door","twin red lasers"]},
+    {"file":"vorax-hands-spritesheet.png","format":"PNG","layout":"3x2","cell_px":[512,512],"poses":["left punch","right punch","reach","left grip","right grip","pull door"]},
+    {"file":"defense-enemies-spritesheet.png","format":"PNG","layout":"4x2","cell_px":[384,512],"count":8},
+    {"file":"flagship-base-corridor.png","format":"PNG","dimensions_px":[1024,1536]}
+  ]
+}
