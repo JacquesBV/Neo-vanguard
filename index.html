@@ -26206,6 +26206,17 @@ html.nvui .chips .chip{border-radius:999px}
   setInterval(() => { fixX(document.scrollingElement); fixX(document.body); if (scrollX) scrollTo(0, scrollY); for (const id of ['nvTitle', 'game', 'wrap', 'app', 'stage']) fixX(document.getElementById(id)); }, 1000);
 })();
 </script>
+<style id="nv-options-tabs-style">
+  #scr-options #optTabs{position:sticky;top:0;z-index:6;background:#08101f;box-shadow:0 -40px 0 0 #08101f,0 8px 12px -6px rgba(0,0,0,.85)}
+  @media (max-width:700px){
+    #scr-options #optTabs{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;gap:6px!important;padding:8px 2px!important;margin:0 0 6px!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+    #scr-options #optTabs::-webkit-scrollbar{display:none}
+    #scr-options #optTabs button{flex:0 0 auto!important;min-height:36px!important;padding:6px 14px!important;font-size:11px!important;white-space:nowrap!important;letter-spacing:.06em!important}
+  }
+  #scr-options .nv-secprof details>div{grid-template-columns:minmax(0,1fr) minmax(0,150px)!important}
+  #scr-options .nv-secprof details select{width:100%!important;max-width:100%!important}
+  #scr-options .nv-secprof details span{min-width:0;overflow-wrap:anywhere}
+</style>
 <script id="nv-options-reorg">
 /* Options : rangement final. Toutes les lignes existantes sont DÉPLACÉES
    (avec leurs commandes) dans des onglets clairs ; aucune n'est supprimée.
@@ -26289,6 +26300,7 @@ html.nvui .chips .chip{border-radius:999px}
         S.opts.optTab = key;
         tabs.querySelectorAll('button[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === key)));
         live.forEach(sec => { sec.hidden = sec.dataset.section !== key; sec.setAttribute('aria-hidden', String(sec.hidden)); });
+        const cur = tabs.querySelector('button[aria-selected="true"]'); if (cur && tabs.scrollWidth > tabs.clientWidth) tabs.scrollLeft = Math.max(0, cur.offsetLeft - (tabs.clientWidth - cur.offsetWidth) / 2);
       };
       for (const sec of live) {
         const key = sec.dataset.section, spec = SPEC.find(x => x.key === key);
