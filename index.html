@@ -9206,11 +9206,7 @@ function drawPickups() {
     const bob = Math.sin(k.t * 6 + k.x * 0.04) * 3;
     const x = k.x, y = k.y + bob;
     const spin = Math.cos(k.t * 3.2), sx = 0.30 + 0.70 * Math.abs(spin);
-    /* ombre portée : l'écrin flotte au-dessus du sol */
-    g.globalAlpha = 0.20 * pop;
-    g.save(); g.translate(x * K, (y + 26) * K); g.scale(1, 0.34);
-    g.beginPath(); g.arc(0, 0, 15 * K, 0, TAU); g.fillStyle = '#000'; g.fill(); g.restore();
-    g.globalAlpha = 1;
+    /* pas d'ombre portée : le décor est l'espace ou un fond lointain, il n'y a pas de sol sous les bonus */
     /* traînée quand l'aimant l'aspire */
     const isCurrency = k.kind === 'credit' || MATERIALS.some(m => m.id === k.kind);
     /* Pas de traînée de caisse derrière une pièce : elle la faisait paraître géante. */
