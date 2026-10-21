@@ -26334,8 +26334,13 @@ html.nvui .chips .chip{border-radius:999px}
     const v=G._voraxFinal;
     if(G.level!==FINAL||!v||!['space','base'].includes(v.mode)||!NV24_ART.enemies.complete||!NV24_ART.enemies.naturalWidth)return _nv24DrawEnemyOne(en,g,K,e);
     const map={drone:0,shielder:1,swarmlet:1,runner:2,turret:3,carrier:4,mine:5,splitter:5,elite:6,scout:0,bomber:5};
-    const cell=map[en.kind]??7,cw=384,ch=512,sx=(cell%4)*cw,sy=Math.floor(cell/4)*ch;
-    const big=['carrier','elite','turret'].includes(en.kind),dw=Math.max(big?76:60,en.w*(big?2.3:2.0)),dh=Math.max(big?82:64,en.h*(big?2.15:1.9));
+    /* La planche est une image continue : utiliser les limites réelles des silhouettes. */
+    const frames=[
+      [13,45,410,425], [421,59,351,379], [771,66,384,414], [1164,20,357,450],
+      [16,502,448,480], [482,513,307,446], [796,506,372,471], [1194,508,315,422]
+    ];
+    const cell=map[en.kind]??7,[sx,sy,sw,sh]=frames[cell];
+    const big=['carrier','elite','turret'].includes(en.kind),dh=Math.max(big?82:64,en.h*(big?2.15:1.9)),dw=dh*sw/sh;
     const rot=en.kind==='turret'?Math.sin(en.t*1.5+en.phase)*.08:Math.sin(en.t*1.8+en.phase)*.045;
     g.save();g.translate(en.x*K,en.y*K);g.rotate(rot);g.globalAlpha=en.flash>0?.76:1;
     g.shadowColor=en.kind==='elite'?'#ff354e':'#9f63ff';g.shadowBlur=en.elite?15:7;
