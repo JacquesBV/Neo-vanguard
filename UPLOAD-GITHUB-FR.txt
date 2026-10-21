@@ -1,0 +1,26 @@
+NEO-VANGUARD — PACK25 MULTI-FICHIERS
+
+Le jeu charge désormais ses médias intégrés auparavant dans index.html depuis assets/embedded/.
+Le fichier index.html fait environ 2,2 Mio. Le dossier contient 139 médias.
+
+À conserver dans le dépôt :
+- index.html (à remplacer)
+- assets/embedded/ (à ajouter, sans renommer ni déplacer les fichiers)
+- le dossier music/ déjà présent dans le dépôt (à conserver)
+
+UPLOAD DEPUIS UN ORDINATEUR — MÉTHODE LA PLUS SIMPLE
+1. Extraire Neo-Vanguard-pack25-assets.zip.
+2. Copier index.html et le dossier assets/ dans le dossier local du dépôt Neo-vanguard.
+3. Accepter le remplacement de index.html.
+4. Envoyer les changements avec GitHub Desktop (commit puis push).
+
+UPLOAD DEPUIS LE SITE GITHUB
+Le dépôt doit recevoir les 139 médias dans assets/embedded/ et le nouvel index.html à la racine.
+1. Créer le chemin assets/embedded/ en créant un fichier assets/embedded/.gitkeep.
+2. Ouvrir assets/embedded/ dans le dépôt.
+3. Téléverser les médias en deux lots (100 puis 39 fichiers), chacun suivi d’un commit.
+4. Revenir à la racine, téléverser le nouvel index.html et valider le commit.
+5. Si GitHub refuse un fichier index.html déjà présent, supprimer l’ancien puis téléverser immédiatement le nouveau.
+
+Ne téléverser ni le ZIP lui-même ni le dossier extérieur Neo-Vanguard-pack25.
+Conserver exactement les chemins assets/embedded/… utilisés par index.html.
