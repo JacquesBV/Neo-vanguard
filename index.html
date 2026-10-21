@@ -26340,7 +26340,7 @@ html.nvui .chips .chip{border-radius:999px}
       [16,502,448,480], [482,513,307,446], [796,506,372,471], [1194,508,315,422]
     ];
     const cell=map[en.kind]??7,[sx,sy,sw,sh]=frames[cell];
-    const big=['carrier','elite','turret'].includes(en.kind),dh=Math.max(big?82:64,en.h*(big?2.15:1.9)),dw=dh*sw/sh;
+    const big=['carrier','elite','turret'].includes(en.kind),dh=Math.max(big?82:64,spriteBox(EID[en.kind]||'drone').h),dw=dh*sw/sh; /* les ennemis n'ont pas de propriété h : en.h donnait NaN et rien ne s'affichait */
     const rot=en.kind==='turret'?Math.sin(en.t*1.5+en.phase)*.08:Math.sin(en.t*1.8+en.phase)*.045;
     g.save();g.translate(en.x*K,en.y*K);g.rotate(rot);g.globalAlpha=en.flash>0?.76:1;
     g.shadowColor=en.kind==='elite'?'#ff354e':'#9f63ff';g.shadowBlur=en.elite?15:7;
