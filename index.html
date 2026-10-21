@@ -13312,7 +13312,7 @@ function boot() {
 
 /* ---- 00_build.js ---- */
 /* horodatage du build : visible dans la console et dans les messages d'erreur */
-window.NV_BUILD = '2026-10-21 fanboy-boss-mp3-pack26-vorax-render-fix';
+window.NV_BUILD = '2026-10-21 fanboy-boss-mp3-pack27-vorax-force-render';
 console.log('%cNEO VANGUARD build ' + window.NV_BUILD, 'color:#4be7ff;font-weight:bold');
 
 
@@ -26198,11 +26198,23 @@ html.nvui .chips .chip{border-radius:999px}
     g.restore();
   }
   const oldDrawProps=drawProps;
-  drawProps=function(){oldDrawProps();const v=G._voraxFinal;if(!v||G.level!==FINAL)return;if(v.mode==='space')drawDebris(v);drawGate(v);};
+  drawProps=function(){
+    const v=G._voraxFinal;
+    /* Le secteur final n'hérite pas des blocs de décor génériques : ils
+       masquaient le sas et donnaient l'impression de revoir l'ancien niveau. */
+    if(G.level!==FINAL)oldDrawProps();
+    if(!v||G.level!==FINAL)return;
+    if(v.mode==='space')drawDebris(v);drawGate(v);
+  };
 
   const oldBackdrop=drawBackdrop;
   drawBackdrop=function(){
-    oldBackdrop();const v=G._voraxFinal;if(!v||G.level!==FINAL||!['space','gate','breach','base','alert','hands','opening','reveal','active'].includes(v.mode))return;
+    oldBackdrop();
+    const b=G.boss, isVorax=!!(b&&b.def&&(b.def.final||b.def.name==='VORAX'));
+    const finalStage=G.level===FINAL||isVorax;
+    const live=G._voraxFinal;
+    const v=live||{mode:isVorax?'active':'base',t:0,approach:0};
+    if(!finalStage||!['space','gate','breach','base','alert','hands','opening','reveal','active'].includes(v.mode))return;
     const x=PF.x,y=PF.y,w=PF.w,h=PF.h;ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
     if(v.mode==='space'||v.mode==='gate'||v.mode==='breach'){
       const scale=clamp((v.approach||0)/31,0,1), baseScale=.62+scale*.38, bx=x+w*.5, by=y+h*.19;
@@ -26342,14 +26354,16 @@ html.nvui .chips .chip{border-radius:999px}
   const oldDrawBoss=drawBoss;
   drawBoss=function(){
     const v=G._voraxFinal,b=G.boss;
-    if(G.level===FINAL&&v&&b&&b._voraxReveal){
-      if(v.mode==='hands'||v.mode==='opening') { drawCabin(b); return; }
-      if(v.mode==='reveal'){
+    const isVorax=!!(b&&b.def&&(b.def.final||b.def.name==='VORAX'));
+    if(isVorax||(G.level===FINAL&&b)){
+      if(v&&b&&b._voraxReveal&&(v.mode==='hands'||v.mode==='opening')) { drawCabin(b); return; }
+      if(v&&b&&b._voraxReveal&&v.mode==='reveal'){
         drawCabin(b);drawVoraxSkeleton(b);
         const g=PAINT.g,K=PAINT.K;g.save();g.globalAlpha=.72;g.strokeStyle='#f0c88a';g.lineWidth=2*K;for(let s of [-1,1]){g.beginPath();g.moveTo((mid+s*158)*K,80*K);g.lineTo((mid+s*210)*K,365*K);g.stroke();}g.restore();
         return;
       }
-      if(v.mode==='active') drawVoraxSkeleton(b);
+      /* Même un démarrage direct via code de triche doit remplacer le boss. */
+      drawVoraxSkeleton(b);
       return;
     }
     oldDrawBoss();
