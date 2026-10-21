@@ -13312,7 +13312,7 @@ function boot() {
 
 /* ---- 00_build.js ---- */
 /* horodatage du build : visible dans la console et dans les messages d'erreur */
-window.NV_BUILD = '2026-10-21 fanboy-boss-mp3-pack25-vorax-base-skeleton-fix';
+window.NV_BUILD = '2026-10-21 fanboy-boss-mp3-pack26-vorax-render-fix';
 console.log('%cNEO VANGUARD build ' + window.NV_BUILD, 'color:#4be7ff;font-weight:bold');
 
 
@@ -26344,7 +26344,6 @@ html.nvui .chips .chip{border-radius:999px}
     const v=G._voraxFinal,b=G.boss;
     if(G.level===FINAL&&v&&b&&b._voraxReveal){
       if(v.mode==='hands'||v.mode==='opening') { drawCabin(b); return; }
-      oldDrawBoss();
       if(v.mode==='reveal'){
         drawCabin(b);drawVoraxSkeleton(b);
         const g=PAINT.g,K=PAINT.K;g.save();g.globalAlpha=.72;g.strokeStyle='#f0c88a';g.lineWidth=2*K;for(let s of [-1,1]){g.beginPath();g.moveTo((mid+s*158)*K,80*K);g.lineTo((mid+s*210)*K,365*K);g.stroke();}g.restore();
