@@ -21,7 +21,7 @@ body{
   --glow:0 0 24px rgba(56,224,255,.35);
   --px:2px;
 }
-body.era-0{--acc:#8bac0f;--acc2:#9bbc0f;--bg1:rgba(8,20,8,.92);--bg2:rgba(14,34,14,.8);--glow:0 0 0 rgba(0,0,0,0);--px:4px}
+body.era-0{--acc:#a3ad35;--acc2:#c2c95c;--bg1:rgba(10,26,18,.92);--bg2:rgba(18,40,26,.8);--glow:0 0 0 rgba(0,0,0,0);--px:4px}
 body.era-1{--acc:#4a90d9;--acc2:#f24fd9;--bg1:rgba(6,8,20,.92);--bg2:rgba(10,14,32,.82);--glow:0 0 12px rgba(74,144,217,.35)}
 body.era-2{--acc:#38e0ff;--acc2:#ff4d6d;--bg1:rgba(5,7,18,.9);--bg2:rgba(14,20,42,.74);--glow:0 0 22px rgba(56,224,255,.4)}
 body.era-3{--acc:#4be7ff;--acc2:#ff5fa2;--bg1:rgba(4,6,14,.82);--bg2:rgba(10,14,30,.6);--glow:0 0 34px rgba(75,231,255,.5)}
@@ -2361,7 +2361,7 @@ const ERALIST = [
 const STY = ERAS.map(e => e.sty);
 /* une couleur d'accent et une couleur secondaire par secteur : elles habillent
    les panneaux DOM, la frise des consoles et les illustrations du récit.    */
-const UIACC = [['#8bac0f', '#9bbc0f'], ['#4a90d9', '#f24fd9'], ['#38e0ff', '#ff4d6d'],
+const UIACC = [['#a3ad35', '#c2c95c'], ['#4a90d9', '#f24fd9'], ['#38e0ff', '#ff4d6d'],
                ['#ff9a3d', '#ff4fb0'], ['#8d9ec7', '#ffbe6b'], ['#4be7ff', '#ff5fa2']];
 
 /* Livrées : en ère 8-bit elles remplacent la palette Pocket complète,
@@ -2372,7 +2372,7 @@ const LIVERIES = [
      reste peint avec ses 4 tons 8 bits (champ gb ci-dessous), donc le vert
      y est conservé — et il n'est plus porté par le vaisseau au-delà.          */
   { id:'squadron', name:'ESCADRILLE', price:0,   hue:105, sat:0.62, light:0.52,
-    gb:['#0F380F','#306230','#8BAC0F','#9BBC0F'],
+    gb:['#0F2E1C','#2f5c27','#6f8a1f','#a3ad35'],
     note:'Coque d\'usine gris-blanc, bande rouge, verrière cyan : la coque de la planche. Le secteur 8 bits garde ses 4 tons verts.',
     player:{ hue:188, sat:0.95 },   /* obus, réacteurs, halo de verrière : le cyan de la planche */
     hull:{ hue:206, sat:0.10, light:0.90, tweak:{
@@ -2401,7 +2401,7 @@ const LIVERIES = [
     ],
     /* couleur des tuyeres et des noyaux : la signature de chaque generation */
     energy:[ 32, 302, 188 ] },
-  { id:'green',   name:'FORÊT KODAMA',  price:0,    hue:105, gb:['#0F380F','#306230','#8BAC0F','#9BBC0F'] },
+  { id:'green',   name:'FORÊT KODAMA',  price:0,    hue:105, gb:['#0F2E1C','#2f5c27','#6f8a1f','#a3ad35'] },
   { id:'pocket',  name:'POCKET',     price:250,  hue:0,   gb:['#101010','#3c3c3c','#8c8c8c','#d8d8d8'] },
   { id:'amber',   name:'AMBRE CRT',  price:400,  hue:36,  gb:['#180d00','#5a3200','#c07a00','#ffc35a'] },
   { id:'azure',   name:'AZUR',       price:650,  hue:200, gb:['#000913','#123a6b','#3f8fd9','#a9dcff'] },
@@ -3397,7 +3397,7 @@ const R = {
 };
 /* Profils graphiques distincts : variations 16-bit, arcade, CD et HD. */
 const HW_PROFILES = {
-  pocket: { id:'pocket', label:'FANBOY', artScale:0.25, tones:4, colorBits:2, outlineColor:'#0F380F', nebulaLayers:1, nebulaAlpha:0, ditherAlpha:0, scanAlpha:0.08 },
+  pocket: { id:'pocket', label:'FANBOY', artScale:0.25, tones:4, colorBits:2, outlineColor:'#0F2E1C', nebulaLayers:1, nebulaAlpha:0, ditherAlpha:0, scanAlpha:0.08 },
   home8: { id:'home8', label:'8-BIT HOME SYSTEM', artScale:0.40, tones:5, colorBits:3, outlineColor:'#10121c', nebulaLayers:2, nebulaAlpha:0.12, ditherAlpha:0.22, scanAlpha:0.045 },
   snes: { id:'snes', label:'16-BIT · COULEURS', artScale:0.70, tones:9, colorBits:5, paletteColors:15, outlineColor:'#101a32', satBoost:1.08, lightBoost:0.015, nebulaLayers:2, nebulaAlpha:0.10, ditherAlpha:0.025, scanAlpha:0.012, bloom:0.12 },
   gba: { id:'gba', label:'32-BIT · PORTABLE', artScale:0.62, tones:10, colorBits:5, paletteColors:15, outlineColor:'#10162b', satBoost:1.16, lightBoost:0.025, nebulaLayers:2, nebulaAlpha:0.12, ditherAlpha:0.025, scanAlpha:0.018, bloom:0.10 },
@@ -3700,7 +3700,7 @@ for (let i = 0; i < 40; i++) FTs.push({ on: false, t: 0 });
    livrée active. C'est ce qui empêchait le mot « BOMBE » de rester rose.   */
 function eraCol(col) {
   if (R.era !== 0) return col;
-  const gb = (TH.livery && TH.livery.gb) || ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'];
+  const gb = (TH.livery && TH.livery.gb) || ['#0F2E1C', '#2f5c27', '#6f8a1f', '#a3ad35'];
   return gb.indexOf(col) >= 0 ? col : TH.pLite;
 }
 function popText(x, y, txt, col, size) {
@@ -3929,7 +3929,7 @@ function updateTerrain(dt, scroll) {
 function drawTerrain(layer) {
   const g = layer.g, K = layer.K, e = R.era;
   if (e === 0) return;   /* ère 0 : ces fosses sont inoffensives mais se lisaient comme des pièges */
-  const gb = (TH.livery && TH.livery.gb) || ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'];
+  const gb = (TH.livery && TH.livery.gb) || ['#0F2E1C', '#2f5c27', '#6f8a1f', '#a3ad35'];
   const cBg = e === 0 ? gb[0] : TH.bg, cMid = e === 0 ? gb[1] : TH.bg2,
         cLit = e === 0 ? gb[2] : TH.pDark, cHi = e === 0 ? gb[3] : TH.white;
   for (const w of terrain.walls) {
@@ -6159,7 +6159,7 @@ function poseParts(parts, frame, n, amp) {
      · 8 bits+   : blanc glacé, la machine n'a pas de blanc pur pour les sprites.
      · 16 bits   : blanc franc, la palette 16 bits le permet.
      · HD        : blanc franc, que le bloom de l'ère transforme en éclat.   */
-const GB4 = ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'];
+const GB4 = ['#0F2E1C', '#2f5c27', '#6f8a1f', '#a3ad35'];
 /* Détails internes des ennemis Pocket : gravés dans la résolution native du
    sprite, puis limités à sa silhouette. Ils utilisent uniquement les quatre
    verts de la console, sans agrandir l'acteur ni ajouter de contour externe. */
@@ -6246,7 +6246,7 @@ function bakeSprite(id, era, kind, hue, sat, light, frame) {
     const t = tone[i];
     let col;
     if (era === 0) {                                    /* 8 bits : 4 teintes imposées   */
-      const gb = (TH.livery && TH.livery.gb) || ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'];
+      const gb = (TH.livery && TH.livery.gb) || ['#0F2E1C', '#2f5c27', '#6f8a1f', '#a3ad35'];
       /* hiérarchie Pocket : contour presque noir, coque claire, secondaire en
          demi-teinte, détails lumineux au ton le plus clair */
       if (m === MAT.DARK || m === MAT.INK) col = gb[0];
@@ -6543,7 +6543,7 @@ function bakeBoss(kind, era, hue, sat, light) {
     const i = y * W + x, m = mat[i]; if (!m) continue;
     const t = tone[i];
     let col;
-    if (era === 0) { const gb = (TH.livery && TH.livery.gb) || ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'];
+    if (era === 0) { const gb = (TH.livery && TH.livery.gb) || ['#0F2E1C', '#2f5c27', '#6f8a1f', '#a3ad35'];
       col = (m === MAT.ACCENT || m === MAT.GLOW || m === MAT.MARK) ? gb[3] : (m === MAT.DARK ? gb[0] : (t <= 1 ? gb[0] : t === 2 ? gb[1] : gb[2])); }
     else col = specialColor('boss', m, t, tones, hue);
     if (!col) { const tw = (CUR_TWK && CUR_TWK[m]) || MAT_TWEAK[m] || { dh: 0, ds: 0, dl: 0 }; col = toneColor(hue + tw.dh, clamp(sat + tw.ds, 0, 1), clamp(light + tw.dl, 0.1, 0.95), t, tones); }
@@ -9846,7 +9846,7 @@ function drawEraBanner(t) {
   ctx.fillStyle = bg; ctx.fillRect(bx, by, bw, bh);
   /* bandeau haut : l'écusson de la machine */
   const hh = Math.max(20, bh * 0.085);
-  ctx.fillStyle = e === 0 ? '#0f380f' : 'rgba(255,255,255,.06)';
+  ctx.fillStyle = e === 0 ? '#0f2e1c' : 'rgba(255,255,255,.06)';
   ctx.fillRect(bx, by, bw, hh);
   ctx.fillStyle = TH.acc; ctx.fillRect(bx, by + hh - 3, bw, 3);
   hudText(ctx, ERAS[sec].sys, bx + 10, by + hh * 0.5, TH.acc, scl, { align: 'left' });
@@ -11296,7 +11296,7 @@ const BOX_LIGHT = (() => {                        /* lumière clé, depuis la ga
 /* palettes de jaquette : elles suivent la machine annoncée */
 function coverCol(sec) {
   switch (sec) {
-    case 0: { const gb = (TH.livery && TH.livery.gb) || ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'];
+    case 0: { const gb = (TH.livery && TH.livery.gb) || ['#0F2E1C', '#2f5c27', '#6f8a1f', '#a3ad35'];
       return { sky: gb[3], sky2: gb[2], sky3: gb[1], far: gb[1], mid: gb[1], near: gb[0],
         hull: gb[3], ink: gb[0], acc: gb[0], glow: gb[3], warm: gb[2], flat: true, tones: 4 }; }
     case 1: return { sky: PAL1[2], sky2: PAL1[3], sky3: PAL1[4], far: PAL1[4], mid: PAL1[1], near: PAL1[0],
@@ -22194,7 +22194,7 @@ frame = function (now) {
   var _bake = bakeSprite;
   bakeSprite = function (id, era, kind, hue, sat, light, frame) {
     if (id !== 'falcon' || era !== 0 || kind !== 'player') return _bake(id, era, kind, hue, sat, light, frame);
-    var gb = (typeof TH !== 'undefined' && TH.livery && TH.livery.gb) || ['#0F380F', '#306230', '#8BAC0F', '#9BBC0F'];
+    var gb = (typeof TH !== 'undefined' && TH.livery && TH.livery.gb) || ['#0F2E1C', '#2f5c27', '#6f8a1f', '#a3ad35'];
     var flashCol = (typeof hitFxColor === 'function') ? hitFxColor(0) : gb[3];
     var key = gb.join('|') + '|' + flashCol;
     var rec = CACHE[key];
