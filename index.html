@@ -24036,7 +24036,7 @@ buildPlan = function (level) {
 }
 
 /* ---- VORAX : attaques du robot --------------------------------------------------------------- */
-const NV_ROBOT = { shX: 132, shY: -66, armLen: 190, armH: 200, armSc: 0.9, torsoSc: 0.95, torsoDY: -22, pelvDY: 138, pelvSc: 0.62 };
+const NV_ROBOT = { shX: 132, shY: -66, armLen: 190, armH: 200, armSc: 0.9, torsoSc: 0.8, torsoDY: -120, pelvDY: 138, pelvSc: 0.62 };
 function nvArmSpread(b, side) {          /* écartement du bras (rad) : tombé s'il est détruit */
   const p = b.parts[side < 0 ? 0 : 1];
   if (!p || p.dead) return 0.05;
@@ -25851,6 +25851,7 @@ html.nvui .chips .chip{border-radius:999px}
 <script id="nv-vorax-eyebeams-and-shattered-alert">
 (() => {
   const NAME = 'VORAX';
+  const NV24_ROBOT = { torsoDY: -120, torsoSc: 0.8 };
   const clampV = (v, a, b) => Math.max(a, Math.min(b, v));
   const previousWarning = drawBossWarning;
   drawBossWarning = function () {
@@ -25943,7 +25944,7 @@ html.nvui .chips .chip{border-radius:999px}
     }
     priorUpdateBoss(dt);
     if(!isVorax||G.boss!==b||!b._eyeLaser||b._eyeLaser.t<1.32||b._eyeLaser.t>=2.08||NET.role==='guest')return;
-    const shot=b._eyeLaser, hy=b.y+NV_ROBOT.torsoDY-.78*125*NV_ROBOT.torsoSc, ex=.14*170*NV_ROBOT.torsoSc;
+    const shot=b._eyeLaser, hy=b.y+NV24_ROBOT.torsoDY-.78*125*NV24_ROBOT.torsoSc, ex=.14*170*NV24_ROBOT.torsoSc;
     for(const P of G.players){
       if(!P||!P.alive||P.out||P.inv>0||shot.hitCd>0)continue;
       let hit=false;
@@ -25964,7 +25965,7 @@ html.nvui .chips .chip{border-radius:999px}
     if(!b||!b.def||b.def.name!==NAME||b.dead||b.enter||!b._eyeLaser)return;
     const shot=b._eyeLaser,g=PAINT.g,K=PAINT.K,e=R.era;
     const t=shot.t, charge=clampV(t/1.32,0,1), fire=clampV((t-1.32)/.12,0,1)*(t<2.08?1:0);
-    const hy=b.y+NV_ROBOT.torsoDY-.78*125*NV_ROBOT.torsoSc, ex=.14*170*NV_ROBOT.torsoSc;
+    const hy=b.y+NV24_ROBOT.torsoDY-.78*125*NV24_ROBOT.torsoSc, ex=.14*170*NV24_ROBOT.torsoSc;
     const ends=[];
     for(const side of [-1,1])ends.push([side,clampV(shot.targetX+side*34,26,L_W-26)]);
     g.save();
@@ -26008,8 +26009,7 @@ html.nvui .chips .chip{border-radius:999px}
   NV24_ART.hands.src = 'assets/level24/vorax-hands-spritesheet.webp';
   NV24_ART.enemies.src = 'assets/level24/defense-enemies-spritesheet.webp';
   NV24_ART.corridor.src = 'assets/level24/flagship-base-corridor.webp';
-  /* Recalage des yeux sur le casque ferme de l'introduction. */
-  NV_ROBOT.torsoDY = -120; NV_ROBOT.torsoSc = .8;
+  /* Le recalage du torse est applique dans le moteur Vorax. */
   function nv24Band(kind, count, offset=0, y=-50) {
     const lanes=[.16,.32,.50,.68,.84,.25,.75];
     for(let i=0;i<count;i++) spawnEnemy(kind,L_W*lanes[(i+offset)%lanes.length],y+i*42,{ty:220+(i%3)*42,dir:i%2?1:-1});
