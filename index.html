@@ -24961,7 +24961,7 @@ html.nvui .chips .chip{border-radius:999px}
 <style id="nv-performance-reward-style">
 #nvPraise{position:fixed;z-index:35;top:max(14px,calc(env(safe-area-inset-top) + 12px));left:50%;width:min(620px,calc(100vw - 28px));display:flex;align-items:center;gap:13px;padding:12px 18px;border:1px solid rgba(128,226,255,.54);border-radius:15px;color:#f4faff;background:linear-gradient(112deg,rgba(8,18,38,.97),rgba(10,30,55,.92) 55%,rgba(19,17,48,.96));box-shadow:0 12px 42px rgba(0,0,0,.56),0 0 28px rgba(63,194,255,.24),inset 0 1px rgba(255,255,255,.12);backdrop-filter:blur(12px);pointer-events:none;opacity:0;transform:translate(-50%,-16px) scale(.96)}
 #nvPraise.show{animation:nvPraiseInOut 3.4s cubic-bezier(.18,.78,.22,1) both}
-#nvPraise .seal{flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;border-radius:12px;color:#071321;background:linear-gradient(135deg,#fff2aa,#ffbd42 56%,#ff7b42);font:900 22px/1 system-ui;box-shadow:0 0 22px rgba(255,191,66,.36)}
+#nvPraise .seal{flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;border-radius:12px;color:#071321;background:linear-gradient(135deg,#fff2aa,#ffbd42 56%,#ff7b42);font:900 22px/1 system-ui,'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif;box-shadow:0 0 22px rgba(255,191,66,.36)}
 #nvPraise .copy{min-width:0;display:flex;flex-direction:column;gap:3px}
 #nvPraise strong{font:800 clamp(12px,2.5vw,16px)/1.2 system-ui,sans-serif;letter-spacing:.1em;color:#fff}
 #nvPraise span{font:600 clamp(10px,2vw,12px)/1.35 system-ui,sans-serif;letter-spacing:.045em;color:#a9dfff}
@@ -24972,15 +24972,39 @@ html.nvui .chips .chip{border-radius:999px}
 (() => {
   const banner=document.createElement('div');banner.id='nvPraise';banner.setAttribute('role','status');banner.setAttribute('aria-live','polite');
   banner.innerHTML='<span class="seal" aria-hidden="true">✦</span><span class="copy"><strong></strong><span></span></span>';document.body.appendChild(banner);
-  const title=banner.querySelector('strong'),detail=banner.querySelector('.copy span');
-  const labels={fr:['BRAVO, PILOTE !','SECTEUR ACCOMPLI'],en:['WELL DONE, PILOT!','SECTOR CLEARED'],es:['¡BIEN HECHO, PILOTO!','SECTOR COMPLETADO'],pt:['MUITO BEM, PILOTO!','SETOR CONCLUÍDO']};
+  const title=banner.querySelector('strong'),detail=banner.querySelector('.copy span'),seal=banner.querySelector('.seal');
+  const labels={fr:['BRAVO, PILOTE !','SECTEUR ACCOMPLI'],en:['WELL DONE, PILOT!','SECTOR CLEARED'],es:['¡BIEN HECHO, PILOTO!','SECTOR COMPLETADO'],pt:['MUITO BEM, PILOTO!','SETOR CONCLUÍDO'],ja:['よくやった、パイロット！','セクター完了']};
+  /* un message différent à chaque secteur : on tire dans un sac mélangé, sans répétition */
+  const CHEERS=[
+    ['🚀',"Pilote d'élite !",'Elite pilot!','¡Piloto de élite!','Piloto de elite!','エリートパイロット！'],
+    ['🔥','Tu es en feu !',"You're on fire!",'¡Estás que ardes!','Estás em chamas!','絶好調だね！'],
+    ['🎯','Tir parfait, pilote !','Sharp shooting, pilot!','¡Puntería perfecta, piloto!','Pontaria perfeita, piloto!','見事な射撃！'],
+    ['⚡','Réflexes de légende !','Legendary reflexes!','¡Reflejos de leyenda!','Reflexos lendários!','伝説の反射神経！'],
+    ['🏆','Secteur conquis !','Sector conquered!','¡Sector conquistado!','Setor conquistado!','セクター制圧！'],
+    ['🌟','Vesta est fière de toi !','Vesta is proud of you!','¡Vesta está orgullosa de ti!','A Vesta tem orgulho de ti!','ヴェスタも誇りに思ってる！'],
+    ['👾',"Les envahisseurs n'ont rien vu venir !",'The invaders never saw it coming!','¡Los invasores no lo vieron venir!','Os invasores nem viram chegar!','侵略者もびっくり！'],
+    ['💎',"Du travail d'orfèvre !",'Flawless work!','¡Un trabajo de orfebre!','Trabalho de mestre!','職人技だ！'],
+    ['🛡️','Le Vanguard tient bon !','The Vanguard holds strong!','¡El Vanguard resiste!','O Vanguard aguenta firme!','ヴァンガードは健在！'],
+    ['🎮','Quelle partie, champion !','What a run, champ!','¡Qué partida, campeón!','Que partida, campeão!','最高のプレイだ！'],
+    ['💥','Boum ! Secteur nettoyé !','Boom! Sector cleared!','¡Bum! ¡Sector limpio!','Bum! Setor limpo!','ドカン！セクター一掃！'],
+    ['🌠','Une étoile est née !','A star is born!','¡Ha nacido una estrella!','Nasceu uma estrela!','新たなスター誕生！'],
+    ['🥇',"Digne d'une médaille d'or !",'Gold medal material!','¡Digno de medalla de oro!','Digno de medalha de ouro!','金メダル級だ！'],
+    ['🛰️','Mission accomplie, as du ciel !','Mission complete, sky ace!','¡Misión cumplida, as del cielo!','Missão cumprida, ás dos céus!','任務完了、空のエース！'],
+    ['✨','La mémoire revient grâce à toi !','Memory is coming back thanks to you!','¡La memoria vuelve gracias a ti!','A memória volta graças a ti!','君のおかげで記憶が戻る！'],
+    ['😎','Trop facile pour toi !','Too easy for you!','¡Demasiado fácil para ti!','Fácil demais para ti!','楽勝だね！']
+  ];
+  let cheerBag=[],lastCheer=-1;
+  function nextCheer(){
+    if(!cheerBag.length){cheerBag=CHEERS.map((_,i)=>i);for(let i=cheerBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cheerBag[i],cheerBag[j]]=[cheerBag[j],cheerBag[i]];}if(cheerBag[cheerBag.length-1]===lastCheer)cheerBag.unshift(cheerBag.pop());}
+    lastCheer=cheerBag.pop();return CHEERS[lastCheer];
+  }
   let hideTimer=0;
   function announceReward(r){
-    const lang=['fr','en','es','pt'].includes(LANG)?LANG:'fr',L=labels[lang];
+    const lang=['fr','en','es','pt','ja'].includes(LANG)?LANG:'fr',L=labels[lang],cheer=nextCheer();
     const cash=r&&r.credits?` +${fmt(r.credits)} COINS`:'';
     const bomb=r&&r.bomb?` · ${lang==='fr'?'BOMBE +1':lang==='en'?'BOMB +1':lang==='es'?'BOMBA +1':'BOMBA +1'}`:'';
     const score=r&&r.score?` · ${lang==='fr'?'SCORE':lang==='en'?'SCORE':lang==='es'?'PUNTOS':'PONTOS'} ${fmt(r.score)}`:'';
-    title.textContent=L[0];detail.textContent=L[1]+bomb+cash+score;
+    seal.textContent=cheer[0];title.textContent=cheer[1+['fr','en','es','pt','ja'].indexOf(lang)].toUpperCase();detail.textContent=L[1]+bomb+cash+score;
     banner.classList.remove('show');void banner.offsetWidth;banner.classList.add('show');
     clearTimeout(hideTimer);hideTimer=setTimeout(()=>banner.classList.remove('show'),3600);
   }
