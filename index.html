@@ -26173,7 +26173,7 @@ html.nvui .chips .chip{border-radius:999px}
   /* =============================================================== ÉTAT */
   function init() {
     G._nv24 = {
-      level: FINAL, stage: 'arrive', t: 0, T: 0, off: 498, offV: 0, nearV: 0, lb: 0, lbTo: 1, noFire: true,
+      level: FINAL, stage: 'approach', t: 0, T: 0, off: 498, offV: 0, nearV: 0, lb: 0, lbTo: 0, noFire: false,
       door: null, waveT: 0, waveI: 0, hole: 0, holeT: 0, alarm: 0, said: {}, flashRed: 0
     };
     G.props && (G.props.length = 0);
@@ -26397,18 +26397,39 @@ html.nvui .chips .chip{border-radius:999px}
   /* ------------------------------------------------------- vagues du couloir */
   const LANES = [.18, .34, .5, .66, .82];
   const HALL = [
-    { t: .6,  fn() { foe('tourelle', L_W * .3, -60, { ty: 120 }); foe('tourelle', L_W * .7, -140, { ty: 60 }); } },
-    { t: 2.0, fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -50 - Math.abs(i - 2) * 46, { ty: 150 + Math.abs(i - 2) * 40 }); } },
-    { t: 6.5, fn() { foe('gatling', 40, -80, { side: -1, ty: 80 }); foe('orbe', L_W * .3, -60, { ty: 210 }); foe('orbe', L_W * .7, -90, { ty: 250 }); } },
-    { t: 11,  fn() { foe('griffe', L_W * .25, -70, { ty: 140 }); foe('griffe', L_W * .75, -90, { ty: 170 }); foe('gatling', L_W - 40, -150, { side: 1, ty: 60 }); } },
-    { t: 15,  fn() { for (let i = 0; i < 4; i++) foe('dard', L_W * (.2 + i * .2), -40 - i * 60, { ty: 120 + (i % 2) * 70 }); } },
-    { t: 19,  fn() { foe('tambour', MID, -80, { ty: 200 }); foe('tourelle', L_W * .2, -70, { ty: 90 }); foe('tourelle', L_W * .8, -70, { ty: 90 }); } },
-    { t: 24,  fn() { foe('manta', MID, -120, { ty: 170, cd: 2.4 }); foe('gatling', 40, -60, { side: -1, ty: 70 }); foe('gatling', L_W - 40, -60, { side: 1, ty: 70 }); sfx('alert'); } },
-    { t: 31,  fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -60 - i * 30, { ty: 140 + i * 25 }); foe('orbe', MID, -120, { ty: 300 }); } },
-    { t: 35,  fn() { for (let i = 0; i < 3; i++) foe('dard', L_W * (.25 + i * .25), -50 - i * 50, { ty: 160 }); foe('griffe', L_W * .5, -90, { ty: 150 }); } },
-    { t: 39,  fn() { foe('tourelle', L_W * .25, -60, { ty: 100 }); foe('tourelle', L_W * .5, -120, { ty: 70 }); foe('tourelle', L_W * .75, -60, { ty: 100 }); foe('tambour', MID, -160, { ty: 260 }); } }
+    { t: 0.4,  fn() { foe('tourelle', L_W * .3, -60, { ty: 120 }); foe('tourelle', L_W * .7, -140, { ty: 60 }); } },
+    { t: 1.4, fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -50 - Math.abs(i - 2) * 46, { ty: 150 + Math.abs(i - 2) * 40 }); } },
+    { t: 4.5, fn() { foe('gatling', 40, -80, { side: -1, ty: 80 }); foe('orbe', L_W * .3, -60, { ty: 210 }); foe('orbe', L_W * .7, -90, { ty: 250 }); } },
+    { t: 7.7,  fn() { foe('griffe', L_W * .25, -70, { ty: 140 }); foe('griffe', L_W * .75, -90, { ty: 170 }); foe('gatling', L_W - 40, -150, { side: 1, ty: 60 }); } },
+    { t: 10.5,  fn() { for (let i = 0; i < 4; i++) foe('dard', L_W * (.2 + i * .2), -40 - i * 60, { ty: 120 + (i % 2) * 70 }); } },
+    { t: 13.3,  fn() { foe('tambour', MID, -80, { ty: 200 }); foe('tourelle', L_W * .2, -70, { ty: 90 }); foe('tourelle', L_W * .8, -70, { ty: 90 }); } },
+    { t: 16.8,  fn() { foe('manta', MID, -120, { ty: 170, cd: 2.4 }); foe('gatling', 40, -60, { side: -1, ty: 70 }); foe('gatling', L_W - 40, -60, { side: 1, ty: 70 }); sfx('alert'); } },
+    { t: 21.7,  fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -60 - i * 30, { ty: 140 + i * 25 }); foe('orbe', MID, -120, { ty: 300 }); } },
+    { t: 24.5,  fn() { for (let i = 0; i < 3; i++) foe('dard', L_W * (.25 + i * .25), -50 - i * 50, { ty: 160 }); foe('griffe', L_W * .5, -90, { ty: 150 }); } },
+    { t: 27.3,  fn() { foe('tourelle', L_W * .25, -60, { ty: 100 }); foe('tourelle', L_W * .5, -120, { ty: 70 }); foe('tourelle', L_W * .75, -60, { ty: 100 }); foe('tambour', MID, -160, { ty: 260 }); } }
   ];
-  const HALL_END = 43;
+  const HALL_END = 31;
+  /* les trois premiers quarts du secteur : l'approche de la base, en vol libre */
+  const APPROACH = [
+    { t: 2,  fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -50 - Math.abs(i - 2) * 46, { ty: 150 + Math.abs(i - 2) * 40 }); } },
+    { t: 7,  fn() { foe('orbe', L_W * .3, -60, { ty: 200 }); foe('orbe', L_W * .7, -90, { ty: 240 }); } },
+    { t: 11, fn() { for (let i = 0; i < 4; i++) foe('dard', L_W * (.2 + i * .2), -40 - i * 60, { ty: 130 + (i % 2) * 70 }); } },
+    { t: 15, fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -60 - i * 30, { ty: 140 + i * 25 }); foe('griffe', MID, -100, { ty: 150 }); } },
+    { t: 20, fn() { foe('tambour', MID, -80, { ty: 200 }); } },
+    { t: 25, fn() { foe('griffe', L_W * .25, -70, { ty: 140 }); foe('griffe', L_W * .75, -90, { ty: 170 }); foe('lance', L_W * .5, -150, { ty: 260 }); } },
+    { t: 30, fn() { foe('orbe', L_W * .2, -60, { ty: 190 }); foe('orbe', L_W * .5, -110, { ty: 270 }); foe('orbe', L_W * .8, -60, { ty: 190 }); } },
+    { t: 35, fn() { foe('manta', MID, -120, { ty: 170, cd: 2.4 }); sfx('alert'); } },
+    { t: 46, fn() { for (let i = 0; i < 5; i++) foe('dard', L_W * (.15 + i * .175), -40 - i * 45, { ty: 140 + (i % 2) * 60 }); } },
+    { t: 50, fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -50 - Math.abs(i - 2) * 46, { ty: 170 + Math.abs(i - 2) * 30 }); foe('orbe', MID, -140, { ty: 300 }); } },
+    { t: 55, fn() { foe('tambour', L_W * .3, -80, { ty: 190 }); foe('tambour', L_W * .7, -140, { ty: 240 }); } },
+    { t: 61, fn() { foe('griffe', L_W * .2, -70, { ty: 130 }); foe('griffe', L_W * .5, -110, { ty: 160 }); foe('griffe', L_W * .8, -70, { ty: 130 }); } },
+    { t: 66, fn() { for (let i = 0; i < 6; i++) foe('lance', i % 2 ? L_W * .85 : L_W * .15, -50 - i * 55, { ty: 150 + i * 22 }); } },
+    { t: 71, fn() { foe('orbe', L_W * .3, -60, { ty: 220 }); foe('orbe', L_W * .7, -60, { ty: 220 }); for (let i = 0; i < 3; i++) foe('dard', L_W * (.25 + i * .25), -150 - i * 40, { ty: 150 }); } },
+    { t: 77, fn() { foe('manta', MID, -120, { ty: 160, cd: 2.0, hp: 1.2 }); for (let i = 0; i < 4; i++) foe('lance', L_W * (.15 + i * .233), -220 - i * 30, { ty: 280 }); sfx('alert'); } },
+    { t: 87, fn() { foe('tambour', MID, -80, { ty: 210 }); foe('griffe', L_W * .25, -100, { ty: 150 }); foe('griffe', L_W * .75, -100, { ty: 150 }); } },
+    { t: 93, fn() { for (let i = 0; i < 6; i++) foe('dard', L_W * (.12 + i * .152), -40 - i * 40, { ty: 130 + (i % 3) * 50 }); } },
+    { t: 98, fn() { for (let i = 0; i < 7; i++) foe('lance', L_W * (.1 + i * .133), -50 - Math.abs(i - 3) * 40, { ty: 160 + Math.abs(i - 3) * 30 }); } }
+  ];
 
   /* ------------------------------------------------------------- le boss */
   const DOOR2 = { x: MID, y: 205, w: 470, hole: 88 };    /* le grand sas, au bout du couloir */
@@ -26698,6 +26719,13 @@ html.nvui .chips .chip{border-radius:999px}
   startLevel = function (level) { const r = _startLevel.apply(this, arguments); if ((G.level | 0) === FINAL) init(); else G._nv24 = null; return r; };
   const _buildPlan = buildPlan;
   buildPlan = function (level) { if ((level | 0) === FINAL) return [{ t: 9999, fn() { } }]; return _buildPlan(level); };
+  /* pas de panneaux d'écrans ni de consoles en décor dans ce secteur */
+  const _decorSpawn = decorSpawn;
+  decorSpawn = function (list, y, era, layer) {
+    const n = list.length, r = _decorSpawn.apply(this, arguments);
+    if ((G.level | 0) === FINAL && list.length > n) { const c = CHUNKS[list[list.length - 1].ci]; if (c && (c.id === 'b_ecrans' || c.id === 'b_console')) list.pop(); }
+    return r;
+  };
   const _props = updatePropSpawns;
   updatePropSpawns = function (dt) { if (G.level === FINAL) return; return _props(dt); };
   const _fire = fireWeapon;
@@ -26715,6 +26743,11 @@ html.nvui .chips .chip{border-radius:999px}
     if (v.hole) v.holeT += dt;
     if (v.stage !== 'hall') { v.offV *= Math.max(0, 1 - dt * 2); v.nearV = v.offV * 3.4; }
     switch (v.stage) {
+      case 'approach': {
+        G.phase = 'waves'; G.plan = APPROACH; v.waveT += dt; G.waveT = v.waveT;
+        while (v.waveI < APPROACH.length && APPROACH[v.waveI].t <= v.waveT) { APPROACH[v.waveI].fn(); v.waveI++; }
+        if (v.waveI >= APPROACH.length && !G.enemies.length && v.waveT > APPROACH[APPROACH.length - 1].t + 2.5) { go('arrive'); v.lbTo = 1; v.noFire = true; v.waveT = 0; v.waveI = 0; G.ebullets.length = 0; G.phase = 'nv24'; }
+        break; }
       case 'arrive': {
         autopilot(dt, L_H - 170);
         if (!v.door) v.door = makeDoor();
