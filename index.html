@@ -28680,6 +28680,11 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
    NEO-VANGUARD FM — RELOOK : mur de rayons, bacs en perspective, vitrine PC
    ============================================================================= */
 #scr-music{--fam-sector:#3fe6f2;--fam-boss:#ff5ea8;--fam-special:#ffd36c}
+/* l'écran était centré verticalement : sur téléphone, le haut (baladeur) débordait hors d'atteinte */
+#scr-music.screen{align-items:flex-start!important;justify-content:flex-start!important;display:block}
+#scr-music.screen:not(.on){display:none}
+#scr-music .nv-music-shell{margin-top:0!important}
+#scr-music .nv-walkman .nv-deck-readout{z-index:6;bottom:-2%}
 /* le magasin se voit derrière : panneaux en verre fumé */
 #scr-music .nv-music-stage{background:linear-gradient(145deg,rgba(20,18,44,.62),rgba(6,12,28,.7))!important;backdrop-filter:blur(6px)}
 #scr-music .nv-rack{background:linear-gradient(180deg,rgba(18,14,34,.55),rgba(6,10,24,.72))!important;backdrop-filter:blur(5px)}
