@@ -24999,7 +24999,7 @@ html.nvui .chips .chip{border-radius:999px}
   const oldRender=render;
   render=function(dt){
     oldRender(dt);
-    if(!ctx||!PF||!view||G.state==='title'||G.state==='warp')return;
+    if(!ctx||!PF||!view||G.state==='title'||G.state==='warp'||G.state==='story')return;   /* le récit a ses propres cadres : pas de cadre sur cadre */
     const x=PF.x,y=PF.y,w=PF.w,h=PF.h,e=R.era,t=G.t||0;
     ctx.save();
     /* Reflet subtil et assombrissement des bords : le centre de l'action reste net. */
