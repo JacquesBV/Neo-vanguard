@@ -28644,7 +28644,7 @@ function cassette(t,small=false){
 function storeCase(t){
  const safe=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
  const op=owned().includes(t.id);
- return `<div class="nv-jewel-case nv-case-img ${op?'is-open':''}" role="img" aria-label="${op?'Boîtier ouvert, cassette':'Boîtier de cassette'} Neo-Vanguard, ${safe(t.title)}"><img src="assets/music-shop/${op?'open':'cases'}/${t.id}.webp" alt="" loading="lazy" decoding="async" draggable="false"></div>`;
+ return `<div class="nv-jewel-case nv-case-img ${op?'is-open':''}" role="img" aria-label="${op?'Boîtier ouvert, cassette':'Boîtier de cassette'} Neo-Vanguard, ${safe(t.title)}"><img src="assets/music-shop/${op?'open':'cases'}/${t.id}.webp" alt="" loading="lazy" decoding="async" draggable="false">${window.nvCaseLabel?nvCaseLabel(t,op):''}</div>`;
 }
 function storeCaseSvg(t){
  const c=(labelColors[t.kind]||labelColors.special)[t.era%6],title=String(t.title||'NEO-VANGUARD'),safe=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
@@ -28658,12 +28658,12 @@ function storeCaseSvg(t){
 function visible(){return catalog.filter(t=>filter==='all'||t.kind===filter)}
 function render(){
  const list=$('nvTapeList');list.innerHTML=visible().map(t=>{const isOwned=owned().includes(t.id);return `<button type="button" class="nv-tape-card ${chosen?.id===t.id?'selected':''} ${isOwned?'owned':''}" data-music-id="${t.id}" aria-pressed="${chosen?.id===t.id}">${storeCase(t)}<span class="nv-cassette-name">${t.title}</span><span class="nv-cassette-sub"><span>${t.levels}</span><b class="nv-cassette-price ${isOwned?'owned':''}">${isOwned?'COLLECTÉ':t.price+' CR'}</b></span></button>`}).join('');
- $('nvMusicCredits').textContent='◉ '+fmt(money())+' CR'; $('nvTrackTitle').textContent=chosen?.title||'Choisis une cassette'; $('nvTrackMeta').textContent=chosen?(chosen.kind==='sector'?`SECTEURS ${chosen.levels} · MASTER ${['KFM-01','HOME SYSTEM','16-BIT CONSOLE','ARCADIA ARCADE','NOVA CD-ROM','HD AUDIO'][chosen.era]}`:chosen.kind==='boss'?`${chosen.levels} · BOSS ORIGINAL SCORE`:'ÉDITION SPÉCIALE · GAME OVER'):'31 bandes · six générations de consoles';
+ $('nvMusicCredits').textContent='◉ '+fmt(money())+' CR'; $('nvTrackTitle').textContent=chosen?.title||'Choisis une cassette'; $('nvTrackMeta').textContent=chosen?(chosen.kind==='sector'?`${(window.nvTr||(x=>x))('SECTEURS')} ${chosen.levels} · MASTER ${['KFM-01','HOME SYSTEM','16-BIT CONSOLE','ARCADIA ARCADE','NOVA CD-ROM','HD AUDIO'][chosen.era]}`:chosen.kind==='boss'?`${(window.nvTr||(x=>x))(chosen.levels)} · BOSS ORIGINAL SCORE`:'ÉDITION SPÉCIALE · GAME OVER'):'31 bandes · six générations de consoles';
  const hasCassette=chosen&&owned().includes(chosen.id);$('nvInsertedTape').innerHTML=hasCassette?cassette(chosen):'';$('nvDeckStatus').textContent=audio.paused?(hasCassette?'READY · TAPE LOADED':'READY · CASE SELECTED'):'PLAYING · STEREO';$('nvWalkman').classList.toggle('playing',!audio.paused);$('nvWalkman').closest('.nv-music-stage').classList.toggle('is-playing',!audio.paused);
- const isOwned=chosen&&owned().includes(chosen.id);$('nvBuyBtn').hidden=!chosen;$('nvBuyBtn').disabled=!!chosen&&(isOwned||money()<chosen.price);$('nvBuyBtn').textContent=isOwned?'✓ CASSETTE DÉBLOQUÉE':'◉ ACHETER · '+(chosen?.price||0)+' CR';$('nvDownloadBtn').hidden=!isOwned;$('nvDownloadBtn').href=isOwned&&chosen?'assets/music-shop/mp3/'+chosen.file:'#';$('nvDownloadBtn').download=chosen?.file||'';$('nvZoomBtn').textContent=isOwned?'⌕ VOIR LA CASSETTE EN GRAND':'⌕ VOIR LA JAQUETTE EN GRAND';
+ const isOwned=chosen&&owned().includes(chosen.id);$('nvBuyBtn').hidden=!chosen;$('nvBuyBtn').disabled=!!chosen&&(isOwned||money()<chosen.price);$('nvBuyBtn').textContent=isOwned?'✓ CASSETTE DÉBLOQUÉE':'◉ '+(window.nvTr||(x=>x))('ACHETER')+' · '+(chosen?.price||0)+' CR';$('nvDownloadBtn').hidden=!isOwned;$('nvDownloadBtn').href=isOwned&&chosen?'assets/music-shop/mp3/'+chosen.file:'#';$('nvDownloadBtn').download=chosen?.file||'';$('nvZoomBtn').textContent=isOwned?'⌕ VOIR LA CASSETTE EN GRAND':'⌕ VOIR LA JAQUETTE EN GRAND';
  $('nvPreviewBtn').textContent=audio.paused?'▶ ÉCOUTER L’APERÇU':'Ⅱ PAUSE';
 }
-function openCassetteZoom(){if(!chosen)return;const modal=$('nvCassetteZoom');const purchased=owned().includes(chosen.id);$('nvZoomArt').innerHTML=purchased?cassette(chosen,false):storeCase(chosen);$('nvZoomTitle').textContent=chosen.title;$('nvZoomMeta').textContent=`${chosen.levels} · ${chosen.kind==='boss'?'THÈME DE BOSS':chosen.kind==='sector'?'THÈME DE SECTEUR':'PISTE SPÉCIALE'} · ${purchased?'CASSETTE DANS LA COLLECTION':chosen.price+' CR'}`;modal.hidden=false;modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';playSfx('tape-click');requestAnimationFrame(()=>$('nvZoomCloseFocus').focus())}
+function openCassetteZoom(){if(!chosen)return;const modal=$('nvCassetteZoom');const purchased=owned().includes(chosen.id);$('nvZoomArt').innerHTML=purchased?cassette(chosen,false):storeCase(chosen);$('nvZoomTitle').textContent=chosen.title;{const _t=(window.nvTr||(x=>x));$('nvZoomMeta').textContent=`${chosen.kind==='sector'?_t('Secteurs')+' '+chosen.levels:_t(chosen.levels)} · ${_t(chosen.kind==='boss'?'THÈME DE BOSS':chosen.kind==='sector'?'THÈME DE SECTEUR':'PISTE SPÉCIALE')} · ${purchased?_t('CASSETTE DANS LA COLLECTION'):chosen.price+' CR'}`;}modal.hidden=false;modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';playSfx('tape-click');requestAnimationFrame(()=>$('nvZoomCloseFocus').focus())}
 function closeCassetteZoom(){const modal=$('nvCassetteZoom');if(modal.hidden)return;modal.hidden=true;modal.setAttribute('aria-hidden','true');document.body.style.overflow='';$('nvZoomBtn').focus()}
 function filterBuild(){const options=[['all','TOUTES · 31'],['sector','SECTEURS · 6'],['boss','BOSS · 24'],['special','SPÉCIALE · 1']];$('nvMusicFilters').innerHTML=options.map(([id,label])=>`<button type="button" class="nv-filter ${filter===id?'on':''}" data-music-filter="${id}">${label}</button>`).join('')}
 function beep(freq=600,dur=.055){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=beep.c||(beep.c=new C());if(c.state==='suspended')c.resume();const o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.setValueAtTime(freq,c.currentTime);g.gain.setValueAtTime(.04,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+dur)}catch{}}
@@ -28725,7 +28725,7 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 
 /* ---------- LES BACS : cassettes posées en biais ---------- */
 #scr-music .nv-rack-head h2{font-size:0}
-#scr-music .nv-rack-head h2::before{content:"LES BACS";font:900 13px/1 system-ui;letter-spacing:.18em}
+#scr-music .nv-rack-head h2::before{content:var(--nv-bacs,"LES BACS");font:900 13px/1 system-ui;letter-spacing:.18em}
 #scr-music .nv-tape-list{perspective:900px;background:none!important;gap:26px 10px!important;padding:34px 8px 10px!important;max-height:none}
 #scr-music .nv-tape-card{background:none!important;border:0!important;box-shadow:none!important;padding:0 0 4px!important;transform:none!important;overflow:visible;gap:0!important}
 #scr-music .nv-tape-card::before{content:none!important}
@@ -29119,7 +29119,7 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   const zArt = $('nvZoomArt');
   if (zArt) new MutationObserver(() => {
     const cas = zArt.querySelector('.nv-cassette');
-    if (cas) { const t0 = curTrack(); if (t0) zArt.innerHTML = `<img class="nv-zoom-open" src="assets/music-shop/open/${t0.id}.webp" alt="Boîtier ouvert : ${esc(t0.title)}">`; return; }
+    if (cas) { const t0 = curTrack(); if (t0) zArt.innerHTML = `<div class="nv-zoom-openw"><img class="nv-zoom-open" src="assets/music-shop/open/${t0.id}.webp" alt="">${window.nvCaseLabel ? nvCaseLabel(t0, true) : ''}</div>`; return; }
     const ci = zArt.querySelector('.nv-case-img'); if (!ci || zArt.querySelector('.nv-zoom-cover')) return;
     const t = curTrack(); if (!t) return;
     zArt.insertAdjacentHTML('afterbegin', `<img class="nv-zoom-cover" src="assets/music-shop/covers/${t.id}.webp" alt="Jaquette : ${esc(t.title)}">`);
@@ -29792,6 +29792,82 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
    de jeu. La puce sonore LCD interceptait « shoot » avant la garde d'origine. */
 (() => { const _s = Audio2.sfx; Audio2.sfx = function (name) { if (typeof G !== 'undefined' && G.state === 'title' && name !== 'ui') return; return _s.apply(this, arguments); }; })();
 </script>
+<style id="nv-fm-labels">
+/* ===== NEO-VANGUARD FM — noms écrits par le jeu sur les boîtiers et les cassettes =====
+   Les images ne portent plus aucun nom : le titre et la ligne secteur viennent du
+   dictionnaire du jeu (L), donc ils suivent la langue choisie comme tout le reste. */
+.nv-case-img{container-type:inline-size}
+.nv-case-lbl{position:absolute;inset:0;pointer-events:none;color:#080c18;font-family:"Poppins",system-ui,sans-serif;text-transform:uppercase}
+.nv-case-lbl b,.nv-case-lbl i{position:absolute;white-space:nowrap;overflow:hidden;font-style:normal}
+/* boîtier fermé : bandeau de couleur en bas */
+.nv-case-lbl.is-case b{left:6.4%;top:81.6%;transform:translateY(-50%);max-width:87.3%;font-weight:900;letter-spacing:.01em;line-height:1.35;
+  font-size:min(7.2cqw,calc(128cqw / var(--n,10)))}
+.nv-case-lbl.is-case i{left:6.4%;bottom:7.4%;max-width:87.3%;font-weight:600;font-size:2.4cqw;letter-spacing:.04em;line-height:1}
+/* boîte ouverte : étiquette de la cassette */
+.nv-case-lbl.is-open b{left:57.6%;bottom:60.9%;max-width:31.6%;font-weight:900;line-height:1.35;font-size:min(2.6cqw,calc(46cqw / var(--n,10)))}
+.nv-case-lbl.is-open i{left:57.6%;bottom:36.8%;max-width:23%;font-weight:600;font-size:1.12cqw;letter-spacing:.04em;line-height:1}
+#scr-music .nv-zoom-art .nv-zoom-openw{position:relative;width:min(100%,640px);margin:auto;container-type:inline-size}
+#scr-music .nv-zoom-art .nv-zoom-openw .nv-zoom-open{width:100%!important;margin:0}
+/* titre de la vue agrandie : un nom ne se coupe jamais au milieu d'un mot */
+#nvZoomTitle{overflow-wrap:normal!important;word-break:normal!important;hyphens:none}
+</style>
+<script id="nv-fm-labels-js">
+(() => {
+  /* mots de la boutique absents du dictionnaire : [en, es, pt, ja] */
+  const ADD = {
+    'VENDU': ['SOLD', 'VENDIDO', 'VENDIDO', '売約済み'],
+    'EN STOCK': ['IN STOCK', 'EN STOCK', 'EM ESTOQUE', '在庫'],
+    'ÉPUISÉ': ['SOLD OUT', 'AGOTADO', 'ESGOTADO', '完売'],
+    'SECTEURS': ['SECTORS', 'SECTORES', 'SETORES', 'セクター'],
+    'SPÉCIALE': ['SPECIAL', 'ESPECIAL', 'ESPECIAL', 'スペシャル'],
+    'Secteurs': ['Sectors', 'Sectores', 'Setores', 'セクター'],
+    'Thème spécial': ['Special theme', 'Tema especial', 'Tema especial', '特別テーマ'],
+    'HD · Combat moderne': ['HD · Modern combat', 'HD · Combate moderno', 'HD · Combate moderno', 'HD・現代戦'],
+    'LES BACS': ['THE BINS', 'LOS CAJONES', 'AS CAIXAS', '陳列棚'],
+    'LE MUR DES BANDES': ['THE TAPE WALL', 'EL MURO DE CINTAS', 'O MURO DAS FITAS', 'テープの壁'],
+    'LE STAND À CASSETTES': ['THE CASSETTE STAND', 'EL PUESTO DE CASETES', 'A BANCA DE FITAS', 'カセット売り場'],
+    'TIRAGE ORIGINAL · TAPES NUMÉROTÉES': ['ORIGINAL PRESSING · NUMBERED TAPES', 'EDICIÓN ORIGINAL · CINTAS NUMERADAS', 'TIRAGEM ORIGINAL · FITAS NUMERADAS', 'オリジナル版・ナンバー入りテープ'],
+    'CHOISIS · ÉCOUTE · COLLECTIONNE — DES BANDES ORIGINALES DU JEU EN MP3': ['PICK · LISTEN · COLLECT — THE GAME’S ORIGINAL SOUNDTRACKS IN MP3', 'ELIGE · ESCUCHA · COLECCIONA — LAS BANDAS SONORAS DEL JUEGO EN MP3', 'ESCOLHA · OUÇA · COLECIONE — AS TRILHAS ORIGINAIS DO JOGO EM MP3', '選ぶ・聴く・集める — ゲームのサントラをMP3で'],
+    'NEO-VANGUARD FM · ÉDITION ORIGINALE': ['NEO-VANGUARD FM · ORIGINAL EDITION', 'NEO-VANGUARD FM · EDICIÓN ORIGINAL', 'NEO-VANGUARD FM · EDIÇÃO ORIGINAL', 'NEO-VANGUARD FM・オリジナル版'],
+    'COLLECTÉ': ['COLLECTED', 'COLECCIONADO', 'COLECIONADO', '収集済み'],
+    'en grand': ['zoom', 'ampliar', 'ampliar', '拡大'],
+    'parcourir': ['browse', 'explorar', 'navegar', '選ぶ'],
+    'sortir': ['exit', 'salir', 'sair', '戻る'],
+    'écouter': ['listen', 'escuchar', 'ouvir', '試聴'],
+    '← RETOUR AU JEU': ['← BACK TO THE GAME', '← VOLVER AL JUEGO', '← VOLTAR AO JOGO', '← ゲームに戻る'],
+    '↓ TÉLÉCHARGER LE MP3': ['↓ DOWNLOAD THE MP3', '↓ DESCARGAR EL MP3', '↓ BAIXAR O MP3', '↓ MP3をダウンロード'],
+    '⌕ VOIR LA CASSETTE EN GRAND': ['⌕ VIEW THE CASSETTE', '⌕ VER EL CASETE EN GRANDE', '⌕ VER A FITA EM GRANDE', '⌕ カセットを拡大'],
+    '⌕ VOIR LA JAQUETTE EN GRAND': ['⌕ VIEW THE COVER', '⌕ VER LA PORTADA EN GRANDE', '⌕ VER A CAPA EM GRANDE', '⌕ ジャケットを拡大'],
+    '▶ ÉCOUTER L’APERÇU': ['▶ PLAY PREVIEW', '▶ ESCUCHAR AVANCE', '▶ OUVIR PRÉVIA', '▶ 試聴する'],
+    "▶ ÉCOUTER L'APERÇU": ['▶ PLAY PREVIEW', '▶ ESCUCHAR AVANCE', '▶ OUVIR PRÉVIA', '▶ 試聴する'],
+    'ACHETER': ['BUY', 'COMPRAR', 'COMPRAR', '購入'],
+    '✓ CASSETTE DÉBLOQUÉE': ['✓ CASSETTE UNLOCKED', '✓ CASETE DESBLOQUEADO', '✓ FITA DESBLOQUEADA', '✓ カセット解放済み'],
+    'THÈME DE BOSS': ['BOSS THEME', 'TEMA DE JEFE', 'TEMA DE CHEFE', 'ボステーマ'],
+    'THÈME DE SECTEUR': ['SECTOR THEME', 'TEMA DE SECTOR', 'TEMA DE SETOR', 'セクターテーマ'],
+    'PISTE SPÉCIALE': ['SPECIAL TRACK', 'PISTA ESPECIAL', 'FAIXA ESPECIAL', '特別トラック'],
+    'CASSETTE DANS LA COLLECTION': ['CASSETTE IN YOUR COLLECTION', 'CASETE EN TU COLECCIÓN', 'FITA NA SUA COLEÇÃO', 'コレクション入り'],
+    'ÉDITION SPÉCIALE · GAME OVER': ['SPECIAL EDITION · GAME OVER', 'EDICIÓN ESPECIAL · GAME OVER', 'EDIÇÃO ESPECIAL · GAME OVER', '特別版・GAME OVER'],
+    'Choisis une cassette': ['Pick a cassette', 'Elige un casete', 'Escolha uma fita', 'カセットを選ぼう'],
+    '31 bandes · six générations de consoles': ['31 tapes · six console generations', '31 cintas · seis generaciones de consolas', '31 fitas · seis gerações de consoles', '31本・6世代のハード'],
+    'Fermer la vue détaillée': ['Close the detailed view', 'Cerrar la vista detallada', 'Fechar a vista detalhada', '詳細表示を閉じる']
+  };
+  try { for (const k in ADD) if (!LDATA[k]) LDATA[k] = ADD[k]; LIDX = null; LCACHE.clear(); } catch (e) {}
+  const tr = window.nvTr = s => { try { return typeof L === 'function' ? L(s) : s; } catch (e) { return s; } };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  /* le titre de la vue agrandie rétrécit jusqu'à tenir sur sa largeur */
+  const zt = document.getElementById('nvZoomTitle');
+  if (zt) {
+    const fitTitle = () => { zt.style.fontSize = ''; requestAnimationFrame(() => { let f = parseFloat(getComputedStyle(zt).fontSize) || 40, n = 0; while (zt.scrollWidth > zt.clientWidth + 1 && f > 14 && n++ < 40) { f -= 2; zt.style.fontSize = f + 'px'; } }); };
+    new MutationObserver(fitTitle).observe(zt, { childList: true, characterData: true, subtree: true });
+    window.addEventListener('resize', fitTitle);
+  }
+  window.nvCaseLabel = (t, open) => {
+    if (!t) return '';
+    const title = tr(t.title), sub = t.kind === 'sector' ? tr('Secteurs') + ' ' + t.levels : t.kind === 'boss' ? tr(t.levels) : tr('Thème spécial');
+    return `<span class="nv-case-lbl ${open ? 'is-open' : 'is-case'}" aria-hidden="true" style="--n:${[...title].length}"><b>${esc(title)}</b><i>${esc(sub)}</i></span>`;
+  };
+})();
+</script>
 <style id="nv-fm-meuble">
 /* ===== NEO-VANGUARD FM — LE MEUBLE À CASSETTES (pack « FM ») ========================
    Meuble de face, 2 étages × 3 bacs à façade de verre, rangé par familles :
@@ -29808,7 +29884,12 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
 .nv-meuble .nv-mb-back{z-index:0;filter:drop-shadow(0 14px 18px rgba(0,0,0,.6))}
 .nv-meuble .nv-mb-front0{z-index:20}
 .nv-meuble .nv-mb-front1{z-index:40}
-.nv-meuble .nv-mb-vendu{position:absolute;z-index:var(--z);left:var(--x);top:var(--y);width:var(--w);height:auto;pointer-events:none;filter:drop-shadow(0 .4cqw .5cqw rgba(0,0,0,.6))}
+.nv-meuble .nv-mb-vendu{position:absolute;z-index:var(--z);left:var(--x);top:var(--y);width:var(--w);pointer-events:none;filter:drop-shadow(0 .4cqw .5cqw rgba(0,0,0,.6));container-type:inline-size}
+.nv-meuble .nv-mb-vendu img{display:block;width:100%;height:auto}
+/* écran du chevalet : le mot est écrit par le jeu, dans la langue choisie */
+.nv-meuble .nv-mb-vendu b{position:absolute;left:49.8%;top:34%;transform:translate(-50%,-50%);max-width:84%;white-space:nowrap;overflow:hidden;
+  color:#fff;font:900 min(17cqw,calc(130cqw / var(--n,5)))/1 "Poppins",system-ui,sans-serif;letter-spacing:.04em;
+  text-shadow:0 0 1.2cqw #b98cff,0 0 3cqw #4cf4ff,0 0 .4cqw #fff}
 #scr-music .nv-meuble .nv-slot.nv-tape-card{position:absolute!important;left:var(--x);top:var(--y);width:var(--w);height:var(--h);z-index:var(--z)!important;
   margin:0;padding:0!important;display:block!important;flex:none!important;max-width:none!important;min-width:0;overflow:visible!important;transform:none!important;
   background:none!important;border:0!important;box-shadow:none!important;outline:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
@@ -29853,10 +29934,10 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
   const sectors = catalog.filter(t => t.kind === 'sector'), bosses = catalog.filter(t => t.kind === 'boss'), specials = catalog.filter(t => t.kind !== 'sector' && t.kind !== 'boss');
   const CONTENT = [
     { label: 'SECTEURS', kind: 'sector', items: sectors.slice(0, 6) },
-    { label: 'BOSS 1–6', kind: 'boss', items: bosses.slice(0, 6) },
-    { label: 'BOSS 7–12', kind: 'boss', items: bosses.slice(6, 12) },
-    { label: 'BOSS 13–18', kind: 'boss', items: bosses.slice(12, 18) },
-    { label: 'BOSS 19–24', kind: 'boss', items: bosses.slice(18, 24) },
+    { label: 'BOSS', range: '1–6', kind: 'boss', items: bosses.slice(0, 6) },
+    { label: 'BOSS', range: '7–12', kind: 'boss', items: bosses.slice(6, 12) },
+    { label: 'BOSS', range: '13–18', kind: 'boss', items: bosses.slice(12, 18) },
+    { label: 'BOSS', range: '19–24', kind: 'boss', items: bosses.slice(18, 24) },
     { label: 'SPÉCIALE', kind: 'special', items: specials.slice(0, 6) }
   ];
   const pc = (v, d) => (v / d * 100).toFixed(3) + '%';
@@ -29870,6 +29951,7 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
   const A = 'assets/music-shop/meuble/';
   const layer = (cls, f) => `<img class="${cls}" src="${A}${f}" alt="" draggable="false" decoding="async">`;
   const own = () => Array.isArray(S.musicTracks) ? S.musicTracks : [];
+  const tr = window.nvTr;
   function shelve() {
     const cards = [...list.children].filter(c => c.classList && c.classList.contains('nv-tape-card'));
     if (!cards.length) return;
@@ -29879,10 +29961,10 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
     const o = own();
     BINS.forEach((b, k) => {
       const c = CONTENT[k], left = c.items.filter(t => !o.includes(t.id)).length;
-      m.insertAdjacentHTML('beforeend', `<span class="nv-bin-tag" style="--x:${pc((b.x0 + b.x1) / 2, W)};--y:${pc(ROW[b.row].ty, H)};--famc:${FAM[c.kind]}">${c.label}<i>${left ? left + ' EN STOCK' : 'ÉPUISÉ'}</i></span>`);
+      m.insertAdjacentHTML('beforeend', `<span class="nv-bin-tag" style="--x:${pc((b.x0 + b.x1) / 2, W)};--y:${pc(ROW[b.row].ty, H)};--famc:${FAM[c.kind]}">${tr(c.label)}${c.range ? ' ' + c.range : ''}<i>${left ? left + ' ' + tr('EN STOCK') : tr('ÉPUISÉ')}</i></span>`);
       if (!left) {                                   /* bac vidé : le chevalet VENDU prend la place */
-        const p = spot(b, 0, 0.5), vh = p._w * 0.62;
-        m.insertAdjacentHTML('beforeend', `<img class="nv-mb-vendu" src="${A}chevalet-vendu.webp" alt="Vendu" style="--x:${pc(p._x - p._w / 2, W)};--y:${pc(p._b - vh, H)};--w:${pc(p._w, W)};--z:${b.row ? 36 : 16}">`);
+        const p = spot(b, 0, 0.5), vh = p._w * 358 / 560;
+        m.insertAdjacentHTML('beforeend', `<span class="nv-mb-vendu" style="--x:${pc(p._x - p._w / 2, W)};--y:${pc(p._b - vh, H)};--w:${pc(p._w, W)};--z:${b.row ? 36 : 16};--n:${[...tr('VENDU')].length}"><img src="${A}chevalet-vendu.webp" alt="" draggable="false"><b>${tr('VENDU')}</b></span>`);
       }
     });
     cards.forEach(c => {
@@ -29890,7 +29972,8 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
       if (!p) { c.remove(); return; }
       c.classList.add('nv-slot');
       for (const k of ['x', 'y', 'w', 'h', 'z']) c.style.setProperty('--' + k, p[k]);
-      if (t) c.title = `${t.title} · ${t.price} CR`;
+      if (t) c.title = `${tr(t.title)} · ${t.price} CR`;
+      const h2 = document.querySelector('#scr-music .nv-rack-head h2'); if (h2) h2.style.setProperty('--nv-bacs', JSON.stringify(tr('LES BACS')));
       m.appendChild(c);
     });
     list.appendChild(m);
