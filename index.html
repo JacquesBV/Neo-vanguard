@@ -28719,13 +28719,13 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 #scr-music .nv-tape-list{perspective:900px;background:none!important;gap:26px 10px!important;padding:34px 8px 10px!important;max-height:none}
 #scr-music .nv-tape-card{background:none!important;border:0!important;box-shadow:none!important;padding:0 0 4px!important;transform:none!important;overflow:visible;gap:0!important}
 #scr-music .nv-tape-card::before{content:none!important}
-#scr-music .nv-tape-card .nv-jewel-case{position:relative;z-index:1;transform:rotateX(16deg) translateY(4px)!important;transform-origin:50% 100%;
+#scr-music .nv-tape-card .nv-jewel-case{position:relative;z-index:1;transform-style:preserve-3d;transform:rotateY(-18deg) rotateX(9deg) translateY(4px)!important;transform-origin:50% 100%;
   filter:drop-shadow(0 -2px 0 rgba(255,255,255,.06)) drop-shadow(0 6px 6px rgba(0,0,0,.5));transition:transform .26s cubic-bezier(.2,.8,.2,1),filter .26s}
 /* façade du bac devant le bas de la cassette */
 #scr-music .nv-tape-card .nv-cassette-name{display:none}
 #scr-music .nv-tape-card .nv-cassette-sub{position:relative;z-index:2;margin-top:-13%;padding:13% 8px 7px;border-radius:0 0 8px 8px;border-top:2px solid var(--famc,#4cf4ff);background:linear-gradient(180deg,rgba(10,14,28,.55),rgba(12,18,34,.97) 45%,rgba(8,12,24,.99));box-shadow:inset 0 1px rgba(255,255,255,.08)}
-#scr-music .nv-tape-card:hover .nv-jewel-case,#scr-music .nv-tape-card:focus-visible .nv-jewel-case{transform:rotateX(5deg) translateY(-14px)!important}
-#scr-music .nv-tape-card.selected .nv-jewel-case{transform:rotateX(0) translateY(-22px) scale(1.04)!important;filter:drop-shadow(0 0 14px var(--famc,#ff67b7)) drop-shadow(0 10px 10px rgba(0,0,0,.6))}
+#scr-music .nv-tape-card:hover .nv-jewel-case,#scr-music .nv-tape-card:focus-visible .nv-jewel-case{transform:rotateY(-12deg) rotateX(5deg) translateY(-14px)!important}
+#scr-music .nv-tape-card.selected .nv-jewel-case{transform:rotateY(-6deg) rotateX(0) translateY(-22px) scale(1.04)!important;filter:drop-shadow(0 0 14px var(--famc,#ff67b7)) drop-shadow(0 10px 10px rgba(0,0,0,.6))}
 
 #scr-music .nv-tape-card.owned::after{top:-6px!important;bottom:auto;right:6px;z-index:3}
 #scr-music .nv-tape-card[data-fam=sector]{--famc:var(--fam-sector)}
@@ -28804,6 +28804,17 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 #scr-music .nv-walkman .nv-insert-tape .nv-reel{transform-box:fill-box;transform-origin:center}
 #scr-music .nv-walkman.playing .nv-insert-tape .nv-reel{animation:reelSpin 1.1s linear infinite!important}
 @media(prefers-reduced-motion:reduce){.nv-spine,#scr-music .nv-tape-card .nv-jewel-case{transition:none}}
+
+/* boîtier 3D : tranche épaisse à gauche et reflet du plastique */
+#scr-music .nv-tape-card .nv-jewel-case::before{content:"";position:absolute;top:0;bottom:0;left:0;width:16px;transform-origin:left center;transform:rotateY(90deg);
+  background:linear-gradient(180deg,#2a3450,var(--famc,#4cf4ff) 12%,#1b2238 88%,#0e1426);border:1px solid rgba(200,240,255,.35);border-radius:2px}
+#scr-music .nv-tape-card .nv-jewel-case::after{content:"";position:absolute;inset:0;border-radius:4px;pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,255,255,.26) 0,rgba(255,255,255,.06) 28%,transparent 40%,transparent 72%,rgba(255,255,255,.1) 86%,transparent 100%);
+  box-shadow:inset 0 0 0 1px rgba(210,245,255,.45)}
+#scr-music .nv-tape-list{perspective:700px!important;perspective-origin:30% 20%!important}
+#scr-music .nv-tape-card{transform-style:preserve-3d!important}
+#scr-music .nv-tape-card .nv-cassette-sub{transform:translateZ(26px) scale(.965)}
+#scr-music .nv-tape-card .nv-jewel-case::before{transform:rotateY(-90deg);left:-16px;transform-origin:right center}
 </style>
 <script id="nv-fm-relook-js">
 (() => {
