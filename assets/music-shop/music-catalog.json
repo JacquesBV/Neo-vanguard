@@ -1,0 +1,305 @@
+[
+  {
+    "id": "sector-01",
+    "kind": "sector",
+    "title": "KFM-01 · Pocket 8-bit",
+    "levels": "1–4",
+    "file": "sector-01-kfm01.mp3",
+    "price": 160,
+    "era": 0
+  },
+  {
+    "id": "sector-02",
+    "kind": "sector",
+    "title": "Home System · 8-BIT+",
+    "levels": "5–8",
+    "file": "sector-02-home-system.mp3",
+    "price": 195,
+    "era": 1
+  },
+  {
+    "id": "sector-03",
+    "kind": "sector",
+    "title": "16-BIT · Console",
+    "levels": "9–12",
+    "file": "sector-03-16bit-console.mp3",
+    "price": 230,
+    "era": 2
+  },
+  {
+    "id": "sector-04",
+    "kind": "sector",
+    "title": "ARCADIA · Arcade 16-BIT",
+    "levels": "13–16",
+    "file": "sector-04-arcadia.mp3",
+    "price": 265,
+    "era": 3
+  },
+  {
+    "id": "sector-05",
+    "kind": "sector",
+    "title": "NOVA CD · 32-BIT",
+    "levels": "17–20",
+    "file": "sector-05-nova-cd.mp3",
+    "price": 300,
+    "era": 4
+  },
+  {
+    "id": "sector-06",
+    "kind": "sector",
+    "title": "HD · Combat moderne",
+    "levels": "21–24",
+    "file": "sector-06-hd.mp3",
+    "price": 335,
+    "era": 5
+  },
+  {
+    "id": "boss-01",
+    "kind": "boss",
+    "title": "GARDIEN DU SILO",
+    "levels": "Secteur 1",
+    "file": "boss-01-gardien-du-silo.mp3",
+    "price": 90,
+    "era": 0,
+    "boss_index": 0
+  },
+  {
+    "id": "boss-02",
+    "kind": "boss",
+    "title": "BASTION-4",
+    "levels": "Secteur 2",
+    "file": "boss-02-bastion-4.mp3",
+    "price": 90,
+    "era": 0,
+    "boss_index": 1
+  },
+  {
+    "id": "boss-03",
+    "kind": "boss",
+    "title": "SENTINELLE-2",
+    "levels": "Secteur 3",
+    "file": "boss-03-sentinelle-2.mp3",
+    "price": 90,
+    "era": 0,
+    "boss_index": 2
+  },
+  {
+    "id": "boss-04",
+    "kind": "boss",
+    "title": "GOLIATH-PRIME",
+    "levels": "Secteur 4",
+    "file": "boss-04-goliath-prime.mp3",
+    "price": 90,
+    "era": 0,
+    "boss_index": 3
+  },
+  {
+    "id": "boss-05",
+    "kind": "boss",
+    "title": "CONTREMAÎTRE",
+    "levels": "Secteur 5",
+    "file": "boss-05-contremaitre.mp3",
+    "price": 115,
+    "era": 1,
+    "boss_index": 4
+  },
+  {
+    "id": "boss-06",
+    "kind": "boss",
+    "title": "LOCOMOTIVE-9",
+    "levels": "Secteur 6",
+    "file": "boss-06-locomotive-9.mp3",
+    "price": 115,
+    "era": 1,
+    "boss_index": 5
+  },
+  {
+    "id": "boss-07",
+    "kind": "boss",
+    "title": "RÉGISSEUR",
+    "levels": "Secteur 7",
+    "file": "boss-07-regisseur.mp3",
+    "price": 115,
+    "era": 1,
+    "boss_index": 6
+  },
+  {
+    "id": "boss-08",
+    "kind": "boss",
+    "title": "WARDEN-7",
+    "levels": "Secteur 8",
+    "file": "boss-08-warden-7.mp3",
+    "price": 115,
+    "era": 1,
+    "boss_index": 7
+  },
+  {
+    "id": "boss-09",
+    "kind": "boss",
+    "title": "MATRIARCHE",
+    "levels": "Secteur 9",
+    "file": "boss-09-matriarche.mp3",
+    "price": 140,
+    "era": 2,
+    "boss_index": 8
+  },
+  {
+    "id": "boss-10",
+    "kind": "boss",
+    "title": "ROI DES DOCKS",
+    "levels": "Secteur 10",
+    "file": "boss-10-roi-des-docks.mp3",
+    "price": 140,
+    "era": 2,
+    "boss_index": 9
+  },
+  {
+    "id": "boss-11",
+    "kind": "boss",
+    "title": "NÉON-PRÊTRE",
+    "levels": "Secteur 11",
+    "file": "boss-11-neon-pretre.mp3",
+    "price": 140,
+    "era": 2,
+    "boss_index": 10
+  },
+  {
+    "id": "boss-12",
+    "kind": "boss",
+    "title": "HYDRA-NEXUS",
+    "levels": "Secteur 12",
+    "file": "boss-12-hydra-nexus.mp3",
+    "price": 140,
+    "era": 2,
+    "boss_index": 11
+  },
+  {
+    "id": "boss-13",
+    "kind": "boss",
+    "title": "CROUPIER",
+    "levels": "Secteur 13",
+    "file": "boss-13-croupier.mp3",
+    "price": 165,
+    "era": 3,
+    "boss_index": 12
+  },
+  {
+    "id": "boss-14",
+    "kind": "boss",
+    "title": "FLIPPER",
+    "levels": "Secteur 14",
+    "file": "boss-14-flipper.mp3",
+    "price": 165,
+    "era": 3,
+    "boss_index": 13
+  },
+  {
+    "id": "boss-15",
+    "kind": "boss",
+    "title": "BANQUIER",
+    "levels": "Secteur 15",
+    "file": "boss-15-banquier.mp3",
+    "price": 165,
+    "era": 3,
+    "boss_index": 14
+  },
+  {
+    "id": "boss-16",
+    "kind": "boss",
+    "title": "ROI-MONNAYEUR",
+    "levels": "Secteur 16",
+    "file": "boss-16-roi-monnayeur.mp3",
+    "price": 165,
+    "era": 3,
+    "boss_index": 15
+  },
+  {
+    "id": "boss-17",
+    "kind": "boss",
+    "title": "ARCHIVISTE",
+    "levels": "Secteur 17",
+    "file": "boss-17-archiviste.mp3",
+    "price": 190,
+    "era": 4,
+    "boss_index": 16
+  },
+  {
+    "id": "boss-18",
+    "kind": "boss",
+    "title": "COMPILATEUR",
+    "levels": "Secteur 18",
+    "file": "boss-18-compilateur.mp3",
+    "price": 190,
+    "era": 4,
+    "boss_index": 17
+  },
+  {
+    "id": "boss-19",
+    "kind": "boss",
+    "title": "TESSELLATEUR",
+    "levels": "Secteur 19",
+    "file": "boss-19-tessellateur.mp3",
+    "price": 190,
+    "era": 4,
+    "boss_index": 18
+  },
+  {
+    "id": "boss-20",
+    "kind": "boss",
+    "title": "ARCHIVE-ZÉRO",
+    "levels": "Secteur 20",
+    "file": "boss-20-archive-zero.mp3",
+    "price": 190,
+    "era": 4,
+    "boss_index": 19
+  },
+  {
+    "id": "boss-21",
+    "kind": "boss",
+    "title": "HÉRAUT",
+    "levels": "Secteur 21",
+    "file": "boss-21-heraut.mp3",
+    "price": 215,
+    "era": 5,
+    "boss_index": 20
+  },
+  {
+    "id": "boss-22",
+    "kind": "boss",
+    "title": "RAYTRACEUR",
+    "levels": "Secteur 22",
+    "file": "boss-22-raytraceur.mp3",
+    "price": 215,
+    "era": 5,
+    "boss_index": 21
+  },
+  {
+    "id": "boss-23",
+    "kind": "boss",
+    "title": "OMEGA-VECTOR",
+    "levels": "Secteur 23",
+    "file": "boss-23-omega-vector.mp3",
+    "price": 215,
+    "era": 5,
+    "boss_index": 22
+  },
+  {
+    "id": "boss-24",
+    "kind": "boss",
+    "title": "VORAX",
+    "levels": "Secteur 24",
+    "file": "boss-24-vorax.mp3",
+    "price": 215,
+    "era": 5,
+    "boss_index": 23
+  },
+  {
+    "id": "game-over",
+    "kind": "special",
+    "title": "CONTINUE · GAME OVER",
+    "levels": "Thème spécial",
+    "file": "game-over-credits.mp3",
+    "price": 80,
+    "era": 5
+  }
+]
