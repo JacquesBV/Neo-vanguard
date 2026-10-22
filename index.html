@@ -4130,7 +4130,12 @@ function ditherPattern() {
 }
 function drawBackdrop() {
   const W = view.w, H = view.h;
-  if (R.era === 0) { ctx.fillStyle = TH.bg; ctx.fillRect(0, 0, W, H); }
+  /* téléphone, secteurs FanBoy : tout ce qui entoure l'écran est la coque grise de la console */
+  if (R.era === 0 && G.eraIdx === 0 && IS_TOUCH && G.state !== 'story' && G.state !== 'title') {
+    const gr = ctx.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#d2cec6'); gr.addColorStop(1, '#bfbbb2');
+    ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+  }
+  else if (R.era === 0) { ctx.fillStyle = TH.bg; ctx.fillRect(0, 0, W, H); }
   else {
     const gr = ctx.createLinearGradient(0, 0, 0, H);
     gr.addColorStop(0, TH.bg); gr.addColorStop(0.55, TH.bg2); gr.addColorStop(1, TH.bg);
@@ -4178,6 +4183,28 @@ function drawBackdrop() {
    téléviseur beige du Home System, la coque anthracite à barres de la Super 16, la
    borne d'arcade et son monnayeur, la console CD et sa trappe, l'écran plat.
    Tout est peint dans la marge : le jeu ne perd pas un pixel.                 */
+/* FanBoy : voyant rouge sur le côté gauche de la vitre, logo « FANBOY » sur la coque
+   sous l'écran (capitales grasses en italique, bleu marine, comme l'inscription d'origine),
+   aussi grand que la place sous l'écran le permet. */
+function nvFanboyMarks(p, band) {
+  const tpad = (typeof IS_TOUCH !== 'undefined' && IS_TOUCH) ? 64 : 0;
+  const on = .8 + .2 * Math.sin(performance.now() / 650);
+  ctx.save();
+  ctx.fillStyle = `rgba(214,38,52,${on})`; ctx.shadowColor = '#ff3040'; ctx.shadowBlur = 5;
+  ctx.beginPath(); ctx.arc(PF.x - p * 0.5, PF.y + PF.h * 0.28, Math.max(1.8, Math.min(4, p * 0.32)), 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+  const top = PF.y + PF.h + p, below = (typeof IS_TOUCH !== 'undefined' && IS_TOUCH) ? view.h - tpad - top : (band || 0);   /* sur PC le logo reste dans la bande de coque */
+  if (below >= 11) {
+    let fs = Math.max(9, Math.min(26, below * 0.5));
+    const font = n => `italic 900 ${n}px "Futura","Century Gothic","Avenir Next","Trebuchet MS","Arial Black",Arial,sans-serif`;
+    ctx.font = font(fs);
+    while (ctx.measureText('FANBOY').width > PF.w * 0.45 && fs > 8) { fs -= 1; ctx.font = font(fs); }
+    ctx.fillStyle = '#272c74'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    if ('letterSpacing' in ctx) ctx.letterSpacing = (fs * 0.04).toFixed(1) + 'px';
+    ctx.fillText('FANBOY', PF.x + PF.w * 0.04, top + Math.min(below, fs * 2.4) * 0.5);
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+  }
+  ctx.restore();
+}
 function drawMachineFrame() {
   /* Le récit est une page cinéma plein écran : ne pas lui superposer la coque
      verticale du terrain, qui créait un grand cadre décalé autour du texte. */
@@ -4188,6 +4215,7 @@ function drawMachineFrame() {
   const acc = TH.acc, acc2 = TH.acc2;
   ctx.save();
   ctx.globalAlpha = 1;
+  if (!room && sec === 0 && IS_TOUCH) { ctx.fillStyle = '#545869'; ctx.fillRect(PF.x - 3, PF.y - 3, PF.w + 6, PF.h + 6); nvFanboyMarks(3); ctx.restore(); return; }
   if (!room) {                               /* écran plein : liseré discret */
     ctx.strokeStyle = e === 0 ? TH.livery.gb[3] : acc;
     ctx.globalAlpha = e === 0 ? 1 : 0.8;
@@ -4211,7 +4239,7 @@ function drawMachineFrame() {
   };
   /* la coque */
   const skin = [
-    ['#c8c4b4', '#8e8a7c'],                 /* Pocket : gris olive           */
+    ['#cdc9c1', '#b6b2a9'],                 /* FanBoy : gris chaud de la coque d'origine */
     ['#cfc7b0', '#8d8672'],                 /* Home System : beige de téléviseur */
     ['#3a3a42', '#1c1c22'],                 /* Super 16 : anthracite         */
     ['#131110', '#020202'],                 /* borne d'arcade : noir brillant */
@@ -4222,22 +4250,26 @@ function drawMachineFrame() {
   gr.addColorStop(0, skin[0]); gr.addColorStop(0.5, skin[1]); gr.addColorStop(1, skin[0]);
   ctx.fillStyle = gr; path(); ctx.fill();
   FRAME_SKIN = skin[1];
-  /* la visière : le verre par-dessus */
-  ctx.fillStyle = 'rgba(0,0,0,.55)';
-  ctx.fillRect(PF.x - 3, PF.y - 3, PF.w + 6, PF.h + 6);
+  /* la visière : le verre par-dessus (FanBoy : vraie vitre gris ardoise, coin bas droit arrondi) */
+  if (sec === 0) {
+    const p = Math.max(3, Math.round(B * 0.3)), lx = PF.x - p, ly = PF.y - p, lw = PF.w + p * 2, lh = PF.h + p * 2, rs = Math.max(3, p * 0.7), rb = Math.max(6, B * 1.1);
+    ctx.fillStyle = '#545869';
+    ctx.beginPath();
+    ctx.moveTo(lx + rs, ly); ctx.lineTo(lx + lw - rs, ly); ctx.quadraticCurveTo(lx + lw, ly, lx + lw, ly + rs);
+    ctx.lineTo(lx + lw, ly + lh - rb); ctx.quadraticCurveTo(lx + lw, ly + lh, lx + lw - rb, ly + lh);
+    ctx.lineTo(lx + rs, ly + lh); ctx.quadraticCurveTo(lx, ly + lh, lx, ly + lh - rs);
+    ctx.lineTo(lx, ly + rs); ctx.quadraticCurveTo(lx, ly, lx + rs, ly); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(PF.x - 1, PF.y - 1, PF.w + 2, PF.h + 2);
+  } else {
+    ctx.fillStyle = 'rgba(0,0,0,.55)';
+    ctx.fillRect(PF.x - 3, PF.y - 3, PF.w + 6, PF.h + 6);
+  }
   /* détails selon la machine */
   ctx.globalAlpha = 0.9;
-  if (sec === 0) {                          /* Pocket : sérigraphie + LED     */
-    ctx.fillStyle = '#4a4636';
-    ctx.fillRect(x0 + 10, y0 + h0 - B * 0.72, w0 - 20, Math.max(1, B * 0.10));
-    ctx.fillStyle = '#d03030';
-    ctx.beginPath(); ctx.arc(x0 + 16, y0 + h0 - B * 0.34, Math.max(2.5, B * 0.16), 0, TAU); ctx.fill();
-    if (det) {
-      ctx.save(); ctx.globalAlpha = 0.92; ctx.imageSmoothingEnabled = false;
-      /* Marque FANBOY en lettrage bitmap compact, clin d'œil au logo portable 8-bit. */
-      pixText(ctx, 'FANBOY', x0 + 30, y0 + h0 - B * 0.43, '#1a2418', Math.max(1, Math.round(B / 18)), { sp: 1 });
-      ctx.restore();
-    }
+  if (sec === 0) {                          /* FanBoy : voyant + logo sur la coque */
+    ctx.globalAlpha = 1;
+    nvFanboyMarks(Math.max(3, Math.round(B * 0.3)), B - Math.max(3, Math.round(B * 0.3)));
   } else if (sec === 1) {                   /* Home System : téléviseur + aérations */
     ctx.fillStyle = 'rgba(0,0,0,.30)';
     for (let i = 0; i < 6; i++) ctx.fillRect(x0 + 12 + i * 9, y0 + h0 - B * 0.55, 5, B * 0.28);
