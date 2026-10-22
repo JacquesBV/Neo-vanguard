@@ -31124,8 +31124,9 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
 (() => {
   const SRC = 'assets/media/carte-progression-secteurs.png', LIT = 'assets/media/carte-progression-circuit.webp', SEG = 'assets/media/carte-progression-segments.png';
   const IW = 1024, IH = 1536;
-  /* balises relevées sur l'image : [0] = départ, puis secteurs 1 à 24 */
-  const NODES = [[515, 83], [547, 184], [665, 205], [730, 282], [612, 363], [454, 360], [352, 416], [438, 502], [586, 516], [702, 576], [598, 663], [443, 665], [336, 726], [446, 796], [589, 806], [690, 866], [630, 950], [474, 953], [368, 1013], [442, 1087], [584, 1102], [696, 1162], [579, 1258], [410, 1279], [508, 1442]];
+  /* balises relevées sur l'image, de haut en bas. Le parcours MONTE : départ sur la
+     grosse balise du bas, secteur 24 (VORAX) sur celle du haut — comme le vaisseau */
+  const NODES = [[515, 83], [547, 184], [665, 205], [730, 282], [612, 363], [454, 360], [352, 416], [438, 502], [586, 516], [702, 576], [598, 663], [443, 665], [336, 726], [446, 796], [589, 806], [690, 866], [630, 950], [474, 953], [368, 1013], [442, 1087], [584, 1102], [696, 1162], [579, 1258], [410, 1279], [508, 1442]].reverse();   /* [0] = départ (bas), puis secteurs 1 à 24 */
   const load = s => { const im = new Image(); im.decoding = 'async'; im.src = s; return im; };
   const base = load(SRC), lit = load(LIT), seg = load(SEG);
   /* secteurs franchis : retenus au moment où l'on passe au secteur suivant */
@@ -31146,7 +31147,7 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
       }
       litCv = litCv || document.createElement('canvas'); litCv.width = IW; litCv.height = IH;
       const lg = litCv.getContext('2d'), out = lg.createImageData(IW, IH), o = out.data, s = litPx.data;
-      for (let i = 0; i < o.length; i += 4) { const k = segPx[i]; if (k && k <= c) { o[i] = s[i]; o[i + 1] = s[i + 1]; o[i + 2] = s[i + 2]; o[i + 3] = s[i + 3]; } }
+      for (let i = 0; i < o.length; i += 4) { const k = segPx[i]; if (k && k >= 25 - c) {   /* tronçons numérotés depuis le haut : on allume par le bas */ o[i] = s[i]; o[i + 1] = s[i + 1]; o[i + 2] = s[i + 2]; o[i + 3] = s[i + 3]; } }
       lg.putImageData(out, 0, 0); litFor = c;
     } catch (e) { return null; }
     return litCv;
