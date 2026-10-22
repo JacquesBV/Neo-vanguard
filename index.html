@@ -2258,7 +2258,7 @@ function defaultSave() {
     sel:   { ship: 'falcon', weapon: 'pulse', livery: 'squadron', trail: 'pixel', aura: 'none', bulletSkin: 'stock' },
     materials: { scrap: 0, crystal: 0, circuit: 0 },
      opts:  { music: 50, sfx: 70, audioMode: 'stereo', audioGainDb: 0, audioDynamics: 'normal', audioSpace: 100, audioLatency: 'balanced', machineProfile: 'auto', glowIntensity: 145, glowRadius: 125, glowManual: 0, shake: 100, crt: 'auto', crtMask: 'auto', shaderPreset: 'system', crtScan: 12, crtMaskStrength: 5, crtVignette: 0, colorFilter: 'none', videoStandard: 'auto', scanlineMode: 'classic', outlineStrength: 140, shaderSmooth: false, smooth: false, diff: 1, gpu: 'auto',
-             mouse: false, autofire: false, fps: false, preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1, liftPause: false,
+             mouse: false, autofire: false, fps: false, preview: 0, speech: 1, ost: 1, twoP: 0, lang: '', ghost: 1, liftPause: false, lcdCalm: true,
              resolution: 'auto', frameRate: 'auto', graphics: 'auto', optTab: 'display' },
     cheats: { found: {}, on: {}, startLevel: 1 },
     perk: {},  /* bonus du marchand, également sauvegardés dans nv_perk */
@@ -10335,6 +10335,7 @@ function buildOptions() {
   section('display', 'Affichage et performances', 'Rendu, fluidité et effets visuels');
   slider('shake', 'Secousses', 'Intensité du screen-shake', 0, 150, v => v + '%');
   sw('fps', 'Compteur FPS', 'Affiche les performances et le nombre de particules');
+  sw('lcdCalm', 'Décor LCD apaisé', 'Secteurs 1 à 4 : fond en aplats sombres, le ton clair réservé à l’action');
   sw('smooth', 'Lissage HD', 'Adoucit les pixels en secteur HD');
   const d2 = add(`<div><label>Scanlines CRT<span class="hint">Filtre sur le rendu HD uniquement</span></label></div>
     <div class="ctl"><div class="seg"></div></div>`);
@@ -28655,6 +28656,92 @@ audio.addEventListener('play',render);audio.addEventListener('ended',()=>{audio.
 $('nvBuyBtn').addEventListener('click',()=>{if(!chosen||owned().includes(chosen.id))return;if(money()<chosen.price){toast('Pas assez de crédits');beep(180,.12);return}S.credits=money()-chosen.price;owned().push(chosen.id);saveGame();render();refreshUI();playSfx('credit-chime');toast('Cassette débloquée — MP3 prêt à télécharger')});
 window.addEventListener('keydown',e=>{if(G.state==='music'&&e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();if(!$('nvCassetteZoom').hidden)closeCassetteZoom();else closeMusicShop()}},true);
 const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.innerHTML=Array.from({length:36},(_,i)=>`<i style="height:${9+(i*17%25)}px"></i>`).join('');
+})();
+</script>
+<script id="nv-lcd-calm">
+(() => {
+  /* ===== SECTEURS 1-4 (LCD) — décor apaisé =====================================
+     Le décor était couvert de damiers et de grilles de points : l'œil ne trouvait
+     aucune zone de repos et le vaisseau, les tirs et les ennemis s'y perdaient.
+     Ici, avant que les acteurs soient dessinés :
+       · le sol lointain est lissé en aplats dans les DEUX tons les plus sombres ;
+       · les structures (murs, conduites, plateformes) sont lissées et plafonnées au
+         ton moyen : elles gardent leurs formes et leurs arêtes ;
+       · le ton le plus clair est réservé au vaisseau, aux ennemis, aux tirs, aux bonus.
+     Le tramage subsiste seulement en lisière, là où deux tons se rencontrent.      */
+  const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
+  let snap = null, cacheKey = '', PAL = null, LUM = null;
+  function palette() {
+    const gb = (TH.livery && TH.livery.gb) || GB4, key = gb.join();
+    if (key !== cacheKey) { cacheKey = key; PAL = gb.map(hex); LUM = PAL.map(p => p[0] * .3 + p[1] * .59 + p[2] * .11); }
+  }
+  function toneOf(D, i) {
+    const L = D[i] * .3 + D[i + 1] * .59 + D[i + 2] * .11;
+    let b = 0, bd = 1e9;
+    for (let k = 0; k < 4; k++) { const d = Math.abs(L - LUM[k]); if (d < bd) { bd = d; b = k; } }
+    return b;
+  }
+  /* moyenne 3×3 des tons (centre compté double) : un damier devient un aplat,
+     une ligne d'un pixel s'adoucit au lieu de clignoter                         */
+  function smooth(T, W, H, x, y) {
+    let s = T[y * W + x] * 2, n = 2;
+    for (let dy = -1; dy <= 1; dy++) {
+      const yy = y + dy; if (yy < 0 || yy >= H) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const xx = x + dx; if (xx < 0 || xx >= W) continue;
+        s += T[yy * W + xx]; n++;
+      }
+    }
+    return s / n;
+  }
+  function pass(buf, mask, mapper) {
+    const W = buf.c.width, H = buf.c.height;
+    let img; try { img = buf.g.getImageData(0, 0, W, H); } catch (e) { return null; }
+    const D = img.data, T = new Uint8Array(W * H);
+    for (let i = 0, p = 0; p < W * H; i += 4, p++) T[p] = D[i + 3] ? toneOf(D, i) : 0;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const p = y * W + x; if (mask && !mask[p]) continue;
+      const i = p * 4; if (!D[i + 3]) continue;
+      const c = PAL[mapper(smooth(T, W, H, x, y), x, y)];
+      D[i] = c[0]; D[i + 1] = c[1]; D[i + 2] = c[2];
+    }
+    buf.g.putImageData(img, 0, 0);
+    return img;
+  }
+  const on = () => (R.era | 0) === 0 && S.opts.lcdCalm !== false;
+  /* moyenne des tons sur un carré 2×2 (image intégrale) : un damier donne
+     exactement 0,5 partout, donc un aplat stable qui ne scintille pas      */
+  function calm(buf) {
+    const W = buf.c.width, H = buf.c.height;
+    let img; try { img = buf.g.getImageData(0, 0, W, H); } catch (e) { return; }
+    const D = img.data, I = new Float32Array((W + 1) * (H + 1));
+    for (let y = 0; y < H; y++) {
+      let row = 0;
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        row += D[i + 3] ? toneOf(D, i) : 0;
+        I[(y + 1) * (W + 1) + x + 1] = I[y * (W + 1) + x + 1] + row;
+      }
+    }
+    const box = (x0, y0, x1, y1) => I[y1 * (W + 1) + x1] - I[y0 * (W + 1) + x1] - I[y1 * (W + 1) + x0] + I[y0 * (W + 1) + x0];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4; if (!D[i + 3]) continue;
+      const x0 = x, y0 = y, x1 = Math.min(W, x + 2), y1 = Math.min(H, y + 2);   /* carré 2×2 : arêtes nettes */
+      const a = box(x0, y0, x1, y1) / ((x1 - x0) * (y1 - y0));
+      const t0 = toneOf(D, i);
+      /* les arêtes franches (ton propre du pixel ≥ 2 sur fond sombre) gardent un relief */
+      const t = a < 0.3 ? 0 : a < 1.3 ? (t0 >= 2 && a > 0.75 ? 2 : 1) : 2;
+      const c = PAL[t]; D[i] = c[0]; D[i + 1] = c[1]; D[i + 2] = c[2];
+    }
+    buf.g.putImageData(img, 0, 0);
+  }
+  const prevTerrain = drawTerrain;
+  drawTerrain = function (layer) {
+    const r = prevTerrain.apply(this, arguments);
+    if (on() && layer === R.bufNear && layer && layer.g) { palette(); calm(layer); }
+    return r;
+  };
 })();
 </script>
 <script id="nv-ship-sheets">
