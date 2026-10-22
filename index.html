@@ -20643,7 +20643,7 @@ function hudOvRun(key, fn, args) {
 
 /* =============================================================================
    SAUVEGARDE DE CAMPAGNE + EXPORT / IMPORT
-   - Un point de reprise (S.camp) est écrit à chaque secteur terminé, pour la
+   - Un point de reprise (S.camp) est écrit dès le début du secteur 1 puis à chaque secteur, pour la
      campagne solo normale (ni défi du jour, ni 2 joueurs, ni en ligne, ni cheat).
    - Le titre propose « Continuer la campagne » tant qu'il existe.
    - Options > Sauvegarde : exporter la partie dans un fichier, la réimporter,
@@ -20678,9 +20678,10 @@ function svt(k, a, b) {
   return t;
 }
 function campEligible() {
-  return !anyCheat() && !G.twoP && !G.daily && !(typeof NET !== 'undefined' && NET.role !== 'off') && !G.netOnline;
+  /* les codes de triche n'empêchent plus le point de reprise (seuls les records restent protégés) */
+  return !G.twoP && !G.daily && !(typeof NET !== 'undefined' && NET.role !== 'off') && !G.netOnline;
 }
-function campValid(c) { return c && typeof c === 'object' && (c.level | 0) >= 2 && (c.level | 0) <= MAX_LEVEL; }
+function campValid(c) { return c && typeof c === 'object' && (c.level | 0) >= 1 && (c.level | 0) <= MAX_LEVEL; }
 function continueCampaign() {
   if (!campValid(S.camp)) { toast(svt('none')); return; }
   G.twoP = false; G.daily = false; dailySeedOff();
@@ -20780,7 +20781,7 @@ function importSave(file) {
 function campAutoSave(level, score) {
   if (!campEligible()) return;
   level = level | 0;
-  if (level < 2 || level > MAX_LEVEL) return;
+  if (level < 1 || level > MAX_LEVEL) return;
   /* ne jamais reculer un point de reprise plus loin dans la même partie */
   if (S.camp && S.camp.run === S.runs && (S.camp.level | 0) > level) return;
   S.camp = { level, score: Math.max(0, score | 0), diff: S.opts.diff, ts: Date.now(), run: S.runs };
