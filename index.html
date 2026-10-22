@@ -28639,7 +28639,8 @@ function cassette(t,small=false){
 }
 function storeCase(t){
  const safe=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
- return `<div class="nv-jewel-case nv-case-img" role="img" aria-label="Boîtier de cassette Neo-Vanguard, ${safe(t.title)}"><img src="assets/music-shop/cases/${t.id}.webp" alt="" loading="lazy" decoding="async" draggable="false"></div>`;
+ const op=owned().includes(t.id);
+ return `<div class="nv-jewel-case nv-case-img ${op?'is-open':''}" role="img" aria-label="${op?'Boîtier ouvert, cassette':'Boîtier de cassette'} Neo-Vanguard, ${safe(t.title)}"><img src="assets/music-shop/${op?'open':'cases'}/${t.id}.webp" alt="" loading="lazy" decoding="async" draggable="false"></div>`;
 }
 function storeCaseSvg(t){
  const c=(labelColors[t.kind]||labelColors.special)[t.era%6],title=String(t.title||'NEO-VANGUARD'),safe=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
@@ -28875,14 +28876,14 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 #scr-music .nv-music-stage.is-playing .nv-eq i{animation:none!important;transition:height .06s linear}
 
 /* ===== BOÎTIERS PHOTO (jaquettes du pack) ===== */
-#scr-music .nv-tape-card .nv-case-img{position:relative;display:block;width:100%;aspect-ratio:340/511;transform:rotate(-1.5deg) translateY(2px)!important;transform-origin:50% 100%;filter:drop-shadow(0 10px 10px rgba(0,0,0,.55))!important;transition:transform .3s cubic-bezier(.2,.8,.2,1),filter .3s!important}
+#scr-music .nv-tape-card .nv-case-img{position:relative;display:block;width:100%;aspect-ratio:auto;transform:rotate(-1.5deg) translateY(2px)!important;transform-origin:50% 100%;filter:drop-shadow(0 10px 10px rgba(0,0,0,.55))!important;transition:transform .3s cubic-bezier(.2,.8,.2,1),filter .3s!important}
 #scr-music .nv-tape-card .nv-case-img img{display:block;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none}
 #scr-music .nv-tape-card:nth-child(3n+2) .nv-case-img{transform:rotate(1deg) translateY(4px)!important}
 #scr-music .nv-tape-card:nth-child(3n) .nv-case-img{transform:rotate(-.5deg) translateY(1px)!important}
 #scr-music .nv-tape-card:hover .nv-case-img,#scr-music .nv-tape-card:focus-visible .nv-case-img{transform:rotate(0) translateY(-10px) scale(1.04)!important;filter:drop-shadow(0 16px 14px rgba(0,0,0,.6)) drop-shadow(0 0 10px var(--famc,#4cf4ff))!important}
 #scr-music .nv-tape-card.selected .nv-case-img{transform:rotate(0) translateY(-16px) scale(1.07)!important;filter:drop-shadow(0 18px 16px rgba(0,0,0,.65)) drop-shadow(0 0 16px var(--famc,#ff67b7))!important}
 #scr-music .nv-tape-card .nv-case-img::after{content:none!important}
-#scr-music .nv-tape-list{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))!important}
+#scr-music .nv-tape-list{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;align-items:end}
 /* vue agrandie : jaquette + boîtier */
 #scr-music .nv-zoom-art:has(.nv-zoom-cover){display:flex;align-items:center;justify-content:center;gap:4%}
 #scr-music .nv-zoom-art .nv-zoom-cover{width:52%;max-width:340px;aspect-ratio:2/3;object-fit:cover;border-radius:6px;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 18px 40px rgba(0,0,0,.6)}
@@ -28898,6 +28899,17 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   var(--art) 50% 0/auto 142% no-repeat,#10162a}
 .nv-spine.nv-spine-art span{color:#fff;text-shadow:0 0 3px #000,0 1px 2px #000,0 0 6px rgba(0,0,0,.9)}
 .nv-spine.nv-spine-art b{color:#071019}
+
+#scr-music .nv-tape-card .nv-case-img img{height:auto}
+#scr-music .nv-zoom-art .nv-case-img{width:52%;max-width:380px;transform:rotate(-2deg)}
+#scr-music .nv-zoom-art .nv-zoom-cover{width:40%}
+#scr-music .nv-zoom-art .nv-zoom-open{display:block;width:min(100%,460px);margin:auto;filter:drop-shadow(0 20px 22px rgba(0,0,0,.6))}
+@media(max-width:1099px),(hover:none){#scr-music .nv-tape-card{flex:0 0 62%!important;max-width:240px!important}}
+@media(max-width:620px){#scr-music .nv-zoom-art .nv-zoom-cover{width:42%}#scr-music .nv-zoom-art .nv-case-img{width:54%}}
+
+#scr-music .nv-zoom-art:has(.nv-zoom-cover){display:grid!important;grid-template-columns:42% 58%;align-items:center;gap:0}
+#scr-music .nv-zoom-art .nv-zoom-cover{width:100%!important;max-width:none}
+#scr-music .nv-zoom-art .nv-case-img{width:118%!important;max-width:none!important;margin-left:-6%;transform:rotate(-3deg) translateY(30%)!important;z-index:2;position:relative}
 </style>
 <script id="nv-fm-relook-js">
 (() => {
@@ -29102,6 +29114,8 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   /* ---------- vue agrandie : la jaquette à plat, à côté du boîtier ---------- */
   const zArt = $('nvZoomArt');
   if (zArt) new MutationObserver(() => {
+    const cas = zArt.querySelector('.nv-cassette');
+    if (cas) { const t0 = curTrack(); if (t0) zArt.innerHTML = `<img class="nv-zoom-open" src="assets/music-shop/open/${t0.id}.webp" alt="Boîtier ouvert : ${esc(t0.title)}">`; return; }
     const ci = zArt.querySelector('.nv-case-img'); if (!ci || zArt.querySelector('.nv-zoom-cover')) return;
     const t = curTrack(); if (!t) return;
     zArt.insertAdjacentHTML('afterbegin', `<img class="nv-zoom-cover" src="assets/music-shop/covers/${t.id}.webp" alt="Jaquette : ${esc(t.title)}">`);
