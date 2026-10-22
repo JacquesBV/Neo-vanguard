@@ -9651,7 +9651,13 @@ function drawHUD() {
   ctx.strokeStyle = acc; ctx.lineWidth = e === 0 ? 3 : 1;
   ctx.beginPath(); ctx.moveTo(x0, y0 + barH); ctx.lineTo(x0 + w, y0 + barH); ctx.stroke();
 
-  const scl = e >= 2 ? 1 : Math.max(2, Math.round(w / 340));
+  let scl = e >= 2 ? 1 : Math.max(2, Math.round(w / 340));
+  /* écran étroit (FanBoy sur téléphone) : score, vies et coins doivent tenir sur la ligne */
+  if (!twoP) {
+    const need = hudW('SC ' + fmt(P ? P.score : G.score), scl) + hudW('COINS ' + fmt(NET.role === 'guest' ? (HUDNET.credits || 0) : (G.credits + S.credits)), scl) + 92;
+    if (need > w - 16) scl = Math.max(1, Math.floor(scl * (w - 16) / need * 2) / 2);
+  }
+  window.NV_HUDSCL = scl;
   const baseline = y0 + barH * 0.68;
   hudText(ctx, 'SC ' + fmt(P ? P.score : G.score), x0 + 8, y0 + 6, white, scl, { glow: acc });
   if (twoP) hudText(ctx, (P2p.out ? 'P2 SORTI · ' : 'SC ') + fmt(P2p.score), x0 + w - 8, y0 + 6, TH.acc2, scl,
@@ -16448,13 +16454,25 @@ function hudLayers() {
     const txt = L('VIES') + ' × ' + n;
     /* Le mot reste compact et insécable : la police bitmap très espacée
        donnait l'impression que « VIES » était séparé en deux morceaux. */
-    const lifeSize = Math.max(13, scl * 8), tw = hTextW(ctx, txt, lifeSize, 800);
-    const cx = x0 + w / 2 - tw / 2 - 14;
+    /* place libre entre le score (à gauche) et les coins (à droite) : sur un écran
+       étroit (FanBoy), le compteur de vies rétrécit au lieu de les chevaucher */
+    const s0 = window.NV_HUDSCL || (e >= 2 ? 1 : Math.max(2, Math.round(w / 340)));
+    let freeL = x0 + 8, freeR = x0 + w - 8;
+    try {
+      freeL += hudW('SC ' + fmt(P.score), s0) + 12;
+      freeR -= hudW('COINS ' + fmt(NET.role === 'guest' ? (HUDNET.credits || 0) : (G.credits + S.credits)), s0) + 12;
+    } catch (er) {}
+    let lifeSize = Math.max(13, scl * 8), label = txt, tw = hTextW(ctx, label, lifeSize, 800);
+    while (tw + 16 > freeR - freeL && lifeSize > 9) { lifeSize -= 1; tw = hTextW(ctx, label, lifeSize, 800); }
+    if (tw + 16 > freeR - freeL) { label = '× ' + n; tw = hTextW(ctx, label, lifeSize, 800); }
+    const mid = Math.max(freeL + tw / 2 + 14, Math.min(freeR - tw / 2, (freeL + freeR) / 2));
+    const cx = mid - tw / 2 - 2;
     /* petite icône vaisseau */
     const iy = y0 + barH / 2;
     ctx.save();
-    ctx.fillStyle = TH.pLite; ctx.beginPath(); ctx.moveTo(cx, iy - 6); ctx.lineTo(cx + 6, iy + 5); ctx.lineTo(cx, iy + 2); ctx.lineTo(cx - 6, iy + 5); ctx.closePath(); ctx.fill();
-    hText(ctx, txt, cx + 12, y0 + Math.round(barH * 0.76), { color: TH.pLite, size: lifeSize, weight: 800, glow: e === 0 ? null : TH.pLite, glowSize: 5 });
+    const k = Math.min(1, lifeSize / 13);
+    ctx.fillStyle = TH.pLite; ctx.beginPath(); ctx.moveTo(cx, iy - 6 * k); ctx.lineTo(cx + 6 * k, iy + 5 * k); ctx.lineTo(cx, iy + 2 * k); ctx.lineTo(cx - 6 * k, iy + 5 * k); ctx.closePath(); ctx.fill();
+    hText(ctx, label, cx + 12 * k, y0 + Math.round(barH * 0.76), { color: TH.pLite, size: lifeSize, weight: 800, glow: e === 0 ? null : TH.pLite, glowSize: 5 });
     ctx.restore();
   };
   /* les appels d'origine (après l'envoi au GPU) deviennent muets en WebGL */
