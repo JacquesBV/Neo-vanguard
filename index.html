@@ -29794,87 +29794,124 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
 </script>
 <style id="nv-fm-meuble">
 /* ===== NEO-VANGUARD FM — LE MEUBLE À CASSETTES =====================================
-   Les boîtiers sont rangés dans les 12 bacs du meuble (2 étages × 6). Une cassette
-   achetée quitte son bac : l'emplacement reste vide, seule l'étiquette « collectée »
-   demeure (on peut toujours la sélectionner pour l'écouter). Un meuble par lot de 12.
-   Superposition : meuble → boîtiers du haut → façades du haut → boîtiers du bas → façades du bas. */
-#scr-music .nv-tape-list.nv-meubles{display:flex!important;flex-direction:column;align-items:center;gap:clamp(12px,2.4vh,26px)!important;grid-template-columns:none!important;
-  padding:12px 4px 16px!important;perspective:none!important;scroll-snap-type:none!important;background:none!important}
-.nv-meuble{position:relative;flex:0 0 auto;width:100%;max-width:max(560px,min(1100px,calc(var(--nv-lh,560px) * 1.96)));aspect-ratio:1774/887;isolation:isolate;container-type:inline-size}
-.nv-meuble>img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none;-webkit-user-drag:none}
+   Un seul meuble, 2 étages × 3 bacs, rangé par familles :
+     haut : SECTEURS · BOSS 1–6 · BOSS 7–12      bas : BOSS 13–18 · BOSS 19–24 · SPÉCIALE
+   Dans chaque bac les boîtiers se suivent de l'avant vers le fond, comme chez un disquaire.
+   Une cassette achetée quitte le bac : sa place reste vide. Les filtres sont inutiles
+   (le meuble montre toujours tout le stock) ; le mur des bandes reste pour l'écoute.
+   Superposition : meuble → bacs du haut → façades du haut → bacs du bas → façades du bas. */
+#scr-music .nv-filters{display:none!important}
+#scr-music .nv-tape-list.nv-meubles{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;grid-template-columns:none!important;
+  padding:6px 4px 10px!important;perspective:none!important;scroll-snap-type:none!important;background:none!important}
+.nv-meuble{position:relative;flex:0 0 auto;width:100%;max-width:max(560px,min(1180px,calc(var(--nv-lh,560px) * 1.9137)));aspect-ratio:1774/927;isolation:isolate;container-type:inline-size}
+.nv-meuble>img{position:absolute;left:0;width:100%;top:4.315%;height:95.685%;pointer-events:none;user-select:none;-webkit-user-drag:none}
 .nv-meuble .nv-mb-back{z-index:0;filter:drop-shadow(0 16px 20px rgba(0,0,0,.6))}
-.nv-meuble .nv-mb-front0{z-index:3;clip-path:polygon(0 40.6%,100% 13.8%,100% 100%,0 100%)}
-.nv-meuble .nv-mb-front1{z-index:5;clip-path:polygon(0 75.3%,100% 43.7%,100% 100%,0 100%)}
-#scr-music .nv-meuble .nv-slot.nv-tape-card{position:absolute!important;z-index:auto!important;left:var(--x);bottom:calc(100% - var(--b));width:var(--w);height:auto;aspect-ratio:460/308;
+.nv-meuble .nv-mb-front0{z-index:20}
+.nv-meuble .nv-mb-front1{z-index:40}
+#scr-music .nv-meuble .nv-slot.nv-tape-card{position:absolute!important;left:var(--x);top:var(--y);width:var(--w);height:var(--h);z-index:var(--z)!important;
   margin:0;padding:0!important;display:block!important;flex:none!important;max-width:none!important;min-width:0;overflow:visible!important;transform:none!important;
   background:none!important;border:0!important;box-shadow:none!important;outline:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
-  transform-style:flat!important;perspective:none!important;filter:none!important}   /* aucun contexte d'empilement : boîtiers et façades s'intercalent */
+  transform-style:flat!important;perspective:none!important;filter:none!important}
 #scr-music .nv-meuble .nv-slot.nv-tape-card::before,#scr-music .nv-meuble .nv-slot.nv-tape-card::after{content:none!important}
-#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-case-img{position:absolute!important;inset:0;width:100%;height:100%;z-index:2;transform:skewY(var(--sk)) translateY(0)!important;transform-origin:50% 100%;
-  filter:drop-shadow(0 .5cqw .5cqw rgba(0,0,0,.65))!important;transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s!important}
-#scr-music .nv-meuble .nv-slot.nv-tape-card[data-row="1"] .nv-case-img{z-index:4}
+#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-case-img{position:absolute!important;inset:0;width:100%;height:100%;transform:skewY(var(--sk)) translateY(0)!important;transform-origin:50% 100%;
+  filter:drop-shadow(0 -.15cqw .35cqw rgba(0,0,0,.55))!important;transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s!important}
 #scr-music .nv-meuble .nv-slot.nv-tape-card .nv-case-img img{width:100%;height:100%;object-fit:fill}
-#scr-music .nv-meuble .nv-slot.nv-tape-card:hover .nv-case-img,#scr-music .nv-meuble .nv-slot.nv-tape-card:focus-visible .nv-case-img{transform:skewY(var(--sk)) translateY(-14%)!important;
-  filter:drop-shadow(0 .8cqw .7cqw rgba(0,0,0,.65)) drop-shadow(0 0 .8cqw var(--famc,#4cf4ff))!important}
-#scr-music .nv-meuble .nv-slot.nv-tape-card.selected .nv-case-img{transform:skewY(var(--sk)) translateY(-27%)!important;
-  filter:drop-shadow(0 1cqw .9cqw rgba(0,0,0,.7)) drop-shadow(0 0 1.3cqw var(--famc,#ff67b7))!important}
-/* cassette achetée : le bac est vide */
-#scr-music .nv-meuble .nv-slot.nv-tape-card.owned .nv-case-img{visibility:hidden}
-/* étiquette de prix collée sur la façade du bac */
-#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-name{display:none!important}
-#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-sub{position:absolute!important;z-index:7;left:50%;top:106%;display:block!important;margin:0!important;padding:.32cqw .6cqw!important;
-  transform:translateX(-50%) skewY(var(--sk))!important;border:1px solid var(--famc,#4cf4ff)!important;border-radius:.35cqw!important;white-space:nowrap;
-  background:rgba(6,10,22,.9)!important;box-shadow:0 0 .6cqw -.1cqw var(--famc,#4cf4ff)!important;pointer-events:none}
-#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-sub>span{display:none}
-#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-price{display:block;margin:0;font:900 clamp(7px,1.05cqw,13px)/1 system-ui;letter-spacing:.06em;color:#fff}
-#scr-music .nv-meuble .nv-slot.nv-tape-card.owned .nv-cassette-sub{border-color:#3ce3a0!important;box-shadow:0 0 .6cqw -.1cqw #3ce3a0!important}
-#scr-music .nv-meuble .nv-slot.nv-tape-card.owned .nv-cassette-price{color:#9dffd6}
-#scr-music .nv-meuble .nv-slot.nv-tape-card.owned .nv-cassette-price::before{content:"✓ "}
-#scr-music .nv-meuble .nv-slot.nv-tape-card:hover .nv-cassette-sub{filter:brightness(1.35)}
-#scr-music .nv-meuble .nv-slot.nv-tape-card.selected .nv-cassette-sub{background:var(--famc,#ff67b7)!important}
-#scr-music .nv-meuble .nv-slot.nv-tape-card.selected .nv-cassette-price{color:#071019}
-/* téléphone : les meubles défilent à l'horizontale, chacun assez large pour bien voir les boîtiers */
+#scr-music .nv-meuble .nv-slot.nv-tape-card:hover .nv-case-img,#scr-music .nv-meuble .nv-slot.nv-tape-card:focus-visible .nv-case-img{transform:skewY(var(--sk)) translateY(-12%)!important;
+  filter:drop-shadow(0 -.15cqw .35cqw rgba(0,0,0,.55)) drop-shadow(0 0 .7cqw var(--famc,#4cf4ff))!important}
+/* boîtier choisi : sorti du bac, devant tout le reste */
+#scr-music .nv-meuble .nv-slot.nv-tape-card.selected{z-index:60!important}
+#scr-music .nv-meuble .nv-slot.nv-tape-card.selected .nv-case-img{transform:skewY(var(--sk)) translateY(-46%)!important;
+  filter:drop-shadow(0 1.2cqw 1cqw rgba(0,0,0,.7)) drop-shadow(0 0 1.2cqw var(--famc,#ff67b7))!important}
+/* cassette achetée : elle quitte le meuble, sa place reste vide */
+#scr-music .nv-meuble .nv-slot.nv-tape-card.owned{visibility:hidden;pointer-events:none}
+#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-name,#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-sub{display:none!important}
+/* étiquette de famille sur la façade de chaque bac */
+.nv-meuble .nv-bin-tag{position:absolute;z-index:45;left:var(--x);top:var(--y);transform:translate(-50%,-50%) skewY(var(--sk));pointer-events:none;white-space:nowrap;
+  padding:.38cqw .9cqw;border:1px solid var(--famc);border-radius:.4cqw;background:rgba(6,10,22,.86);box-shadow:0 0 .8cqw -.1cqw var(--famc);
+  color:#fff;font:900 clamp(7px,1.15cqw,14px)/1 system-ui;letter-spacing:.12em;text-align:center}
+.nv-meuble .nv-bin-tag i{display:block;margin-top:.3cqw;color:var(--famc);font:800 clamp(6px,.8cqw,10px)/1 system-ui;font-style:normal;letter-spacing:.1em}
 @media(max-width:1099px),(hover:none){
-  #scr-music .nv-tape-list.nv-meubles{flex-direction:row!important;align-items:flex-start;overflow-x:auto!important;overflow-y:hidden!important;justify-content:flex-start}
-  .nv-meuble{width:620px;max-width:none}
+  #scr-music .nv-tape-list.nv-meubles{overflow-x:auto!important;overflow-y:hidden!important;align-items:flex-start}
+  .nv-meuble{width:640px;max-width:none}
 }
 @media(prefers-reduced-motion:reduce){#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-case-img{transition:none!important}}
 </style>
 <script id="nv-fm-meuble-js">
 (() => {
   const list = document.getElementById('nvTapeList'); if (!list) return;
-  /* bacs mesurés sur l'image du meuble (1774×887) : x / largeur en % de la largeur,
-     b = bas du boîtier en % de la hauteur (le quart inférieur passe derrière la façade) */
-  const SLOTS = [
-    { r: 0, x: 13.93, w: 12.5, b: 39.21 }, { r: 0, x: 28.11, w: 12.15, b: 35.35 }, { r: 0, x: 41.94, w: 12.4, b: 31.69 },
-    { r: 0, x: 55.99, w: 11.76, b: 27.8 }, { r: 0, x: 69.33, w: 11.56, b: 24.19 }, { r: 0, x: 82.45, w: 11.26, b: 20.62 },
-    { r: 1, x: 17.58, w: 13.15, b: 71.88 }, { r: 1, x: 32.5, w: 12.8, b: 67.11 }, { r: 1, x: 47.03, w: 12.65, b: 62.5 },
-    { r: 1, x: 61.36, w: 12.0, b: 57.86 }, { r: 1, x: 74.94, w: 11.06, b: 53.42 }, { r: 1, x: 87.43, w: 9.92, b: 49.28 }
+  const catalog = JSON.parse(document.getElementById('nvMusicCatalog').textContent);
+  /* géométrie relevée sur l'image du meuble (1774×887), avec 40 px de marge au-dessus
+     pour les boîtiers du fond qui dépassent : L/R = arête haute de la façade du bac,
+     D = de l'avant vers le fond du bac, PH = de l'arête de la façade au fond du bac */
+  const W = 1774, IH = 887, TOP = 40, H = IH + TOP;
+  const BINS = [
+    { id: 'T1', row: 0, L: [232, 180], R: [607, 227], D: [160, -145], PH: 135 },
+    { id: 'T2', row: 0, L: [655, 234], R: [1037, 289], D: [160, -145], PH: 135 },
+    { id: 'T3', row: 0, L: [1085, 298], R: [1508, 352], D: [160, -145], PH: 135 },
+    { id: 'B1', row: 1, L: [75, 481], R: [478, 562], D: [125, -125], PH: 135 },
+    { id: 'B2', row: 1, L: [525, 568], R: [925, 640], D: [125, -125], PH: 135 },
+    { id: 'B3', row: 1, L: [975, 646], R: [1425, 716], D: [125, -125], PH: 135 }
   ];
-  const SKEW = ['-7.63deg', '-8.98deg'];          /* pente des façades de chaque étage */
-  const IMG = 'assets/music-shop/meuble.webp';
-  const layer = cls => `<img class="${cls}" src="${IMG}" alt="" draggable="false" decoding="async">`;
+  const PER_BIN = 6, T0 = 0.07, T1 = 0.80, FILL = 0.93, CASE = 308 / 460;
+  const FAM = { sector: '#3fe6f2', boss: '#ff5ea8', special: '#ffd36c' };
+  /* rangement par familles : chaque cassette a une place fixe */
+  const sectors = catalog.filter(t => t.kind === 'sector'), bosses = catalog.filter(t => t.kind === 'boss'), specials = catalog.filter(t => t.kind !== 'sector' && t.kind !== 'boss');
+  const CONTENT = [
+    { label: 'SECTEURS', kind: 'sector', items: sectors.slice(0, 6) },
+    { label: 'BOSS 1–6', kind: 'boss', items: bosses.slice(0, 6) },
+    { label: 'BOSS 7–12', kind: 'boss', items: bosses.slice(6, 12) },
+    { label: 'BOSS 13–18', kind: 'boss', items: bosses.slice(12, 18) },
+    { label: 'BOSS 19–24', kind: 'boss', items: bosses.slice(18, 24) },
+    { label: 'SPÉCIALE', kind: 'special', items: specials.slice(0, 6) }
+  ];
+  const PLACE = {};
+  const px = v => (v / W * 100).toFixed(3) + '%', py = v => ((v + TOP) / H * 100).toFixed(3) + '%';
+  BINS.forEach((b, k) => {
+    const [lx, ly] = b.L, [rx, ry] = b.R, [dx, dy] = b.D, s = (ry - ly) / (rx - lx), ww = rx - lx, w = ww * FILL, h = w * CASE;
+    const sk = (Math.atan(s) * 180 / Math.PI).toFixed(2) + 'deg', n = CONTENT[k].items.length;
+    CONTENT[k].items.forEach((t, i) => {
+      const d = n > 1 ? T0 + (T1 - T0) * i / (PER_BIN - 1) : T0;
+      const x = lx + ww * (1 - FILL) / 2 + dx * d, cx = x + w / 2;
+      const bottom = ly + s * (cx - dx * d - lx) + b.PH + dy * d;
+      PLACE[t.id] = { x: px(x), y: py(bottom - h), w: px(w), h: (h / H * 100).toFixed(3) + '%', sk, z: (b.row ? 30 : 10) + (PER_BIN - i) };
+    });
+    b.tag = { x: px((lx + rx) / 2), y: py((ly + ry) / 2 + b.PH * 0.42), sk };
+  });
+  /* découpe des façades : tout ce qui est sous l'arête haute des bacs d'un étage */
+  function clip(row) {
+    const pts = []; BINS.filter(b => b.row === row).forEach(b => pts.push(b.L, b.R));
+    const ext = (a, c, x) => a[1] + (c[1] - a[1]) / (c[0] - a[0]) * (x - a[0]);
+    const all = [[0, ext(pts[0], pts[1], 0)], ...pts, [W, ext(pts[pts.length - 2], pts[pts.length - 1], W)], [W, IH], [0, IH]];
+    return 'polygon(' + all.map(([x, y]) => `${(x / W * 100).toFixed(2)}% ${(y / IH * 100).toFixed(2)}%`).join(',') + ')';
+  }
+  const IMG = 'assets/music-shop/meuble-bacs.webp';
+  const layer = (cls, cp) => `<img class="${cls}" src="${IMG}" alt="" draggable="false" decoding="async"${cp ? ` style="clip-path:${cp}"` : ''}>`;
+  const own = () => Array.isArray(S.musicTracks) ? S.musicTracks : [];
   function shelve() {
     const cards = [...list.children].filter(c => c.classList && c.classList.contains('nv-tape-card'));
     if (!cards.length) return;
-    const frag = document.createDocumentFragment();
-    for (let i = 0; i < cards.length; i += SLOTS.length) {
-      const m = document.createElement('div'); m.className = 'nv-meuble';
-      m.innerHTML = layer('nv-mb-back') + layer('nv-mb-front0') + layer('nv-mb-front1');
-      cards.slice(i, i + SLOTS.length).forEach((c, k) => {
-        const s = SLOTS[k];
-        c.classList.add('nv-slot'); c.dataset.row = s.r;
-        c.style.setProperty('--x', s.x + '%'); c.style.setProperty('--w', s.w + '%');
-        c.style.setProperty('--b', s.b + '%'); c.style.setProperty('--sk', SKEW[s.r]);
-        m.appendChild(c);
-      });
-      frag.appendChild(m);
-    }
-    list.appendChild(frag);
+    /* le meuble montre tout le stock : on repasse sur « toutes » si un filtre était resté actif */
+    if (cards.length < catalog.length) { const all = document.querySelector('#nvMusicFilters [data-music-filter="all"]'); if (all && !all.classList.contains('on')) { all.click(); return; } }
+    const m = document.createElement('div'); m.className = 'nv-meuble';
+    m.innerHTML = layer('nv-mb-back') + layer('nv-mb-front0', clip(0)) + layer('nv-mb-front1', clip(1));
+    const o = own();
+    BINS.forEach((b, k) => {
+      const c = CONTENT[k], left = c.items.filter(t => !o.includes(t.id)).length;
+      m.insertAdjacentHTML('beforeend', `<span class="nv-bin-tag" style="--x:${b.tag.x};--y:${b.tag.y};--sk:${b.tag.sk};--famc:${FAM[c.kind]}">${c.label}<i>${left ? left + ' EN STOCK' : 'ÉPUISÉ'}</i></span>`);
+    });
+    cards.forEach(c => {
+      const p = PLACE[c.dataset.musicId], t = catalog.find(x => x.id === c.dataset.musicId);
+      if (!p) { c.remove(); return; }
+      c.classList.add('nv-slot');
+      for (const k of ['x', 'y', 'w', 'h', 'sk', 'z']) c.style.setProperty('--' + k, p[k]);
+      if (t) c.title = `${t.title} · ${t.price} CR`;
+      m.appendChild(c);
+    });
+    list.appendChild(m);
     list.classList.add('nv-meubles');
   }
-  /* PC : un meuble entier tient dans la hauteur visible des bacs */
-  const fit = () => list.style.setProperty('--nv-lh', Math.max(0, list.clientHeight - 30) + 'px');
+  /* PC : le meuble entier tient dans la hauteur visible */
+  const fit = () => list.style.setProperty('--nv-lh', Math.max(0, list.clientHeight - 16) + 'px');
   if (window.ResizeObserver) new ResizeObserver(fit).observe(list); fit();
   new MutationObserver(shelve).observe(list, { childList: true });
   shelve();
