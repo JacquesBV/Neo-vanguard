@@ -8580,12 +8580,12 @@ function drawPlayer(pl) {
     const w2 = box.w * 0.5, h2 = box.h * 0.5;
     const blink = 0.45 + 0.55 * Math.sin(P.anim * 5.4);
     g.globalCompositeOperation = 'lighter';
-    g.globalAlpha = clamp(blink, 0, 1) * (e >= 3 ? 0.9 : 0.6);
+    g.globalAlpha = clamp(blink, 0, 1) * (e >= 3 ? 0.9 : 0.6) * (window.NVS && NVS.on() ? 0 : 1);   /* planches : feux déjà peints */
     circle(x - w2 * 0.82, y + h2 * 0.05, e >= 3 ? 2.3 : 1.4, '#ff5566');
     circle(x + w2 * 0.82, y + h2 * 0.05, e >= 3 ? 2.3 : 1.4, '#5cff9d');
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
     /* le reflet solaire balaie la coque, masqué par la silhouette exacte */
-    if (e >= 2) {
+    if (e >= 2 && !(window.NVS && NVS.on())) {
       const mask = spriteMask(S.sel.ship, e, 'player', hue, sat, light);
       paintSheen(g, K, mask, x, y, box.w, box.h, (P.anim * 0.42) % 1,
                  e >= 3 ? 0.32 : 0.20, e >= 3 ? 'rgba(205,240,255,0.9)' : 'rgba(255,255,255,0.7)');
@@ -8600,7 +8600,7 @@ function drawPlayer(pl) {
   }
   CUR_TWK = null; TWK_SIG = '';
   /* --- verrière / éclat HD --- */
-  if (e >= 2) {
+  if (e >= 2 && !(window.NVS && NVS.on())) {
     const ck = CKPT[S.sel.ship] || { x: 0, y: -0.2 };
     g.globalCompositeOperation = 'lighter';
     g.globalAlpha = e >= 3 ? 0.5 : 0.3;
@@ -24840,7 +24840,7 @@ html.nvui .chips .chip{border-radius:999px}
   const oldPlayer=drawPlayer;
   drawPlayer=function(pl){
     const P=pl||G.player;
-    if(P&&P.alive&&R.era>=2){
+    if(P&&P.alive&&R.era>=2&&!(window.NVS&&NVS.on())){
       useBuf(R.bufNear); const g=PAINT.g,K=PAINT.K, box=spriteBox(S.sel.ship), t=P.anim||0;
       const x=P.x,y=P.y+box.h*.29, len=(R.era>=3?56:39)*(IS_TOUCH?TOUCH_ACTOR_SCALE:1);
        nvGlow(g,K,x,y+len*.33,box.w*.17,len*.82,R.era>=3?'rgba(90,220,255,.82)':'rgba(100,155,255,.56)',R.era>=3?.38:.24);
@@ -28570,6 +28570,176 @@ const NVGuardSprite = (() => {
 })();
 </script>
 
+<script id="nv-ship-sheets">
+(() => {
+  /* ===== VAISSEAUX DU JOUEUR EN JEU — planches d'animation =====================
+     Remplace uniquement le dessin du vaisseau PENDANT LA PARTIE par les planches
+     assets/ships-anim/<génération>/<coque>-anim.png (vol, inclinaisons, boost,
+     impact, explosion). La boutique, les cartes et les aperçus ne passent pas par
+     ici et gardent leurs illustrations. Tant qu'une planche n'est pas chargée,
+     l'ancien dessin reste affiché.                                             */
+  const SHEETS = {"falcon":[["assets/ships-anim/era0-kfm01/vanguard-mk1-anim.png",64,66,31.5,30.0,29,42],["assets/ships-anim/era1-8bit-plus/vanguard-mk1-anim.png",88,90,43.5,41.0,39,58],["assets/ships-anim/era2-16bit-home/vanguard-mk1-anim.png",106,110,52.5,50.0,47,70],["assets/ships-anim/era3-16bit-arcade/vanguard-mk1-anim.png",118,122,59.0,56.0,52,78],["assets/ships-anim/era4-32bit-cd/vanguard-mk1-anim.png",136,140,68.0,64.0,60,90],["assets/ships-anim/era5-hd/vanguard-mk1-anim.png",250,258,125.0,119.0,108,166]],"falconA":[["assets/ships-anim/era0-kfm01/falcon-a-marteau-anim.png",64,66,32.0,30.0,32,42],["assets/ships-anim/era1-8bit-plus/falcon-a-marteau-anim.png",88,90,44.0,41.0,44,58],["assets/ships-anim/era2-16bit-home/falcon-a-marteau-anim.png",106,110,53.0,50.0,52,70],["assets/ships-anim/era3-16bit-arcade/falcon-a-marteau-anim.png",118,122,59.0,56.0,58,78],["assets/ships-anim/era4-32bit-cd/falcon-a-marteau-anim.png",136,140,67.5,64.0,67,90],["assets/ships-anim/era5-hd/falcon-a-marteau-anim.png",250,258,125.0,119.0,122,166]],"falconB":[["assets/ships-anim/era0-kfm01/falcon-b-lame-anim.png",64,66,31.5,30.0,27,42],["assets/ships-anim/era1-8bit-plus/falcon-b-lame-anim.png",88,90,43.5,41.0,37,58],["assets/ships-anim/era2-16bit-home/falcon-b-lame-anim.png",106,110,53.0,50.0,44,70],["assets/ships-anim/era3-16bit-arcade/falcon-b-lame-anim.png",118,122,59.0,56.0,48,78],["assets/ships-anim/era4-32bit-cd/falcon-b-lame-anim.png",136,140,68.0,64.0,56,90],["assets/ships-anim/era5-hd/falcon-b-lame-anim.png",250,258,125.0,119.0,100,166]],"viper":[["assets/ships-anim/era0-kfm01/vipere-anim.png",64,66,31.5,30.0,23,42],["assets/ships-anim/era1-8bit-plus/vipere-anim.png",88,90,44.0,41.0,30,58],["assets/ships-anim/era2-16bit-home/vipere-anim.png",106,110,53.0,50.0,36,70],["assets/ships-anim/era3-16bit-arcade/vipere-anim.png",118,122,58.5,56.0,39,78],["assets/ships-anim/era4-32bit-cd/vipere-anim.png",136,140,67.5,64.0,45,90],["assets/ships-anim/era5-hd/vipere-anim.png",250,258,125.0,119.0,80,166]],"titan":[["assets/ships-anim/era0-kfm01/titan-anim.png",64,66,31.5,30.0,37,42],["assets/ships-anim/era1-8bit-plus/titan-anim.png",88,90,43.5,41.0,51,58],["assets/ships-anim/era2-16bit-home/titan-anim.png",106,110,52.5,50.0,61,70],["assets/ships-anim/era3-16bit-arcade/titan-anim.png",118,122,59.0,56.0,68,78],["assets/ships-anim/era4-32bit-cd/titan-anim.png",136,140,67.5,64.0,79,90],["assets/ships-anim/era5-hd/titan-anim.png",250,258,124.5,119.0,145,166]],"spectre":[["assets/ships-anim/era0-kfm01/spectre-anim.png",64,66,31.5,30.0,37,42],["assets/ships-anim/era1-8bit-plus/spectre-anim.png",88,90,43.5,41.0,51,58],["assets/ships-anim/era2-16bit-home/spectre-anim.png",106,110,53.0,50.0,62,70],["assets/ships-anim/era3-16bit-arcade/spectre-anim.png",118,122,58.5,56.0,69,78],["assets/ships-anim/era4-32bit-cd/spectre-anim.png",136,140,67.5,64.0,79,90],["assets/ships-anim/era5-hd/spectre-anim.png",250,258,124.5,119.0,145,166]],"singularis":[["assets/ships-anim/era0-kfm01/singularis-anim.png",64,66,31.5,30.0,31,42],["assets/ships-anim/era1-8bit-plus/singularis-anim.png",88,90,44.0,41.0,42,58],["assets/ships-anim/era2-16bit-home/singularis-anim.png",106,110,53.0,50.0,50,70],["assets/ships-anim/era3-16bit-arcade/singularis-anim.png",118,122,58.5,56.0,55,78],["assets/ships-anim/era4-32bit-cd/singularis-anim.png",136,140,68.0,64.0,64,90],["assets/ships-anim/era5-hd/singularis-anim.png",250,258,125.0,119.0,116,166]]};
+  const ROWS = { idle: 0, bank_l: 1, bank_r: 2, boost: 3, hit: 4, explode: 5 };
+  const IMG = {}, PAL = {}, CACHE = new Map();
+  /* luminance des 4 verts du pack, pour reprendre la palette LCD de la livrée */
+  const PACK_GB = [[15, 56, 15], [48, 98, 48], [139, 172, 15], [155, 188, 15]].map(c => c[0] * .3 + c[1] * .59 + c[2] * .11);
+  const GB_MAP = [0, 2, 3, 3];
+  const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
+
+  function sheetFor(ship) {
+    const gen = typeof G.eraIdx === 'number' ? G.eraIdx : (typeof eraOfLevel === 'function' ? eraOfLevel(G.level || 1) : 0);
+    const row = SHEETS[ship]; if (!row) return null;
+    const d = row[Math.max(0, Math.min(5, gen))]; if (!d) return null;
+    const key = d[0];
+    let im = IMG[key];
+    if (!im) {
+      im = IMG[key] = new Image();
+      im.onload = () => { im._ok = true; };
+      im.onerror = () => { im._bad = true; };
+      im.src = key;
+    }
+    if (!im._ok) return null;
+    return { key, im, gen, fw: d[1], fh: d[2], ax: d[3], ay: d[4], sw: d[5], sh: d[6] };
+  }
+  /* couleurs d'origine d'une planche pixel (pour garder des pixels francs après réduction) */
+  function paletteOf(s) {
+    if (PAL[s.key] !== undefined) return PAL[s.key];
+    const c = document.createElement('canvas'); c.width = s.im.width; c.height = s.im.height;
+    const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(s.im, 0, 0);
+    const D = g.getImageData(0, 0, c.width, c.height).data, seen = new Map();
+    for (let i = 0; i < D.length; i += 4) {
+      if (D[i + 3] < 128) continue;
+      const k = (D[i] << 16) | (D[i + 1] << 8) | D[i + 2];
+      seen.set(k, (seen.get(k) || 0) + 1);
+      if (seen.size > 96) break;
+    }
+    PAL[s.key] = seen.size > 96 ? null : [...seen.keys()].map(k => [k >> 16 & 255, k >> 8 & 255, k & 255]);
+    return PAL[s.key];
+  }
+  /* une frame, réduite à la taille réelle du vaisseau dans le tampon de jeu */
+  function frame(s, row, col, targetH) {
+    const f = targetH / s.sh;
+    const gbKey = s.gen === 0 && TH.livery && TH.livery.gb ? TH.livery.gb.join() : '';
+    const key = s.key + '|' + row + '|' + col + '|' + targetH.toFixed(2) + '|' + gbKey;
+    let c = CACHE.get(key); if (c) return c;
+    if (CACHE.size > 600) CACHE.clear();
+    const W = Math.max(1, Math.round(s.fw * f)), H = Math.max(1, Math.round(s.fh * f));
+    c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.drawImage(s.im, col * s.fw, row * s.fh, s.fw, s.fh, 0, 0, W, H);
+    if (s.gen <= 3) {                       /* générations pixel : alpha franc et couleurs d'origine */
+      const id = g.getImageData(0, 0, W, H), D = id.data;
+      const gb = gbKey ? TH.livery.gb.map(hex) : null, pal = gb ? null : paletteOf(s);
+      for (let i = 0; i < D.length; i += 4) {
+        if (D[i + 3] < 110) { D[i + 3] = 0; continue; }
+        D[i + 3] = 255;
+        if (gb) {
+          const L = D[i] * .3 + D[i + 1] * .59 + D[i + 2] * .11;
+          let b = 0, bd = 1e9;
+          for (let k = 0; k < 4; k++) { const dd = Math.abs(L - PACK_GB[k]); if (dd < bd) { bd = dd; b = k; } }
+          b = GB_MAP[b];                    /* fuselage dans les deux tons clairs, comme les autres acteurs LCD */
+          D[i] = gb[b][0]; D[i + 1] = gb[b][1]; D[i + 2] = gb[b][2];
+        } else if (pal) {
+          let b = pal[0], bd = 1e9;
+          for (const p of pal) { const dd = (p[0] - D[i]) ** 2 + (p[1] - D[i + 1]) ** 2 + (p[2] - D[i + 2]) ** 2; if (dd < bd) { bd = dd; b = p; } }
+          D[i] = b[0]; D[i + 1] = b[1]; D[i + 2] = b[2];
+        }
+      }
+      /* contour sombre d'un pixel : détache la coque du décor (pas sur l'explosion) */
+      if (row !== ROWS.explode) {
+        const src = D.slice(), oc = gb ? gb[0] : [7, 16, 27];
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+          const i = (y * W + x) * 4; if (src[i + 3]) continue;
+          if ((x > 0 && src[i - 1]) || (x < W - 1 && src[i + 7]) || (y > 0 && src[i - W * 4 + 3]) || (y < H - 1 && src[i + W * 4 + 3])) {
+            D[i] = oc[0]; D[i + 1] = oc[1]; D[i + 2] = oc[2]; D[i + 3] = 255;
+          }
+        }
+      }
+      g.putImageData(id, 0, 0);
+    } else if (row !== ROWS.explode) {
+      /* générations lisses : contour doux obtenu en décalant une silhouette sombre */
+      const sil = document.createElement('canvas'); sil.width = W; sil.height = H;
+      const sg = sil.getContext('2d'); sg.drawImage(c, 0, 0);
+      sg.globalCompositeOperation = 'source-in'; sg.fillStyle = '#07101b'; sg.fillRect(0, 0, W, H);
+      const keep = document.createElement('canvas'); keep.width = W; keep.height = H; keep.getContext('2d').drawImage(c, 0, 0);
+      g.clearRect(0, 0, W, H); g.globalAlpha = 0.85;
+      for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]) g.drawImage(sil, ox, oy);
+      g.globalAlpha = 1; g.drawImage(keep, 0, 0);
+    }
+    c._f = f; CACHE.set(key, c);
+    return c;
+  }
+  function blit(g, K, s, row, col, x, y, scale, alpha) {
+    const box = spriteBox(S.sel.ship);
+    const targetH = box.h * (scale || 1) * K;
+    const c = frame(s, row, col, targetH), f = c._f;
+    const pixel = s.gen <= 3;
+    let dx = x * K - s.ax * f, dy = y * K - s.ay * f;
+    if (pixel) { dx = Math.round(dx); dy = Math.round(dy); }
+    const sm = g.imageSmoothingEnabled, ga = g.globalAlpha;
+    g.imageSmoothingEnabled = !pixel;
+    if (alpha !== undefined) g.globalAlpha = alpha;
+    g.drawImage(c, dx, dy);
+    g.imageSmoothingEnabled = sm; g.globalAlpha = ga;
+  }
+  /* choix de l'animation selon l'état du vaisseau */
+  function pose(P) {
+    const t = P.anim || 0, b = P.bank || 0;
+    if (P.hitT > 0) return [ROWS.hit, P.hitT > 0.2 ? 0 : (Math.floor(P.hitT * 20) % 2)];
+    if (b < -0.22) return [ROWS.bank_l, b < -0.6 ? 1 : 0];
+    if (b > 0.22) return [ROWS.bank_r, b > 0.6 ? 1 : 0];
+    if ((P.vy || 0) < -60) return [ROWS.boost, Math.floor(t * 14) % 2];
+    return [ROWS.idle, Math.floor(t * 11) % 4];
+  }
+  const NVS = window.NVS = { cur: null, on: () => !!NVS.cur };
+
+  const prevSprite = drawSpriteTo;
+  drawSpriteTo = function (g, K, id, x, y, opt = {}) {
+    if (NVS.cur && opt && opt.kind === 'player') {
+      const [row, col] = pose(NVS.cur.P);
+      blit(g, K, NVS.cur.s, row, col, x, y, opt.scale, opt.alpha);
+      return;
+    }
+    return prevSprite.apply(this, arguments);
+  };
+  const prevPlayer = drawPlayer;
+  drawPlayer = function (pl) {
+    const P = pl || G.player;
+    const s = P && P.alive && typeof spriteBox === 'function' ? sheetFor(S.sel.ship) : null;
+    if (!s) return prevPlayer.apply(this, arguments);
+    /* les flammes font partie de la planche : on coupe les réacteurs dessinés à part */
+    const id = S.sel.ship, had = Object.prototype.hasOwnProperty.call(EXH, id), ex = EXH[id];
+    EXH[id] = [];
+    NVS.cur = { P, s };
+    try { return prevPlayer.apply(this, arguments); }
+    finally { NVS.cur = null; if (had) EXH[id] = ex; else delete EXH[id]; }
+  };
+  /* explosion du vaisseau : les 8 frames de la planche, à l'endroit de la mort */
+  const BOOMS = [];
+  const prevDie = playerDie;
+  playerDie = function (P) {
+    const Q = P || G.player;
+    const s = Q ? sheetFor(S.sel.ship) : null;
+    if (s) BOOMS.push({ x: Q.x, y: Q.y, t0: G.t || 0, s, scale: IS_TOUCH && G.state === 'play' ? TOUCH_ACTOR_SCALE : 1 });
+    return prevDie.apply(this, arguments);
+  };
+  const prevActors = drawActorsDepthSorted;
+  drawActorsDepthSorted = function () {
+    const r = prevActors.apply(this, arguments);
+    if (BOOMS.length) {
+      useBuf(R.bufNear);
+      const g = PAINT.g, K = PAINT.K, now = G.t || 0;
+      for (let i = BOOMS.length - 1; i >= 0; i--) {
+        const b = BOOMS[i], k = Math.floor((now - b.t0) / 0.07);
+        if (k >= 8 || k < 0) { BOOMS.splice(i, 1); continue; }
+        blit(g, K, b.s, ROWS.explode, k, b.x, b.y, b.scale);
+      }
+    }
+    return r;
+  };
+})();
+</script>
 <style id="nv-btn-contrast">
 /* =====================================================================
    BOUTONS LISIBLES — passe de contraste (toujours en dernier)
