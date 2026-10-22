@@ -28616,38 +28616,102 @@ const NVGuardSprite = (() => {
     PAL[s.key] = seen.size > 96 ? null : [...seen.keys()].map(k => [k >> 16 & 255, k >> 8 & 255, k & 255]);
     return PAL[s.key];
   }
+  /* pixels bruts d'une planche (lus une fois) */
+  const RAW = {};
+  function rawOf(s) {
+    if (RAW[s.key]) return RAW[s.key];
+    const c = document.createElement('canvas'); c.width = s.im.width; c.height = s.im.height;
+    const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(s.im, 0, 0);
+    return (RAW[s.key] = { W: c.width, D: g.getImageData(0, 0, c.width, c.height).data });
+  }
+  /* réduction « pixel art » pour les petites générations : un pixel d'arrivée est
+     plein dès que 28 % de sa zone l'est, et prend la couleur la plus claire (KFM-01)
+     ou la plus fréquente (8-BIT+) : la silhouette reste épaisse et lisible.      */
+  function shrinkPixel(s, row, col, W, H, f, brightest) {
+    const R0 = rawOf(s), SD = R0.D, SW = R0.W, out = new ImageData(W, H), D = out.data;
+    const x0 = col * s.fw, y0 = row * s.fh, step = 1 / f;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const sx0 = Math.floor(x * step), sx1 = Math.max(sx0 + 1, Math.floor((x + 1) * step));
+      const sy0 = Math.floor(y * step), sy1 = Math.max(sy0 + 1, Math.floor((y + 1) * step));
+      let tot = 0, op = 0, best = -1, bi = -1; const freq = brightest ? null : new Map();
+      for (let yy = sy0; yy < sy1 && yy < s.fh; yy++) for (let xx = sx0; xx < sx1 && xx < s.fw; xx++) {
+        tot++; const i = ((y0 + yy) * SW + x0 + xx) * 4; if (SD[i + 3] < 128) continue; op++;
+        if (brightest) { const L = SD[i] * .3 + SD[i + 1] * .59 + SD[i + 2] * .11; if (L > best) { best = L; bi = i; } }
+        else { const k = (SD[i] << 16) | (SD[i + 1] << 8) | SD[i + 2], n = (freq.get(k) || 0) + 1; freq.set(k, n); if (n > best) { best = n; bi = i; } }
+      }
+      if (!tot || op / tot < 0.28) continue;
+      const o = (y * W + x) * 4; D[o] = SD[bi]; D[o + 1] = SD[bi + 1]; D[o + 2] = SD[bi + 2]; D[o + 3] = 255;
+    }
+    return out;
+  }
+  /* livrée : la coque grise prend la teinte de la livrée équipée ; la bande, la
+     verrière et les flammes (couleurs saturées) restent celles du sprite. La
+     livrée d'usine ESCADRILLE correspond au sprite : rien n'est modifié.      */
+  function liveryTint() {
+    const L = TH.livery || (typeof LIVERIES !== 'undefined' ? LIVERIES[0] : null);
+    if (!L || L.id === 'squadron' || !L.gb) return null;
+    const c = hex(L.gb[2]), mx = Math.max(...c), mn = Math.min(...c);
+    return { id: L.id, col: c, grey: mx - mn < 40 };
+  }
+  function tintPixel(D, i, T, memo) {
+    const k = (D[i] << 16) | (D[i + 1] << 8) | D[i + 2];
+    let v = memo.get(k);
+    if (v === undefined) {
+      const r = D[i], g = D[i + 1], b = D[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+      if (mx === 0 || (mx - mn) / mx > 0.28) v = k;                  /* couleur franche : on garde */
+      else {
+        const L = (r * .3 + g * .59 + b * .11) / 255, cl = T.col, cL = (cl[0] * .3 + cl[1] * .59 + cl[2] * .11) / 255 || 1;
+        const amt = T.grey ? 0.3 : 0.42, m = L / cL;
+        const tr = Math.min(255, cl[0] * m), tg = Math.min(255, cl[1] * m), tb = Math.min(255, cl[2] * m);
+        v = (Math.round(r + (tr - r) * amt) << 16) | (Math.round(g + (tg - g) * amt) << 8) | Math.round(b + (tb - b) * amt);
+      }
+      memo.set(k, v);
+    }
+    D[i] = v >> 16 & 255; D[i + 1] = v >> 8 & 255; D[i + 2] = v & 255;
+  }
   /* une frame, réduite à la taille réelle du vaisseau dans le tampon de jeu */
   function frame(s, row, col, targetH) {
     const f = targetH / s.sh;
     const gbKey = s.gen === 0 && TH.livery && TH.livery.gb ? TH.livery.gb.join() : '';
-    const key = s.key + '|' + row + '|' + col + '|' + targetH.toFixed(2) + '|' + gbKey;
+    const T = s.gen >= 1 && row !== ROWS.explode ? liveryTint() : null;
+    const key = s.key + '|' + row + '|' + col + '|' + targetH.toFixed(2) + '|' + gbKey + '|' + (T ? T.id : '');
     let c = CACHE.get(key); if (c) return c;
     if (CACHE.size > 600) CACHE.clear();
     const W = Math.max(1, Math.round(s.fw * f)), H = Math.max(1, Math.round(s.fh * f));
     c = document.createElement('canvas'); c.width = W; c.height = H;
     const g = c.getContext('2d', { willReadFrequently: true });
-    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-    g.drawImage(s.im, col * s.fw, row * s.fh, s.fw, s.fh, 0, 0, W, H);
-    if (s.gen <= 3) {                       /* générations pixel : alpha franc et couleurs d'origine */
-      const id = g.getImageData(0, 0, W, H), D = id.data;
-      const gb = gbKey ? TH.livery.gb.map(hex) : null, pal = gb ? null : paletteOf(s);
+    const pixel = s.gen <= 3;
+    let id;
+    if (s.gen <= 1 && row !== ROWS.explode) id = shrinkPixel(s, row, col, W, H, f, s.gen === 0);
+    else {
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      g.drawImage(s.im, col * s.fw, row * s.fh, s.fw, s.fh, 0, 0, W, H);
+      if (pixel || T) id = g.getImageData(0, 0, W, H);
+    }
+    if (id) {
+      const D = id.data, gb = gbKey ? TH.livery.gb.map(hex) : null, pal = pixel && !gb ? paletteOf(s) : null, memo = new Map();
       for (let i = 0; i < D.length; i += 4) {
-        if (D[i + 3] < 110) { D[i + 3] = 0; continue; }
-        D[i + 3] = 255;
+        if (pixel) {
+          if (D[i + 3] < 110) { D[i + 3] = 0; continue; }
+          D[i + 3] = 255;
+        } else if (!D[i + 3]) continue;
         if (gb) {
           const L = D[i] * .3 + D[i + 1] * .59 + D[i + 2] * .11;
           let b = 0, bd = 1e9;
           for (let k = 0; k < 4; k++) { const dd = Math.abs(L - PACK_GB[k]); if (dd < bd) { bd = dd; b = k; } }
           b = GB_MAP[b];                    /* fuselage dans les deux tons clairs, comme les autres acteurs LCD */
           D[i] = gb[b][0]; D[i + 1] = gb[b][1]; D[i + 2] = gb[b][2];
-        } else if (pal) {
+          continue;
+        }
+        if (pal) {
           let b = pal[0], bd = 1e9;
           for (const p of pal) { const dd = (p[0] - D[i]) ** 2 + (p[1] - D[i + 1]) ** 2 + (p[2] - D[i + 2]) ** 2; if (dd < bd) { bd = dd; b = p; } }
           D[i] = b[0]; D[i + 1] = b[1]; D[i + 2] = b[2];
         }
+        if (T) tintPixel(D, i, T, memo);
       }
       /* contour sombre d'un pixel : détache la coque du décor (pas sur l'explosion) */
-      if (row !== ROWS.explode) {
+      if (pixel && row !== ROWS.explode) {
         const src = D.slice(), oc = gb ? gb[0] : [7, 16, 27];
         for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
           const i = (y * W + x) * 4; if (src[i + 3]) continue;
@@ -28657,7 +28721,8 @@ const NVGuardSprite = (() => {
         }
       }
       g.putImageData(id, 0, 0);
-    } else if (row !== ROWS.explode) {
+    }
+    if (!pixel && row !== ROWS.explode) {
       /* générations lisses : contour doux obtenu en décalant une silhouette sombre */
       const sil = document.createElement('canvas'); sil.width = W; sil.height = H;
       const sg = sil.getContext('2d'); sg.drawImage(c, 0, 0);
