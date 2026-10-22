@@ -28755,6 +28755,18 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   .nv-fm-keys kbd{display:inline-block;min-width:18px;padding:3px 5px;margin-right:5px;border:1px solid rgba(255,255,255,.25);border-bottom-width:2px;border-radius:4px;color:#e9ecff;font:800 9px/1 system-ui;text-align:center}
 }
 @media not ((min-width:1100px) and (hover:hover)){.nv-fm-keys{display:none}}
+
+/* ---------- cassette insérée : taillée pour le logement du baladeur ----------
+   Logement mesuré sur walkman-open.png : x 14 → 90 %, y 29,5 → 65 %, axes des
+   bobines à 33,5 % et 65,5 %. L'image est centrée (contain) dans une boîte 1,15 :1,
+   donc elle occupe 69,6 % de la largeur à partir de 15,2 %.                       */
+#scr-music .nv-walkman .nv-insert-tape{left:24.95%!important;width:52.9%!important;top:29.6%!important;height:35.4%!important;
+  transform:translateY(-62%) !important;opacity:0;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))!important;
+  transition:opacity .2s,transform .55s cubic-bezier(.2,.75,.25,1)!important}
+#scr-music .nv-walkman.is-open .nv-insert-tape{opacity:1;transform:none!important}
+#scr-music .nv-walkman .nv-insert-tape svg{width:100%;height:100%;display:block;animation:none!important}
+#scr-music .nv-walkman .nv-insert-tape .nv-reel{transform-box:fill-box;transform-origin:center}
+#scr-music .nv-walkman.playing .nv-insert-tape .nv-reel{animation:reelSpin 1.1s linear infinite!important}
 @media(prefers-reduced-motion:reduce){.nv-spine,#scr-music .nv-tape-card .nv-cassette{transition:none}}
 </style>
 <script id="nv-fm-relook-js">
@@ -28819,7 +28831,44 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
     } else if (e.key === ' ') { e.preventDefault(); e.stopImmediatePropagation(); $('nvPreviewBtn').click(); }
     else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); e.stopImmediatePropagation(); $('nvZoomBtn').click(); }
   }, true);
-  requestAnimationFrame(sync);
+
+  /* ---------- cassette insérée, vue de face, aux cotes du logement ---------- */
+  const FAMC = { sector: '#3fe6f2', boss: '#ff5ea8', special: '#ffd36c' };
+  function bayTape(t) {
+    const c = FAMC[t.kind] || FAMC.special, ttl = esc(t.title), fam = t.kind === 'boss' ? 'BOSS SERIES' : t.kind === 'sector' ? 'SECTOR SERIES' : 'SPECIAL EDITION';
+    /* viewBox 342×200 = logement ; axes des bobines en (88,93) et (232,93) */
+    const reel = x => `<g class="nv-reel"><circle cx="${x}" cy="93" r="17" fill="#e9e4d8"/><circle cx="${x}" cy="93" r="7.5" fill="#1a1d26"/>` +
+      [0, 60, 120, 180, 240, 300].map(a => `<rect x="${x - 1.6}" y="${93 - 14}" width="3.2" height="5" rx="1" fill="#1a1d26" transform="rotate(${a} ${x} 93)"/>`).join('') + `</g>`;
+    return `<svg viewBox="0 0 342 200" preserveAspectRatio="none" aria-hidden="true"><defs>
+      <linearGradient id="bt-body" x2="0" y2="1"><stop stop-color="#3a4256"/><stop offset=".12" stop-color="#232a3b"/><stop offset="1" stop-color="#121722"/></linearGradient>
+      <linearGradient id="bt-lab" x2="1"><stop stop-color="${c}"/><stop offset=".6" stop-color="${c}" stop-opacity=".75"/><stop offset="1" stop-color="#2a3150"/></linearGradient>
+      <radialGradient id="bt-tape" cx=".5" cy=".5" r=".5"><stop stop-color="#6b4630"/><stop offset="1" stop-color="#2a1a12"/></radialGradient></defs>
+      <rect x="3" y="3" width="336" height="194" rx="11" fill="url(#bt-body)" stroke="#8d98ad" stroke-width="2.5"/>
+      <rect x="20" y="12" width="302" height="54" rx="5" fill="url(#bt-lab)"/>
+      <rect x="20" y="12" width="302" height="54" rx="5" fill="none" stroke="rgba(255,255,255,.35)"/>
+      <text x="32" y="29" font-family="system-ui,sans-serif" font-weight="900" font-size="11" letter-spacing="1.2" fill="#08101a">NEO-VANGUARD</text>
+      <text x="32" y="50" font-family="system-ui,sans-serif" font-weight="900" font-size="${ttl.length > 22 ? 13 : 16}" fill="#08101a">${ttl}</text>
+      <text x="32" y="61" font-family="system-ui,sans-serif" font-weight="800" font-size="6.5" letter-spacing="1" fill="#08101a" opacity=".75">${fam} · ${esc(t.id.toUpperCase())}</text>
+      <rect x="52" y="70" width="238" height="46" rx="23" fill="#0b0e15" stroke="#5c6680" stroke-width="2"/>
+      <circle cx="88" cy="93" r="${t.kind === 'boss' ? 21 : 18}" fill="url(#bt-tape)"/><circle cx="232" cy="93" r="${t.kind === 'boss' ? 15 : 18}" fill="url(#bt-tape)"/>
+      <rect x="132" y="80" width="78" height="26" rx="3" fill="rgba(160,190,220,.12)" stroke="rgba(200,220,255,.25)"/>
+      ${reel(88)}${reel(232)}
+      <path d="M78 196 L96 150 H246 L264 196 Z" fill="#1a2030" stroke="#59647c" stroke-width="2"/>
+      <circle cx="122" cy="176" r="6" fill="#0b0e15"/><circle cx="220" cy="176" r="6" fill="#0b0e15"/>
+      <rect x="160" y="168" width="22" height="12" rx="2" fill="#0b0e15"/>
+      ${[[16, 16], [326, 16], [16, 184], [326, 184], [171, 140]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.2" fill="#9aa4b8" stroke="#2a3040"/>`).join('')}
+    </svg>`;
+  }
+  const ins = $('nvInsertedTape');
+  function fitTape() {
+    if (!ins || ins.dataset.nvBay === '1') return;
+    const sel = $('nvTapeList').querySelector('.nv-tape-card.selected');
+    const t = catalog.find(x => x.id === (sel && sel.dataset.musicId)) || catalog.find(x => x.title === $('nvTrackTitle').textContent);
+    if (!t || !ins.firstElementChild) return;
+    ins.innerHTML = bayTape(t); ins.dataset.nvBay = '1';
+  }
+  if (ins) new MutationObserver(() => { if (ins.querySelector('.nv-cassette')) { ins.dataset.nvBay = ''; fitTape(); } }).observe(ins, { childList: true });
+  requestAnimationFrame(() => { sync(); if (ins) { ins.dataset.nvBay = ''; fitTape(); } });
 })();
 </script>
 <script id="nv-lcd-calm">
