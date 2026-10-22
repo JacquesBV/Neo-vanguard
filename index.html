@@ -28815,6 +28815,39 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 #scr-music .nv-tape-card{transform-style:preserve-3d!important}
 #scr-music .nv-tape-card .nv-cassette-sub{transform:translateZ(26px) scale(.965)}
 #scr-music .nv-tape-card .nv-jewel-case::before{transform:rotateY(-90deg);left:-16px;transform-origin:right center}
+
+/* ===== BOÎTIERS 3D : vraie boîte en plastique (face, tranche, dessus) ===== */
+#scr-music .nv-tape-card .nv-jewel-case::before,#scr-music .nv-tape-card .nv-jewel-case::after{content:none!important}
+#scr-music .nv-tape-card{overflow:visible!important}
+#scr-music .nv-tape-card .nv-cassette-sub{transform:none!important;margin-top:10px!important;padding:6px 6px 0!important;border:0!important;background:none!important;box-shadow:none!important}
+#scr-music .nv-tape-list{perspective:none!important;gap:18px 14px!important;padding:16px 10px 14px!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 30%),linear-gradient(0deg,rgba(0,0,0,.35),transparent 40%)!important;border-radius:10px}
+#scr-music .nv-filters{scrollbar-width:none}#scr-music .nv-filters::-webkit-scrollbar{display:none}
+.nv-box3d{position:relative;overflow:visible;container-type:inline-size;perspective:620px;perspective-origin:50% 30%;padding:7% 4% 4% 16%}
+.nv-box{position:relative;width:100%;aspect-ratio:220/290;transform-style:preserve-3d;transform:rotateY(34deg) rotateX(-12deg);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.nv-box>*{position:absolute;backface-visibility:hidden}
+.nv-box .f-front{inset:0;transform:translateZ(8cqw)}
+#scr-music .nv-tape-card .nv-box .f-front .nv-jewel-case,#scr-music .nv-tape-card:hover .nv-box .f-front .nv-jewel-case,#scr-music .nv-tape-card.selected .nv-box .f-front .nv-jewel-case{transform:none!important;filter:none!important;width:100%;height:100%;transition:none!important}
+.nv-box .f-front::after{content:"";position:absolute;inset:0;border-radius:3px;pointer-events:none;
+  background:linear-gradient(112deg,rgba(255,255,255,.28) 0,rgba(255,255,255,.07) 26%,transparent 38%,transparent 70%,rgba(255,255,255,.12) 84%,transparent 100%);
+  box-shadow:inset 0 0 0 1.5px rgba(215,245,255,.55)}
+.nv-box .f-back{inset:0;transform:rotateY(180deg) translateZ(8cqw);background:#0b1020;border-radius:3px}
+.nv-box .f-left,.nv-box .f-right{top:0;bottom:0;left:calc(50% - 8cqw);width:16cqw}
+.nv-box .f-left{transform:rotateY(-90deg) translateZ(50cqw);
+  background:linear-gradient(90deg,rgba(255,255,255,.22),transparent 30%,rgba(0,0,0,.35)),linear-gradient(180deg,#2b3550 0 6%,var(--spc,var(--famc,#4cf4ff)) 6% 94%,#1b2236 94%);
+  box-shadow:inset 0 0 0 1px rgba(215,245,255,.45);overflow:hidden}
+.nv-box .f-left span{position:absolute;inset:8% 0;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);
+  color:#081018;font:900 9.5cqw/1 system-ui;letter-spacing:.04em;white-space:nowrap;overflow:hidden}
+.nv-box .f-right{transform:rotateY(90deg) translateZ(50cqw);background:#141b2e}
+.nv-box .f-top,.nv-box .f-bottom{left:0;right:0;top:calc(50% - 8cqw);height:16cqw}
+.nv-box .f-top{transform:rotateX(90deg) translateZ(65.9cqw);background:linear-gradient(90deg,#c9d6e6,#8794aa);box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+.nv-box .f-bottom{transform:rotateX(-90deg) translateZ(65.9cqw);background:#0a0f1c}
+.nv-box3d::after{content:"";position:absolute;left:14%;right:6%;bottom:0;height:7%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),transparent);z-index:-1}
+#scr-music .nv-tape-card:hover .nv-box,#scr-music .nv-tape-card:focus-visible .nv-box{transform:rotateY(20deg) rotateX(-6deg) translateY(-6px)}
+#scr-music .nv-tape-card.selected .nv-box{transform:rotateY(10deg) rotateX(-3deg) translateY(-10px) scale(1.03)}
+#scr-music .nv-tape-card.selected .f-front::after{box-shadow:inset 0 0 0 2px var(--famc,#ff67b7),0 0 18px var(--famc,#ff67b7)}
+#scr-music .nv-tape-card.owned::after{top:2px!important;right:4px!important}
+@media(prefers-reduced-motion:reduce){.nv-box{transition:none}}
 </style>
 <script id="nv-fm-relook-js">
 (() => {
@@ -28857,8 +28890,18 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   }
   wall.addEventListener('click', e => { const b = e.target.closest('.nv-spine[data-music-id]'); if (b) pick(b.dataset.musicId); });
   /* ---------- synchronisation à chaque rendu des bacs ---------- */
+  function box3d(card, t) {
+    const jc = card.querySelector('.nv-jewel-case'); if (!jc || jc.closest('.nv-box3d')) return;
+    const wrap = document.createElement('div'); wrap.className = 'nv-box3d';
+    wrap.innerHTML = '<div class="nv-box"><div class="f-back"></div><div class="f-right"></div><div class="f-bottom"></div><div class="f-top"></div><div class="f-left"><span></span></div><div class="f-front"></div></div>';
+    wrap.querySelector('.f-left span').textContent = short(t);
+    const tl = TONES[t.kind] || TONES.special, k = catalog.filter(x => x.kind === t.kind).indexOf(t);
+    wrap.style.setProperty('--spc', tl[Math.max(0, k) % tl.length]);
+    jc.replaceWith(wrap); wrap.querySelector('.f-front').appendChild(jc);
+  }
   function sync() {
     const list = $('nvTapeList'), own = Array.isArray(S.musicTracks) ? S.musicTracks : [];
+    list.querySelectorAll('.nv-tape-card').forEach(c => { const t = catalog.find(x => x.id === c.dataset.musicId); if (t) box3d(c, t); });
     list.querySelectorAll('.nv-tape-card').forEach(c => { const t = catalog.find(x => x.id === c.dataset.musicId); if (t && c.dataset.fam !== t.kind) c.dataset.fam = t.kind; });
     const sel = list.querySelector('.nv-tape-card.selected'), id = sel ? sel.dataset.musicId : null;
     wall.querySelectorAll('.nv-spine[data-music-id]').forEach(b => { b.classList.toggle('selected', b.dataset.musicId === id); b.classList.toggle('owned', own.includes(b.dataset.musicId)); });
