@@ -30156,6 +30156,9 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
 #scr-music .nv-walkman.nv-ff .nv-insert-tape .nv-reel{animation:reelSpin .22s linear infinite!important}
 #scr-music .nv-walkman.nv-rw .nv-insert-tape .nv-reel{animation:reelSpin .22s linear infinite reverse!important}
 #scr-music .nv-walkman.nv-slow .nv-insert-tape .nv-reel{animation-duration:2.6s!important}
+/* un seul bouton lecture / pause : celui de la platine (l'ancien bouton reste caché, la barre d'espace s'en sert) */
+#scr-music #nvPreviewBtn{display:none!important}
+#scr-music .nv-music-actions #nvBuyBtn,#scr-music .nv-music-actions #nvDownloadBtn{grid-column:1/-1}
 /* compteur du baladeur */
 .nv-wm-count{position:absolute;z-index:7;left:23.9%;top:70.9%;width:7.4%;height:5.2%;display:grid;place-items:center;pointer-events:none;border-radius:3px;
   background:#04110f;color:#5dffd0;font:900 clamp(8px,1.05cqw,13px)/1 ui-monospace,Consolas,monospace;letter-spacing:.08em;text-shadow:0 0 5px rgba(93,255,208,.7);box-shadow:inset 0 0 6px #000}
