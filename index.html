@@ -12713,11 +12713,9 @@ function updateAttract(dt) {
   P.x = L_W / 2 + Math.sin(G.t * 0.55) * 150;
   P.y = L_H - 170 + Math.sin(G.t * 1.25) * 46;
   P.bank = Math.cos(G.t * 0.55) * 0.4;
-  P.fireCd -= dt;
-  if (P.fireCd <= 0) { fireWeapon(); P.fireCd = G.stats.fireCd * 1.4; }
-  P.trailT -= dt;
-  if (P.trailT <= 0) { P.trailT = 0.02; emitTrail(P); }
-  if (attractT <= 0) { attractT = rnd(3.2, 1.6); const f = pick([formV, formLine, formStream, formArc, formSides]); f(pick(['drone', 'stinger', 'runner', 'swarmlet']), rndi(3, 6)); }
+  /* plus de démo : seul le décor défile derrière le menu (pas de vaisseau, d'ennemis ni de tirs) */
+  P.alive = false;
+  G.enemies.length = 0; G.bullets.length = 0; G.ebullets.length = 0; G.pickups.length = 0; G.beams.length = 0;
   updateEnemies(dt);
   updateBullets(dt); collideBullets();
   updateEBullets(dt); updateBeams(dt);
@@ -12880,10 +12878,7 @@ function render(dt) {
     if (G.state === 'intro') drawEraBanner(introT / INTRO_DUR);
     if (G.state === 'warp') drawWarp();
     if (G.state !== 'title' && G.state !== 'warp') drawHUD();
-    if (G.state === 'title' && !S.best) {
-      const scl = Math.max(2, Math.round(PF.w / 340));
-      hudText(ctx, 'DÉMONSTRATION — APPUIE SUR ENTRÉE', PF.x + PF.w / 2, PF.y + PF.h - 30, TH.acc, 1, { align: 'center', glow: TH.acc });
-    }
+
   } else {
     /* menus : décor en mouvement léger */
     drawWorld(dt);
