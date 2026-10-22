@@ -28655,6 +28655,173 @@ window.addEventListener('keydown',e=>{if(G.state==='music'&&e.key==='Escape'){e.
 const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.innerHTML=Array.from({length:36},(_,i)=>`<i style="height:${9+(i*17%25)}px"></i>`).join('');
 })();
 </script>
+<style id="nv-fm-relook">
+/* =============================================================================
+   NEO-VANGUARD FM — RELOOK : mur de rayons, bacs en perspective, vitrine PC
+   ============================================================================= */
+#scr-music{--fam-sector:#3fe6f2;--fam-boss:#ff5ea8;--fam-special:#ffd36c}
+/* le magasin se voit derrière : panneaux en verre fumé */
+#scr-music .nv-music-stage{background:linear-gradient(145deg,rgba(20,18,44,.62),rgba(6,12,28,.7))!important;backdrop-filter:blur(6px)}
+#scr-music .nv-rack{background:linear-gradient(180deg,rgba(18,14,34,.55),rgba(6,10,24,.72))!important;backdrop-filter:blur(5px)}
+
+/* ---------- LE MUR DE RAYONS ---------- */
+#scr-music .nv-fm-main,#scr-music .nv-fm-side,#scr-music .nv-wall,#scr-music .nv-shelf,#scr-music .nv-rack,#scr-music .nv-shelf-row,#scr-music .nv-tape-list{min-width:0;max-width:100%}
+#scr-music .nv-wall,#scr-music .nv-rack{overflow:hidden}
+#scr-music .nv-wall-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 14px}
+.nv-wall{position:relative;margin-top:clamp(14px,2vh,22px);padding:14px 14px 10px;border:1px solid rgba(120,150,210,.28);border-radius:14px;
+  background:linear-gradient(180deg,rgba(14,16,34,.36),rgba(6,9,22,.6));backdrop-filter:blur(3px);box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.nv-wall-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 2px 10px}
+.nv-wall-head h2{margin:0;color:#f4ecff;font:900 13px/1 system-ui;letter-spacing:.18em}
+.nv-wall-legend{display:flex;gap:12px;color:#9aa0bf;font:800 8px/1 system-ui;letter-spacing:.12em}
+.nv-wall-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.nv-shelf{position:relative;margin:0 0 16px}
+.nv-shelf-tag{position:absolute;left:0;top:-1px;z-index:2;padding:3px 7px;border-radius:0 0 5px 0;font:900 7px/1 system-ui;letter-spacing:.16em;color:#071019}
+.nv-shelf-row{display:flex;align-items:flex-end;gap:3px;min-height:var(--spH,118px);padding:14px 8px 0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.05)),repeating-linear-gradient(90deg,transparent 0 120px,rgba(255,255,255,.025) 120px 121px)}
+.nv-shelf-row::-webkit-scrollbar{display:none}
+.nv-shelf::after{content:"";display:block;height:9px;border-radius:2px;background:linear-gradient(180deg,#8b97ad,#3b465c 40%,#1a2233);
+  box-shadow:0 6px 14px rgba(0,0,0,.55),0 0 18px -4px var(--famc,#4cf4ff)}
+.nv-spine{flex:0 0 auto;position:relative;width:var(--spW,25px);height:var(--spH,118px);padding:0;border:0;border-radius:3px 3px 1px 1px;cursor:pointer;
+  background:linear-gradient(90deg,rgba(0,0,0,.45),transparent 22%,transparent 78%,rgba(0,0,0,.5)),linear-gradient(180deg,#2a3247 0 9%,var(--c) 9% 91%,#1c2233 91%);
+  box-shadow:inset 0 1px rgba(255,255,255,.35),0 0 0 1px rgba(0,0,0,.6);transform-origin:bottom center;
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,filter .22s}
+.nv-spine span{position:absolute;inset:13% 0 12%;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);
+  color:#081018;font:900 8.5px/1 system-ui;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px rgba(255,255,255,.35)}
+.nv-spine b{position:absolute;top:2px;left:0;right:0;text-align:center;color:#cfe;font:900 6px/1 system-ui;letter-spacing:.04em;opacity:.8}
+.nv-spine.owned::after{content:"✓";position:absolute;bottom:2px;left:0;right:0;text-align:center;color:#73ffbd;font:900 8px/1 system-ui}
+.nv-spine:hover,.nv-spine:focus-visible{transform:translateY(-9px);filter:brightness(1.15);z-index:2;outline:none;box-shadow:inset 0 1px rgba(255,255,255,.45),0 0 0 1px rgba(255,255,255,.55),0 0 16px var(--c)}
+.nv-spine.selected{transform:translateY(-16px) rotate(-3deg);filter:brightness(1.22);z-index:3;box-shadow:inset 0 1px rgba(255,255,255,.5),0 0 0 2px #fff,0 0 22px var(--c)}
+.nv-spine.deco{cursor:default;filter:saturate(.35) brightness(.55);pointer-events:none}
+
+/* ---------- LES BACS : cassettes posées en biais ---------- */
+#scr-music .nv-rack-head h2{font-size:0}
+#scr-music .nv-rack-head h2::before{content:"LES BACS";font:900 13px/1 system-ui;letter-spacing:.18em}
+#scr-music .nv-tape-list{perspective:900px;background:none!important;gap:26px 10px!important;padding:34px 8px 10px!important;max-height:none}
+#scr-music .nv-tape-card{background:none!important;border:0!important;box-shadow:none!important;padding:0 0 4px!important;transform:none!important;overflow:visible;gap:0!important}
+#scr-music .nv-tape-card::before{content:none!important}
+#scr-music .nv-tape-card .nv-cassette{position:relative;z-index:1;transform:rotateX(26deg) translateY(4px);transform-origin:50% 100%;
+  filter:drop-shadow(0 -2px 0 rgba(255,255,255,.06)) drop-shadow(0 6px 6px rgba(0,0,0,.5));transition:transform .26s cubic-bezier(.2,.8,.2,1),filter .26s}
+/* façade du bac devant le bas de la cassette */
+#scr-music .nv-tape-card .nv-cassette-name{position:relative;z-index:2;margin-top:-17%;padding:13% 8px 3px;border-radius:0 0 8px 8px;
+  background:linear-gradient(180deg,rgba(10,14,28,0) 0,rgba(14,20,38,.96) 38%,rgba(9,13,26,.98));border-top:2px solid var(--famc,#4cf4ff);
+  box-shadow:inset 0 1px rgba(255,255,255,.08);color:#f2f0ff;font-size:9.5px}
+#scr-music .nv-tape-card .nv-cassette-sub{position:relative;z-index:2;padding:2px 8px 7px;border-radius:0 0 8px 8px;background:rgba(9,13,26,.98);margin-top:-1px}
+#scr-music .nv-tape-card:hover .nv-cassette,#scr-music .nv-tape-card:focus-visible .nv-cassette{transform:rotateX(8deg) translateY(-14px)}
+#scr-music .nv-tape-card.selected .nv-cassette{transform:rotateX(0) translateY(-24px) scale(1.04);filter:drop-shadow(0 0 14px var(--famc,#ff67b7)) drop-shadow(0 10px 10px rgba(0,0,0,.6))}
+#scr-music .nv-tape-card.selected .nv-cassette-name{color:#fff}
+#scr-music .nv-tape-card.owned::after{top:-6px!important;bottom:auto;right:6px;z-index:3}
+#scr-music .nv-tape-card[data-fam=sector]{--famc:var(--fam-sector)}
+#scr-music .nv-tape-card[data-fam=boss]{--famc:var(--fam-boss)}
+#scr-music .nv-tape-card[data-fam=special]{--famc:var(--fam-special)}
+#scr-music .nv-filter[data-music-filter=sector].on{border-color:var(--fam-sector);color:var(--fam-sector)}
+#scr-music .nv-filter[data-music-filter=boss].on{border-color:var(--fam-boss);color:var(--fam-boss)}
+#scr-music .nv-filter[data-music-filter=special].on{border-color:var(--fam-special);color:var(--fam-special)}
+
+/* ---------- TÉLÉPHONE : rayons et bacs défilent à l'horizontale ---------- */
+@media(max-width:1099px),(hover:none){
+  .nv-wall{--spW:22px;--spH:98px;padding:11px 10px 6px}
+  .nv-wall-legend{display:none}
+  #scr-music .nv-tape-list{display:flex!important;overflow-x:auto!important;overflow-y:visible!important;scroll-snap-type:x mandatory;padding:26px 6px 10px!important;max-height:none!important}
+  #scr-music .nv-tape-card{flex:0 0 42%;max-width:180px;scroll-snap-align:center}
+  #scr-music .nv-music-shell{display:block;width:100%;max-width:100%;box-sizing:border-box}
+  #scr-music .nv-music-actions{flex-wrap:wrap}
+}
+
+/* ---------- PC : vitrine plein écran, comptoir à droite ---------- */
+@media(min-width:1100px) and (hover:hover){
+  #scr-music{overflow:hidden;padding:0!important}
+  #scr-music .nv-music-shell{max-width:none;height:100vh;height:100dvh;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(420px,1fr);
+    grid-template-rows:auto minmax(0,1fr) auto;column-gap:22px;padding:18px 26px 14px}
+  #scr-music .nv-music-top{grid-column:1/-1}
+  #scr-music .nv-music-heading{display:none}
+  #scr-music .nv-fm-main{grid-column:1;grid-row:2;display:flex;flex-direction:column;gap:14px;min-height:0}
+  #scr-music .nv-fm-side{grid-column:2;grid-row:2;min-height:0;display:flex}
+  #scr-music .nv-music-foot{grid-column:1/-1;margin-top:10px}
+  #scr-music .nv-wall{margin:0;flex:0 0 auto;--spW:clamp(22px,1.75vw,28px);--spH:clamp(82px,13.5vh,128px);padding-bottom:4px}
+  #scr-music .nv-shelf{margin-bottom:12px}
+  #scr-music .nv-filters{flex:0 0 auto;overflow:visible!important;padding-bottom:4px!important}
+  #scr-music .nv-rack-head{flex:0 0 auto}
+  #scr-music .nv-rack{margin:0!important;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  #scr-music .nv-tape-list{flex:1 1 auto;min-height:0;overflow-y:auto!important;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important}
+  /* le comptoir : baladeur au-dessus, fiche et actions en dessous */
+  #scr-music .nv-music-stage{width:100%;grid-template-columns:1fr!important;grid-template-rows:minmax(0,1fr) auto;align-content:stretch;gap:10px!important;padding:18px 22px!important;margin:0}
+  #scr-music .nv-walkman-wrap{min-height:0;height:100%}
+  #scr-music .nv-walkman{width:auto;height:min(100%,46vh);max-width:100%}
+  #scr-music .nv-music-info{text-align:left}
+  #scr-music .nv-music-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #scr-music .nv-music-actions #nvZoomBtn{grid-column:1/-1}
+  #scr-music .nv-music-actions button,#scr-music .nv-music-actions a{width:100%;min-height:46px}
+  .nv-fm-keys{display:flex;gap:14px;margin-top:10px;color:#8f95b4;font:700 9px/1 system-ui;letter-spacing:.1em}
+  .nv-fm-keys kbd{display:inline-block;min-width:18px;padding:3px 5px;margin-right:5px;border:1px solid rgba(255,255,255,.25);border-bottom-width:2px;border-radius:4px;color:#e9ecff;font:800 9px/1 system-ui;text-align:center}
+}
+@media not ((min-width:1100px) and (hover:hover)){.nv-fm-keys{display:none}}
+@media(prefers-reduced-motion:reduce){.nv-spine,#scr-music .nv-tape-card .nv-cassette{transition:none}}
+</style>
+<script id="nv-fm-relook-js">
+(() => {
+  const $ = id => document.getElementById(id);
+  const scr = $('scr-music'); if (!scr) return;
+  const catalog = JSON.parse($('nvMusicCatalog').textContent);
+  const shell = scr.querySelector('.nv-music-shell'), stage = scr.querySelector('.nv-music-stage'), rack = scr.querySelector('.nv-rack');
+  const FAM = { sector: '#3fe6f2', boss: '#ff5ea8', special: '#ffd36c' };
+  const TONES = {
+    sector: ['#3fe6f2', '#56a8ff', '#9c86ff', '#41dfa8', '#ffd166', '#f27cbd'],
+    boss: ['#ff5ea8', '#ff7a5c', '#e06cf0', '#b062e0', '#ff4f7e', '#a86bff'],
+    special: ['#ffd36c']
+  };
+  const short = t => t.kind === 'sector' ? String(t.title).split('·')[0].trim() : t.kind === 'boss' ? t.title : 'GAME OVER';
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  /* ---------- structure : comptoir (côté) + magasin (rayons, bacs) ---------- */
+  const side = document.createElement('div'); side.className = 'nv-fm-side';
+  const main = document.createElement('div'); main.className = 'nv-fm-main';
+  stage.before(side); side.appendChild(stage);
+  side.after(main); main.appendChild(rack);
+  const info = stage.querySelector('.nv-music-info');
+  if (info) info.insertAdjacentHTML('beforeend', '<div class="nv-fm-keys"><span><kbd>←</kbd><kbd>→</kbd>parcourir</span><span><kbd>␣</kbd>écouter</span><span><kbd>Z</kbd>en grand</span><span><kbd>Échap</kbd>sortir</span></div>');
+  /* ---------- le mur de rayons ---------- */
+  const wall = document.createElement('section'); wall.className = 'nv-wall';
+  const spine = (t, i) => `<button type="button" class="nv-spine" data-music-id="${t.id}" style="--c:${(TONES[t.kind] || TONES.special)[i % (TONES[t.kind] || TONES.special).length]}" title="${esc(t.title)} · ${t.price} CR"><b>NV</b><span>${esc(short(t))}</span></button>`;
+  const deco = (n, kind) => Array.from({ length: n }, (_, i) => `<i class="nv-spine deco" style="--c:${TONES[kind][i % TONES[kind].length]}"></i>`).join('');
+  const shelf = (label, kind, items, pad) => `<div class="nv-shelf" style="--famc:${FAM[kind]}"><span class="nv-shelf-tag" style="background:${FAM[kind]}">${label}</span><div class="nv-shelf-row">${items.map(spine).join('')}${pad ? deco(pad, kind) : ''}</div></div>`;
+  const sec = catalog.filter(t => t.kind === 'sector'), boss = catalog.filter(t => t.kind === 'boss'), sp = catalog.filter(t => t.kind !== 'sector' && t.kind !== 'boss');
+  wall.innerHTML = `<div class="nv-wall-head"><h2>LE MUR DES BANDES</h2><div class="nv-wall-legend"><span><i style="background:${FAM.sector}"></i>SECTEURS</span><span><i style="background:${FAM.boss}"></i>BOSS</span><span><i style="background:${FAM.special}"></i>SPÉCIALE</span></div></div>` +
+    `<div class="nv-wall-grid">` +
+      shelf('SECTEURS', 'sector', sec, 0) + shelf('SPÉCIALE', 'special', sp, 0) +
+    `</div>` + shelf('BOSS', 'boss', boss, 0);
+  main.insertBefore(wall, rack);
+  /* ---------- sélection depuis le mur : on passe par les bacs (logique d'origine) ---------- */
+  function pick(id) {
+    const t = catalog.find(x => x.id === id); if (!t) return;
+    let card = $('nvTapeList').querySelector(`[data-music-id="${id}"]`);
+    if (!card) { const f = $('nvMusicFilters').querySelector(`[data-music-filter="${t.kind}"]`) || $('nvMusicFilters').querySelector('[data-music-filter="all"]'); if (f) f.click(); card = $('nvTapeList').querySelector(`[data-music-id="${id}"]`); }
+    if (card) { card.click(); card.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' }); }
+  }
+  wall.addEventListener('click', e => { const b = e.target.closest('.nv-spine[data-music-id]'); if (b) pick(b.dataset.musicId); });
+  /* ---------- synchronisation à chaque rendu des bacs ---------- */
+  function sync() {
+    const list = $('nvTapeList'), own = Array.isArray(S.musicTracks) ? S.musicTracks : [];
+    list.querySelectorAll('.nv-tape-card').forEach(c => { const t = catalog.find(x => x.id === c.dataset.musicId); if (t && c.dataset.fam !== t.kind) c.dataset.fam = t.kind; });
+    const sel = list.querySelector('.nv-tape-card.selected'), id = sel ? sel.dataset.musicId : null;
+    wall.querySelectorAll('.nv-spine[data-music-id]').forEach(b => { b.classList.toggle('selected', b.dataset.musicId === id); b.classList.toggle('owned', own.includes(b.dataset.musicId)); });
+    const sb = id && wall.querySelector(`.nv-spine[data-music-id="${id}"]`);
+    if (sb) { const row = sb.parentElement, r = sb.getBoundingClientRect(), rr = row.getBoundingClientRect(); if (r.left < rr.left || r.right > rr.right) row.scrollLeft += (r.left + r.width / 2) - (rr.left + rr.width / 2); }
+  }
+  new MutationObserver(() => requestAnimationFrame(sync)).observe($('nvTapeList'), { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+  /* ---------- clavier PC : ← → parcourir, espace écouter, Z vue agrandie ---------- */
+  window.addEventListener('keydown', e => {
+    if (G.state !== 'music' || !$('nvCassetteZoom').hidden) return;
+    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    const order = catalog.map(t => t.id), sel = $('nvTapeList').querySelector('.nv-tape-card.selected');
+    const i = sel ? order.indexOf(sel.dataset.musicId) : -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault(); e.stopImmediatePropagation();
+      const n = (i + (e.key === 'ArrowRight' ? 1 : -1) + order.length) % order.length; pick(order[n]);
+    } else if (e.key === ' ') { e.preventDefault(); e.stopImmediatePropagation(); $('nvPreviewBtn').click(); }
+    else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); e.stopImmediatePropagation(); $('nvZoomBtn').click(); }
+  }, true);
+  requestAnimationFrame(sync);
+})();
+</script>
 <script id="nv-lcd-calm">
 (() => {
   /* ===== SECTEURS 1-4 (LCD) — décor apaisé =====================================
