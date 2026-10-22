@@ -18854,7 +18854,7 @@ narrativeInstall();
    autonome sur GitHub Pages.
    ============================================================================= */
 (function () {
-  const art = ["assets/media/media-035.webp",
+  const art = ["assets/media/Neo-Vanguard_depart-vaisseau_sequence-fin.png",   /* scène 1 : le départ du vaisseau (image paysage) */
     "assets/media/media-036.webp",
     "assets/media/media-037.webp",
     "assets/media/media-038.webp",
@@ -19070,7 +19070,7 @@ narrativeInstall();
     if(credits){startCreditsRoll();}
     else {
       img.style.opacity='0';
-      imageTimer=setTimeout(()=>{img.src=art[page.image];img.alt=localized(page.title);img.style.objectPosition=page.wristband?'center 52%':'center 28%';img.style.transform=page.wristband?'scale(1.01)':'scale(1.015)';img.style.opacity='1';},120);
+      imageTimer=setTimeout(()=>{img.src=art[page.image];img.alt=localized(page.title);img.style.objectPosition=page.wristband?'center 52%':page.image===0?'46% 50%':'center 28%';img.style.transform=page.wristband?'scale(1.01)':'scale(1.015)';img.style.opacity='1';},120);
       $('.nvf-kicker').textContent=localized(page.title);$('.nvf-title').textContent=localized(page.title);$('.nvf-body').textContent=localized(page.body);
       const name=$('.nvf-name');name.style.display=page.name?'block':'none';name.textContent='VESTA';
       if(page.name){const small=document.createElement('small');small.textContent=UI.family[li()];name.appendChild(small);}
