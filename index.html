@@ -28848,6 +28848,24 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 #scr-music .nv-tape-card.selected .f-front::after{box-shadow:inset 0 0 0 2px var(--famc,#ff67b7),0 0 18px var(--famc,#ff67b7)}
 #scr-music .nv-tape-card.owned::after{top:2px!important;right:4px!important}
 @media(prefers-reduced-motion:reduce){.nv-box{transition:none}}
+
+/* ---------- vitre du couvercle : reflets, traces de doigts, effet plastique ---------- */
+#scr-music .nv-walkman .nv-fm-glass{position:absolute;z-index:5;left:23.6%;width:52.8%;top:28.2%;height:37.6%;border-radius:2.5% / 3.5%;pointer-events:none;opacity:0;overflow:hidden;
+  background:
+    linear-gradient(118deg,transparent 0 14%,rgba(255,255,255,.34) 15.5%,rgba(255,255,255,.08) 19%,transparent 21%,transparent 27%,rgba(255,255,255,.16) 28%,transparent 31%),
+    linear-gradient(118deg,transparent 0 62%,rgba(255,255,255,.12) 64%,transparent 70%),
+    linear-gradient(180deg,rgba(255,255,255,.22) 0,rgba(255,255,255,.04) 9%,transparent 22%,transparent 80%,rgba(120,200,255,.10) 100%),
+    radial-gradient(ellipse 40% 30% at 82% 78%,rgba(255,255,255,.07),transparent 70%),
+    linear-gradient(90deg,rgba(150,215,255,.10),rgba(150,215,255,.03) 50%,rgba(150,215,255,.10));
+  box-shadow:inset 0 0 0 1.5px rgba(220,245,255,.38),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -2px 6px rgba(0,0,0,.35),inset 0 0 22px rgba(140,210,255,.10);
+  transition:opacity .35s ease .3s}
+#scr-music .nv-walkman .nv-fm-glass::before,#scr-music .nv-walkman .nv-fm-glass::after{content:"";position:absolute;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20110%22%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%226.0%22%20ry%3D%228.0%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%227%202%22%20transform%3D%22rotate%28-8.0%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%229.6%22%20ry%3D%2212.4%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%2211%204%22%20transform%3D%22rotate%28-6.5%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%2213.2%22%20ry%3D%2216.8%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%2215%202%22%20transform%3D%22rotate%28-5.0%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%2216.8%22%20ry%3D%2221.2%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%227%204%22%20transform%3D%22rotate%28-3.5%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%2220.4%22%20ry%3D%2225.6%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%2211%202%22%20transform%3D%22rotate%28-2.0%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%2224.0%22%20ry%3D%2230.0%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%2215%204%22%20transform%3D%22rotate%28-0.5%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%2227.6%22%20ry%3D%2234.4%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%227%202%22%20transform%3D%22rotate%281.0%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%2231.2%22%20ry%3D%2238.8%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%2211%204%22%20transform%3D%22rotate%282.5%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%2234.8%22%20ry%3D%2243.2%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%2215%202%22%20transform%3D%22rotate%284.0%2050%2055%29%22/%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2255%22%20rx%3D%2238.4%22%20ry%3D%2247.6%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.15%22%20stroke-dasharray%3D%227%204%22%20transform%3D%22rotate%285.5%2050%2055%29%22/%3E%3C/svg%3E") center/contain no-repeat;mix-blend-mode:screen;filter:blur(.35px)}
+#scr-music .nv-walkman .nv-fm-glass::before{left:64%;top:44%;width:17%;height:44%;opacity:.2;transform:rotate(18deg)}
+#scr-music .nv-walkman .nv-fm-glass::after{left:9%;top:8%;width:12%;height:32%;opacity:.14;transform:rotate(-24deg)}
+#scr-music .nv-walkman .nv-fm-glass i{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.10),transparent);filter:blur(1px)}
+#scr-music .nv-walkman[data-lid=closed] .nv-fm-glass,#scr-music .nv-walkman[data-lid=closing] .nv-fm-glass{opacity:1}
+#scr-music .nv-walkman.playing[data-lid=closed] .nv-fm-glass{animation:nvGlint 5s ease-in-out infinite}
+@keyframes nvGlint{0%,100%{background-position:0 0,0 0,0 0,0 0,0 0}50%{background-position:6% 0,-4% 0,0 0,0 0,0 0}}
 </style>
 <script id="nv-fm-relook-js">
 (() => {
@@ -28953,7 +28971,7 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   /* ---------- couvercle : s'ouvre au choix d'une cassette, se referme à la lecture ---------- */
   const wm = $('nvWalkman');
   if (wm && !wm.querySelector('.nv-fm-lid-open')) {
-    wm.insertAdjacentHTML('beforeend', '<img class="nv-fm-lid-closed" src="assets/music-shop/walkman-lid-closed.webp" alt="" aria-hidden="true"><img class="nv-fm-lid-open" src="assets/music-shop/walkman-lid-open.webp" alt="" aria-hidden="true">');
+    wm.insertAdjacentHTML('beforeend', '<div class="nv-fm-glass" aria-hidden="true"><i style="left:30%;top:58%;width:16%;height:22%"></i><i style="left:72%;top:14%;width:10%;height:16%"></i></div><img class="nv-fm-lid-closed" src="assets/music-shop/walkman-lid-closed.webp" alt="" aria-hidden="true"><img class="nv-fm-lid-open" src="assets/music-shop/walkman-lid-open.webp" alt="" aria-hidden="true">');
   }
   let lidT = 0;
   function lid(to) {
@@ -28968,7 +28986,18 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   }
   if (wm) wm.dataset.lid = 'open';
   const au = $('nvMusicAudio');
-  if (au) au.addEventListener('play', () => { if (G.state === 'music') setTimeout(() => lid('closed'), ins && ins.dataset.nvBay === '1' && ins.classList.contains('nv-fm-new') ? 450 : 60); });
+  if (au) au.addEventListener('play', () => {
+    if (G.state !== 'music') return;
+    const had = ins && ins.firstElementChild && ins.dataset.nvId === (curTrack() || {}).id;
+    if (!had) { lid('open'); insertForListening(true); }
+    setTimeout(() => { if (playing()) lid('closed'); }, had ? 80 : 780);
+  });
+  /* fin d'écoute d'une cassette non achetée : le couvercle se rouvre, la cassette ressort */
+  if (au) au.addEventListener('pause', () => {
+    if (G.state !== 'music') return;
+    const t = curTrack(), own = Array.isArray(S.musicTracks) ? S.musicTracks : [];
+    if (t && !own.includes(t.id)) lid('open');
+  });
   let lastSel = null;
   new MutationObserver(() => {
     const sel = $('nvTapeList').querySelector('.nv-tape-card.selected'), id = sel ? sel.dataset.musicId : null;
@@ -28985,7 +29014,19 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
     ins.innerHTML = bayTape(t); ins.dataset.nvBay = '1'; ins.dataset.nvId = t.id;
     if (changed) { ins.classList.remove('nv-fm-new'); void ins.offsetWidth; ins.classList.add('nv-fm-new'); setTimeout(() => ins.classList.remove('nv-fm-new'), 700); }
   }
-  if (ins) new MutationObserver(() => { if (ins.querySelector('.nv-cassette')) { ins.dataset.nvBay = ''; fitTape(); } else if (!ins.firstElementChild) { ins.dataset.nvId = ''; } }).observe(ins, { childList: true });
+  const curTrack = () => { const sel = $('nvTapeList').querySelector('.nv-tape-card.selected'); return catalog.find(x => x.id === (sel && sel.dataset.musicId)) || catalog.find(x => x.title === $('nvTrackTitle').textContent); };
+  const playing = () => au && !au.paused && G.state === 'music';
+  function insertForListening(animate) {
+    const t = curTrack(); if (!t || !ins) return;
+    const isNew = ins.dataset.nvId !== t.id;
+    ins.innerHTML = bayTape(t); ins.dataset.nvBay = '1'; ins.dataset.nvId = t.id;
+    if (animate && isNew) { ins.classList.remove('nv-fm-new'); void ins.offsetWidth; ins.classList.add('nv-fm-new'); setTimeout(() => ins.classList.remove('nv-fm-new'), 700); }
+  }
+  /* pendant l'écoute, la cassette reste dans le baladeur, achetée ou non */
+  if (ins) new MutationObserver(() => {
+    if (ins.querySelector('.nv-cassette')) { ins.dataset.nvBay = ''; fitTape(); }
+    else if (!ins.firstElementChild) { if (playing()) insertForListening(false); else ins.dataset.nvId = ''; }
+  }).observe(ins, { childList: true });
   requestAnimationFrame(() => { sync(); if (ins) { ins.dataset.nvBay = ''; fitTape(); } });
 })();
 </script>
