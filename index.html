@@ -28638,6 +28638,10 @@ function cassette(t,small=false){
  return `<svg class="nv-cassette" viewBox="0 0 300 190" role="img" aria-label="Cassette Neo-Vanguard : ${title}"><defs><linearGradient id="label-${serial}" x2="1" y2="1"><stop stop-color="${c}"/><stop offset=".52" stop-color="#27314f"/><stop offset="1" stop-color="#10172d"/></linearGradient><linearGradient id="glint-${serial}" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><image href="assets/music-shop/art/cassette-shell-transparent.webp" x="-3" y="-19" width="287" height="241" preserveAspectRatio="none"/><rect x="32" y="28" width="234" height="47" rx="3" fill="url(#label-${serial})" stroke="${familyColor}" stroke-width="1.5"/><path d="M36 31h226v3H36z" fill="url(#glint-${serial})"/><path d="M37 31v41" stroke="${familyColor}" stroke-width="4"/><text x="43" y="40" fill="#fff" font-size="8.5" font-family="system-ui,sans-serif" font-weight="1000" letter-spacing="1.05">NEO-VANGUARD</text><text x="43" y="48" fill="#d2e9ff" font-size="4.4" font-family="system-ui,sans-serif" font-weight="800" letter-spacing="1.2">FM · ORIGINAL GAME MUSIC</text><text x="42" y="62" fill="#fff" font-size="12.5" font-family="system-ui,sans-serif" font-weight="1000" letter-spacing=".15">${title}</text><text x="43" y="70" fill="${familyColor}" font-size="5.1" font-family="system-ui,sans-serif" font-weight="900" letter-spacing=".85">${family} · ${String(t.id).toUpperCase()}</text><g transform="translate(242 43)" fill="${familyColor}" opacity=".96"><path d="M0 9h5V4h4v5h6v4H9v5H5v-5H0zM16 0h4v4h-4zM19 18h5v5h-5z"/><path d="M5 27h17M8 30h12" stroke="#fff" stroke-width="1.3" stroke-opacity=".8"/></g></svg>`
 }
 function storeCase(t){
+ const safe=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
+ return `<div class="nv-jewel-case nv-case-img" role="img" aria-label="Boîtier de cassette Neo-Vanguard, ${safe(t.title)}"><img src="assets/music-shop/cases/${t.id}.webp" alt="" loading="lazy" decoding="async" draggable="false"></div>`;
+}
+function storeCaseSvg(t){
  const c=(labelColors[t.kind]||labelColors.special)[t.era%6],title=String(t.title||'NEO-VANGUARD'),safe=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
  const words=title.split(/\s+/),lines=[];let line='';for(const w of words){const next=line?line+' '+w:w;if(next.length>19&&line){lines.push(line);line=w}else line=next}if(line)lines.push(line);if(lines.length>2)lines.splice(1,lines.length-1,lines.slice(1).join(' '));
  const label=t.kind==='boss'?'BOSS ARCHIVE':t.kind==='sector'?'SECTOR ORIGINAL':'SPECIAL RELEASE',sub=t.kind==='boss'?`BOSS · ${t.levels}`:t.kind==='sector'?`LEVELS ${t.levels}`:t.levels,seed=(Number(String(t.id).match(/\d+/)?.[0])||7)+t.era*13;
@@ -28869,6 +28873,31 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 @keyframes nvGlint{0%,100%{background-position:0 0,0 0,0 0,0 0,0 0}50%{background-position:6% 0,-4% 0,0 0,0 0,0 0}}
 
 #scr-music .nv-music-stage.is-playing .nv-eq i{animation:none!important;transition:height .06s linear}
+
+/* ===== BOÎTIERS PHOTO (jaquettes du pack) ===== */
+#scr-music .nv-tape-card .nv-case-img{position:relative;display:block;width:100%;aspect-ratio:340/511;transform:rotate(-1.5deg) translateY(2px)!important;transform-origin:50% 100%;filter:drop-shadow(0 10px 10px rgba(0,0,0,.55))!important;transition:transform .3s cubic-bezier(.2,.8,.2,1),filter .3s!important}
+#scr-music .nv-tape-card .nv-case-img img{display:block;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none}
+#scr-music .nv-tape-card:nth-child(3n+2) .nv-case-img{transform:rotate(1deg) translateY(4px)!important}
+#scr-music .nv-tape-card:nth-child(3n) .nv-case-img{transform:rotate(-.5deg) translateY(1px)!important}
+#scr-music .nv-tape-card:hover .nv-case-img,#scr-music .nv-tape-card:focus-visible .nv-case-img{transform:rotate(0) translateY(-10px) scale(1.04)!important;filter:drop-shadow(0 16px 14px rgba(0,0,0,.6)) drop-shadow(0 0 10px var(--famc,#4cf4ff))!important}
+#scr-music .nv-tape-card.selected .nv-case-img{transform:rotate(0) translateY(-16px) scale(1.07)!important;filter:drop-shadow(0 18px 16px rgba(0,0,0,.65)) drop-shadow(0 0 16px var(--famc,#ff67b7))!important}
+#scr-music .nv-tape-card .nv-case-img::after{content:none!important}
+#scr-music .nv-tape-list{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))!important}
+/* vue agrandie : jaquette + boîtier */
+#scr-music .nv-zoom-art:has(.nv-zoom-cover){display:flex;align-items:center;justify-content:center;gap:4%}
+#scr-music .nv-zoom-art .nv-zoom-cover{width:52%;max-width:340px;aspect-ratio:2/3;object-fit:cover;border-radius:6px;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 18px 40px rgba(0,0,0,.6)}
+#scr-music .nv-zoom-art .nv-case-img{width:40%;max-width:250px;transform:rotate(3deg)}
+#scr-music .nv-zoom-art .nv-case-img img{width:100%;filter:drop-shadow(0 16px 18px rgba(0,0,0,.6))}
+@media(max-width:620px){#scr-music .nv-zoom-art .nv-zoom-cover{width:58%}#scr-music .nv-zoom-art .nv-case-img{width:36%}}
+
+/* tranches du mur : un éclat de la jaquette de chaque piste */
+.nv-spine.nv-spine-art{background:
+  linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.05) 25%,rgba(0,0,0,.05) 75%,rgba(0,0,0,.6)),
+  linear-gradient(180deg,var(--c) 0 9%,transparent 9% 91%,var(--c) 91%),
+  linear-gradient(180deg,rgba(4,8,20,.15),rgba(4,8,20,.55)),
+  var(--art) 50% 0/auto 142% no-repeat,#10162a}
+.nv-spine.nv-spine-art span{color:#fff;text-shadow:0 0 3px #000,0 1px 2px #000,0 0 6px rgba(0,0,0,.9)}
+.nv-spine.nv-spine-art b{color:#071019}
 </style>
 <script id="nv-fm-relook-js">
 (() => {
@@ -28893,7 +28922,7 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   if (info) info.insertAdjacentHTML('beforeend', '<div class="nv-fm-keys"><span><kbd>←</kbd><kbd>→</kbd>parcourir</span><span><kbd>␣</kbd>écouter</span><span><kbd>Z</kbd>en grand</span><span><kbd>Échap</kbd>sortir</span></div>');
   /* ---------- le mur de rayons ---------- */
   const wall = document.createElement('section'); wall.className = 'nv-wall';
-  const spine = (t, i) => `<button type="button" class="nv-spine" data-music-id="${t.id}" style="--c:${(TONES[t.kind] || TONES.special)[i % (TONES[t.kind] || TONES.special).length]}" title="${esc(t.title)} · ${t.price} CR"><b>NV</b><span>${esc(short(t))}</span></button>`;
+  const spine = (t, i) => `<button type="button" class="nv-spine nv-spine-art" data-music-id="${t.id}" style="--c:${(TONES[t.kind] || TONES.special)[i % (TONES[t.kind] || TONES.special).length]};--art:url('assets/music-shop/covers/${t.id}.webp')" title="${esc(t.title)} · ${t.price} CR"><b>NV</b><span>${esc(short(t))}</span></button>`;
   const deco = (n, kind) => Array.from({ length: n }, (_, i) => `<i class="nv-spine deco" style="--c:${TONES[kind][i % TONES[kind].length]}"></i>`).join('');
   const shelf = (label, kind, items, pad) => `<div class="nv-shelf" style="--famc:${FAM[kind]}"><span class="nv-shelf-tag" style="background:${FAM[kind]}">${label}</span><div class="nv-shelf-row">${items.map(spine).join('')}${pad ? deco(pad, kind) : ''}</div></div>`;
   const sec = catalog.filter(t => t.kind === 'sector'), boss = catalog.filter(t => t.kind === 'boss'), sp = catalog.filter(t => t.kind !== 'sector' && t.kind !== 'boss');
@@ -28912,7 +28941,7 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   wall.addEventListener('click', e => { const b = e.target.closest('.nv-spine[data-music-id]'); if (b) pick(b.dataset.musicId); });
   /* ---------- synchronisation à chaque rendu des bacs ---------- */
   function box3d(card, t) {
-    const jc = card.querySelector('.nv-jewel-case'); if (!jc || jc.closest('.nv-box3d')) return;
+    const jc = card.querySelector('.nv-jewel-case'); if (!jc || jc.closest('.nv-box3d') || jc.classList.contains('nv-case-img')) return;
     const wrap = document.createElement('div'); wrap.className = 'nv-box3d';
     wrap.innerHTML = '<div class="nv-box"><div class="f-back"></div><div class="f-right"></div><div class="f-bottom"></div><div class="f-top"></div><div class="f-left"><span></span></div><div class="f-front"></div></div>';
     wrap.querySelector('.f-left span').textContent = short(t);
@@ -29070,6 +29099,13 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
     au.addEventListener('play', () => { if (setup()) { try { ctx.resume && ctx.resume(); } catch (e) {} if (!raf) frame(); } });
     au.addEventListener('pause', stop); au.addEventListener('ended', stop);
   })();
+  /* ---------- vue agrandie : la jaquette à plat, à côté du boîtier ---------- */
+  const zArt = $('nvZoomArt');
+  if (zArt) new MutationObserver(() => {
+    const ci = zArt.querySelector('.nv-case-img'); if (!ci || zArt.querySelector('.nv-zoom-cover')) return;
+    const t = curTrack(); if (!t) return;
+    zArt.insertAdjacentHTML('afterbegin', `<img class="nv-zoom-cover" src="assets/music-shop/covers/${t.id}.webp" alt="Jaquette : ${esc(t.title)}">`);
+  }).observe(zArt, { childList: true });
   requestAnimationFrame(() => { sync(); if (ins) { ins.dataset.nvBay = ''; fitTape(); } });
 })();
 </script>
