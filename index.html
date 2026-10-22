@@ -653,7 +653,6 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
 </div>
 
 <!-- ============ INTERFACE TACTILE ============ -->
-<button id="tpause" data-act="touch-pause" aria-label="Pause"><i class="tp-ic" aria-hidden="true"></i><b>PAUSE</b></button>
 <div id="touchui">
   <button class="tbtn bomb-control" data-act="touch-bomb" aria-label="Utiliser une bombe"><span class="bomb-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5h5l1.2 2.2a7.3 7.3 0 1 1-7.6 0L10 5Z"/><path d="M11 3h4M15.5 4.5 18 2"/></svg><i>BOMBE</i></span><b id="tbomb">2</b></button>
   <div class="weapon-control" role="group" aria-label="Sélection de l’arme">
@@ -665,6 +664,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
     </button>
     <button class="weapon-step" data-act="touch-weapon-next" aria-label="Arme suivante" title="Arme suivante"><span>+</span><small>SUIV.</small></button>
   </div>
+  <button id="tpause" data-act="touch-pause" aria-label="Pause"><i class="tp-ic" aria-hidden="true"></i><small>PAUSE</small></button>
 </div>
 
 <!-- ============ COMMANDES ============ -->
@@ -29118,48 +29118,26 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 </script>
 
 <style id="nv-pause-btn">
-/* ===== BOUTON PAUSE TACTILE — en haut, dans le HUD, loin des pouces ===== */
-#tpause{position:fixed;left:auto;right:auto;bottom:auto;top:0;z-index:12;width:auto!important;height:36px!important;min-width:44px;padding:0 12px 0 10px;
-  display:none;align-items:center;gap:7px;border-radius:9px!important;border:1px solid color-mix(in srgb,var(--acc) 70%,rgba(255,255,255,.2))!important;
-  background:linear-gradient(180deg,rgba(14,24,44,.86),rgba(4,9,20,.9))!important;color:#eafcff!important;font:800 10px/1 var(--ui-font,system-ui);letter-spacing:.16em;
-  box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 1px rgba(255,255,255,.08)!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent;opacity:.92}
-#tpause .tp-ic{position:relative;width:10px;height:12px;flex:0 0 auto}
-#tpause .tp-ic::before,#tpause .tp-ic::after{content:"";position:absolute;top:0;width:3.5px;height:12px;border-radius:1px;background:var(--acc,#4be7ff);box-shadow:0 0 6px color-mix(in srgb,var(--acc) 70%,transparent)}
-#tpause .tp-ic::before{left:0}#tpause .tp-ic::after{right:0}
-#tpause b{font-weight:800}
-#tpause:active{transform:scale(.95);background:color-mix(in srgb,var(--acc) 25%,rgba(4,9,20,.9))!important}
-#tpause.tp-compact{padding:0;width:40px!important;justify-content:center}#tpause.tp-compact b{display:none}
-#tpause::after{content:"";position:absolute;inset:-8px}   /* zone de toucher élargie, invisible */
+/* ===== BOUTON PAUSE TACTILE — intégré à la barre de commandes du bas =====
+   Il ne recouvre plus ni le cadre de jeu, ni le texte, ni la carte. */
+#touchui #tpause{position:static!important;inset:auto!important;transform:none;pointer-events:auto;display:flex!important;flex:0 0 42px;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  width:auto!important;height:auto!important;min-height:58px;padding:3px;margin:0;border-radius:9px!important;
+  border:1px solid color-mix(in srgb,var(--acc) 55%,rgba(255,255,255,.15))!important;
+  background:linear-gradient(155deg,rgba(17,30,54,.98),rgba(5,12,27,.98))!important;color:#dfe9ff!important;box-shadow:none!important;opacity:1;touch-action:manipulation}
+#touchui #tpause .tp-ic{position:relative;width:11px;height:13px;flex:0 0 auto}
+#touchui #tpause .tp-ic::before,#touchui #tpause .tp-ic::after{content:"";position:absolute;top:0;width:4px;height:13px;border-radius:1px;background:var(--acc,#4be7ff)}
+#touchui #tpause .tp-ic::before{left:0}#touchui #tpause .tp-ic::after{right:0}
+#touchui #tpause small{font:800 7.5px/1 var(--ui-font,system-ui);letter-spacing:.12em;color:#bcd0ee}
+#touchui #tpause:active{transform:scale(.96);background:color-mix(in srgb,var(--acc) 22%,rgba(5,12,27,.98))!important}
+#touchui #tpause::after{content:none}
+/* la place réservée à l'ancien rond flottant n'a plus lieu d'être */
+#touchui{padding-right:max(8px,env(safe-area-inset-right))!important}
+body.nvLeft #touchui{padding-left:max(8px,env(safe-area-inset-left))!important}
+@media(max-width:380px){#touchui #tpause{flex-basis:36px}#touchui #tpause small{font-size:6.5px;letter-spacing:.06em}}
 </style>
 <script id="nv-pause-btn-js">
 (() => {
   const btn = document.getElementById('tpause'); if (!btn) return;
-  /* position : au-dessus du cadre de jeu s'il y a la place, sinon dans son coin haut */
-  function place() {
-    if (typeof PF === 'undefined') return;
-    const shown = getComputedStyle(btn).display !== 'none';
-    if (!shown) return;
-    const fw = PF.w * PF.s, fh = PF.h * PF.s, left = document.body.classList.contains('nvLeft');
-    const safeTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat')) || 0;
-    const room = PF.y - safeTop;
-    btn.classList.toggle('tp-compact', window.innerWidth < 340);
-    const bw = btn.offsetWidth || 90, bh = 36;
-    let top, x;
-    if (room >= bh + 10) { top = PF.y - bh - 6; }                        /* dans la marge au-dessus de l'écran de jeu */
-    else { top = PF.y + Math.max(44, fh * 0.17); btn.classList.add('tp-compact'); }   /* écran court : icône seule, sous la bande de score et la radio */
-    const m = Math.max(8, PF.x);                                        /* aligné sur le bord du cadre */
-    x = left ? m : window.innerWidth - m - (btn.offsetWidth || bw);
-    x = Math.max(6, Math.min(window.innerWidth - bw - 6, x));
-    btn.style.top = Math.round(Math.max(safeTop + 4, top)) + 'px';
-    btn.style.left = Math.round(x) + 'px';
-  }
-  const show = () => {
-    const play = typeof G !== 'undefined' && (G.state === 'play' || G.state === 'intro');
-    const touch = typeof IS_TOUCH !== 'undefined' ? IS_TOUCH : matchMedia('(pointer:coarse)').matches;
-    btn.style.display = play && touch ? 'flex' : 'none';
-    place();
-  };
-  setInterval(show, 300); addEventListener('resize', () => setTimeout(show, 60));
   /* pause automatique quand on lève le doigt (option) */
   let fingers = 0, liftT = 0, liftPaused = false;
   const isUI = t => t && t.closest && t.closest('button, a, input, select, textarea, label, #touchui, #tpause, .screen.on');
