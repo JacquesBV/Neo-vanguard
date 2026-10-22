@@ -17688,9 +17688,7 @@ holoDraw = function (st) {
   const size = W * 0.86 * (st.zoom || 1), sw = size * sx, sh = size * (0.88 + 0.12 * face);
   const pitchK = clamp(0.5 + st.pitch * 0.6, 0.6, 1.1);
   /* ombre portée au sol */
-  g.save(); g.globalAlpha = 0.45; g.filter = 'blur(6px)';
-  g.fillStyle = '#000'; g.beginPath(); g.ellipse(cx, fy, Math.abs(sw) * 0.36 + 6, H * 0.04, 0, 0, TAU); g.fill();
-  g.restore();
+  /* (ombre portée au sol retirée) */
   /* reflet */
   g.save(); g.translate(cx, fy + 4); g.scale(sx, -0.35 * pitchK); g.globalAlpha = 0.18;
   g.drawImage(src, -size / 2, -sh / 2 - size * 0.12, size, sh);
@@ -17698,7 +17696,7 @@ holoDraw = function (st) {
   /* le vaisseau : rotation simulée autour de l'axe vertical */
   g.save();
   g.translate(cx, cy + bob - H * 0.04); g.scale(sx < 0 ? -face : face, pitchK);
-  g.shadowColor = `rgba(${pal.energy.join(',')},.45)`; g.shadowBlur = 24 * Math.abs(Math.sin(t * 1.1)) + 8;
+  g.shadowBlur = 0;   /* pas de halo ni d'ombre autour de la coque */
   g.drawImage(src, -size / 2, -sh / 2, size, sh);
   g.shadowBlur = 0;
   /* reflet spéculaire qui balaye la coque pendant la rotation */
@@ -23004,7 +23002,7 @@ frame = function (now) {
    images d'équipement (armes, améliorations, bombe) et aperçus dessinés en
    canvas pour livrées, traînées et auras. Aucune dépendance réseau.        */
 (function nvShopArt() {
-  const SHIPS_IMG = {"falcon": "assets/media/media-101.webp", "falconA": "assets/media/media-102.webp", "falconB": "assets/media/media-103.webp", "viper": "assets/media/media-104.webp", "titan": "assets/media/media-105.webp", "spectre": "assets/media/media-106.webp", "singularis": "assets/media/media-107.webp"};
+  const SHIPS_IMG = {"falcon": "assets/media/ships-shop/falcon.webp", "falconA": "assets/media/ships-shop/falconA.webp", "falconB": "assets/media/ships-shop/falconB.webp", "viper": "assets/media/ships-shop/viper.webp", "titan": "assets/media/ships-shop/titan.webp", "spectre": "assets/media/ships-shop/spectre.webp", "singularis": "assets/media/ships-shop/singularis.webp"};   /* réacteurs éteints, Singularis ajouté */
   const ITEMS_IMG = {"bomb": "assets/media/media-108.webp", "credit": "assets/media/media-109.webp", "dmg": "assets/media/media-110.webp", "drone": "assets/media/media-111.webp", "engine": "assets/media/media-112.webp", "hull": "assets/media/media-113.webp", "laser": "assets/media/media-114.webp", "luck": "assets/media/media-115.webp", "magnet": "assets/media/media-116.webp", "plasma": "assets/media/media-117.webp", "pulse": "assets/media/media-118.webp", "rail": "assets/media/media-119.webp", "rate": "assets/media/media-120.webp", "shield": "assets/media/media-121.webp", "spread": "assets/media/media-122.webp"};
   /* 1) nouveaux rendus des vaisseaux : le plateau, la modale d'achat et les cartes les utilisent */
   const reTint = () => { try { SV_TINT.clear(); } catch (e) {} };
@@ -29256,6 +29254,23 @@ body.nvLeft #touchui{padding-left:max(8px,env(safe-area-inset-left))!important}
   resumeGame = function () { liftPaused = false; return prevResume.apply(this, arguments); };
 })();
 </script>
+<style id="nv-shop-ship-box">
+/* ===== BOUTIQUE › VAISSEAUX : vitrine épurée =====
+   Plus de vignette sombre ni d'ombre autour du vaisseau : un présentoir clair
+   et lisible, avec un sol de vitrine discret et un liseré à la couleur de la coque. */
+#scr-shop .nvArt.sh{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.07) 0,rgba(255,255,255,0) 46%),
+    radial-gradient(ellipse 70% 38% at 50% 84%,rgba(var(--nva,63,182,255),.16),transparent 70%),
+    linear-gradient(180deg,#17253c 0%,#101b2e 62%,#0d1626 100%) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 0 1px rgba(var(--nva,63,182,255),.22) !important;
+  border-radius:10px}
+#scr-shop .nvArt.sh::after{background:none}
+#scr-shop .nvArt.sh::before{content:"";position:absolute;left:12%;right:12%;bottom:13%;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(var(--nva,63,182,255),.45),transparent)}
+#scr-shop .nvArt.sh canvas{filter:none}
+#scr-shop .card.locked .nvArt.sh canvas{filter:saturate(.85) brightness(.95)}
+</style>
 <style id="nv-btn-contrast">
 /* =====================================================================
    BOUTONS LISIBLES — passe de contraste (toujours en dernier)
