@@ -7544,6 +7544,7 @@ function drawPlayerBullets() {
   const g = PAINT.g, K = PAINT.K, e = R.era, P = G.player;
   for (const b of G.bullets) {
     const bx = b.x, by = b.y;
+    if (b.type === 'homing' && window.NVM && NVM.draw(g, K, b)) continue;   /* sprite du missile à tête chercheuse */
     if (e === 0) { /* 2 tons, gros pixels */
       if (b.type === 'homing') {
         g.save(); g.translate(bx * K, by * K); g.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
@@ -9077,6 +9078,7 @@ function drawPlayerBullets() {
   const glowScale = clamp(Number(S.opts.glowRadius ?? 125) / 100, 0.5, 2);
   for (const b of G.bullets) {
     const bx = b.x, by = b.y;
+    if (b.type === 'homing' && window.NVM && NVM.draw(g, K, b)) continue;   /* sprite du missile à tête chercheuse */
     if (e === 0) {  /* projectile en flèche : silhouette longue, les pièces restent rondes */
       const flicker = Math.floor((b.t || 0) * 14) % 2;
       if (b.type === 'plasma') {
@@ -23015,7 +23017,7 @@ frame = function (now) {
     im.src = SHIPS_IMG[k]; SV_IMG[k] = im;
   }
   /* images d'équipement (fond noir : fusion « screen ») */
-  ITEMS_IMG.homing = 'assets/media/homing.svg';
+  ITEMS_IMG.homing = 'assets/media/homing-item.webp';   /* image détourée (fond transparent) : pas de fusion « screen » */
   const IT = {};
   for (const k in ITEMS_IMG) { const im = new Image(); im.src = ITEMS_IMG[k]; IT[k] = im; }
   const WCOL = { pulse: '63,220,255', spread: '255,170,60', laser: '255,70,120', plasma: '150,255,140', rail: '120,170,255', homing: '99,220,255', bomb: '255,110,60',
@@ -23029,6 +23031,8 @@ frame = function (now) {
   .nvArt canvas{filter:brightness(1.14) contrast(1.06)}
   .nvArt img,.nvArt canvas{position:relative;width:100%;height:100%;object-fit:contain;transition:transform .35s cubic-bezier(.2,.8,.2,1),filter .3s}
   .nvArt img{mix-blend-mode:screen}
+  .nvArt img[src*="homing-item"],.nvChipImg[src*="homing-item"]{mix-blend-mode:normal;filter:drop-shadow(0 4px 6px rgba(0,0,0,.55))}
+  .nvArt img[src*="homing-item"]{width:88%;height:88%}
   .card:hover .nvArt img,.card:hover .nvArt canvas{transform:scale(1.07)}
   .card.locked .nvArt img{filter:saturate(.8) brightness(.92)}
   .card.locked .nvArt canvas{filter:brightness(1.05) saturate(.85)}
@@ -23160,7 +23164,7 @@ frame = function (now) {
     const g = cv.getContext('2d'), w = cv.width, h = cv.height; g.clearRect(0, 0, w, h);
     g.fillStyle = '#060a14'; g.fillRect(0, 0, w, h); glowBg(g, w, h, WCOL[key] || '63,182,255', .38, .5);
     const im = IT[key]; if (!im) return false;
-    const draw = () => { g.globalCompositeOperation = 'lighter'; const k = Math.min(w / im.naturalWidth, h / im.naturalHeight) * 1.0; const iw = im.naturalWidth * k, ih = im.naturalHeight * k; g.drawImage(im, (w - iw) / 2, (h - ih) / 2, iw, ih); g.globalCompositeOperation = 'source-over'; };
+    const draw = () => { g.globalCompositeOperation = key === 'homing' ? 'source-over' : 'lighter'; const k = Math.min(w / im.naturalWidth, h / im.naturalHeight) * 1.0; const iw = im.naturalWidth * k, ih = im.naturalHeight * k; g.drawImage(im, (w - iw) / 2, (h - ih) / 2, iw, ih); g.globalCompositeOperation = 'source-over'; };
     if (im.complete && im.naturalWidth) draw(); else im.addEventListener('load', draw, { once: true });
     return true;
   }
@@ -29787,6 +29791,152 @@ html.nvui #nvTitle .tile.nv-music-tile .ti{color:#ff74bc!important}
 /* Écran titre : la démo qui tourne derrière le menu ne doit faire aucun bruit
    de jeu. La puce sonore LCD interceptait « shoot » avant la garde d'origine. */
 (() => { const _s = Audio2.sfx; Audio2.sfx = function (name) { if (typeof G !== 'undefined' && G.state === 'title' && name !== 'ui') return; return _s.apply(this, arguments); }; })();
+</script>
+<style id="nv-fm-meuble">
+/* ===== NEO-VANGUARD FM — LE MEUBLE À CASSETTES =====================================
+   Les boîtiers sont rangés dans les 12 bacs du meuble (2 étages × 6). Une cassette
+   achetée quitte son bac : l'emplacement reste vide, seule l'étiquette « collectée »
+   demeure (on peut toujours la sélectionner pour l'écouter). Un meuble par lot de 12.
+   Superposition : meuble → boîtiers du haut → façades du haut → boîtiers du bas → façades du bas. */
+#scr-music .nv-tape-list.nv-meubles{display:flex!important;flex-direction:column;align-items:center;gap:clamp(12px,2.4vh,26px)!important;grid-template-columns:none!important;
+  padding:12px 4px 16px!important;perspective:none!important;scroll-snap-type:none!important;background:none!important}
+.nv-meuble{position:relative;flex:0 0 auto;width:100%;max-width:max(560px,min(1100px,calc(var(--nv-lh,560px) * 1.96)));aspect-ratio:1774/887;isolation:isolate;container-type:inline-size}
+.nv-meuble>img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.nv-meuble .nv-mb-back{z-index:0;filter:drop-shadow(0 16px 20px rgba(0,0,0,.6))}
+.nv-meuble .nv-mb-front0{z-index:3;clip-path:polygon(0 40.6%,100% 13.8%,100% 100%,0 100%)}
+.nv-meuble .nv-mb-front1{z-index:5;clip-path:polygon(0 75.3%,100% 43.7%,100% 100%,0 100%)}
+#scr-music .nv-meuble .nv-slot.nv-tape-card{position:absolute!important;z-index:auto!important;left:var(--x);bottom:calc(100% - var(--b));width:var(--w);height:auto;aspect-ratio:460/308;
+  margin:0;padding:0!important;display:block!important;flex:none!important;max-width:none!important;min-width:0;overflow:visible!important;transform:none!important;
+  background:none!important;border:0!important;box-shadow:none!important;outline:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transform-style:flat!important;perspective:none!important;filter:none!important}   /* aucun contexte d'empilement : boîtiers et façades s'intercalent */
+#scr-music .nv-meuble .nv-slot.nv-tape-card::before,#scr-music .nv-meuble .nv-slot.nv-tape-card::after{content:none!important}
+#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-case-img{position:absolute!important;inset:0;width:100%;height:100%;z-index:2;transform:skewY(var(--sk)) translateY(0)!important;transform-origin:50% 100%;
+  filter:drop-shadow(0 .5cqw .5cqw rgba(0,0,0,.65))!important;transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s!important}
+#scr-music .nv-meuble .nv-slot.nv-tape-card[data-row="1"] .nv-case-img{z-index:4}
+#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-case-img img{width:100%;height:100%;object-fit:fill}
+#scr-music .nv-meuble .nv-slot.nv-tape-card:hover .nv-case-img,#scr-music .nv-meuble .nv-slot.nv-tape-card:focus-visible .nv-case-img{transform:skewY(var(--sk)) translateY(-14%)!important;
+  filter:drop-shadow(0 .8cqw .7cqw rgba(0,0,0,.65)) drop-shadow(0 0 .8cqw var(--famc,#4cf4ff))!important}
+#scr-music .nv-meuble .nv-slot.nv-tape-card.selected .nv-case-img{transform:skewY(var(--sk)) translateY(-27%)!important;
+  filter:drop-shadow(0 1cqw .9cqw rgba(0,0,0,.7)) drop-shadow(0 0 1.3cqw var(--famc,#ff67b7))!important}
+/* cassette achetée : le bac est vide */
+#scr-music .nv-meuble .nv-slot.nv-tape-card.owned .nv-case-img{visibility:hidden}
+/* étiquette de prix collée sur la façade du bac */
+#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-name{display:none!important}
+#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-sub{position:absolute!important;z-index:7;left:50%;top:106%;display:block!important;margin:0!important;padding:.32cqw .6cqw!important;
+  transform:translateX(-50%) skewY(var(--sk))!important;border:1px solid var(--famc,#4cf4ff)!important;border-radius:.35cqw!important;white-space:nowrap;
+  background:rgba(6,10,22,.9)!important;box-shadow:0 0 .6cqw -.1cqw var(--famc,#4cf4ff)!important;pointer-events:none}
+#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-sub>span{display:none}
+#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-cassette-price{display:block;margin:0;font:900 clamp(7px,1.05cqw,13px)/1 system-ui;letter-spacing:.06em;color:#fff}
+#scr-music .nv-meuble .nv-slot.nv-tape-card.owned .nv-cassette-sub{border-color:#3ce3a0!important;box-shadow:0 0 .6cqw -.1cqw #3ce3a0!important}
+#scr-music .nv-meuble .nv-slot.nv-tape-card.owned .nv-cassette-price{color:#9dffd6}
+#scr-music .nv-meuble .nv-slot.nv-tape-card.owned .nv-cassette-price::before{content:"✓ "}
+#scr-music .nv-meuble .nv-slot.nv-tape-card:hover .nv-cassette-sub{filter:brightness(1.35)}
+#scr-music .nv-meuble .nv-slot.nv-tape-card.selected .nv-cassette-sub{background:var(--famc,#ff67b7)!important}
+#scr-music .nv-meuble .nv-slot.nv-tape-card.selected .nv-cassette-price{color:#071019}
+/* téléphone : les meubles défilent à l'horizontale, chacun assez large pour bien voir les boîtiers */
+@media(max-width:1099px),(hover:none){
+  #scr-music .nv-tape-list.nv-meubles{flex-direction:row!important;align-items:flex-start;overflow-x:auto!important;overflow-y:hidden!important;justify-content:flex-start}
+  .nv-meuble{width:620px;max-width:none}
+}
+@media(prefers-reduced-motion:reduce){#scr-music .nv-meuble .nv-slot.nv-tape-card .nv-case-img{transition:none!important}}
+</style>
+<script id="nv-fm-meuble-js">
+(() => {
+  const list = document.getElementById('nvTapeList'); if (!list) return;
+  /* bacs mesurés sur l'image du meuble (1774×887) : x / largeur en % de la largeur,
+     b = bas du boîtier en % de la hauteur (le quart inférieur passe derrière la façade) */
+  const SLOTS = [
+    { r: 0, x: 13.93, w: 12.5, b: 39.21 }, { r: 0, x: 28.11, w: 12.15, b: 35.35 }, { r: 0, x: 41.94, w: 12.4, b: 31.69 },
+    { r: 0, x: 55.99, w: 11.76, b: 27.8 }, { r: 0, x: 69.33, w: 11.56, b: 24.19 }, { r: 0, x: 82.45, w: 11.26, b: 20.62 },
+    { r: 1, x: 17.58, w: 13.15, b: 71.88 }, { r: 1, x: 32.5, w: 12.8, b: 67.11 }, { r: 1, x: 47.03, w: 12.65, b: 62.5 },
+    { r: 1, x: 61.36, w: 12.0, b: 57.86 }, { r: 1, x: 74.94, w: 11.06, b: 53.42 }, { r: 1, x: 87.43, w: 9.92, b: 49.28 }
+  ];
+  const SKEW = ['-7.63deg', '-8.98deg'];          /* pente des façades de chaque étage */
+  const IMG = 'assets/music-shop/meuble.webp';
+  const layer = cls => `<img class="${cls}" src="${IMG}" alt="" draggable="false" decoding="async">`;
+  function shelve() {
+    const cards = [...list.children].filter(c => c.classList && c.classList.contains('nv-tape-card'));
+    if (!cards.length) return;
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < cards.length; i += SLOTS.length) {
+      const m = document.createElement('div'); m.className = 'nv-meuble';
+      m.innerHTML = layer('nv-mb-back') + layer('nv-mb-front0') + layer('nv-mb-front1');
+      cards.slice(i, i + SLOTS.length).forEach((c, k) => {
+        const s = SLOTS[k];
+        c.classList.add('nv-slot'); c.dataset.row = s.r;
+        c.style.setProperty('--x', s.x + '%'); c.style.setProperty('--w', s.w + '%');
+        c.style.setProperty('--b', s.b + '%'); c.style.setProperty('--sk', SKEW[s.r]);
+        m.appendChild(c);
+      });
+      frag.appendChild(m);
+    }
+    list.appendChild(frag);
+    list.classList.add('nv-meubles');
+  }
+  /* PC : un meuble entier tient dans la hauteur visible des bacs */
+  const fit = () => list.style.setProperty('--nv-lh', Math.max(0, list.clientHeight - 30) + 'px');
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(list); fit();
+  new MutationObserver(shelve).observe(list, { childList: true });
+  shelve();
+})();
+</script>
+<script id="nv-homing-sprite">
+/* ===== MISSILES À TÊTE CHERCHEUSE — sprite par génération =====================
+   Planche de 4 images (120×350) : pixel lourd, pixel, 16-bit, lisse.
+   LCD · 8-BIT+ · 16-BIT/ARCADE · CD/HD → images 0 · 1 · 2 · 3. Sur l'écran LCD,
+   l'image est ramenée aux tons de la palette de l'ère. */
+(() => {
+  const SHEET = new Image(); SHEET.src = 'assets/media/homing-missile.webp';
+  const CW = 120, CH = 350, AY = 0.38, LEN = 30;      /* AY : centre de la coque (point d'impact) ; LEN : longueur en unités de jeu */
+  const FRAME_OF_GEN = [0, 1, 2, 2, 3, 3];
+  const cache = new Map();
+  const parse = (() => { const c = document.createElement('canvas'); c.width = c.height = 1; const g = c.getContext('2d', { willReadFrequently: true });
+    return col => { g.clearRect(0, 0, 1, 1); g.fillStyle = '#000'; g.fillStyle = col; g.fillRect(0, 0, 1, 1); return g.getImageData(0, 0, 1, 1).data; }; })();
+  function build(f, h, tones) {
+    const key = f + ':' + h + (tones ? ':' + tones.join('|') : '');
+    let c = cache.get(key); if (c) return c;
+    let src = document.createElement('canvas'); src.width = CW; src.height = CH;
+    src.getContext('2d').drawImage(SHEET, f * CW, 0, CW, CH, 0, 0, CW, CH);
+    while (src.height / 2 >= h) {                       /* réduction par paliers de moitié : pas de crénelage */
+      const n = document.createElement('canvas'); n.width = Math.max(1, Math.round(src.width / 2)); n.height = Math.round(src.height / 2);
+      const ng = n.getContext('2d'); ng.imageSmoothingQuality = 'high'; ng.drawImage(src, 0, 0, n.width, n.height); src = n;
+    }
+    const w = Math.max(2, Math.round(h * CW / CH));
+    c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d', { willReadFrequently: true }); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, w, h);
+    if (f <= 1) {                                        /* générations pixel : bords francs, pas de demi-transparence */
+      const d = g.getImageData(0, 0, w, h), p = d.data, T = tones && tones.map(parse);
+      for (let i = 0; i < p.length; i += 4) {
+        if (p[i + 3] < 110) { p[i + 3] = 0; continue; }
+        p[i + 3] = 255;
+        if (T) { const l = 0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2], t = T[l < 70 ? 0 : l < 170 ? 1 : 2]; p[i] = t[0]; p[i + 1] = t[1]; p[i + 2] = t[2]; }
+      }
+      g.putImageData(d, 0, 0);
+    }
+    cache.set(key, c); if (cache.size > 48) cache.delete(cache.keys().next().value);
+    return c;
+  }
+  window.NVM = {
+    draw(g, K, b) {
+      if (!SHEET.complete || !SHEET.naturalWidth) return false;
+      const gen = typeof G.eraIdx === 'number' ? Math.max(0, Math.min(5, G.eraIdx)) : 0, f = FRAME_OF_GEN[gen];
+      const h = Math.max(7, Math.round(LEN * K));
+      const c = build(f, h, gen === 0 ? [TH.pDark, TH.pMain, TH.pLite] : null);
+      g.save();
+      g.translate(Math.round(b.x * K), Math.round(b.y * K)); g.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
+      if (gen >= 2) {                                    /* lueur du réacteur, qui palpite */
+        const ty = c.height * (1 - AY) * 0.72, r = c.width * (0.9 + 0.25 * Math.sin((b.t || 0) * 38 + (b.seed || 0)));
+        const gr = g.createRadialGradient(0, ty, 0, 0, ty, r); gr.addColorStop(0, 'rgba(120,220,255,.55)'); gr.addColorStop(1, 'rgba(60,140,255,0)');
+        g.globalCompositeOperation = 'lighter'; g.fillStyle = gr; g.fillRect(-r, ty - r, r * 2, r * 2); g.globalCompositeOperation = 'source-over';
+      }
+      const sm = g.imageSmoothingEnabled; g.imageSmoothingEnabled = gen >= 2;
+      g.drawImage(c, -Math.round(c.width / 2), -Math.round(c.height * AY));
+      g.imageSmoothingEnabled = sm;
+      g.restore();
+      return true;
+    }
+  };
+})();
 </script>
 </body>
 </html>
