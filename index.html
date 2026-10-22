@@ -13027,7 +13027,7 @@ function onKeyDown(k, ev) {
   } else if (G.state === 'pause') {
     if (k === 'Escape' || k === 'p') resumeGame();
     else if (IS_NEXT(k)) pressPrimary();
-  } else if (G.state === 'title' && IS_NEXT(k)) startFromTitle();
+  } else if (G.state === 'title' && IS_NEXT(k)) { if (campValid(S.camp)) continueCampaign(); else { G.twoP = false; startFromTitle(); } }
   else if (G.state === 'title' && k === '2') { G.twoP = true; startFromTitle(); }
   else if (IS_NEXT(k)) { pressPrimary(); }
   else if (k === 'Escape') { pressBack(); }
@@ -13098,7 +13098,8 @@ function wireButtons() {
       case 'records-back': gotoReturn(); break;
       case 'over-continue': doContinue(); break;
       case 'continue': continueCampaign(); break;
-      case 'play': G.twoP = false; G.daily = false; dailySeedOff(); startFromTitle(); break;
+      case 'play': if (campValid(S.camp) && !confirm(svt('newWarn', S.camp.level | 0))) break;
+        G.twoP = false; G.daily = false; dailySeedOff(); startFromTitle(); break;
       case 'play2': G.twoP = true; G.daily = false; dailySeedOff(); startFromTitle(); break;
       case 'story': G.daily = false; dailySeedOff(); beginStory(); break;
       case 'fullscreen': toggleFullscreen(); break;
@@ -20615,6 +20616,7 @@ const SVT = {
   koImp:  ['Fichier de sauvegarde invalide', 'Invalid save file', 'Archivo de partida no válido', 'Ficheiro de jogo inválido', '無効なセーブファイルです'],
   koRd:   ['Lecture du fichier impossible', 'Could not read the file', 'No se pudo leer el archivo', 'Não foi possível ler o ficheiro', 'ファイルを読めません'],
   gameover:['Retente ta chance une prochaine fois.', 'Better luck next time.', 'Inténtalo de nuevo la próxima vez.', 'Tente a sorte da próxima vez.', '次こそ、もう一度挑戦しよう。'],
+  newWarn:['Une campagne est en cours (secteur # / 24).\nEn commencer une nouvelle remplacera ce point de reprise dès le premier secteur terminé. Continuer ?', 'A campaign is in progress (sector # / 24).\nStarting a new one will replace this checkpoint once you clear the first sector. Continue?', 'Hay una campaña en curso (sector # / 24).\nEmpezar otra reemplazará este punto al terminar el primer sector. ¿Continuar?', 'Há uma campanha em curso (setor # / 24).\nComeçar outra substituirá este ponto ao terminar o primeiro setor. Continuar?', '進行中のキャンペーンがあります（セクター # / 24）。\n新しく始めると、最初のセクタークリア時にこのチェックポイントが上書きされます。続けますか？'],
   clrd:   ['Point de reprise effacé', 'Checkpoint cleared', 'Punto de reanudación borrado', 'Ponto de retoma apagado', 'チェックポイントを削除しました']
 };
 function svt(k, a, b) {
@@ -20713,6 +20715,51 @@ function importSave(file) {
     fi.onchange = () => { importSave(fi.files && fi.files[0]); fi.value = ''; };
     d.querySelector('#svClr').onclick = () => { delete S.camp; saveGame(); refreshUI(); buildOptions(); toast(svt('clrd')); };
   };
+}
+/* =============================================================================
+   AUTO-SAVE DE CAMPAGNE
+   Le point de reprise n'était écrit qu'au clic sur « Secteur suivant » : quitter
+   depuis l'écran de fin de secteur, passer par la boutique puis fermer l'onglet,
+   ou fermer le jeu en plein secteur faisait perdre la progression.
+   Désormais il est enregistré automatiquement :
+     - dès l'écran « Secteur neutralisé » (reprise au secteur suivant) ;
+     - au début de chaque secteur (reprise au début du secteur en cours) ;
+     - quand l'onglet / l'appli passe en arrière-plan (crédits compris).
+   ========================================================================= */
+function campAutoSave(level, score) {
+  if (!campEligible()) return;
+  level = level | 0;
+  if (level < 2 || level > MAX_LEVEL) return;
+  /* ne jamais reculer un point de reprise plus loin dans la même partie */
+  if (S.camp && S.camp.run === S.runs && (S.camp.level | 0) > level) return;
+  S.camp = { level, score: Math.max(0, score | 0), diff: S.opts.diff, ts: Date.now(), run: S.runs };
+  saveGame();
+  try { refreshUI(); } catch (e) {}
+}
+{
+  const _clear = showClearScreen;
+  showClearScreen = function () {
+    const r = _clear.apply(this, arguments);
+    if ((G.level | 0) < MAX_LEVEL) campAutoSave((G.level | 0) + 1, G.score);
+    return r;
+  };
+  const _sl = startLevel;
+  startLevel = function () {
+    const r = _sl.apply(this, arguments);
+    campAutoSave(G.level, G.score);
+    return r;
+  };
+  /* départ en arrière-plan : on met aussi les crédits du run à l'abri */
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) return;
+    try {
+      if (G.credits > 0 && (G.state === 'play' || G.state === 'pause' || G.state === 'clear')) {
+        S.credits += G.credits; G.credits = 0;
+      }
+      saveGame();
+    } catch (e) {}
+  });
+  window.addEventListener('pagehide', () => { try { saveGame(); } catch (e) {} });
 }
 try { refreshUI(); } catch (e) {}
 /* pause automatique quand on quitte l'onglet / l'appli (téléphone) */
