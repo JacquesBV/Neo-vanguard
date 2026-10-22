@@ -28866,6 +28866,8 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
 #scr-music .nv-walkman[data-lid=closed] .nv-fm-glass,#scr-music .nv-walkman[data-lid=closing] .nv-fm-glass{opacity:1}
 #scr-music .nv-walkman.playing[data-lid=closed] .nv-fm-glass{animation:nvGlint 5s ease-in-out infinite}
 @keyframes nvGlint{0%,100%{background-position:0 0,0 0,0 0,0 0,0 0}50%{background-position:6% 0,-4% 0,0 0,0 0,0 0}}
+
+#scr-music .nv-music-stage.is-playing .nv-eq i{animation:none!important;transition:height .06s linear}
 </style>
 <script id="nv-fm-relook-js">
 (() => {
@@ -28943,20 +28945,26 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
   /* ---------- cassette insérée, vue de face, aux cotes du logement ---------- */
   const FAMC = { sector: '#3fe6f2', boss: '#ff5ea8', special: '#ffd36c' };
   function bayTape(t) {
-    const c = FAMC[t.kind] || FAMC.special, ttl = esc(t.title), fam = t.kind === 'boss' ? 'BOSS SERIES' : t.kind === 'sector' ? 'SECTOR SERIES' : 'SPECIAL EDITION';
+    const LC = { sector: ['#39ddeb', '#5595ff', '#9c75ff', '#41dfa8', '#ffd166', '#f27cbd'], boss: ['#ff5b9d', '#ff7657', '#db61ee', '#a850d3', '#ff4778', '#a456ff'], special: ['#ffd36c', '#ffb84a', '#ffe05b', '#ffc05c', '#ffe58b', '#ffd36c'] };
+    const c = (LC[t.kind] || LC.special)[(t.era | 0) % 6], fc = t.kind === 'boss' ? '#ff62b4' : t.kind === 'special' ? '#ffd36c' : '#4cf4ff';
+    const ttl = esc(t.title), fam = t.kind === 'boss' ? 'BOSS SERIES' : t.kind === 'sector' ? 'SECTOR SERIES' : 'SPECIAL EDITION';
     /* viewBox 342×200 = logement ; axes des bobines en (88,93) et (232,93) */
     const reel = x => `<g class="nv-reel"><circle cx="${x}" cy="93" r="17" fill="#e9e4d8"/><circle cx="${x}" cy="93" r="7.5" fill="#1a1d26"/>` +
       [0, 60, 120, 180, 240, 300].map(a => `<rect x="${x - 1.6}" y="${93 - 14}" width="3.2" height="5" rx="1" fill="#1a1d26" transform="rotate(${a} ${x} 93)"/>`).join('') + `</g>`;
     return `<svg viewBox="0 0 342 200" preserveAspectRatio="none" aria-hidden="true"><defs>
       <linearGradient id="bt-body" x2="0" y2="1"><stop stop-color="#3a4256"/><stop offset=".12" stop-color="#232a3b"/><stop offset="1" stop-color="#121722"/></linearGradient>
-      <linearGradient id="bt-lab" x2="1"><stop stop-color="${c}"/><stop offset=".6" stop-color="${c}" stop-opacity=".75"/><stop offset="1" stop-color="#2a3150"/></linearGradient>
+      <linearGradient id="bt-lab" x2="1" y2="1"><stop stop-color="${c}"/><stop offset=".52" stop-color="#27314f"/><stop offset="1" stop-color="#10172d"/></linearGradient><linearGradient id="bt-glint" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
       <radialGradient id="bt-tape" cx=".5" cy=".5" r=".5"><stop stop-color="#6b4630"/><stop offset="1" stop-color="#2a1a12"/></radialGradient></defs>
       <rect x="3" y="3" width="336" height="194" rx="11" fill="url(#bt-body)" stroke="#8d98ad" stroke-width="2.5"/>
-      <rect x="20" y="12" width="302" height="54" rx="5" fill="url(#bt-lab)"/>
-      <rect x="20" y="12" width="302" height="54" rx="5" fill="none" stroke="rgba(255,255,255,.35)"/>
-      <text x="32" y="29" font-family="system-ui,sans-serif" font-weight="900" font-size="11" letter-spacing="1.2" fill="#08101a">NEO-VANGUARD</text>
-      <text x="32" y="50" font-family="system-ui,sans-serif" font-weight="900" font-size="${ttl.length > 22 ? 13 : 16}" fill="#08101a">${ttl}</text>
-      <text x="32" y="61" font-family="system-ui,sans-serif" font-weight="800" font-size="6.5" letter-spacing="1" fill="#08101a" opacity=".75">${fam} · ${esc(t.id.toUpperCase())}</text>
+      <g transform="translate(20 12) scale(${302 / 234} ${54 / 47}) translate(-32 -28)">
+        <rect x="32" y="28" width="234" height="47" rx="3" fill="url(#bt-lab)" stroke="${fc}" stroke-width="1.5"/>
+        <path d="M36 31h226v3H36z" fill="url(#bt-glint)"/><path d="M37 31v41" stroke="${fc}" stroke-width="4"/>
+        <text x="43" y="40" fill="#fff" font-size="8.5" font-family="system-ui,sans-serif" font-weight="1000" letter-spacing="1.05">NEO-VANGUARD</text>
+        <text x="43" y="48" fill="#d2e9ff" font-size="4.4" font-family="system-ui,sans-serif" font-weight="800" letter-spacing="1.2">FM · ORIGINAL GAME MUSIC</text>
+        <text x="42" y="62" fill="#fff" font-size="12.5" font-family="system-ui,sans-serif" font-weight="1000" letter-spacing=".15">${ttl}</text>
+        <text x="43" y="70" fill="${fc}" font-size="5.1" font-family="system-ui,sans-serif" font-weight="900" letter-spacing=".85">${fam} · ${esc(String(t.id).toUpperCase())}</text>
+        <g transform="translate(242 43)" fill="${fc}" opacity=".96"><path d="M0 9h5V4h4v5h6v4H9v5H5v-5H0zM16 0h4v4h-4zM19 18h5v5h-5z"/><path d="M5 27h17M8 30h12" stroke="#fff" stroke-width="1.3" stroke-opacity=".8"/></g>
+      </g>
       <rect x="52" y="70" width="238" height="46" rx="23" fill="#0b0e15" stroke="#5c6680" stroke-width="2"/>
       <circle cx="88" cy="93" r="${t.kind === 'boss' ? 21 : 18}" fill="url(#bt-tape)"/><circle cx="232" cy="93" r="${t.kind === 'boss' ? 15 : 18}" fill="url(#bt-tape)"/>
       <rect x="132" y="80" width="78" height="26" rx="3" fill="rgba(160,190,220,.12)" stroke="rgba(200,220,255,.25)"/>
@@ -29027,6 +29035,40 @@ const eq=$('nvMusicAudio').closest('#scr-music').querySelector('.nv-eq');eq.inne
     if (ins.querySelector('.nv-cassette')) { ins.dataset.nvBay = ''; fitTape(); }
     else if (!ins.firstElementChild) { if (playing()) insertForListening(false); else ins.dataset.nvId = ''; }
   }).observe(ins, { childList: true });
+
+  /* ---------- égaliseur : suit la musique réelle (analyse du son) ---------- */
+  (() => {
+    const bars = [...scr.querySelectorAll('.nv-eq i')]; if (!bars.length || !au) return;
+    let ctx = null, an = null, data = null, raf = 0;
+    const base = bars.map(b => parseFloat(b.style.height) || 12);
+    function setup() {
+      if (an) return true;
+      try {
+        ctx = (window.Audio2 && Audio2.ctx) || new (window.AudioContext || window.webkitAudioContext)();
+        const src = ctx.createMediaElementSource(au);
+        an = ctx.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = 0.72;
+        src.connect(an); an.connect(ctx.destination);
+        data = new Uint8Array(an.frequencyBinCount);
+        return true;
+      } catch (e) { an = null; return false; }
+    }
+    const N = bars.length;
+    /* bandes réparties de façon logarithmique : les basses à gauche, les aigus à droite */
+    const edges = Array.from({ length: N + 1 }, (_, i) => Math.round(2 + Math.pow(i / N, 1.7) * 104));
+    function frame() {
+      raf = requestAnimationFrame(frame);
+      if (!an) return;
+      an.getByteFrequencyData(data);
+      for (let i = 0; i < N; i++) {
+        let m = 0; for (let k = edges[i]; k < Math.max(edges[i] + 1, edges[i + 1]); k++) m = Math.max(m, data[k] || 0);
+        const v = Math.pow(Math.max(0, (m - 60) / 195), 1.25);
+        bars[i].style.height = (4 + v * 38).toFixed(1) + 'px';
+      }
+    }
+    function stop() { cancelAnimationFrame(raf); raf = 0; bars.forEach((b, i) => { b.style.height = base[i] + 'px'; }); }
+    au.addEventListener('play', () => { if (setup()) { try { ctx.resume && ctx.resume(); } catch (e) {} if (!raf) frame(); } });
+    au.addEventListener('pause', stop); au.addEventListener('ended', stop);
+  })();
   requestAnimationFrame(() => { sync(); if (ins) { ins.dataset.nvBay = ''; fitTape(); } });
 })();
 </script>
