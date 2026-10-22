@@ -28334,5 +28334,45 @@ html.nvui .chips .chip{border-radius:999px}
 })();
 </script>
 
+<style id="nv-btn-contrast">
+/* =====================================================================
+   BOUTONS LISIBLES — passe de contraste (toujours en dernier)
+   Une couche de style plus récente avait rendu le fond des boutons
+   principaux presque transparent tout en gardant un texte noir : texte
+   invisible (Nouvelle campagne, Créer une partie, Valider…). Les boutons
+   secondaires avaient des bordures à 9-11 % d'opacité.
+   ===================================================================== */
+/* 1. boutons principaux génériques : plein, accent, texte sombre */
+html.nvui .btn.prim{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 88%,#fff),color-mix(in srgb,var(--acc) 72%,#000));
+  color:#03060e;border:1px solid color-mix(in srgb,var(--acc) 80%,#fff);
+  text-shadow:none;
+  box-shadow:inset 0 1px rgba(255,255,255,.35),0 0 16px color-mix(in srgb,var(--acc) 38%,transparent),0 8px 22px rgba(0,0,0,.25)}
+html.nvui .btn.prim .bi{color:inherit}
+@media(hover:hover){html.nvui .btn.prim:hover{color:#03060e;filter:brightness(1.1);background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 88%,#fff),color-mix(in srgb,var(--acc) 72%,#000))}}
+html.nvui .btn.prim:disabled,html.nvui .btn.prim.off{filter:saturate(.35) brightness(.7);cursor:not-allowed}
+/* 2. boutons secondaires : bordure et fond nettement visibles */
+html.nvui .btn:not(.prim):not(.bad){
+  border-color:color-mix(in srgb,var(--acc) 55%,rgba(255,255,255,.2));
+  background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(255,255,255,.04)),var(--bg2,#0b1324);
+  color:#eef4ff}
+html.nvui .btn.bad{border-color:rgba(255,95,109,.75);color:#ffd0d5;background:rgba(255,95,109,.12)}
+/* 3. menu titre : tuiles et grands boutons secondaires */
+html.nvui #nvTitle .btn.big:not(.prim),
+html.nvui #nvTitle .btn.big.prim:not(.cur),
+html.nvui #nvTitle .nv-secondary .tile,
+html.nvui #nvTitle .tile{
+  border-color:color-mix(in srgb,var(--acc) 34%,rgba(255,255,255,.16))!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.03))!important}
+html.nvui #nvTitle .tile .ti{color:var(--acc);opacity:1}
+html.nvui #nvTitle .btn.big.prim{border-color:color-mix(in srgb,var(--acc) 70%,transparent)!important}
+/* 4. options : onglets et interrupteurs OFF */
+#optTabs button{color:#eef4ff;font-weight:700;border-color:color-mix(in srgb,var(--acc) 55%,rgba(255,255,255,.18));background:rgba(255,255,255,.07)}
+html.nvui .sw{border-color:color-mix(in srgb,var(--acc) 45%,rgba(255,255,255,.2));color:#dfe9ff;background:rgba(255,255,255,.07)}
+html.nvui .sw.on{border-color:var(--acc);color:#fff;background:color-mix(in srgb,var(--acc) 30%,transparent)}
+/* 5. pause tactile et « Abandonner » de l'écran Insert Coin */
+#tpause{width:42px;height:42px;font-size:17px;color:#eafcff;border:1px solid color-mix(in srgb,var(--acc) 75%,transparent);background:rgba(4,10,22,.72);box-shadow:0 0 12px color-mix(in srgb,var(--acc) 30%,transparent)}
+#nvCoin .ic-skip{border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.08);padding:10px 20px;font-size:12px}
+</style>
 </body>
 </html>
