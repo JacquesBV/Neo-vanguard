@@ -7514,15 +7514,15 @@ function updateBullets(dt) {
   for (let i = B.length - 1; i >= 0; i--) {
     const b = B[i]; b.t += dt;
     if (b.homing) {
-      const targetAlive = b.target && (b.target === G.boss ? !b.target.dead && b.target.hp > 0 : G.enemies.includes(b.target) && b.target.hp > 0);
+      const targetAlive = b.target && nvOnField(b.target) && (b.target === G.boss ? !b.target.dead && b.target.hp > 0 : G.enemies.includes(b.target) && b.target.hp > 0);
       if (!targetAlive) {
         let best = Infinity; b.target = null;
         for (const enemy of G.enemies) {
-          if (!enemy || enemy.hp <= 0) continue;
+          if (!enemy || enemy.hp <= 0 || !nvOnField(enemy)) continue;
           const d = dist2(b.x, b.y, enemy.x, enemy.y);
           if (d < best) { best = d; b.target = enemy; }
         }
-        if (G.boss && !G.boss.dead && G.boss.hp > 0) {
+        if (G.boss && !G.boss.dead && G.boss.hp > 0 && nvOnField(G.boss)) {
           const d = dist2(b.x, b.y, G.boss.x, G.boss.y);
           if (d < best) b.target = G.boss;
         }
@@ -8016,8 +8016,17 @@ function updateBeams(dt) {
 }
 
 /* --------------------------- dégâts / morts ------------------------------- */
+/* un ennemi (ou un boss) n'est touchable qu'une fois entré dans la zone de jeu :
+   son centre et une bonne part de sa coque doivent être visibles à l'écran.
+   Avant, on pouvait l'abattre (ou le toucher à la bombe) avant même qu'il apparaisse. */
+function nvOnField(e) {
+  if (!e) return false;
+  const m = Math.min(60, (e.r || 12) * 0.35);
+  return e.y - m >= 0 && e.y + m <= L_H && e.x + m >= 0 && e.x - m <= L_W;
+}
 function damageEnemy(e, dmg, silent) {
   if (e.dead) return;
+  if (!nvOnField(e)) return;
   if (e.guardOn && !silent) { /* garde active : les tirs ricochent */
     if (chance(0.9)) { spawnPart({ x: e.x, y: e.y + (e.h || e.r) / 2, vx: rnd(120, -120), vy: rnd(-40, -140), life: 0.25, col: TH.pLite, size: 3, glow: R.era >= 2 }); return; }
   }
@@ -8183,6 +8192,7 @@ function bossPartsAlive(b) { return b.parts.filter(p => !p.dead).length; }
 function bossDamage(dmg, part) {
   CUR_OWN = CUR_OWN || 1;
   const b = G.boss; if (!b || b.dead) return;
+  if (!nvOnField(b)) return;                    /* boss encore hors de la zone de jeu */
   if (part) { part.hp -= dmg; part.flash = 0.1; if (R.era >= 1) for (let i = 0; i < (R.era >= 3 ? 3 : 2); i++) spawnPart({ x: part.x + rnd(8, -8), y: part.y + rnd(8, -8), vx: rnd(95, -95), vy: rnd(75, -120), life: 0.22, col: TH.eBossLite, size: R.era >= 3 ? 2.5 : 2, glow: R.era >= 2 }); if (part.hp <= 0 && !part.dead) { part.dead = true; explode(part.x, part.y, 2, TH.eBoss, TH.eBossLite); Audio2.sfx('explode', { big: true }); FX.addShake(9); } }
   else {
     if (b.parts.length && bossPartsAlive(b) > 0) { bossDamage(dmg * 0.25, nearestPart(b)); return; }
@@ -8302,8 +8312,8 @@ function updateBoss(dt) {
   const partsAlive = b.parts.length ? bossPartsAlive(b) : 0;
   for (const Q of G.players)
     if (Q.alive && !Q.out && dist2(Q.x, Q.y, b.x, b.y) < ((R.era === 0 && G.level === 1 ? b.r * 0.48 + Q.r * 0.78 : b.r * 0.6 + Q.r) ** 2)) hitPlayer(Q, 1, true);
-  /* collisions projectiles joueur → boss / parties */
-  for (let i = G.bullets.length - 1; i >= 0; i--) {
+  /* collisions projectiles joueur → boss / parties (seulement une fois le boss entré) */
+  if (nvOnField(b)) for (let i = G.bullets.length - 1; i >= 0; i--) {
     const bu = G.bullets[i];
     CUR_OWN = bu.owner || CUR_OWN;
     let hit = false;
@@ -12733,6 +12743,7 @@ function collideBullets() {
     let hit = false;
     for (let j = G.enemies.length - 1; j >= 0; j--) {
       const e = G.enemies[j];
+      if (!nvOnField(e)) continue;          /* hors de la zone de jeu : le tir passe */
       if (dist2(b.x, b.y, e.x, e.y) < (e.r + b.r) ** 2) {
         const dmg = b.type === 'plasma' && b.aoe ? b.dmg : b.dmg;
         damageEnemy(e, dmg, false);
@@ -27553,7 +27564,7 @@ const NVGuardSprite = (() => {
       S0.spawnT -= dt;
       if (S0.spawnT <= 0 && S0.made < S0.total) { S0.spawnT = Math.max(.55, 1.2 - S0.t * .025); S0.made++; const lanes = [.4, .5, .6]; S0.list.push({ x: L_W * lanes[Math.floor(Math.random() * 3)] + (Math.random() - .5) * 14, y: -50, hp: 4, burst: 0, flash: 0, spin: (Math.random() - .5) * .6, a: 0 }); }
       for (const b of S0.list) { if (b.burst > 0) { b.burst -= dt; continue; } b.y += speed * dt; b.a += b.spin * dt; b.flash = Math.max(0, b.flash - dt * 6); if (b.y > L_H - 30 && !b.gone) { b.gone = true; S0.missed++; sfx('back'); popText(b.x, L_H - 80, 'RATÉ', '#ff6b7b', 9); } }
-      hits(bu => S0.list.find(b => !b.gone && b.burst <= 0 && b.hp > 0 && Math.hypot(bu.x - b.x, bu.y - b.y) < 36), (bu, b) => {
+      hits(bu => S0.list.find(b => !b.gone && b.burst <= 0 && b.hp > 0 && b.y > 20 && Math.hypot(bu.x - b.x, bu.y - b.y) < 36), (bu, b) => {
         b.hp -= 1; b.flash = .5; sfx('ehit');
         if (b.hp <= 0) { b.burst = .35; S0.killed++; addScore && addScore(G.player, 300); popText(b.x, b.y - 30, '+300', '#ffd166', 8); spawnPart({ x: b.x, y: b.y, vx: 0, vy: -40, life: .4, col: '#c27bff', size: 16, glow: true }); for (let k = 0; k < 8; k++) spawnPart({ x: b.x, y: b.y, vx: (Math.random() - .5) * 300, vy: (Math.random() - .5) * 300, life: .5, col: k % 2 ? '#c27bff' : '#ffd166', size: 4, glow: true }); sfx('explode'); }
       });
