@@ -551,7 +551,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
         <button class="tile" data-act="options"><span class="ti">⚙</span><b>Options</b><i>Graphismes, son, aperçu d'ère</i></button>
         <button class="tile" data-act="help"><span class="ti">?</span><b>Commandes</b><i>Clavier, souris, doigt</i></button>
         <button class="tile" data-act="cheats"><span class="ti">☠</span><b>Codes</b><i>8 codes secrets à trouver</i></button>
-        <button class="tile" data-act="flipper-menu"><span class="ti">◈</span><b>Flipper</b><i>Menu dédié au jeu de flipper</i></button>
+        <button class="tile" data-act="flipper-menu" hidden style="display:none"><span class="ti">◈</span><b>Flipper</b><i>Menu dédié au jeu de flipper</i></button>
         <button class="tile online" data-act="online"><span class="ti">⌁</span><b>Coop en ligne</b><i>Deux téléphones, un code</i></button>
         <button class="tile" data-act="records"><span class="ti">▦</span><b>Records</b><i>Classement, médailles, série</i></button>
         <button class="tile" data-act="credits"><span class="ti">★</span><b>Crédits</b><i>Comment tout est fabriqué</i></button>
@@ -13317,8 +13317,8 @@ function wireButtons() {
       }
       case 'records': G.prevScreen = G.state; G.state = 'records'; buildRecords(); showScreen('records'); break;
       case 'online': G.prevScreen = G.state; G.state = 'online'; netUiRefresh(); showScreen('online'); break;
-      case 'flipper-menu': G.prevScreen = G.state; G.state = 'flipper-menu'; showScreen('flipper-menu'); refreshFlipperButton(); break;
-      case 'flipper-back': gotoReturn(); break;
+      case 'flipper-menu': if (!isFlipperUnlocked()) break; G.prevScreen = G.state; G.state = 'flipper-menu'; showScreen('flipper-menu'); refreshFlipperButton(); break;
+      case 'flipper-back': flipperRunning = false; gotoReturn(); break;
       case 'play-flipper': startFlipperGame(); break;
       case 'net-back': gotoReturn(); break;
       case 'net-create': case 'net-join': case 'net-leave': case 'net-go': netUiAct(act); break;
@@ -32885,17 +32885,22 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
   };
 
 
+  if (Audio2.ok) Audio2.applyVolumes();
+})();
+</script>
+<script id="nv-flipper">
 /* ============ MENU FLIPPER + JEU ============ */
+function isFlipperUnlocked() {
+  // Le ticket révèle le code ; seule sa validation donne cet accès.
+  return !!((S.unlocks && S.unlocks.pinball) ||
+    (S.cheats && S.cheats.found && S.cheats.found.flipper));
+}
 function refreshFlipperButton() {
-  let unlocked = false;
-  try {
-    if (S && S.cheats && S.cheats.found && S.cheats.found['flipper']) unlocked = true;
-    if (window.flipperUnlocked) unlocked = true;
-    if (!unlocked) {
-      const raw = localStorage.getItem(SAVE_KEY);
-      if (raw) { const o = JSON.parse(raw); if (o && o.cheats && o.cheats.found && o.cheats.found['flipper']) unlocked = true; }
-    }
-  } catch(e) {}
+  const unlocked = isFlipperUnlocked();
+  document.querySelectorAll('[data-act="flipper-menu"]').forEach(tile => {
+    tile.hidden = !unlocked;
+    tile.style.display = unlocked ? '' : 'none';
+  });
   const btn = document.getElementById('btnPlayFlipper');
   const status = document.getElementById('flipperStatus');
   const hint = document.getElementById('flipperScratchHint');
@@ -32915,8 +32920,9 @@ let flipperBalls = 3;
 let flipperBall = null;
 
 function startFlipperGame() {
-  const unlocked = !!(S.cheats && S.cheats.found && S.cheats.found['flipper']);
+  const unlocked = isFlipperUnlocked();
   if (!unlocked) { alert('Le code CAFAITFLIPPER n\'est pas validé. Va dans le menu Codes.'); return; }
+  if (flipperRunning) return;
   flipperRunning = true;
   flipperScore = 0;
   flipperBalls = 3;
@@ -33056,15 +33062,9 @@ function initFlipperCanvas() {
   draw();
 }
 
-// Also refresh button when cheat state updates
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('[data-act="cheat-validate"]');
-  if (btn) setTimeout(refreshFlipperButton, 200);
-});
-
-
-  if (Audio2.ok) Audio2.applyVolumes();
-})();
+// Mise à jour immédiate après validation et restauration de la sauvegarde.
+window.addEventListener('nv:pinball-unlocked', refreshFlipperButton);
+refreshFlipperButton();
 </script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f25374bd0fd580',t:'MTc5Mjc3NTEyMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
