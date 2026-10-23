@@ -31965,12 +31965,21 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
   /* Modèles de tickets. Seul celui de fin a une récompense : les autres
      raretés sont prêtes pour de futures récompenses (aucun lot inventé). */
   const MODELS = {
-    finale: { id: 'finale', rarity: 'legendaire', reward: DIR + 'recompense_fin.png', code: CODE },
+    /* collection 01 : ticket de fin, après le générique */
+    finale: { id: 'finale', collection: 1, rarity: 'legendaire', reward: DIR + 'recompense_fin.png', code: CODE },
+    /* collection 02 : offert en battant le boss du secteur 12 (bilan de secteur) */
+    neo_melodies_002: { id: 'neo_melodies_002', collection: 2, rarity: 'epique', base: DIR + 'neomelodies_base_epique.webp', reward: DIR + 'neomelodies_recompense.png', code: 'NEOMELODIES' },
   };
 
   /* ---- textes d'interface (FR, EN, ES, PT, JA) ---------------------------- */
   const TX = {
     kicker:  ['RÉCOMPENSE LÉGENDAIRE', 'LEGENDARY REWARD', 'RECOMPENSA LEGENDARIA', 'RECOMPENSA LENDÁRIA', '伝説の報酬'],
+    kickerE: ['RÉCOMPENSE ÉPIQUE', 'EPIC REWARD', 'RECOMPENSA ÉPICA', 'RECOMPENSA ÉPICA', 'エピック報酬'],
+    cont:    ['Continuer', 'Continue', 'Continuar', 'Continuar', '続ける'],
+    mine:    ['Mes tickets', 'My tickets', 'Mis boletos', 'Meus bilhetes', 'マイチケット'],
+    see:     ['Voir le ticket', 'View ticket', 'Ver el boleto', 'Ver o bilhete', 'チケットを見る'],
+    scr:     ['intact', 'unscratched', 'sin rascar', 'intacto', '未使用'],
+    rev:     ['révélé', 'revealed', 'revelado', 'revelado', '公開済み'],
     title:   ['TICKET MYSTÈRE', 'MYSTERY TICKET', 'BOLETO MISTERIOSO', 'BILHETE MISTERIOSO', 'ミステリーチケット'],
     sub:     ['Gratte la zone argentée avec ton doigt, ou avec la souris en maintenant le clic.', 'Scratch the silver area with your finger, or with the mouse while holding the button.', 'Rasca la zona plateada con el dedo, o con el ratón manteniendo el clic.', 'Raspe a área prateada com o dedo, ou com o mouse segurando o botão.', '銀色の部分を指で、またはマウスのボタンを押したままこすってください。'],
     revealA: ['Révéler le ticket', 'Reveal the ticket', 'Revelar el boleto', 'Revelar o bilhete', 'チケットを表示'],
@@ -31999,51 +32008,121 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
       if (!S.tickets || typeof S.tickets !== 'object') S.tickets = {};
       if (!S.tickets.items || typeof S.tickets.items !== 'object') S.tickets.items = {};
       if (!(S.tickets.next > 0)) S.tickets.next = 1;
+      /* un compteur d'exemplaires par collection (NV-001-…, NV-002-…) ;
+         « next » reste celui de la collection 01, déjà sauvegardé */
+      if (!S.tickets.counters || typeof S.tickets.counters !== 'object') S.tickets.counters = {};
       return S.tickets;
-    } catch (e) { return (store.mem = store.mem || { items: {}, next: 1 }); }
+    } catch (e) { return (store.mem = store.mem || { items: {}, next: 1, counters: {} }); }
   }
   function persist() { try { saveGame(); } catch (e) {} }
-  const fmtSerial = n => 'NV-001-' + String(n).padStart(6, '0');
+  const fmtSerial = (col, n) => 'NV-' + String(col).padStart(3, '0') + '-' + String(n).padStart(6, '0');
+  function nextNumber(st, col) {
+    if (col === 1) return st.next++;
+    const k = String(col); const n = st.counters[k] > 0 ? st.counters[k] : 1; st.counters[k] = n + 1; return n;
+  }
   /* attribue un exemplaire une seule fois ; le numéro ne change plus ensuite */
   function award(modelId) {
     const st = store(), m = MODELS[modelId]; if (!m) return null;
     let it = st.items[modelId];
     if (!it) {
-      it = st.items[modelId] = { model: modelId, rarity: m.rarity, serial: fmtSerial(st.next++), awardedAt: Date.now(), progress: 0, revealed: false, mask: null };
+      it = st.items[modelId] = { model: modelId, collection: m.collection, rarity: m.rarity, serial: fmtSerial(m.collection, nextNumber(st, m.collection)), awardedAt: Date.now(), progress: 0, revealed: false, mask: null };
       persist();
     }
     return it;
   }
 
   /* =========================================================================
-     CODE CAFAITFLIPPER — une seule logique, une seule donnée persistante
+     CODES DE TICKET — une seule logique pour tous, une seule donnée
+     persistante par code (S.unlocks[clé]). Chaque code marche à tout moment,
+     ticket obtenu ou non, et ne se valide qu'une fois.
      ====================================================================== */
-  const MSG_OK = 'Code validé ! Le jeu de flipper est maintenant déverrouillé.';
-  const MSG_AGAIN = 'Ce code a déjà été saisi et validé. Le jeu de flipper est déjà déverrouillé.';
-  function pinballUnlocked() { try { return !!(S.unlocks && S.unlocks.pinball); } catch (e) { return false; } }
-  function validatePinballCode() {
+  const TICKET_CODES = {
+    CAFAITFLIPPER: { key: 'pinball',
+      ok: 'Code validé ! Le jeu de flipper est maintenant déverrouillé.',
+      again: 'Ce code a déjà été saisi et validé. Le jeu de flipper est déjà déverrouillé.' },
+    NEOMELODIES: { key: 'cassettes',
+      ok: 'Code validé ! Le menu complet des cassettes audio est maintenant déverrouillé.',
+      again: 'Ce code a déjà été saisi et validé. Le menu complet des cassettes audio est déjà déverrouillé.' },
+  };
+  function isUnlocked(key) { try { return !!(S.unlocks && S.unlocks[key]); } catch (e) { return false; } }
+  function validateTicketCode(code) {
+    const c = TICKET_CODES[code];
     if (!S.unlocks || typeof S.unlocks !== 'object') S.unlocks = {};
-    if (S.unlocks.pinball) return false;                     /* déjà validé : rien à refaire */
-    S.unlocks.pinball = { code: CODE, at: Date.now() };      /* déverrouillage = validation */
+    if (S.unlocks[c.key]) return false;                      /* déjà validé : rien à refaire */
+    S.unlocks[c.key] = { code, at: Date.now() };             /* déverrouillage = validation */
     persist();
-    try { window.dispatchEvent(new CustomEvent('nv:pinball-unlocked', { detail: { code: CODE } })); } catch (e) {}
-    try { if (window.NV_PINBALL && typeof NV_PINBALL.unlock === 'function') NV_PINBALL.unlock(); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent('nv:unlock', { detail: { key: c.key, code } })); } catch (e) {}
+    if (c.key === 'pinball') {
+      try { window.dispatchEvent(new CustomEvent('nv:pinball-unlocked', { detail: { code } })); } catch (e) {}
+      try { if (window.NV_PINBALL && typeof NV_PINBALL.unlock === 'function') NV_PINBALL.unlock(); } catch (e) {}
+    }
     return true;
   }
   /* API publique pour le jeu de flipper (absent de ce dépôt pour l'instant) */
-  window.NVPinballAccess = { isUnlocked: pinballUnlocked, code: CODE };
+  window.NVPinballAccess = { isUnlocked: () => isUnlocked('pinball'), code: 'CAFAITFLIPPER' };
+  window.NVUnlocks = { isUnlocked };
 
   const _try = tryCheatCode;
   tryCheatCode = function (raw) {
-    if (String(raw == null ? '' : raw).trim().toUpperCase() !== CODE) return _try.apply(this, arguments);
+    const code = String(raw == null ? '' : raw).trim().toUpperCase();
+    if (!TICKET_CODES[code]) return _try.apply(this, arguments);
     const banner = document.getElementById('cheatBanner'); if (banner) banner.hidden = true;
-    const first = validatePinballCode();
+    const first = validateTicketCode(code), c = TICKET_CODES[code];
     try { Audio2.sfx(first ? 'levelup' : 'ui'); } catch (e) {}
-    flashCheatMsg(first ? MSG_OK : MSG_AGAIN, first ? 'ok' : 'secret');
+    flashCheatMsg(first ? c.ok : c.again, first ? 'ok' : 'secret');
     /* le message reste lisible plus longtemps que les messages courts */
     clearTimeout(flashCheatMsg.t);
     flashCheatMsg.t = setTimeout(() => { const el = document.getElementById('cheatStatus'); if (el) { el.textContent = ''; el.className = 'cheatmsg'; } }, 9000);
+    if (c.key === 'cassettes') paintCassetteTile();
   };
+
+  /* =========================================================================
+     MENU DES CASSETTES : grisé et inaccessible tant que NEOMELODIES n'a pas
+     été validé dans CODES.
+     ====================================================================== */
+  const LOCK_TX = {
+    sub:  ['Verrouillé · code de ticket requis', 'Locked · ticket code required', 'Bloqueado · código de boleto requerido', 'Bloqueado · código de bilhete necessário', 'ロック中 · チケットのコードが必要'],
+    msg:  ['Menu des cassettes verrouillé : saisis le code de ton ticket dans CODES.', 'Cassette menu locked: enter your ticket code in CODES.', 'Menú de casetes bloqueado: introduce el código de tu boleto en CÓDIGOS.', 'Menu de cassetes bloqueado: digite o código do seu bilhete em CÓDIGOS.', 'カセットメニューはロック中です。「コード」でチケットのコードを入力してください。'],
+  };
+  const lt = k => LOCK_TX[k][li()] || LOCK_TX[k][0];
+  const lockCss = `
+  .tile.nv-music-tile.nv-locked{filter:grayscale(1) brightness(.62);opacity:.7;cursor:not-allowed;border-color:rgba(160,160,170,.35)!important;background:rgba(255,255,255,.03)!important}
+  .tile.nv-music-tile.nv-locked .ti{color:#9a9aa6!important}
+  .tile.nv-music-tile.nv-locked:hover{transform:none!important;box-shadow:none!important}
+  .tile.nv-music-tile.nv-locked b::after{content:" 🔒";filter:grayscale(1)}`;
+  function paintCassetteTile() {
+    if (!document.getElementById('nv-lock-style')) { const st = document.createElement('style'); st.id = 'nv-lock-style'; st.textContent = lockCss; document.head.appendChild(st); }
+    const locked = !isUnlocked('cassettes');
+    document.querySelectorAll('[data-act="music-shop"]').forEach(b => {
+      if (b.dataset.subOrig === undefined) { const i = b.querySelector('i'); b.dataset.subOrig = i ? i.textContent : ''; }
+      b.classList.toggle('nv-locked', locked);
+      b.setAttribute('aria-disabled', locked ? 'true' : 'false');
+      const i = b.querySelector('i'); if (i) i.textContent = locked ? lt('sub') : b.dataset.subOrig;
+      b.title = locked ? lt('msg') : '';
+    });
+  }
+  function guardShop() {
+    if (window.openMusicShop && !window.openMusicShop.__nvGuard) {
+      const _open = window.openMusicShop;
+      const guarded = function () {
+        if (!isUnlocked('cassettes')) {
+          try { Audio2.sfx('back'); } catch (e) {}
+          try { toast(lt('msg'), true); } catch (e) {}
+          paintCassetteTile();
+          return;
+        }
+        return _open.apply(this, arguments);
+      };
+      guarded.__nvGuard = true;
+      window.openMusicShop = guarded;
+    }
+    paintCassetteTile();
+  }
+  /* posé après tous les scripts (qui enveloppent openMusicShop à leur tour) */
+  if (document.readyState === 'complete') guardShop(); else window.addEventListener('load', guardShop);
+  /* l'affichage du menu peut être reconstruit (langue, hangar) : on repeint */
+  document.addEventListener('click', () => setTimeout(paintCassetteTile, 0), true);
+  window.addEventListener('nv:unlock', paintCassetteTile);
 
   /* =========================================================================
      IMAGES ET SONS
@@ -32192,11 +32271,11 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
         <p class="nvt-msg" role="status"></p>
       </div>`;
     const q = s => root.querySelector(s);
-    q('.nvt-kicker').textContent = t('kicker'); q('.nvt-title').textContent = t('title'); q('.nvt-sub').textContent = t('sub');
+    q('.nvt-kicker').textContent = item.rarity === 'epique' ? t('kickerE') : t('kicker'); q('.nvt-title').textContent = t('title'); q('.nvt-sub').textContent = t('sub');
     q('.nvt-a11y').textContent = t('revealA'); q('.nvt-a11y').title = t('revealH');
     q('.nvt-a11y-h').textContent = t('serialL') + ' ' + item.serial;
     q('.nvt-code-l').textContent = t('codeL'); q('.nvt-code-h').textContent = t('codeH');
-    q('.nvt-copy').textContent = t('copy'); q('.nvt-codes').textContent = t('codes'); q('.nvt-menu').textContent = t('menu');
+    q('.nvt-copy').textContent = t('copy'); q('.nvt-codes').textContent = t('codes'); q('.nvt-menu').textContent = (cb && cb.menuLabel) || t('menu');
     container.appendChild(root);
     sizeStage(root);
 
@@ -32205,11 +32284,12 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
     CUR = st;
 
     /* ----- composition : base → numéro → récompense → surface --------------- */
-    q('.nvt-base').src = R.base;
+    const baseSrc = m.base || R.base;
+    q('.nvt-base').src = baseSrc;
     q('.nvt-reward').src = m.reward;
     const serialCv = q('.nvt-serial');
     const redrawSerial = () => drawSerial(serialCv, item.serial);
-    loadImg(R.base).then(() => requestAnimationFrame(redrawSerial)).catch(() => {});
+    loadImg(baseSrc).then(() => requestAnimationFrame(redrawSerial)).catch(() => {});
     requestAnimationFrame(redrawSerial);
 
     /* ----- canvas de grattage : résolution plafonnée ------------------------- */
@@ -32428,7 +32508,73 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
       return build(container, item, cb);
     },
     close() { if (CUR) CUR.cleanup(); },
+    /* ouvre un ticket déjà attribué dans une fenêtre par-dessus l'écran courant */
+    open(modelId, opt) {
+      const item = store().items[modelId]; if (!item) return null;
+      opt = opt || {};
+      if (CUR) CUR.cleanup();
+      injectCss(); injectOverlayCss();
+      let ov = document.getElementById('nvtOverlay');
+      if (!ov) { ov = document.createElement('div'); ov.id = 'nvtOverlay'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
+      ov.innerHTML = '<div class="nvto-in"></div>';
+      const back = document.activeElement;
+      const closeOv = () => { if (CUR) CUR.cleanup(); ov.remove(); document.removeEventListener('keydown', onKey, true); try { back && back.focus && back.focus(); } catch (e) {} };
+      const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeOv(); } else if (['Enter', ' '].includes(e.key) && e.target && e.target.closest && e.target.closest('#nvtOverlay')) e.stopImmediatePropagation(); };
+      document.addEventListener('keydown', onKey, true);
+      return build(ov.firstChild, item, {
+        menuLabel: opt.menuLabel || t('cont'),
+        menu: () => { closeOv(); if (opt.onClose) opt.onClose(); },
+        codes: () => { closeOv(); setTimeout(() => { const b = document.createElement('button'); b.type = 'button'; b.dataset.act = 'cheats'; b.hidden = true; document.body.appendChild(b); b.click(); b.remove(); }, 60); },
+      });
+    },
     _cur: () => CUR,
+  };
+  function injectOverlayCss() {
+    if (document.getElementById('nvto-style')) return;
+    const st = document.createElement('style'); st.id = 'nvto-style';
+    st.textContent = `#nvtOverlay{position:fixed;inset:0;z-index:2147482000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(18px,env(safe-area-inset-top)) 10px max(18px,env(safe-area-inset-bottom));background:rgba(3,5,14,.93);backdrop-filter:blur(3px)}
+    #nvtOverlay .nvto-in{width:min(760px,100%);margin:auto 0}`;
+    document.head.appendChild(st);
+  }
+
+  /* ---- attribution du ticket NEOMELODIES : boss du secteur 12 vaincu ----------
+     Une seule fois. S'il n'a pas encore été révélé, il se rouvre au prochain
+     bilan du secteur 12 ; sinon il reste consultable dans CODES. */
+  const _clear = showClearScreen;
+  showClearScreen = function () {
+    const r = _clear.apply(this, arguments);
+    try {
+      if ((G.level | 0) === 12) {
+        const it = award('neo_melodies_002');
+        if (it && !it.revealed) setTimeout(() => { if (G.state === 'clear') window.NVTickets.open('neo_melodies_002'); }, 1700);
+      }
+    } catch (e) { console.warn('ticket secteur 12', e); }
+    return r;
+  };
+
+  /* ---- CODES : tickets obtenus, consultables ---------------------------------- */
+  const _bc = buildCheats;
+  buildCheats = function () {
+    const r = _bc.apply(this, arguments);
+    try {
+      const grid = document.getElementById('cheatGrid'); if (!grid) return r;
+      let box = document.getElementById('nvtMine'); if (box) box.remove();
+      const items = Object.values(store().items).filter(it => MODELS[it.model]).sort((a, b) => (a.collection || 1) - (b.collection || 1));
+      if (!items.length) return r;
+      box = document.createElement('div'); box.id = 'nvtMine';
+      box.style.cssText = 'margin:0 0 12px;padding:10px 12px;border:1px solid rgba(255,215,131,.35);border-radius:10px;background:rgba(255,215,131,.05)';
+      box.innerHTML = '<b style="display:block;margin-bottom:6px;color:#ffd783;font-size:11px;letter-spacing:.16em">' + t('mine').toUpperCase() + '</b>';
+      for (const it of items) {
+        const R = RARITIES[it.rarity];
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small';
+        b.style.cssText = 'margin:3px 6px 3px 0;border-color:' + R.color;
+        b.textContent = t('see') + ' · ' + R.label + ' · ' + it.serial + ' · ' + (it.revealed ? t('rev') : t('scr'));
+        b.addEventListener('click', ev => { ev.stopPropagation(); window.NVTickets.open(it.model, { onClose: () => { try { buildCheats(); } catch (e) {} } }); });
+        box.appendChild(b);
+      }
+      grid.parentNode.insertBefore(box, grid);
+    } catch (e) {}
+    return r;
   };
 })();
 </script>
