@@ -25359,7 +25359,8 @@ html.nvui .chips .chip{border-radius:999px}
     neo: 'assets/media/media-137.webp',
     pc: 'assets/media/media-138.webp'
   };
-  const platform = n => n < 7 ? null : n <= 10 ? 'snes' : n <= 14 ? 'mega' : n <= 18 ? 'neo' : 'pc';
+  /* le secteur 24 a ses propres décors (base de VORAX) : voir nv24-final-rework */
+  const platform = n => n < 7 || n === 24 ? null : n <= 10 ? 'snes' : n <= 14 ? 'mega' : n <= 18 ? 'neo' : 'pc';
   const retro = {snes:1, mega:1, neo:1, pc:1};
   const images = {};
   const plates = new Map();
@@ -25422,7 +25423,7 @@ html.nvui .chips .chip{border-radius:999px}
   }
   const base=drawWorld;
   drawWorld=function(dt){
-    base(dt); const id=platform(G.level|0); if(!id||!R.bufFar)return;
+    base(dt); const id=platform(G.level|0); if(!id){activeId=null;return;} if(!R.bufFar)return;
     activeId=id;
     // Keep every painted and parallax plane at the full internal frame resolution.
     if(R.bufNear&&R.bufNear.c){R.bufFar=reuseBuf(R.bufFar,R.bufNear.c.width,R.bufNear.c.height);R.bufMid=reuseBuf(R.bufMid,R.bufNear.c.width,R.bufNear.c.height);}
@@ -28803,6 +28804,65 @@ const NVGuardSprite = (() => {
     drawVorax(b, v); drawBeams(b);
   };
 
+  /* ------------------------------------------------------------ DÉCORS
+     Une scène peinte par moment du secteur, en fondu enchaîné :
+       approche, sas extérieur  → l'espace devant la base de VORAX (elle grossit)
+       couloir, alarme, mains   → le couloir du vaisseau amiral (on y avance)
+       VORAX                    → la salle du cœur de la base
+     Les planches sont dessinées dans le plan lointain, derrière tout le reste. */
+  const SCN = { space: IMG('outer-space.webp'), corridor: IMG('flagship-base-corridor.webp'), core: IMG('base-interior.webp') };
+  const BGS = { cur: 'space', prev: null, mix: 1, zoom: { space: 1, corridor: 1, core: 1.04 }, t: 0 };
+  function sceneOf(v) {
+    if (['approach', 'arrive', 'talk', 'sas', 'boom'].includes(v.stage)) return 'space';
+    if (['hall', 'alarm', 'hands', 'tear'].includes(v.stage)) return 'corridor';
+    return 'core';
+  }
+  function zoomOf(v, sc) {
+    if (sc === 'space') {
+      if (v.stage === 'approach') return 1 + .16 * cl(v.waveT / 100, 0, 1);
+      return 1.16 + .14 * (v.stage === 'arrive' ? eo(v.t / 3.2) : 1);
+    }
+    if (sc === 'corridor') return 1 + .32 * cl(1 - v.off / 498, 0, 1);    /* on avance vers le grand sas */
+    return 1.04 + .015 * Math.sin(BGS.t * .4);
+  }
+  function paintScene(g, W, H, key, zoom, alpha, jx, jy) {
+    const im = SCN[key]; if (!ok(im) || alpha <= 0) return false;
+    const base = Math.max(W / im.naturalWidth, H / im.naturalHeight), sc = base * zoom;
+    const dw = im.naturalWidth * sc, dh = im.naturalHeight * sc;
+    /* point de fuite légèrement au-dessus du centre : on avance « vers le haut » */
+    const ax = .5, ay = key === 'space' ? .32 : .42;
+    g.globalAlpha = alpha;
+    g.drawImage(im, W * ax - dw * ax + jx, H * ay - dh * ay + jy, dw, dh);
+    return true;
+  }
+  const _drawWorld24 = drawWorld;
+  drawWorld = function (dt) {
+    const r = _drawWorld24.apply(this, arguments);
+    if (!on() || !R.bufFar || !R.bufFar.g) return r;
+    const v = V(), layer = R.bufFar, g = layer.g, W = layer.c.width, H = layer.c.height;
+    BGS.t += dt || 0;
+    if (BGS.v !== v) { BGS.v = v; BGS.cur = sceneOf(v); BGS.prev = null; BGS.mix = 1; }   /* nouveau départ du secteur */
+    const want = sceneOf(v);
+    if (want !== BGS.cur) { BGS.prev = BGS.cur; BGS.cur = want; BGS.mix = 0; }
+    BGS.mix = Math.min(1, BGS.mix + (dt || 0) / 1.3);
+    for (const k in BGS.zoom) BGS.zoom[k] += (zoomOf(v, k) - BGS.zoom[k]) * Math.min(1, (dt || 0) * 2.5);
+    const d2 = v.door2, sh = d2 && d2.shake ? d2.shake * .6 : 0;
+    const jx = sh ? rnd(sh, -sh) : 0, jy = sh ? rnd(sh * .6, -sh * .6) : 0;
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.imageSmoothingEnabled = true;
+    g.globalAlpha = 1; g.fillStyle = '#04060f'; g.fillRect(0, 0, W, H);
+    let any = false;
+    if (BGS.prev && BGS.mix < 1) any = paintScene(g, W, H, BGS.prev, BGS.zoom[BGS.prev], 1, jx, jy) || any;
+    any = paintScene(g, W, H, BGS.cur, BGS.zoom[BGS.cur], BGS.prev ? sm(BGS.mix) : 1, jx, jy) || any;
+    /* voile sombre : la lisibilité des tirs prime sur le décor */
+    g.globalAlpha = 1; const sh2 = g.createLinearGradient(0, 0, 0, H);
+    sh2.addColorStop(0, 'rgba(3,6,16,.18)'); sh2.addColorStop(.55, 'rgba(3,6,16,.34)'); sh2.addColorStop(1, 'rgba(3,6,16,.46)');
+    g.fillStyle = sh2; g.fillRect(0, 0, W, H);
+    g.restore();
+    /* le plan intermédiaire ne doit pas recouvrir les planches avec un décor d'une autre génération */
+    if (any && R.bufFG && R.bufFG.g) { R.bufFG.g.save(); R.bufFG.g.setTransform(1, 0, 0, 1, 0, 0); R.bufFG.g.clearRect(0, 0, R.bufFG.c.width, R.bufFG.c.height); R.bufFG.g.restore(); }
+    if (any && R.bufMid && R.bufMid.g) { R.bufMid.g.save(); R.bufMid.g.setTransform(1, 0, 0, 1, 0, 0); R.bufMid.g.clearRect(0, 0, R.bufMid.c.width, R.bufMid.c.height); R.bufMid.g.restore(); }
+    return r;
+  };
   /* bandes de cinéma, titre, alarme rouge et lumière des rayons */
   const _hud = drawHUD;
   drawHUD = function () {
