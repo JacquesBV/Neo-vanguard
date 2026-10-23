@@ -1,0 +1,21 @@
+{
+  "id": "neo-vanguard-level24-vorax-v2",
+  "version": "2.0.0",
+  "style": "Modern Japanese animation; detailed cel shading; crimson/violet energy; HD vertical shmup",
+  "logicalResolution": [480, 860],
+  "license": "Original assets generated for Neo-Vanguard; reuse and modification permitted within this project.",
+  "collections": {
+    "environment": "Seamless nebula, layered Earth, flagship approach, scrolling corridor and core chamber",
+    "debris": "Independent transparent spatial debris tiles",
+    "doors": "Destructible outer and inner airlocks, impact and fracture states",
+    "enemies": "New base-defense turrets and attack craft with packed atlas",
+    "hands": "Independent left/right Vorax hand poses and animation atlas",
+    "boss": "Three complete Vorax forms with anchored fluid-frame atlases",
+    "effects": "Reusable charge, fracture, electricity and explosion overlays"
+  },
+  "runtime": {
+    "script": "level24-v2/level24-v2.js",
+    "integration": "index.html#nv24-final-rework + #nv-level24-v2",
+    "forms": ["VORAX · CUIRASSÉ", "VORAX · NÉCRO-RÉACTEUR", "VORAX · SINGULARITÉ"]
+  }
+}
