@@ -10644,7 +10644,7 @@ function tryCheatCode(raw) {
   } else Audio2.sfx('ui');
   saveGame();
   buildCheats();
-  if (c.id === 'flipper') setTimeout(refreshFlipperButton, 100);
+  if (c.id === 'flipper') { window.flipperUnlocked = true; setTimeout(refreshFlipperButton, 100); }
   if (c.type === 'action') runCheatAction(c.id);
   showCheatBanner(c, already);
   const card = document.querySelector(`[data-cheat-card="${c.id}"]`);
@@ -32887,7 +32887,15 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
 
 /* ============ MENU FLIPPER + JEU ============ */
 function refreshFlipperButton() {
-  const unlocked = !!(S.cheats && S.cheats.found && S.cheats.found['flipper']);
+  let unlocked = false;
+  try {
+    if (S && S.cheats && S.cheats.found && S.cheats.found['flipper']) unlocked = true;
+    if (window.flipperUnlocked) unlocked = true;
+    if (!unlocked) {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) { const o = JSON.parse(raw); if (o && o.cheats && o.cheats.found && o.cheats.found['flipper']) unlocked = true; }
+    }
+  } catch(e) {}
   const btn = document.getElementById('btnPlayFlipper');
   const status = document.getElementById('flipperStatus');
   const hint = document.getElementById('flipperScratchHint');
@@ -33058,5 +33066,5 @@ document.addEventListener('click', function(e) {
   if (Audio2.ok) Audio2.applyVolumes();
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f2450f88a7d141',t:'MTc5Mjc3NDUzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f25374bd0fd580',t:'MTc5Mjc3NTEyMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
