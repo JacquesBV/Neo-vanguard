@@ -507,6 +507,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
 .nv-jacket .nv-cover-title{font-family:system-ui,sans-serif;font-weight:1000;letter-spacing:.3px}
 @media(max-width:620px){.nv-tape-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 11px;padding:12px 9px 18px 7px}}
 </style>
+<link rel="stylesheet" href="pinball/pinball.css">
 </head>
 <body class="era-3">
 <div id="stage"><canvas id="game"></canvas></div>
@@ -551,7 +552,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
         <button class="tile" data-act="options"><span class="ti">⚙</span><b>Options</b><i>Graphismes, son, aperçu d'ère</i></button>
         <button class="tile" data-act="help"><span class="ti">?</span><b>Commandes</b><i>Clavier, souris, doigt</i></button>
         <button class="tile" data-act="cheats"><span class="ti">☠</span><b>Codes</b><i>8 codes secrets à trouver</i></button>
-        <button class="tile" data-act="flipper-menu" hidden style="display:none"><span class="ti">◈</span><b>Flipper</b><i>Menu dédié au jeu de flipper</i></button>
+        <button class="tile" data-act="flipper-menu"><span class="ti">◈</span><b>Flipper · 🔒</b><i>Bonus de fin de campagne</i></button>
         <button class="tile online" data-act="online"><span class="ti">⌁</span><b>Coop en ligne</b><i>Deux téléphones, un code</i></button>
         <button class="tile" data-act="records"><span class="ti">▦</span><b>Records</b><i>Classement, médailles, série</i></button>
         <button class="tile" data-act="credits"><span class="ti">★</span><b>Crédits</b><i>Comment tout est fabriqué</i></button>
@@ -784,31 +785,8 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
 </div>
 
 
-<!-- ============ MENU FLIPPER ============ -->
-<div class="screen dim" id="scr-flipper-menu">
-  <div class="panel" style="max-width:860px">
-    <div class="phead">
-      <span class="ptitle">Menu Flipper</span>
-      <span class="wallet" id="flipperStatus">Verrouillé · code requis</span>
-    </div>
-    <div style="padding:14px 0;">
-      <p style="font-size:14px;color:#c2d0e8;margin:0 0 14px;line-height:1.5;">Le jeu de flipper est verrouillé. Le code se découvre via un <b style="color:#ffd166">ticket à gratter</b> à la fin du jeu.</p>
-      <div id="flipperScratchHint" style="display:inline-block;padding:8px 14px;border:1px dashed #ffd166;border-radius:8px;background:rgba(255,209,102,.08);color:#fff2c1;font-size:13px;letter-spacing:.06em;margin-bottom:14px;">🎫 TICKET À GRATTER — NON DÉVOILÉ</div>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
-        <button class="btn big prim" id="btnPlayFlipper" data-act="play-flipper" disabled style="opacity:.45;cursor:not-allowed;">▶ Jouer au Flipper</button>
-        <button class="btn small" data-act="flipper-back">◀ Retour</button>
-      </div>
-      <div id="flipperGameArea" style="display:none;">
-        <canvas id="flipperCanvas" width="800" height="560" style="border:2px solid rgba(106,224,255,.35);border-radius:10px;background:linear-gradient(180deg,#091528,#020a14);box-shadow:0 0 30px rgba(106,224,255,.15);display:block;margin:0 auto;max-width:100%;"></canvas>
-        <div style="display:flex;justify-content:center;gap:22px;margin-top:8px;font-size:12px;color:#7cf0ff;letter-spacing:.08em;font-family:inherit;">
-          <span>Score <b id="flipScore" style="color:#ffd166">0</b></span>
-          <span>Ball <b id="flipBalls" style="color:#ffd166">3</b></span>
-        </div>
-        <p style="font-size:11px;color:#7c8fb0;text-align:center;margin:6px 0 0;">Flèches ← → ou souris pour les flippers · Espace pour lancer</p>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ============ NEO-VANGUARD PINBALL : interface construite à la demande ============ -->
+<div class="screen" id="scr-flipper-menu" aria-label="Neo-Vanguard Pinball"></div>
 
 <!-- ============ VICTOIRE ============ -->
 <div class="screen dim" id="scr-victory">
@@ -1089,11 +1067,12 @@ function langScanDOM() {
   while ((n = walker.nextNode())) {
     const p = n.parentElement;
     if (!p || !n.nodeValue || !n.nodeValue.trim()) continue;
-    if (p.closest('script,style,#toast')) continue;                 /* transitoires */
+    if (p.closest('script,style,#toast,#scr-flipper-menu,#nvp-ui,#nvp-gift')) continue; /* transitoires / module pinball autotraduit */
     if (!L_ORIG.has(n)) L_ORIG.set(n, n.nodeValue);
     L_NODES.push({ node: n, fr: L_ORIG.get(n) });
   }
   for (const el of document.querySelectorAll('[title],[placeholder],[aria-label]')) {
+    if (el.closest('#scr-flipper-menu,#nvp-ui,#nvp-gift')) continue;
     let store = L_ATTR.get(el);
     if (!store) { store = {}; L_ATTR.set(el, store); }
     for (const a of ['title', 'placeholder', 'aria-label']) {
@@ -2672,7 +2651,7 @@ const CHEATS = [
     desc:'Choisis le secteur où commencera ta prochaine mission.',
     hint:'ce que fait un kangourou' },
   { id:'flipper', code:'CAFAITFLIPPER', name:'MODE FLIPPER', type:'action',
-    desc:'Débloque le menu dédié au jeu de flipper — tape le code dans le menu Codes.',
+    desc:'Code souvenir du ticket de fin. La table Néon Orbit se débloque en terminant Neo-Vanguard.',
     hint:'le nom du jeu, tout en majuscules' },
   { id:'bombs',  code:'KAMIKAZE',  name:'BOMBES INFINIES', type:'toggle',
     desc:'Les bombes ne sont plus consommées. Appuie sur le bouton Bombe pendant une mission pour les utiliser à volonté.',
@@ -13317,9 +13296,9 @@ function wireButtons() {
       }
       case 'records': G.prevScreen = G.state; G.state = 'records'; buildRecords(); showScreen('records'); break;
       case 'online': G.prevScreen = G.state; G.state = 'online'; netUiRefresh(); showScreen('online'); break;
-      case 'flipper-menu': if (!isFlipperUnlocked()) break; G.prevScreen = G.state; G.state = 'flipper-menu'; showScreen('flipper-menu'); refreshFlipperButton(); break;
-      case 'flipper-back': flipperRunning = false; gotoReturn(); break;
-      case 'play-flipper': startFlipperGame(); break;
+      case 'flipper-menu': G.prevScreen = G.state; G.state = 'flipper-menu'; showScreen('flipper-menu'); NVPinball.showMenu(); break;
+      case 'flipper-back': NVPinball.back(); break;
+      case 'play-flipper': NVPinball.play(); break;
       case 'net-back': gotoReturn(); break;
       case 'net-create': case 'net-join': case 'net-leave': case 'net-go': netUiAct(act); break;
       case 'records-back': gotoReturn(); break;
@@ -13538,7 +13517,7 @@ function boot() {
 
 /* ---- 00_build.js ---- */
 /* horodatage du build : visible dans la console et dans les messages d'erreur */
-window.NV_BUILD = '2026-10-21 fanboy-boss-mp3-pack25-vorax-base-skeleton-fix';
+window.NV_BUILD = '2026-10-23 neon-orbit-pinball';
 console.log('%cNEO VANGUARD build ' + window.NV_BUILD, 'color:#4be7ff;font-weight:bold');
 
 
@@ -19264,7 +19243,7 @@ narrativeInstall();
   $('.nvf-prev').addEventListener('click',()=>advance(-1));
   $('.nvf-next').addEventListener('click',()=>advance(1));
   $('.nvf-skip').addEventListener('click',()=>{if(Audio2&&Audio2.sfx)Audio2.sfx('back');closeFinale();});
-  const finishCredits=()=>{if(window.NVTickets)window.NVTickets.close();$('.nvf-reward').classList.remove('on','nvf-ticket');if(creditsAnimation){creditsAnimation.cancel();creditsAnimation=null;}root.classList.remove('on');document.body.style.overflow=previousOverflow;standaloneStart=false;backToTitle();};
+  const finishCredits=()=>{if(window.NVTickets)window.NVTickets.close();$('.nvf-reward').classList.remove('on','nvf-ticket');if(creditsAnimation){creditsAnimation.cancel();creditsAnimation=null;}root.classList.remove('on');document.body.style.overflow=previousOverflow;standaloneStart=false;try{window.dispatchEvent(new CustomEvent('nv:finale-finished'));}catch(e){}backToTitle();};
   $('.nvf-reward-object').addEventListener('click',openReward);
   $('.nvf-reward-object').addEventListener('pointerdown',e=>{if(!$('.nvf-reward').classList.contains('on')||$('.nvf-reward').classList.contains('opened'))return;e.preventDefault();try{e.currentTarget.setPointerCapture(e.pointerId);}catch(err){}$('.nvf-reward').classList.add('charging');rewardHoldTimer=setTimeout(openReward,850);});
   ['pointerup','pointercancel','lostpointercapture'].forEach(type=>$('.nvf-reward-object').addEventListener(type,()=>{clearTimeout(rewardHoldTimer);$('.nvf-reward').classList.remove('charging');}));
@@ -27908,7 +27887,12 @@ const NVGuardSprite = (() => {
   const cl = (v, a, b) => Math.max(a, Math.min(b, v));
   const sm = t => { t = cl(t, 0, 1); return t * t * (3 - 2 * t); };
   const eo = t => 1 - Math.pow(1 - cl(t, 0, 1), 3);
-  const IMG = n => { const i = new Image(); i.src = 'assets/level24/' + n; return i; };
+  const V2_ART = {
+    'vorax-hands-spritesheet.webp': 'hands/vorax-hands-atlas.webp',
+    'defense-enemies-spritesheet.webp': 'enemies/defense-atlas.webp',
+    'sas-door.webp': 'doors/airlock.webp'
+  };
+  const IMG = n => { const i = new Image(); i.decoding = 'async'; i.src = V2_ART[n] ? 'assets/level24-v2/' + V2_ART[n] : 'assets/level24/' + n; return i; };
   const ART = {
     boss: IMG('vorax-intro-matched-spritesheet.webp'), hands: IMG('vorax-hands-spritesheet.webp'),
     foes: IMG('defense-enemies-spritesheet.webp'), corridor: IMG('flagship-base-corridor.webp'), sas: IMG('sas-door.webp')
@@ -27929,7 +27913,15 @@ const NVGuardSprite = (() => {
     hands: { fr: 'MAINS DE VORAX', en: 'HANDS OF VORAX', es: 'MANOS DE VORAX', pt: 'MÃOS DE VORAX', ja: 'ヴォラックスの手' },
     v5: { fr: 'Ses yeux chargent ! Reste entre les deux rayons rouges !', en: 'His eyes are charging! Stay between the two red beams!', es: '¡Sus ojos se cargan! ¡Quédate entre los dos rayos rojos!', pt: 'Os olhos dele estão a carregar! Fica entre os dois raios vermelhos!', ja: '目が充填してる！赤い二本の光線の間にいて！' },
     v6: { fr: 'Vise la tête, Vanguard. C’est là qu’il est fragile.', en: 'Aim for the head, Vanguard. That is where he is weak.', es: 'Apunta a la cabeza, Vanguard. Ahí es vulnerable.', pt: 'Aponta à cabeça, Vanguard. É aí que ele é frágil.', ja: '頭を狙って、ヴァンガード。そこが弱点よ。' },
-    crit: { fr: 'CRITIQUE', en: 'CRITICAL', es: 'CRÍTICO', pt: 'CRÍTICO', ja: 'クリティカル' }
+    crit: { fr: 'CRITIQUE', en: 'CRITICAL', es: 'CRÍTICO', pt: 'CRÍTICO', ja: 'クリティカル' },
+    leftHand: { fr: 'MAIN GAUCHE', en: 'LEFT HAND', es: 'MANO IZQUIERDA', pt: 'MÃO ESQUERDA', ja: '左手' },
+    rightHand: { fr: 'MAIN DROITE', en: 'RIGHT HAND', es: 'MANO DERECHA', pt: 'MÃO DIREITA', ja: '右手' },
+    form1: { fr: 'VORAX · CUIRASSÉ', en: 'VORAX · ARMORED', es: 'VORAX · ACORAZADO', pt: 'VORAX · BLINDADO', ja: 'ヴォラックス・装甲形態' },
+    form2: { fr: 'VORAX · NÉCRO-RÉACTEUR', en: 'VORAX · NECRO-REACTOR', es: 'VORAX · NECROREACTOR', pt: 'VORAX · NECRORREATOR', ja: 'ヴォラックス・ネクロリアクター' },
+    form3: { fr: 'VORAX · SINGULARITÉ', en: 'VORAX · SINGULARITY', es: 'VORAX · SINGULARIDAD', pt: 'VORAX · SINGULARIDADE', ja: 'ヴォラックス・特異点' },
+    morph1: { fr: 'Le cuirassé est détruit… Non. Son réacteur se reconstitue !', en: 'The armored form is destroyed… No. Its reactor is rebuilding!', es: 'El acorazado está destruido… No. ¡Su reactor se reconstruye!', pt: 'A forma blindada foi destruída… Não. O reator está a reconstruir-se!', ja: '装甲形態は破壊した…だめだ。リアクターが再構築されている！' },
+    morph2: { fr: 'Deuxième cœur à zéro. VORAX ouvre une singularité ! Dernière forme !', en: 'Second core at zero. VORAX is opening a singularity! Final form!', es: 'Segundo núcleo a cero. ¡VORAX abre una singularidad! ¡Forma final!', pt: 'Segundo núcleo a zero. VORAX abre uma singularidade! Forma final!', ja: '第二コア停止。ヴォラックスが特異点を開く！最終形態だ！' },
+    palmWarn: { fr: 'Ses paumes chargent ! Les deux rayons vont se croiser !', en: 'His palms are charging! The two beams will cross!', es: '¡Sus palmas cargan! ¡Los dos rayos se cruzarán!', pt: 'As palmas estão a carregar! Os dois raios vão cruzar-se!', ja: '掌が充填中！2本の光線が交差する！' }
   };
 
   /* --------------------------------------------------------- atelier sprites */
@@ -28310,9 +28302,10 @@ const NVGuardSprite = (() => {
     b.parts = []; b.enter = false; b.x = MID; b.y = 200; b.r = 150;
     const vMax = b.maxHp;
     b.nv = { vMax, stage: 'hands' };
-    const handHp = Math.round(vMax * .14);
-    b.hp = b.maxHp = handHp; b.name = tr(TXT.hands);
-    const H = side => ({ side, hx: side < 0 ? 150 : 330, hy: 330, x: MID + side * DOOR2.hole, y: DOOR2.y, sc: .3, a: 0, fr: side < 0 ? 0 : 1, flash: 0, mode: 'burst', t: 0, atkT: 1.6 + (side > 0 ? 1.1 : 0) });
+    const handHp = Math.round(vMax * .105);
+    b.hp = b.maxHp = handHp * 2; b.name = tr(TXT.hands);
+    const H = side => ({ side, hx: side < 0 ? 150 : 330, hy: 330, x: MID + side * DOOR2.hole, y: DOOR2.y, sc: .3, a: 0,
+      hp: handHp, maxHp: handHp, dead: false, fr: side < 0 ? 0 : 1, flash: 0, mode: 'burst', t: 0, atkT: 1.6 + (side > 0 ? 1.1 : 0) });
     b.hands = [H(-1), H(1)];
     b.handI = 0;
     return b;
@@ -28401,11 +28394,33 @@ const NVGuardSprite = (() => {
 
   /* --------------------------------------------------------------- mains */
   function handFrame(hd) { return hd.fr; }
+  function syncHands(b) {
+    if (!b || !b.hands) return 0;
+    b.hp = Math.max(0, b.hands.reduce((sum, hd) => sum + Math.max(0, hd.hp), 0));
+    return b.hp;
+  }
+  function hurtHand(b, hd, dmg) {
+    const v = V();
+    if (!b || !hd || hd.dead || !v || v.stage !== 'hands') return;
+    hd.hp = Math.max(0, hd.hp - Math.max(0, dmg)); hd.flash = .5; b.by = CUR_OWN;
+    if (hd.hp <= 0) {
+      hd.dead = true; hd.mode = 'dead'; hd.t = 0; hd.atkT = 999; hd.a = Math.min(hd.a, .72);
+      explode(hd.x, hd.y, 2.2, '#ff2848', '#ffe1e8'); FX.addShake(15); sfx('explode', { big: true });
+      popText(hd.x, hd.y - 74, tr(hd.side < 0 ? TXT.leftHand : TXT.rightHand) + ' · 0', '#ff8b9b', 7);
+    }
+    syncHands(b);
+    if (b.hands.every(h => h.dead || h.hp <= 0)) startTear(v);
+  }
   function handsUpdate(v, dt) {
     const b = G.boss; if (!b || !b.hands) return;
     b.t = (b.t || 0) + dt; if (b.flash > 0) b.flash -= dt;
     for (const hd of b.hands) {
       hd.t += dt; hd.flash = Math.max(0, hd.flash - dt * 8);
+      if (hd.dead) {
+        hd.y += 24 * dt; hd.a += (.42 - hd.a) * Math.min(1, dt * 2); hd.sc += (.88 - hd.sc) * Math.min(1, dt * 2);
+        if (chance(dt * 5)) spawnPart({ x: hd.x + rnd(35, -35), y: hd.y + rnd(35, -35), vx: rnd(20, -20), vy: -rnd(70, 20), life: rnd(1.1, .5), col: '#302837', size: rnd(12, 6) });
+        continue;
+      }
       const homeX = hd.hx + Math.sin(b.t * 1.3 + hd.side) * 8, homeY = hd.hy + Math.sin(b.t * 1.7 + hd.side * 2) * 7;
       if (hd.mode === 'burst') {
         const q = eo(hd.t / .45), ox = DOOR2.x + hd.side * DOOR2.hole; hd.x = ox + (homeX - ox) * q; hd.y = DOOR2.y + (homeY - DOOR2.y) * q; hd.sc = .45 + .55 * q; hd.a = Math.min(1, hd.t / .12);
@@ -28451,17 +28466,18 @@ const NVGuardSprite = (() => {
       }
     }
     if (v.bolts) { for (const bl of v.bolts) bl.t += dt; v.bolts = v.bolts.filter(bl => bl.t < .25); }
-    /* tirs du joueur sur les mains */
-    bulletsHit(bu => b.hands.find(hd => hd.a > .5 && dist2(bu.x, bu.y, hd.x, hd.y) < (58 * hd.sc + bu.r) ** 2), (bu, hd) => {
-      hd.flash = .5; hurtBoss(b, bu.dmg * 3.2);
+    /* tirs du joueur : chaque main possède sa propre réserve de PV. */
+    bulletsHit(bu => b.hands.find(hd => !hd.dead && hd.a > .5 && dist2(bu.x, bu.y, hd.x, hd.y) < (58 * hd.sc + bu.r) ** 2), (bu, hd) => {
+      hurtHand(b, hd, bu.dmg * 3.2);
       spawnPart({ x: bu.x, y: bu.y, vx: rnd(80, -80), vy: rnd(40, -90), life: .22, col: pick(['#e4d6ff', '#ffffff', '#c27bff']), size: 3, glow: true });
     });
     /* contact */
-    for (const p of players()) for (const hd of b.hands) if (hd.a > .5 && vuln(p) && dist2(p.x, p.y, hd.x, hd.y) < (52 * hd.sc + p.r) ** 2) hitPlayer(p, 1, true);
+    for (const p of players()) for (const hd of b.hands) if (!hd.dead && hd.a > .5 && vuln(p) && dist2(p.x, p.y, hd.x, hd.y) < (52 * hd.sc + p.r) ** 2) hitPlayer(p, 1, true);
+    syncHands(b);
   }
   function startTear(v) {
     const b = G.boss; go('tear'); v.noFire = true; v.lbTo = 1; G.ebullets.length = 0; b.hp = 1;
-    for (const hd of b.hands) { hd.mode = 'grip'; hd.t = 0; hd.fr = hd.side < 0 ? 4 : 5; }
+    for (const hd of b.hands) { hd.mode = 'grip'; hd.t = 0; hd.a = 1; hd.fr = hd.side < 0 ? 4 : 5; }
     sfx('door'); FX.addShake(10);
   }
   function tearUpdate(v, dt) {
@@ -28482,17 +28498,20 @@ const NVGuardSprite = (() => {
       if (typeof SHOCK !== 'undefined') SHOCK.push({ x: DOOR2.x, y: DOOR2.y, t: 0, life: .7, max: 420, col: '#ff6070' });
     }
     if (v.t > 3.0) {
-      go('reveal'); b.nv.stage = 'reveal'; b.hands = null; b.name = 'VORAX';
-      b.hp = b.maxHp = b.nv.vMax; b.vx = DOOR2.x; b.vy = DOOR2.y; b.vz = .45; b.ph = 0; b.atk = null; b.atkT = 1.6; b.atkI = 0; b.flash = 0;
+      go('reveal'); b.nv.stage = 'reveal'; b.hands = null; b.nv.form = 0; b.name = tr(TXT.form1);
+      b.hp = b.maxHp = formHp(b, 0); b.vx = DOOR2.x; b.vy = DOOR2.y; b.vz = .45; b.ph = 0; b.atk = null; b.atkT = 1.6; b.atkI = 0; b.flash = 0;
       sfx('bossAlarm');
     }
   }
 
   /* --------------------------------------------------------------- VORAX */
+  const FORM_KEYS = ['form1', 'form2', 'form3'];
+  const FORM_HP = [.52, .60, .72];
+  function formHp(b, form) { return Math.max(1, Math.round(b.nv.vMax * FORM_HP[cl(form | 0, 0, 2)])); }
   const ATK = [
-    ['laser', 'orbs', 'spiral', 'laser', 'rain'],
-    ['laser2', 'orbs', 'spiral', 'rain', 'laser2', 'orbs'],
-    ['sweep', 'orbs', 'spiral', 'laser2', 'rain', 'sweep']
+    ['laser', 'palms', 'orbs', 'spiral', 'laser', 'rain'],
+    ['laser2', 'palms', 'orbs', 'spiral', 'rain', 'laser2', 'palms'],
+    ['sweep', 'palms', 'spiral', 'laser2', 'rain', 'palms', 'sweep']
   ];
   function revealUpdate(v, dt) {
     const b = G.boss; autopilot(dt, L_H - 140); b.t = (b.t || 0) + dt;
@@ -28502,15 +28521,60 @@ const NVGuardSprite = (() => {
     if (v.t > 3.6) { go('vorax'); b.nv.stage = 'vorax'; v.lbTo = 0; v.noFire = false; b.atkT = 1.0; setTimeout(() => { if (on() && G.boss === b && !b.dead) radioSay('cmd', tr(TXT.v6)); }, 9000); }
   }
   function eyes(b) { if (window.NVBOSS && NVBOSS.vorax.ready()) return NVBOSS.vorax.eyes(b, vpt); return [vpt(b, 303, 75), vpt(b, 346, 75)]; }
+  function palms(b) {
+    const hn = window.NVBOSS && NVBOSS.vorax.ready() ? NVBOSS.vorax.hands(b) : [[120, 370], [525, 370]];
+    return hn.map(p => vpt(b, p[0], p[1]));
+  }
   function hurtBoss(b, dmg) {
     if (!b || b.dead) return;
     const v = V(); if (!v || !['hands', 'vorax'].includes(v.stage)) return;
-    b.hp -= dmg; b.flash = .1; b.by = CUR_OWN;
-    if (v.stage === 'hands' && b.hp <= 1) { startTear(v); return; }
-    if (v.stage === 'vorax' && b.hp <= 0) {
+    b.flash = .1; b.by = CUR_OWN;
+    if (v.stage === 'hands') {
+      const alive = b.hands.filter(hd => !hd.dead && hd.hp > 0);
+      const each = dmg / Math.max(1, alive.length);
+      for (const hd of alive) { hurtHand(b, hd, each); if (v.stage !== 'hands') break; }
+      syncHands(b); return;
+    }
+    b.hp -= dmg;
+    if (b.hp <= 0) {
+      const form = b.nv.form | 0;
+      if (form < 2) { startMorph(v, b); return; }
       b.hp = 0; [b.x, b.y] = vpt(b, 322, 260); b.r = 170;
       go('dead'); v.noFire = false; G.ebullets.length = 0; b.atk = null;
       G.phase = 'boss'; bossDie();
+    }
+  }
+  function startMorph(v, b) {
+    const from = b.nv.form | 0, to = from + 1;
+    go('morph'); b.nv.stage = 'morph'; b.nv.morphFrom = from; b.nv.form = to; b.nv.morphT = 0;
+    b.name = tr(TXT[FORM_KEYS[to]]); b.ph = to; b.atk = null; b.atkT = 1.2; b.atkI = 0; b.roar = 0;
+    b.maxHp = formHp(b, to); b.hp = 0; b.flash = 0;
+    v.noFire = true; v.lbTo = 1; G.ebullets.length = 0; G.bullets.length = 0; G.phase = 'boss';
+    for (const p of players()) p.inv = Math.max(p.inv || 0, 4.2);
+    sfx('door'); FX.addShake(18); FX.addFlash(.42, from === 0 ? '#c27bff' : '#ff4058');
+    radioSay('cmd', tr(to === 1 ? TXT.morph1 : TXT.morph2));
+  }
+  function morphUpdate(v, dt) {
+    const b = G.boss; if (!b) return;
+    b.t = (b.t || 0) + dt; b.nv.morphT = v.t;
+    b.vx = VO.x + Math.sin(b.t * 2.2) * (4 + v.t * 2); b.vy = VO.y + Math.sin(b.t * 3.1) * 5;
+    b.vz = 1 + Math.sin(cl(v.t / 2.4, 0, 1) * Math.PI) * .09;
+    [b.x, b.y] = vpt(b, 322, 220);
+    if (v.t > .15 && chance(dt * 24)) {
+      const p = vpt(b, rnd(500, 140), rnd(500, 110)); explode(p[0], p[1], rnd(1.4, .6), '#b944ff', '#fff0f4');
+    }
+    if (v.t > .7 && chance(dt * 34)) {
+      const a = rnd(TAU), r = rnd(250, 100), x = b.vx + Math.cos(a) * r, y = b.vy + Math.sin(a) * r * .7;
+      spawnPart({ x, y, vx: -Math.cos(a) * r * 2.8, vy: -Math.sin(a) * r * 2, life: .42, col: pick(['#ff2848', '#c27bff', '#ffffff']), size: rnd(6, 2), glow: true });
+    }
+    for (const at of [.72, 1.42, 2.15]) if (v.t - dt < at && v.t >= at) {
+      sfx(at === 2.15 ? 'bossAlarm' : 'explode', { big: true }); FX.addShake(at === 2.15 ? 24 : 14); FX.addFlash(.32, at === 1.42 ? '#ffffff' : '#ff3048');
+      if (typeof SHOCK !== 'undefined') SHOCK.push({ x: b.vx, y: b.vy, t: 0, life: .75, max: 420, col: at === 1.42 ? '#ffffff' : '#ff4058' });
+    }
+    if (v.t > 1.35) b.hp = Math.min(b.maxHp, b.maxHp * sm((v.t - 1.35) / .85));
+    if (v.t > 3.0) {
+      go('vorax'); b.nv.stage = 'vorax'; b.hp = b.maxHp; b.atk = null; b.atkT = 1.0; b.atkI = 0;
+      v.noFire = false; v.lbTo = 0; G.bullets.length = 0; sfx('bossAlarm');
     }
   }
   function voraxUpdate(v, dt) {
@@ -28518,15 +28582,22 @@ const NVGuardSprite = (() => {
     b.t = (b.t || 0) + dt; if (b.flash > 0) b.flash -= dt;
     b.vx = VO.x + Math.sin(b.t * .55) * 16; b.vy = VO.y + Math.sin(b.t * 1.25) * 8; b.vz = 1;
     [b.x, b.y] = vpt(b, 322, 220);
-    const frac = b.hp / b.maxHp, ph = frac > .66 ? 0 : frac > .33 ? 1 : 2;
-    if (ph !== b.ph) { b.ph = ph; b.roar = 1.2; FX.addFlash(.3, '#ff2a3a'); FX.addShake(16); sfx('bossAlarm'); }
+    const frac = b.hp / b.maxHp, ph = b.nv.form | 0;
+    b.ph = ph;
     if (b.roar > 0) b.roar -= dt;
-    if (ph >= 1 && chance(dt * (ph === 2 ? 14 : 6))) { const p = vpt(b, rnd(470, 170), rnd(500, 120)); spawnPart({ x: p[0], y: p[1], vx: rnd(30, -30), vy: -rnd(70, 30), life: rnd(1.3, .6), col: pick(['#251f2e', '#3a3242']), size: rnd(14, 7) }); }
-    if (ph === 2 && chance(dt * 3)) { const p = vpt(b, rnd(470, 170), rnd(480, 140)); explode(p[0], p[1], .9, '#ff3c52', '#ffd0a0'); }
+    if ((ph >= 1 || frac < .66) && chance(dt * (ph === 2 ? 12 : 6))) { const p = vpt(b, rnd(470, 170), rnd(500, 120)); spawnPart({ x: p[0], y: p[1], vx: rnd(30, -30), vy: -rnd(70, 30), life: rnd(1.3, .6), col: pick(['#251f2e', '#3a3242']), size: rnd(14, 7) }); }
+    if ((ph === 2 || frac < .3) && chance(dt * 3)) { const p = vpt(b, rnd(470, 170), rnd(480, 140)); explode(p[0], p[1], .9, '#ff3c52', '#ffd0a0'); }
     /* attaques */
     if (!b.atk) {
       b.atkT -= dt;
-      if (b.atkT <= 0) { const list = ATK[ph], name = list[b.atkI++ % list.length]; b.atk = { name, t: 0, n: 0 }; if (name.startsWith('laser') || name === 'sweep') { sfx('alert'); if (!v.said.laser) { v.said.laser = 1; radioSay('cmd', tr(TXT.v5)); } } }
+      if (b.atkT <= 0) {
+        const list = ATK[ph], name = list[b.atkI++ % list.length]; b.atk = { name, t: 0, n: 0 };
+        if (name.startsWith('laser') || name === 'sweep' || name === 'palms') {
+          sfx('alert');
+          if (name !== 'palms' && !v.said.laser) { v.said.laser = 1; radioSay('cmd', tr(TXT.v5)); }
+          if (name === 'palms' && !v.said.palms) { v.said.palms = 1; radioSay('cmd', tr(TXT.palmWarn)); }
+        }
+      }
     } else atkUpdate(b, b.atk, dt, ph);
     /* tirs du joueur : tête (point faible), torse, bras */
     const NG = (window.NVBOSS && NVBOSS.vorax.ready()), hd = NG ? NVBOSS.vorax.head(b) : [324, 72], hn = NG ? NVBOSS.vorax.hands(b) : [[120, 370], [525, 370]];
@@ -28572,6 +28643,21 @@ const NVGuardSprite = (() => {
         if (A.name === 'laser2' && A.n === 0) { A.n = 1; A.t = 0; A.fired = false; sfx('alert'); }
         else done(1.0);
       }
+    } else if (A.name === 'palms') {
+      const charge = 1.3, fire = ph === 2 ? 1.85 : 1.55;
+      if (t < charge) {
+        A.ch = t / charge;
+        if (A.ch < .58) { const T = target(MID, 500); A.tx = cl(T.x, 85, L_W - 85); }
+        if (chance(dt * 46)) for (const h of palms(b)) { const a = rnd(TAU), r = rnd(74, 34); spawnPart({ x: h[0] + Math.cos(a) * r, y: h[1] + Math.sin(a) * r, vx: -Math.cos(a) * r * 3.4, vy: -Math.sin(a) * r * 3.4, life: .3, col: pick(['#ff2238', '#ff8a96', '#ffffff']), size: 3, glow: true }); }
+      } else if (t < charge + fire) {
+        A.ch = 1; const u = (t - charge) / fire;
+        if (!A.fired) { A.fired = true; sfx('laser'); FX.addFlash(.14, '#ff2238'); FX.addShake(8); }
+        const spread = 112 + Math.sin(u * Math.PI) * (ph === 2 ? 105 : 55);
+        A.ends = [cl(A.tx + spread, -40, L_W + 40), cl(A.tx - spread, -40, L_W + 40)];
+        const H = palms(b);
+        for (const p of players()) { if (!vuln(p)) continue; for (let i = 0; i < 2; i++) if (segHit(p.x, p.y, H[i][0], H[i][1], A.ends[i], L_H + 30, p.r + 8)) { hitPlayer(p, 1, false); break; } }
+        if (ph === 2) { A.sT = (A.sT || 0) - dt; if (A.sT <= 0) { A.sT = .42; for (const h of H) { const a = aimAt(h[0], h[1]); for (let j = -1; j <= 1; j++) shot(h[0], h[1], a + j * .22, 145, 'orb', { r: 7 }); } } }
+      } else { A.ends = null; A.ch = 0; done(.95); }
     } else if (A.name === 'orbs') {
       A.ch = Math.min(1, t / .9);
       if (t > .9 && A.n < 3) { A.sT = (A.sT || 0) - dt; if (A.sT <= 0) { A.sT = .32; A.n++; for (const [px, py] of ((window.NVBOSS && NVBOSS.vorax.ready()) ? NVBOSS.vorax.hands(b) : [[112, 410], [532, 410]])) { const h = vpt(b, px, py); shot(h[0], h[1], Math.PI / 2 + rnd(.6, -.6), 120, 'missile', { r: 8, steer: 1.4 }); const a = aimAt(h[0], h[1]); for (let i = -2; i <= 2; i++) shot(h[0], h[1], a + i * .2, 150, 'orb', { r: 8 }); } sfx('cannon'); } }
@@ -28611,7 +28697,7 @@ const NVGuardSprite = (() => {
     if (!G._nv24 || G._nv24.level !== FINAL) init();
     const v = V();
     if (v.stage === 'dead') return _flow(dt);
-    G.phase = ['hands', 'tear', 'reveal', 'vorax'].includes(v.stage) ? 'boss' : 'nv24'; v.t += dt; v.T += dt;
+    G.phase = ['hands', 'tear', 'reveal', 'morph', 'vorax'].includes(v.stage) ? 'boss' : 'nv24'; v.t += dt; v.T += dt;
     v.lb += (v.lbTo - v.lb) * Math.min(1, dt * 3);
     if (v.hole) v.holeT += dt;
     if (v.stage !== 'hall') { v.offV *= Math.max(0, 1 - dt * 2); v.nearV = v.offV * 3.4; }
@@ -28638,6 +28724,7 @@ const NVGuardSprite = (() => {
       case 'hands': handsUpdate(v, dt); break;
       case 'tear': tearUpdate(v, dt); break;
       case 'reveal': revealUpdate(v, dt); break;
+      case 'morph': morphUpdate(v, dt); break;
       case 'vorax': voraxUpdate(v, dt); break;
     }
     const d2 = v.door2;
@@ -28740,11 +28827,19 @@ const NVGuardSprite = (() => {
     for (const hd of b.hands) {
       if (hd.a <= 0) continue;
       const S = s.hands[hd.fr], w = 190 * hd.sc, t = b.t || 0;
-      const o = { a: hd.a, flash: Math.max(hd.flash * .32, b.flash > 0 ? .1 : 0), rot: Math.sin(t * 2 + hd.side) * .04 + (hd.mode === 'slam' && hd.t > .55 && hd.t < .8 ? hd.side * -.08 : 0) };
-      glow(hd.x, hd.y, 110 * hd.sc, '150,80,255', .25 * hd.a);
+      const o = { a: hd.a, dark: hd.dead ? .62 : 0, flash: Math.max(hd.flash * .32, b.flash > 0 ? .1 : 0), rot: Math.sin(t * 2 + hd.side) * .04 + (hd.mode === 'slam' && hd.t > .55 && hd.t < .8 ? hd.side * -.08 : 0) };
+      glow(hd.x, hd.y, 110 * hd.sc, hd.dead ? '70,45,80' : '150,80,255', (hd.dead ? .08 : .25) * hd.a);
       if (hd.mode === 'storm' && hd.t > .5) for (let i = 0; i < 3; i++) bolt(hd.x + rnd(40, -40), hd.y + rnd(40, -40), hd.x + hd.side * -rnd(90, 30), hd.y + rnd(60, -60), Math.floor(t * 20) + i + hd.side * 7, 2, 'rgba(200,140,255,.95)', 14);
       drawS(S, hd.x, hd.y, w, o);
       for (const [dx, dy] of [[-.18, .12], [.05, .2], [.2, .05]]) glow(hd.x + dx * w * (hd.side < 0 ? 1 : -1), hd.y + dy * w, 9, '190,110,255', (.5 + .4 * Math.sin(t * 6 + dx * 20)) * hd.a);
+      if (v.stage === 'hands') {
+        const bw = Math.max(82, 116 * hd.sc), bx = hd.x - bw / 2, by = hd.y - 104 * hd.sc;
+        const frac = cl(hd.hp / Math.max(1, hd.maxHp), 0, 1);
+        fr(bx - 2, by - 2, bw + 4, 12, 'rgba(3,4,12,.88)');
+        fr(bx, by, bw, 8, 'rgba(255,255,255,.13)');
+        fr(bx, by, bw * frac, 8, hd.dead ? '#4a3548' : frac < .3 ? '#ff3048' : '#c27bff');
+        hudText(P(), tr(hd.side < 0 ? TXT.leftHand : TXT.rightHand), hd.x, by - 14, hd.dead ? '#8f788b' : '#ffe4ed', .82, { align: 'center', glow: hd.dead ? null : '#ff3048' });
+      }
     }
     if (v.bolts) for (const bl of v.bolts) { const a = 1 - bl.t / .25; P().save(); P().globalAlpha = a; bolt(DOOR2.x + rnd(150, -150), DOOR2.y + 60, bl.x, 260, Math.floor(bl.t * 60) + bl.x, 2.4, 'rgba(210,150,255,1)', 18); P().restore(); }
   }
@@ -28755,7 +28850,7 @@ const NVGuardSprite = (() => {
     useBuf(R.bufNear);
     const g = P(), K = KK(), z = b.vz || 1, sc = VX.s * z, t = b.t || 0;
     const A = b.atk, ch = A ? (A.ch || 0) : 0, isLaser = A && (A.name.startsWith('laser') || A.name === 'sweep');
-    const laserCh = isLaser ? ch : 0, handCh = A && A.name === 'orbs' ? ch : 0;
+    const laserCh = isLaser ? ch : 0, handCh = A && (A.name === 'orbs' || A.name === 'palms') ? ch : 0;
     const flash = b.flash > 0 ? .16 : 0, red = (extra.red || 0) + laserCh * .09 + (b.roar > 0 ? b.roar * .25 : 0);
     const dark = extra.dark || 0;
     /* halo et réacteurs */
@@ -28793,19 +28888,20 @@ const NVGuardSprite = (() => {
     }
   }
   function drawBeams(b) {
-    const A = b && b.atk; if (!A || !(A.name.startsWith('laser') || A.name === 'sweep')) return;
-    useBuf(R.bufNear); const g = P(), K = KK(), E = eyes(b), t = b.t || 0;
+    const A = b && b.atk; if (!A || !(A.name.startsWith('laser') || A.name === 'sweep' || A.name === 'palms')) return;
+    useBuf(R.bufNear); const g = P(), K = KK(), isPalm = A.name === 'palms', O = isPalm ? palms(b) : eyes(b), t = b.t || 0;
     if (!A.ends && A.ch > .45) {
-      /* lignes de visée */
+      /* lignes de visée : les paumes croisent leurs trajectoires. */
       const cx = A.name === 'sweep' ? MID : A.tx, gap = A.name === 'sweep' ? 250 : 170;
+      const targets = isPalm ? [cl(cx + 112, -40, L_W + 40), cl(cx - 112, -40, L_W + 40)] : [cx - gap, cx + gap];
       g.save(); g.globalAlpha = (A.ch - .45) * 1.2; g.setLineDash([6 * K, 9 * K]); g.strokeStyle = '#ff4a5c'; g.lineWidth = 1.6 * K;
-      [cx - gap, cx + gap].forEach((x2, i) => { g.beginPath(); g.moveTo(E[i][0] * K, E[i][1] * K); g.lineTo(x2 * K, (L_H + 30) * K); g.stroke(); });
+      targets.forEach((x2, i) => { g.beginPath(); g.moveTo(O[i][0] * K, O[i][1] * K); g.lineTo(x2 * K, (L_H + 30) * K); g.stroke(); });
       g.setLineDash([]); g.restore();
     }
     if (A.ends) {
       g.save(); g.globalCompositeOperation = 'lighter'; g.lineCap = 'round';
       for (let i = 0; i < 2; i++) {
-        const [x1, y1] = E[i], x2 = A.ends[i], y2 = L_H + 30, wob = Math.sin(t * 60 + i) * 3;
+        const [x1, y1] = O[i], x2 = A.ends[i], y2 = L_H + 30, wob = Math.sin(t * 60 + i) * 3;
         g.globalAlpha = .35; g.strokeStyle = '#ff1d35'; g.lineWidth = (34 + wob) * K; g.beginPath(); g.moveTo(x1 * K, y1 * K); g.lineTo(x2 * K, y2 * K); g.stroke();
         g.globalAlpha = .9; g.strokeStyle = '#ff2a40'; g.lineWidth = 13 * K; g.beginPath(); g.moveTo(x1 * K, y1 * K); g.lineTo(x2 * K, y2 * K); g.stroke();
         g.globalAlpha = 1; g.strokeStyle = '#fff1ec'; g.lineWidth = 3.4 * K; g.beginPath(); g.moveTo(x1 * K, y1 * K); g.lineTo(x2 * K, y2 * K); g.stroke();
@@ -28903,7 +28999,7 @@ const NVGuardSprite = (() => {
   drawHUD = function () {
     if (!on()) return _hud.apply(this, arguments);
     const v = V(), x = PF.x, y = PF.y, w = PF.w, h = PF.h;
-    const b = G.boss, A = b && !b.dead && b.atk, laser = A && (A.name.startsWith('laser') || A.name === 'sweep') ? (A.ends ? 1 : (A.ch || 0) * .45) : 0;
+    const b = G.boss, A = b && !b.dead && b.atk, laser = A && (A.name.startsWith('laser') || A.name === 'sweep' || A.name === 'palms') ? (A.ends ? 1 : (A.ch || 0) * .45) : 0;
     const red = Math.max((v.stage === 'alarm' || v.stage === 'tear') ? (.5 + .5 * Math.sin(v.T * 12)) * .5 : 0, laser * .32, b && b.roar > 0 ? b.roar * .3 : 0);
     if (red > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = red; const vg = ctx.createRadialGradient(x + w / 2, y + h / 2, h * .25, x + w / 2, y + h / 2, h * .78); vg.addColorStop(0, 'rgba(255,20,40,0)'); vg.addColorStop(1, 'rgba(255,20,40,.6)'); ctx.fillStyle = vg; ctx.fillRect(x, y, w, h); ctx.restore(); }
     const r = _hud.apply(this, arguments);
@@ -28920,6 +29016,11 @@ const NVGuardSprite = (() => {
     }
     ctx.restore();
     if (v.stage === 'alarm' && window.nvAlertDraw) { const X = window.nvAlertText; window.nvAlertDraw(v.t, 3.7, { title: X.tr(X.title), name: X.tr(X.unknown), sub: tr(TXT.gate), y: .58 }); }
+  }
+  /* Hooks uniquement présents sur l'URL de test automatisé. */
+  if (new URLSearchParams(location.search).has('nv24test')) {
+    window.NV24_TEST = { V, go, hurtBoss, hurtHand, syncHands, formHp, startMorph, startTear,
+      get boss() { return G.boss; }, get stage() { return V().stage; } };
   }
 })();
 </script>
@@ -32027,6 +32128,7 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
   window.NVBOSS = { vorax: vx, ready, img, META };
 })();
 </script>
+<script id="nv-level24-v2" src="level24-v2/level24-v2.js"></script>
 <script id="nv-tickets">
 /* =============================================================================
    TICKETS À GRATTER (pack « Réaliste V3 ») + CODE CAFAITFLIPPER
@@ -32133,8 +32235,8 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
      ====================================================================== */
   const TICKET_CODES = {
     CAFAITFLIPPER: { key: 'pinball',
-      ok: 'Code validé ! Le jeu de flipper est maintenant déverrouillé.',
-      again: 'Ce code a déjà été saisi et validé. Le jeu de flipper est déjà déverrouillé.' },
+      ok: 'Code du ticket validé. Termine Neo-Vanguard pour débloquer la table Néon Orbit.',
+      again: 'Code du ticket déjà validé. La table Néon Orbit se débloque après la fin de la campagne.' },
     NEOMELODIES: { key: 'cassettes',
       ok: 'Code validé ! Le menu complet des cassettes audio est maintenant déverrouillé.',
       again: 'Ce code a déjà été saisi et validé. Le menu complet des cassettes audio est déjà déverrouillé.' },
@@ -32888,183 +32990,7 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
   if (Audio2.ok) Audio2.applyVolumes();
 })();
 </script>
-<script id="nv-flipper">
-/* ============ MENU FLIPPER + JEU ============ */
-function isFlipperUnlocked() {
-  // Le ticket révèle le code ; seule sa validation donne cet accès.
-  return !!((S.unlocks && S.unlocks.pinball) ||
-    (S.cheats && S.cheats.found && S.cheats.found.flipper));
-}
-function refreshFlipperButton() {
-  const unlocked = isFlipperUnlocked();
-  document.querySelectorAll('[data-act="flipper-menu"]').forEach(tile => {
-    tile.hidden = !unlocked;
-    tile.style.display = unlocked ? '' : 'none';
-  });
-  const btn = document.getElementById('btnPlayFlipper');
-  const status = document.getElementById('flipperStatus');
-  const hint = document.getElementById('flipperScratchHint');
-  if (btn) {
-    btn.disabled = !unlocked;
-    btn.style.opacity = unlocked ? '1' : '.35';
-    btn.style.cursor = unlocked ? 'pointer' : 'not-allowed';
-    btn.style.background = unlocked ? 'linear-gradient(90deg,#6ee8ff,#63dcff)' : 'linear-gradient(90deg,#2a3f5c,#1a2a3c)';
-  }
-  if (status) status.textContent = unlocked ? 'Débloqué · prêt à jouer' : 'Verrouillé · code requis';
-  if (hint) hint.style.display = unlocked ? 'none' : 'inline-block';
-}
-
-let flipperRunning = false;
-let flipperScore = 0;
-let flipperBalls = 3;
-let flipperBall = null;
-
-function startFlipperGame() {
-  const unlocked = isFlipperUnlocked();
-  if (!unlocked) { alert('Le code CAFAITFLIPPER n\'est pas validé. Va dans le menu Codes.'); return; }
-  if (flipperRunning) return;
-  flipperRunning = true;
-  flipperScore = 0;
-  flipperBalls = 3;
-  document.getElementById('flipperGameArea').style.display = 'block';
-  document.getElementById('flipScore').textContent = '0';
-  document.getElementById('flipBalls').textContent = '3';
-  initFlipperCanvas();
-}
-
-function initFlipperCanvas() {
-  const canvas = document.getElementById('flipperCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  
-  // Simple pinball: ball, flippers, bumpers
-  let ball = { x: W/2, y: H/2, dx: 5, dy: -6, r: 10 };
-  let flipperL = { x: 140, y: H-60, w: 90, h: 16, angle: -0.3 };
-  let flipperR = { x: W-220, y: H-60, w: 90, h: 16, angle: 0.3 };
-  
-  let bumpers = [
-    {x: W/2, y: 180, r: 22},
-    {x: W/2-100, y: 260, r: 18},
-    {x: W/2+100, y: 260, r: 18},
-    {x: W/2-70, y: 120, r: 16},
-    {x: W/2+70, y: 120, r: 16}
-  ];
-  
-  const keys = {};
-  window.addEventListener('keydown', e => { keys[e.key] = true; if (e.key===' ' || e.key==='ArrowUp') { if (ball.dy > 0 || Math.abs(ball.y - H) > 80) { ball.dy = -12; ball.dx = (Math.random()-0.5)*6; } } });
-  window.addEventListener('keyup', e => { keys[e.key] = false; });
-  canvas.addEventListener('mousemove', e => {
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    flipperL.angle = Math.max(-0.8, Math.min(0.15, (mx - 150)/400));
-    flipperR.angle = Math.max(-0.15, Math.min(0.8, (mx - 650)/400));
-  });
-  
-  function draw() {
-    if (!flipperRunning) return;
-    ctx.fillStyle = '#070e1c';
-    ctx.fillRect(0,0,W,H);
-    // Table glow
-    ctx.save();
-    ctx.shadowColor = '#6ee8ff';
-    ctx.shadowBlur = 30;
-    ctx.strokeStyle = '#1a3a5c';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(W/2, H/2, 280, 0, Math.PI*2);
-    ctx.stroke();
-    ctx.restore();
-    
-    // Bumpers
-    for (const b of bumpers) {
-      ctx.save();
-      ctx.fillStyle = '#ffd166';
-      ctx.shadowColor = '#ffd166';
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = '10px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('10', b.x, b.y+3);
-      ctx.restore();
-    }
-    
-    // Flippers
-    function drawFlipper(x, y, w, h, ang) {
-      ctx.save();
-      ctx.translate(x, y); ctx.rotate(ang);
-      ctx.fillStyle = '#e6f7ff';
-      ctx.shadowColor = '#6ee8ff'; ctx.shadowBlur = 14;
-      ctx.fillRect(-w/2, -h/2, w, h);
-      ctx.fillStyle = '#63dcff';
-      ctx.fillRect(-w/2+4, -h/2+4, w-8, h-8);
-      ctx.restore();
-    }
-    drawFlipper(flipperL.x, flipperL.y, flipperL.w, flipperL.h, flipperL.angle);
-    drawFlipper(flipperR.x, flipperR.y, flipperR.w, flipperR.h, flipperR.angle);
-    
-    // Ball
-    ctx.save();
-    ctx.fillStyle = '#fff';
-    ctx.shadowColor = '#fff';
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-    
-    // Update
-    ball.x += ball.dx; ball.y += ball.dy;
-    ball.dy += 0.25; // gravity
-    
-    // Walls
-    if (ball.x - ball.r < 0) { ball.x = ball.r; ball.dx *= -0.9; }
-    if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.dx *= -0.9; }
-    if (ball.y - ball.r < 0) { ball.y = ball.r; ball.dy *= -0.9; }
-    
-    // Flipper collisions (simplified)
-    for (const f of [flipperL, flipperR]) {
-      const fx = f.x + Math.sin(f.angle)*30;
-      const fy = f.y + Math.cos(f.angle)*30;
-      const dist = Math.hypot(ball.x - fx, ball.y - fy);
-      if (dist < ball.r + 18 && ball.dy > 0) {
-        ball.dy = -9 - Math.random()*4;
-        ball.dx = (Math.random()-0.5)*10;
-        flipperScore += 10;
-        document.getElementById('flipScore').textContent = flipperScore;
-      }
-    }
-    
-    // Bumper collisions
-    for (const b of bumpers) {
-      const dist = Math.hypot(ball.x - b.x, ball.y - b.y);
-      if (dist < ball.r + b.r) {
-        const angle = Math.atan2(ball.y - b.y, ball.x - b.x);
-        ball.dx = Math.cos(angle)*7; ball.dy = Math.sin(angle)*7;
-        flipperScore += 50;
-        document.getElementById('flipScore').textContent = flipperScore;
-      }
-    }
-    
-    // Bottom / lose ball
-    if (ball.y + ball.r > H) {
-      flipperBalls--;
-      document.getElementById('flipBalls').textContent = flipperBalls;
-      if (flipperBalls <= 0) { flipperRunning = false; alert('Partie terminée ! Score : ' + flipperScore); document.getElementById('flipperGameArea').style.display = 'none'; return; }
-      ball = { x: W/2, y: H/2, dx: 5, dy: -6, r: 10 };
-    }
-    
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-// Mise à jour immédiate après validation et restauration de la sauvegarde.
-window.addEventListener('nv:pinball-unlocked', refreshFlipperButton);
-refreshFlipperButton();
-</script>
+<script id="nv-flipper-engine" src="pinball/engine.js"></script>
+<script id="nv-flipper" src="pinball/pinball.js"></script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f25374bd0fd580',t:'MTc5Mjc3NTEyMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
