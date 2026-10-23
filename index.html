@@ -718,14 +718,23 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
 <!-- ============ GÉNÉRIQUE ============ -->
 <div class="screen dim" id="scr-credits">
   <div class="panel narrow">
-    <div class="phead"><span class="ptitle">Coins</span><span class="wallet">v1.0</span></div>
-    <div class="note" style="font-size:12.5px">
-      <b>NEO VANGUARD</b> — shoot them up vertical top-down à moteur graphique évolutif.<br><br>
-      Code, pixel art procédural, moteur audio chiptune et rendu HD : <b>générés sur mesure</b> pour ce projet.<br>
-      Illustrations originales intégrées au fichier ; Canvas 2D et WebAudio assurent rendu, animation et musique hors ligne.<br><br>
-      Techniques utilisées : buffers à basse résolution et palettes limitées (8-bit), trames de tramage
-      ordonnées (dither), parallaxe multicouche, sprites procéduraux, tramage de verre, bloom par flou de buffer,
-      aberration chromatique, particules additives, screen-shake et hitstop.<br><br>
+    <div class="phead"><span class="ptitle">Crédits</span><span class="wallet">v1.0</span></div>
+    <div class="note nv-credits-page" style="font-size:12.5px;line-height:1.6">
+      <b>NEO VANGUARD</b> — shoot them up vertical en 24 secteurs, dont le moteur graphique change de génération de console tous les 4 secteurs.<br><br>
+      <b>Création, scénario, game design, graphismes et programmation</b> : KABRAK.<br>
+      Effets sonores et séquenceur chiptune de secours : générés en temps réel par le moteur du jeu (WebAudio).<br>
+      Voix de VESTA et des annonces : synthèse vocale de l’appareil.<br><br>
+      <b>Musiques</b> — toutes sous licence CC0 (domaine public), citées par courtoisie :<br>
+      · Thème principal « Cyber March » — iamoneabe<br>
+      · Récit, comptoir, fin, secteurs 5 à 12, boss de secours — Juhani Junkala (JRPG Pack 2, Retro Game Music Pack, Epic Boss Battle)<br>
+      · Thèmes des 24 boss — HydroGene (High Quality 16-bit RPG Music)<br>
+      · Secteurs 1 à 4 « Mars » — SketchyLogic (NES Shooter Music)<br>
+      · Secteurs 13 à 16 « Spacecrusher » — yd<br>
+      · Secteurs 17 à 20 « Cyberpunk Moonlight Sonata » — Joth<br>
+      · Secteurs 21 à 24 « Vengeance » — Of Far Different Nature<br>
+      Sources et liens : dossier <i>music/</i> du dépôt.<br><br>
+      Techniques : Canvas 2D et WebAudio, buffers basse résolution et palettes limitées, tramage ordonné, parallaxe multicouche, sprites procéduraux, bloom, aberration chromatique, particules, screen-shake et hitstop.<br><br>
+      Code sous licence MIT. Neo Vanguard est une œuvre de fiction : personnages, sociétés, consoles et événements sont imaginaires.<br><br>
       Jouable au clavier, à la souris ou au doigt. Bonne chance, pilote.
     </div>
     <div class="row"><button class="btn small" data-act="credits-back">◀ Retour</button></div>
@@ -16796,7 +16805,7 @@ const MUSIC_FILES = {
   era3: 'music/era3.mp3', era4: 'music/era4.mp3', era5: 'music/era5.mp3',
 };
 const MUSIC_CREDITS = [
-  ['title', 'NEO VANGUARD — L’Éveil (composition instrumentale originale incluse)'], ['gate', 'L’Éveil — même thème à l’écran d’entrée'],
+  ['title', 'iamoneabe — Cyber March (CC0)'], ['gate', 'iamoneabe — Cyber March (CC0), même thème à l’écran d’entrée'],
   ['story', 'Juhani Junkala — Where Time Stands Still (CC0)'],
   ['shop', 'Juhani Junkala — Bazaar (CC0)'],
   ['ending', 'Juhani Junkala — Retro Game Music Pack : Ending (CC0)'],
@@ -16935,8 +16944,10 @@ function mxTick(dt) {
   /* préchargement des pistes courtes au premier geste */
   const warm = () => { ['title', 'era0', 'boss', 'boss4'].forEach(k => mxEl(k)); removeEventListener('pointerdown', warm); removeEventListener('keydown', warm); };
   addEventListener('pointerdown', warm); addEventListener('keydown', warm);
-  /* crédits : la liste des pistes */
-  const note = document.querySelector('#scr-credits .note');
+  /* crédits : la liste des pistes est désormais écrite dans la page Crédits
+     elle-même (auteurs vérifiés) ; l'ancienne liste annonçait un thème
+     « original » qui n'est pas celui du jeu. */
+  const note = null;
   if (note) {
     const d = document.createElement('div');
     d.style.cssText = 'margin-top:10px;padding-top:8px;border-top:1px solid rgba(127,230,255,.25);font-size:11.5px;line-height:1.5';
@@ -18414,7 +18425,7 @@ Object.assign(NX, {
   'ap.sub':   ['Son et musique activés à l’entrée', 'Sound and music start on entry', 'Sonido y música al entrar', 'Som e música ao entrar', '入場時にサウンドが有効になります'],
   'ap.status':['SYSTÈME EN LIGNE', 'SYSTEM ONLINE', 'SISTEMA EN LÍNEA', 'SISTEMA ONLINE', 'システムオンライン'],
   'ap.key':   ['ENTRÉE', 'ENTER', 'ENTRAR', 'ENTRAR', '決定'],
-  'ap.music': ['L’ÉVEIL · THÈME ORIGINAL — TOUCHEZ POUR ÉCOUTER', 'AWAKENING · ORIGINAL SCORE — TAP TO LISTEN', 'EL DESPERTAR · TEMA ORIGINAL — TOCA PARA ESCUCHAR', 'O DESPERTAR · TEMA ORIGINAL — TOQUE PARA OUVIR', '目覚め · オリジナルテーマ — タップして再生'],
+  'ap.music': ['« CYBER MARCH » · IAMONEABE — TOUCHEZ POUR ÉCOUTER', '“CYBER MARCH” · IAMONEABE — TAP TO LISTEN', '«CYBER MARCH» · IAMONEABE — TOCA PARA ESCUCHAR', '«CYBER MARCH» · IAMONEABE — TOQUE PARA OUVIR', '「CYBER MARCH」 · IAMONEABE — タップして再生'],
 });
 narrativeInstall();
 {
@@ -19110,15 +19121,25 @@ narrativeInstall();
       ['Concept art & personnages','Concept art & characters','Arte conceptual y personajes','Concept art e personagens','コンセプトアート・キャラクター'],
       ['Illustrations & environnements','Illustration & environments','Ilustración y entornos','Ilustração e cenários','イラスト・背景'],
       ['Animation & effets visuels','Animation & visual effects','Animación y efectos visuales','Animação e efeitos visuais','アニメーション・VFX'],
-      ['Musique','Music','Música','Música','音楽'],
-      ['Design sonore','Sound design','Diseño de sonido','Design de som','サウンドデザイン']]},
+      ['Effets sonores & séquenceur chiptune','Sound effects & chiptune sequencer','Efectos de sonido y secuenciador chiptune','Efeitos sonoros e sequenciador chiptune','効果音・チップチューン']]},
+    /* Musiques sous licence CC0 (domaine public) : crédit de courtoisie, auteurs réels */
+    {title:['MUSIQUE · LICENCE CC0','MUSIC · CC0 LICENCE','MÚSICA · LICENCIA CC0','MÚSICA · LICENÇA CC0','音楽 · CC0ライセンス'],roles:[
+      ['Thème principal « Cyber March »','Main theme “Cyber March”','Tema principal «Cyber March»','Tema principal «Cyber March»','メインテーマ「Cyber March」','IAMONEABE'],
+      ['Récit, comptoir, fin, secteurs 5-12','Story, shop, ending, sectors 5-12','Historia, tienda, final, sectores 5-12','História, loja, final, setores 5-12','ストーリー・ショップ・エンディング・セクター5-12','JUHANI JUNKALA'],
+      ['Thèmes des 24 boss','Themes of the 24 bosses','Temas de los 24 jefes','Temas dos 24 chefes','24体のボス曲','HYDROGENE'],
+      ['Secteurs 1-4 « Mars »','Sectors 1-4 “Mars”','Sectores 1-4 «Mars»','Setores 1-4 «Mars»','セクター1-4「Mars」','SKETCHYLOGIC'],
+      ['Secteurs 13-16 « Spacecrusher »','Sectors 13-16 “Spacecrusher”','Sectores 13-16 «Spacecrusher»','Setores 13-16 «Spacecrusher»','セクター13-16「Spacecrusher」','YD'],
+      ['Secteurs 17-20 « Cyberpunk Moonlight Sonata »','Sectors 17-20 “Cyberpunk Moonlight Sonata”','Sectores 17-20 «Cyberpunk Moonlight Sonata»','Setores 17-20 «Cyberpunk Moonlight Sonata»','セクター17-20「Cyberpunk Moonlight Sonata」','JOTH'],
+      ['Secteurs 21-24 « Vengeance »','Sectors 21-24 “Vengeance”','Sectores 21-24 «Vengeance»','Setores 21-24 «Vengeance»','セクター21-24「Vengeance」','OF FAR DIFFERENT NATURE']]},
+    {title:['VOIX','VOICES','VOCES','VOZES','音声'],roles:[
+      ['VESTA et les annonces','VESTA and announcements','VESTA y los anuncios','VESTA e os anúncios','VESTAとアナウンス','SYNTHÈSE VOCALE DE L’APPAREIL']]},
     {title:['QUALITÉ & REMERCIEMENTS','QUALITY & THANKS','CALIDAD Y AGRADECIMIENTOS','QUALIDADE E AGRADECIMENTOS','品質・スペシャルサンクス'],roles:[
       ['Tests & assurance qualité','Testing & quality assurance','Pruebas y control de calidad','Testes e garantia de qualidade','テスト・品質管理'],
       ['Accessibilité','Accessibility','Accesibilidad','Acessibilidade','アクセシビリティ'],
       ['Localisation · FR · EN · ES · PT · JA','Localization · FR · EN · ES · PT · JA','Localización · FR · EN · ES · PT · JA','Localização · FR · EN · ES · PT · JA','ローカライズ · FR · EN · ES · PT · JA'],
       ['Aux joueurs et joueuses','To all players','A quienes jugaron','A quem jogou','プレイヤーの皆さま']]},
   ];
-  const renderCredits=()=>creditGroups.map(group=>'<section class="nvf-credit-group"><h2>'+group.title[li()]+'</h2>'+group.roles.map(role=>'<div class="nvf-credit-row"><span>'+role[li()]+'</span><b>KABRAK</b></div>').join('')+'</section>').join('')+'<p class="nvf-credit-signoff">NEO-VANGUARD<br>© 2026 KABRAK ENTERTAINMENT</p>';
+  const renderCredits=()=>creditGroups.map(group=>'<section class="nvf-credit-group"><h2>'+group.title[li()]+'</h2>'+group.roles.map(role=>'<div class="nvf-credit-row"><span>'+role[li()]+'</span><b>'+(role[5]||'KABRAK')+'</b></div>').join('')+'</section>').join('')+'<p class="nvf-credit-signoff">NEO-VANGUARD<br>© 2026 KABRAK ENTERTAINMENT</p>';
   let creditsAnimation=null,creditsFast=false,imageTimer=0;
   const setCreditsFast=on=>{creditsFast=!!on;if(creditsAnimation){creditsAnimation.playbackRate=creditsFast?4:1;}const b=$('.nvf-fast');if(b)b.classList.toggle('fast',creditsFast);};
   let rewardHoldTimer=0;
