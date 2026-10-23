@@ -9922,6 +9922,11 @@ function introTyped(str, a, b, t) {
   return full.slice(0, Math.round(full.length * k));
 }
 function drawEraBanner(t) {
+  /* Fiche « génération / secteur / VS / objectif » avant chaque secteur et
+     au changement de console : retirée. Elle doublonnait les briefings de
+     VESTA et affichait des infos erronées. (Le démarrage de la console au
+     secteur 1 est un écran à part et reste en place.) */
+  return;
   /* t : 0 → 1 sur la durée de l'intro */
   const fade = t < 0.14 ? t / 0.14 : t > 0.88 ? (1 - t) / 0.12 : 1;
   const e = R.era, sec = G.eraIdx, p = PF, cxm = p.x + p.w / 2;
