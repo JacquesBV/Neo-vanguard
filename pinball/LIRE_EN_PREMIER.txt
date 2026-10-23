@@ -1,0 +1,25 @@
+NEO-VANGUARD PINBALL — PACK VISUEL ET AUDIO
+23 octobre 2026
+
+Ce pack contient les ressources et la conception du flipper bonus à intégrer par Claude dans Neo-Vanguard. Ce n'est pas encore un jeu jouable et le jeu principal n'a pas été modifié.
+
+CONTENU
+assets/01_table_reference.png : rendu de référence, table allumée.
+assets/02_plateau_statique.png : base sans bille, batteurs, bumpers centraux ni cibles mobiles, afficheur vide.
+assets/03_mecanismes_4x4.png : 16 éléments mécaniques sur transparence.
+assets/04_effets_4x4.png : 16 images d'effets et de lumières sur transparence.
+assets/05_menu_deblocage.png : illustration du bonus débloqué.
+assets/06_interface_4x4.png : 16 éléments d'interface sur transparence.
+audio/ : 17 effets sonores synthétisés et une boucle musicale originale de 32 secondes.
+docs/PROMPT_POUR_CLAUDE.txt : demande complète à transmettre avec ce dossier.
+docs/CONCEPTION_ET_ANIMATIONS.md : règles du jeu, commandes, animations et ordre des couches.
+docs/atlas.json : dimensions, cases des planches et repères de placement.
+docs/prompts_images.json : prompts de création des images, génération par l'outil intégré.
+
+Les planches PNG conservent leur vraie transparence. Le fond noir aperçu dans certaines visionneuses n'est pas un fond noir peint. Chaque planche comporte quatre colonnes et quatre lignes ; le guide indique l'ordre des cases.
+
+Les graphismes sont générés : les cellules et repères sont des points de départ. Claude doit ajuster les recadrages, pivots, masques et collisions au rendu réel. Le plateau statique est une variante générée du rendu de référence, pas une extraction garantie au pixel près. La référence sert à guider le résultat, elle ne doit pas servir de fond de jeu avec des pièces déjà dessinées.
+
+Le flipper reste en vue 2D de dessus et garde une table fixe. Les billes sont en acier chromé ; les deux batteurs sont animés par rotation. L'accès devient permanent lorsque la fin du jeu a été atteinte, en réutilisant en priorité la sauvegarde de progression existante.
+
+Les sons sont des créations synthétiques, sans enregistrements de Pinball FX. Le pack ne contient pas de nouvelles voix. La musique peut être remplacée par une piste déjà présente dans Neo-Vanguard selon ton choix.
