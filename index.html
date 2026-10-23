@@ -18463,6 +18463,16 @@ narrativeInstall();
     #nvGate .ge{align-self:center;margin:13px 0 0;min-width:min(340px,88vw);min-height:60px;font-size:10px;letter-spacing:.20em;padding:0 16px;gap:11px}
     #nvGate .gs{align-self:center;margin:0;justify-content:center;max-width:90vw;font-size:8.5px;letter-spacing:.12em}
   }
+  /* emblème Neo Vanguard (le même que l'écran de chargement) */
+  #nvGate .nv-emb{display:block;width:clamp(84px,8.4vw,118px);aspect-ratio:1;margin:0 0 14px .9em;filter:drop-shadow(0 0 18px rgba(76,244,255,.45)) drop-shadow(0 0 34px rgba(169,139,255,.25))}
+  #nvGate .nv-emb svg{display:block;width:100%;height:100%;overflow:visible}
+  #nvGate .nv-emb .r1,#nvGate .nv-emb .r2{transform-origin:80px 80px;transform-box:view-box}
+  #nvGate .nv-emb .r1{animation:nvEmbSpin 14s linear infinite}
+  #nvGate .nv-emb .r2{animation:nvEmbSpin 9s linear infinite reverse}
+  @keyframes nvEmbSpin{to{transform:rotate(360deg)}}
+  @media(max-width:700px){#nvGate .nv-emb{width:clamp(64px,19vw,84px);margin:0 auto 10px}}
+  @media(max-height:620px) and (max-width:700px){#nvGate .nv-emb{width:56px;margin-bottom:6px}}
+  @media(prefers-reduced-motion:reduce){#nvGate .nv-emb .r1,#nvGate .nv-emb .r2{animation:none}}
   @media(prefers-reduced-motion:reduce){#nvGate .nv-scene img,#nvGate .nv-scene::after,#nvGate .ge{animation:none!important} #nvGate .ge:hover{transform:none}}
   @media(max-height:620px) and (max-width:700px){#nvGate .gl{margin-top:7svh}#nvGate .gl .v{font-size:clamp(38px,9vw,56px)}#nvGate .nv-rule{margin-top:10px}#nvGate .ge{margin-top:8px}}
   `;
@@ -18507,7 +18517,7 @@ narrativeInstall();
   function showGate() {
     if (document.getElementById('nvGate')) return;
     const g = document.createElement('div'); g.id = 'nvGate';
-    g.innerHTML = `<div class="nv-scene" aria-hidden="true"><img src="${TITLE_KEY_ART}" alt=""></div><div class="gl"><span class="n">NEO</span><span class="v">VANGUARD</span><span class="nv-rule">${NXT('ap.status')}</span></div><button type="button" class="ge" aria-label="${NXT('ap.enter')}"><span class="ge-mark">▶</span><span>${NXT('ap.enter')}</span><span class="ge-key">${NXT('ap.key')}</span></button><div class="gs"><span class="music-mark">♫</span><span>${NXT('ap.music')}</span></div>`;
+    g.innerHTML = `<div class="nv-scene" aria-hidden="true"><img src="${TITLE_KEY_ART}" alt=""></div><div class="gl"><span class="nv-emb" aria-hidden="true"><svg viewBox="0 0 160 160"><defs><linearGradient id="nvgG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4cf4ff"/><stop offset=".55" stop-color="#a98bff"/><stop offset="1" stop-color="#ff5ea8"/></linearGradient></defs><polygon points="80,8 142,44 142,116 80,152 18,116 18,44" fill="rgba(6,12,28,.85)" stroke="url(#nvgG)" stroke-width="3"/><g class="r1"><circle cx="80" cy="80" r="58" fill="none" stroke="#4cf4ff" stroke-width="2" stroke-dasharray="18 10" opacity=".7"/></g><g class="r2"><circle cx="80" cy="80" r="47" fill="none" stroke="#ff5ea8" stroke-width="1.6" stroke-dasharray="4 8" opacity=".8"/></g><path d="M80 34 L98 92 L80 84 L62 92 Z" fill="url(#nvgG)"/><path d="M80 46 L88 80 L80 76 L72 80 Z" fill="#061020"/><path d="M62 92 L46 104 L58 86 M98 92 L114 104 L102 86" stroke="#4cf4ff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M74 94 L80 118 L86 94" fill="#ffd36c" opacity=".9"/></svg></span><span class="n">NEO</span><span class="v">VANGUARD</span><span class="nv-rule">${NXT('ap.status')}</span></div><button type="button" class="ge" aria-label="${NXT('ap.enter')}"><span class="ge-mark">▶</span><span>${NXT('ap.enter')}</span><span class="ge-key">${NXT('ap.key')}</span></button><div class="gs"><span class="music-mark">♫</span><span>${NXT('ap.music')}</span></div>`;
     document.body.appendChild(g);
     const dismiss = () => {
       g.classList.add('off'); setTimeout(() => g.remove(), 700);
