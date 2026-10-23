@@ -551,6 +551,7 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
         <button class="tile" data-act="options"><span class="ti">⚙</span><b>Options</b><i>Graphismes, son, aperçu d'ère</i></button>
         <button class="tile" data-act="help"><span class="ti">?</span><b>Commandes</b><i>Clavier, souris, doigt</i></button>
         <button class="tile" data-act="cheats"><span class="ti">☠</span><b>Codes</b><i>8 codes secrets à trouver</i></button>
+        <button class="tile" data-act="flipper-menu"><span class="ti">◈</span><b>Flipper</b><i>Menu dédié au jeu de flipper</i></button>
         <button class="tile online" data-act="online"><span class="ti">⌁</span><b>Coop en ligne</b><i>Deux téléphones, un code</i></button>
         <button class="tile" data-act="records"><span class="ti">▦</span><b>Records</b><i>Classement, médailles, série</i></button>
         <button class="tile" data-act="credits"><span class="ti">★</span><b>Crédits</b><i>Comment tout est fabriqué</i></button>
@@ -778,6 +779,32 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
     <div class="row">
       <button class="btn small" data-act="cheat-off">Désactiver tous les cheats</button>
       <button class="btn small" data-act="cheat-back">◀ Retour</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============ MENU FLIPPER ============ -->
+<div class="screen dim" id="scr-flipper-menu">
+  <div class="panel" style="max-width:860px">
+    <div class="phead">
+      <span class="ptitle">Menu Flipper</span>
+      <span class="wallet" id="flipperStatus">Verrouillé · code requis</span>
+    </div>
+    <div style="padding:14px 0;">
+      <p style="font-size:14px;color:#c2d0e8;margin:0 0 14px;line-height:1.5;">Le jeu de flipper est verrouillé. Saisis le code <b style="color:#ffd166">CAFAITFLIPPER</b> dans le menu <b>Codes</b> pour le débloquer.</p>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
+        <button class="btn big prim" id="btnPlayFlipper" data-act="play-flipper" disabled style="opacity:.45;cursor:not-allowed;">▶ Jouer au Flipper</button>
+        <button class="btn small" data-act="flipper-back">◀ Retour</button>
+      </div>
+      <div id="flipperGameArea" style="display:none;">
+        <canvas id="flipperCanvas" width="800" height="560" style="border:2px solid rgba(106,224,255,.35);border-radius:10px;background:linear-gradient(180deg,#091528,#020a14);box-shadow:0 0 30px rgba(106,224,255,.15);display:block;margin:0 auto;max-width:100%;"></canvas>
+        <div style="display:flex;justify-content:center;gap:22px;margin-top:8px;font-size:12px;color:#7cf0ff;letter-spacing:.08em;font-family:inherit;">
+          <span>Score <b id="flipScore" style="color:#ffd166">0</b></span>
+          <span>Ball <b id="flipBalls" style="color:#ffd166">3</b></span>
+        </div>
+        <p style="font-size:11px;color:#7c8fb0;text-align:center;margin:6px 0 0;">Flèches ← → ou souris pour les flippers · Espace pour lancer</p>
+      </div>
     </div>
   </div>
 </div>
@@ -2643,6 +2670,9 @@ const CHEATS = [
   { id:'jump',   code:'saut',      name:'SAUT DE SECTEUR', type:'select',
     desc:'Choisis le secteur où commencera ta prochaine mission.',
     hint:'ce que fait un kangourou' },
+  { id:'flipper', code:'CAFAITFLIPPER', name:'MODE FLIPPER', type:'action',
+    desc:'Débloque le menu dédié au jeu de flipper — tape le code dans le menu Codes.',
+    hint:'le nom du jeu, tout en majuscules' },
   { id:'bombs',  code:'KAMIKAZE',  name:'BOMBES INFINIES', type:'toggle',
     desc:'Les bombes ne sont plus consommées. Appuie sur le bouton Bombe pendant une mission pour les utiliser à volonté.',
     hint:'le pilote qui fonce sur sa cible, en majuscules' },
@@ -9511,7 +9541,7 @@ function toast(msg, bad) {
   $('#toast').appendChild(d);
   setTimeout(() => { d.style.transition = 'opacity .4s'; d.style.opacity = '0'; setTimeout(() => d.remove(), 420); }, 1600);
 }
-const SCREENS = ['title', 'shop', 'music', 'options', 'help', 'credits', 'pause', 'over', 'clear', 'cheats', 'victory', 'records', 'online'];
+const SCREENS = ['title', 'shop', 'music', 'options', 'help', 'credits', 'pause', 'over', 'clear', 'cheats', 'victory', 'records', 'online', 'flipper-menu'];
 /* Les écrans de menu sont statiques : on garde leur dernière image en mémoire
    au lieu de redessiner tout le décor de jeu à chaque frame. */
 let sceneDirty = true;
@@ -10613,6 +10643,7 @@ function tryCheatCode(raw) {
   } else Audio2.sfx('ui');
   saveGame();
   buildCheats();
+  if (c.id === 'flipper') setTimeout(refreshFlipperButton, 100);
   if (c.type === 'action') runCheatAction(c.id);
   showCheatBanner(c, already);
   const card = document.querySelector(`[data-cheat-card="${c.id}"]`);
@@ -13285,6 +13316,9 @@ function wireButtons() {
       }
       case 'records': G.prevScreen = G.state; G.state = 'records'; buildRecords(); showScreen('records'); break;
       case 'online': G.prevScreen = G.state; G.state = 'online'; netUiRefresh(); showScreen('online'); break;
+      case 'flipper-menu': G.prevScreen = G.state; G.state = 'flipper-menu'; showScreen('flipper-menu'); refreshFlipperButton(); break;
+      case 'flipper-back': gotoReturn(); break;
+      case 'play-flipper': startFlipperGame(); break;
       case 'net-back': gotoReturn(); break;
       case 'net-create': case 'net-join': case 'net-leave': case 'net-go': netUiAct(act); break;
       case 'records-back': gotoReturn(); break;
@@ -32849,8 +32883,176 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
       : add(html));
   };
 
+
+/* ============ MENU FLIPPER + JEU ============ */
+function refreshFlipperButton() {
+  const unlocked = !!(S.cheats && S.cheats.found && S.cheats.found['flipper']);
+  const btn = document.getElementById('btnPlayFlipper');
+  const status = document.getElementById('flipperStatus');
+  if (btn) {
+    btn.disabled = !unlocked;
+    btn.style.opacity = unlocked ? '1' : '.45';
+    btn.style.cursor = unlocked ? 'pointer' : 'not-allowed';
+  }
+  if (status) status.textContent = unlocked ? 'Débloqué · prêt à jouer' : 'Verrouillé · code requis';
+}
+
+let flipperRunning = false;
+let flipperScore = 0;
+let flipperBalls = 3;
+let flipperBall = null;
+
+function startFlipperGame() {
+  const unlocked = !!(S.cheats && S.cheats.found && S.cheats.found['flipper']);
+  if (!unlocked) { alert('Le code CAFAITFLIPPER n\'est pas validé. Va dans le menu Codes.'); return; }
+  flipperRunning = true;
+  flipperScore = 0;
+  flipperBalls = 3;
+  document.getElementById('flipperGameArea').style.display = 'block';
+  document.getElementById('flipScore').textContent = '0';
+  document.getElementById('flipBalls').textContent = '3';
+  initFlipperCanvas();
+}
+
+function initFlipperCanvas() {
+  const canvas = document.getElementById('flipperCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  
+  // Simple pinball: ball, flippers, bumpers
+  let ball = { x: W/2, y: H/2, dx: 5, dy: -6, r: 10 };
+  let flipperL = { x: 140, y: H-60, w: 90, h: 16, angle: -0.3 };
+  let flipperR = { x: W-220, y: H-60, w: 90, h: 16, angle: 0.3 };
+  
+  let bumpers = [
+    {x: W/2, y: 180, r: 22},
+    {x: W/2-100, y: 260, r: 18},
+    {x: W/2+100, y: 260, r: 18},
+    {x: W/2-70, y: 120, r: 16},
+    {x: W/2+70, y: 120, r: 16}
+  ];
+  
+  const keys = {};
+  window.addEventListener('keydown', e => { keys[e.key] = true; if (e.key===' ' || e.key==='ArrowUp') { if (ball.dy > 0 || Math.abs(ball.y - H) > 80) { ball.dy = -12; ball.dx = (Math.random()-0.5)*6; } } });
+  window.addEventListener('keyup', e => { keys[e.key] = false; });
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    flipperL.angle = Math.max(-0.8, Math.min(0.15, (mx - 150)/400));
+    flipperR.angle = Math.max(-0.15, Math.min(0.8, (mx - 650)/400));
+  });
+  
+  function draw() {
+    if (!flipperRunning) return;
+    ctx.fillStyle = '#070e1c';
+    ctx.fillRect(0,0,W,H);
+    // Table glow
+    ctx.save();
+    ctx.shadowColor = '#6ee8ff';
+    ctx.shadowBlur = 30;
+    ctx.strokeStyle = '#1a3a5c';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(W/2, H/2, 280, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+    
+    // Bumpers
+    for (const b of bumpers) {
+      ctx.save();
+      ctx.fillStyle = '#ffd166';
+      ctx.shadowColor = '#ffd166';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('10', b.x, b.y+3);
+      ctx.restore();
+    }
+    
+    // Flippers
+    function drawFlipper(x, y, w, h, ang) {
+      ctx.save();
+      ctx.translate(x, y); ctx.rotate(ang);
+      ctx.fillStyle = '#e6f7ff';
+      ctx.shadowColor = '#6ee8ff'; ctx.shadowBlur = 14;
+      ctx.fillRect(-w/2, -h/2, w, h);
+      ctx.fillStyle = '#63dcff';
+      ctx.fillRect(-w/2+4, -h/2+4, w-8, h-8);
+      ctx.restore();
+    }
+    drawFlipper(flipperL.x, flipperL.y, flipperL.w, flipperL.h, flipperL.angle);
+    drawFlipper(flipperR.x, flipperR.y, flipperR.w, flipperR.h, flipperR.angle);
+    
+    // Ball
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = '#fff';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+    
+    // Update
+    ball.x += ball.dx; ball.y += ball.dy;
+    ball.dy += 0.25; // gravity
+    
+    // Walls
+    if (ball.x - ball.r < 0) { ball.x = ball.r; ball.dx *= -0.9; }
+    if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.dx *= -0.9; }
+    if (ball.y - ball.r < 0) { ball.y = ball.r; ball.dy *= -0.9; }
+    
+    // Flipper collisions (simplified)
+    for (const f of [flipperL, flipperR]) {
+      const fx = f.x + Math.sin(f.angle)*30;
+      const fy = f.y + Math.cos(f.angle)*30;
+      const dist = Math.hypot(ball.x - fx, ball.y - fy);
+      if (dist < ball.r + 18 && ball.dy > 0) {
+        ball.dy = -9 - Math.random()*4;
+        ball.dx = (Math.random()-0.5)*10;
+        flipperScore += 10;
+        document.getElementById('flipScore').textContent = flipperScore;
+      }
+    }
+    
+    // Bumper collisions
+    for (const b of bumpers) {
+      const dist = Math.hypot(ball.x - b.x, ball.y - b.y);
+      if (dist < ball.r + b.r) {
+        const angle = Math.atan2(ball.y - b.y, ball.x - b.x);
+        ball.dx = Math.cos(angle)*7; ball.dy = Math.sin(angle)*7;
+        flipperScore += 50;
+        document.getElementById('flipScore').textContent = flipperScore;
+      }
+    }
+    
+    // Bottom / lose ball
+    if (ball.y + ball.r > H) {
+      flipperBalls--;
+      document.getElementById('flipBalls').textContent = flipperBalls;
+      if (flipperBalls <= 0) { flipperRunning = false; alert('Partie terminée ! Score : ' + flipperScore); document.getElementById('flipperGameArea').style.display = 'none'; return; }
+      ball = { x: W/2, y: H/2, dx: 5, dy: -6, r: 10 };
+    }
+    
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// Also refresh button when cheat state updates
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-act="cheat-validate"]');
+  if (btn) setTimeout(refreshFlipperButton, 200);
+});
+
+
   if (Audio2.ok) Audio2.applyVolumes();
 })();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f21de04da5d145',t:'MTc5Mjc3MjkyNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
