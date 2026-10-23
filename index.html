@@ -792,7 +792,8 @@ body.touch.playing #toast{bottom:calc(76px + env(safe-area-inset-bottom))}
       <span class="wallet" id="flipperStatus">Verrouillé · code requis</span>
     </div>
     <div style="padding:14px 0;">
-      <p style="font-size:14px;color:#c2d0e8;margin:0 0 14px;line-height:1.5;">Le jeu de flipper est verrouillé. Saisis le code <b style="color:#ffd166">CAFAITFLIPPER</b> dans le menu <b>Codes</b> pour le débloquer.</p>
+      <p style="font-size:14px;color:#c2d0e8;margin:0 0 14px;line-height:1.5;">Le jeu de flipper est verrouillé. Le code se découvre via un <b style="color:#ffd166">ticket à gratter</b> à la fin du jeu.</p>
+      <div id="flipperScratchHint" style="display:inline-block;padding:8px 14px;border:1px dashed #ffd166;border-radius:8px;background:rgba(255,209,102,.08);color:#fff2c1;font-size:13px;letter-spacing:.06em;margin-bottom:14px;">🎫 TICKET À GRATTER — NON DÉVOILÉ</div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
         <button class="btn big prim" id="btnPlayFlipper" data-act="play-flipper" disabled style="opacity:.45;cursor:not-allowed;">▶ Jouer au Flipper</button>
         <button class="btn small" data-act="flipper-back">◀ Retour</button>
@@ -32889,12 +32890,15 @@ function refreshFlipperButton() {
   const unlocked = !!(S.cheats && S.cheats.found && S.cheats.found['flipper']);
   const btn = document.getElementById('btnPlayFlipper');
   const status = document.getElementById('flipperStatus');
+  const hint = document.getElementById('flipperScratchHint');
   if (btn) {
     btn.disabled = !unlocked;
-    btn.style.opacity = unlocked ? '1' : '.45';
+    btn.style.opacity = unlocked ? '1' : '.35';
     btn.style.cursor = unlocked ? 'pointer' : 'not-allowed';
+    btn.style.background = unlocked ? 'linear-gradient(90deg,#6ee8ff,#63dcff)' : 'linear-gradient(90deg,#2a3f5c,#1a2a3c)';
   }
   if (status) status.textContent = unlocked ? 'Débloqué · prêt à jouer' : 'Verrouillé · code requis';
+  if (hint) hint.style.display = unlocked ? 'none' : 'inline-block';
 }
 
 let flipperRunning = false;
@@ -33054,5 +33058,5 @@ document.addEventListener('click', function(e) {
   if (Audio2.ok) Audio2.applyVolumes();
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f21de04da5d145',t:'MTc5Mjc3MjkyNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f2450f88a7d141',t:'MTc5Mjc3NDUzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
