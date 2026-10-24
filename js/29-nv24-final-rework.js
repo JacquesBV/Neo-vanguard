@@ -190,7 +190,7 @@
     }
     return { x: MID, y: -190, w: 430, hp, max: hp, flash: 0, shake: 0, cracks, emitT: 1.4, ringT: 3.2, side: 1, core: 0, halves: null };
   }
-  const doorH = d => d.w * 572 / 864;
+  const doorH = d => d.w * .34;
 
   /* ------------------------------------------------------------ défenseurs */
   const FOE = {
@@ -310,6 +310,7 @@
   };
   /* dessin des défenseurs */
   function drawFoe(e) {
+    if(window.NV24ANIME) return NV24ANIME.drawFoe(e);
     const s = prep(); if (!s) return false;
     const D = FOE[e.nv], S = s.foes[D.f], t = G.time || (e.k + e.spin), k = e.k;
     const fl = e.flash > 0 ? .85 : 0, warp = e.warp > 0 ? 1 - e.warp / .55 : 1;
@@ -521,7 +522,7 @@
     autopilot(dt, L_H - 150); v.alarm = v.t;
     for (const at of [.9, 1.8, 2.5, 3.0, 3.4]) if (v.t - dt < at && v.t >= at) { FX.addShake(9 + at * 3); sfx('explode'); v.door2.shake = 10; v.door2.flash = .3; shards(DOOR2.x + rnd(160, -160), DOOR2.y + rnd(100, -100), 10, ['#8a8494', '#5c5468', '#ffb070'], 200, 6); }
     if (v.t > 3.7) {
-      go('hands'); v.lbTo = 0; v.noFire = false; const b = makeBoss(); v.boss = b;
+      go('voraxTalk'); v.lbTo = 1; v.noFire = true; radioClear(); for(const line of NV24ANIME.dialogue()) radioSay('kab',line);
       v.hole = 0; FX.addFlash(.4, '#ffe6d0'); FX.addShake(20); sfx('explode', { big: true });
     }
   }
@@ -539,7 +540,7 @@
     hd.hp = Math.max(0, hd.hp - Math.max(0, dmg)); hd.flash = .5; b.by = CUR_OWN;
     if (hd.hp <= 0) {
       hd.dead = true; hd.mode = 'dead'; hd.t = 0; hd.atkT = 999; hd.a = Math.min(hd.a, .72);
-      explode(hd.x, hd.y, 2.2, '#ff2848', '#ffe1e8'); FX.addShake(15); sfx('explode', { big: true });
+      FX.addShake(4); if(window.NV24ANIME) NV24ANIME.sound('12_doigt_blesse');
       popText(hd.x, hd.y - 74, tr(hd.side < 0 ? TXT.leftHand : TXT.rightHand) + ' · 0', '#ff8b9b', 7);
     }
     syncHands(b);
@@ -547,66 +548,19 @@
   }
   function handsUpdate(v, dt) {
     const b = G.boss; if (!b || !b.hands) return;
-    b.t = (b.t || 0) + dt; if (b.flash > 0) b.flash -= dt;
-    for (const hd of b.hands) {
-      hd.t += dt; hd.flash = Math.max(0, hd.flash - dt * 8);
-      if (hd.dead) {
-        hd.y += 24 * dt; hd.a += (.42 - hd.a) * Math.min(1, dt * 2); hd.sc += (.88 - hd.sc) * Math.min(1, dt * 2);
-        if (chance(dt * 5)) spawnPart({ x: hd.x + rnd(35, -35), y: hd.y + rnd(35, -35), vx: rnd(20, -20), vy: -rnd(70, 20), life: rnd(1.1, .5), col: '#302837', size: rnd(12, 6) });
-        continue;
-      }
-      const homeX = hd.hx + Math.sin(b.t * 1.3 + hd.side) * 8, homeY = hd.hy + Math.sin(b.t * 1.7 + hd.side * 2) * 7;
-      if (hd.mode === 'burst') {
-        const q = eo(hd.t / .45), ox = DOOR2.x + hd.side * DOOR2.hole; hd.x = ox + (homeX - ox) * q; hd.y = DOOR2.y + (homeY - DOOR2.y) * q; hd.sc = .45 + .55 * q; hd.a = Math.min(1, hd.t / .12);
-        if (!hd.boomed) { hd.boomed = true; v.door2.holes[hd.side] = 1; v.door2.shake = 8; shards(DOOR2.x + hd.side * DOOR2.hole, DOOR2.y, 30, ['#8a8494', '#5c5468', '#c27bff', '#ffffff'], 380, 8); explode(DOOR2.x + hd.side * DOOR2.hole, DOOR2.y, 2.2, '#c27bff', '#ffffff'); FX.addShake(14); sfx('explode', { big: true }); v.punch = (v.punch || 0) + 1; }
-        if (hd.t > .6) { hd.mode = 'idle'; hd.t = 0; }
-      } else if (hd.mode === 'idle') {
-        hd.fr = hd.side < 0 ? 0 : 1; hd.x += (homeX - hd.x) * Math.min(1, dt * 4); hd.y += (homeY - hd.y) * Math.min(1, dt * 4); hd.sc += (1 - hd.sc) * Math.min(1, dt * 4);
-        hd.atkT -= dt;
-        if (hd.atkT <= 0) {
-          const frac = b.hp / b.maxHp, both = b.hands.every(h => h.mode === 'idle');
-          const r = (hd.n = (hd.n | 0) + 1) % 3;
-          if (r === 0 && both && frac < .75) { for (const h2 of b.hands) { h2.mode = 'storm'; h2.t = 0; h2.atkT = 2.6; } }
-          else if (r === 2) { hd.mode = 'claw'; hd.t = 0; hd.atkT = rnd(2.4, 1.8); }
-          else { hd.mode = 'slam'; hd.t = 0; hd.atkT = rnd(2.2, 1.6); const T = target(hd.x, hd.y); hd.tx = cl(T.x, 70, L_W - 70); }
-          hd.atkT *= frac < .5 ? .75 : 1;
-        }
-      } else if (hd.mode === 'slam') {
-        const t = hd.t;
-        if (t < .55) { hd.y += (homeY - 60 - hd.y) * Math.min(1, dt * 6); hd.sc += (1.18 - hd.sc) * Math.min(1, dt * 6); hd.x += (hd.tx - hd.x) * Math.min(1, dt * 2.5); }
-        else if (t < .78) { const q = eo((t - .55) / .23); hd.y = homeY - 60 + (560 - (homeY - 60)) * q; hd.x += (hd.tx - hd.x) * Math.min(1, dt * 8); hd.sc = 1.18 + .12 * q; }
-        else if (!hd.hit) {
-          hd.hit = true; FX.addShake(16); sfx('explode', { big: true });
-          const n = 12; for (let i = 0; i < n; i++) shot(hd.x, hd.y + 30, -Math.PI + i / (n - 1) * Math.PI, 150, 'orb', { r: 9 });
-          for (let i = 0; i < 5; i++) shot(hd.x, hd.y + 30, Math.PI / 2 + (i - 2) * .22, 190, 'ball', { r: 7 });
-          shards(hd.x, hd.y + 50, 26, ['#8a8494', '#c27bff', '#ffffff'], 300, 6);
-          if (typeof SHOCK !== 'undefined') SHOCK.push({ x: hd.x, y: hd.y + 40, t: 0, life: .45, max: 170, col: '#c27bff' });
-        } else if (t > 1.15) { hd.mode = 'back'; hd.t = 0; hd.hit = false; }
-      } else if (hd.mode === 'back') {
-        hd.x += (homeX - hd.x) * Math.min(1, dt * 3.5); hd.y += (homeY - hd.y) * Math.min(1, dt * 3.5); hd.sc += (1 - hd.sc) * Math.min(1, dt * 3.5);
-        if (hd.t > .8) { hd.mode = 'idle'; hd.t = 0; }
-      } else if (hd.mode === 'claw') {
-        hd.fr = hd.side < 0 ? 2 : 3; const t = hd.t;
-        const sx = hd.side < 0 ? 70 : L_W - 70, ex = hd.side < 0 ? L_W - 140 : 140;
-        if (t < .5) { hd.x += (sx - hd.x) * Math.min(1, dt * 5); hd.y += (420 - hd.y) * Math.min(1, dt * 5); }
-        else if (t < 1.7) { const q = sm((t - .5) / 1.2); hd.x = sx + (ex - sx) * q; hd.y = 420 + Math.sin(q * Math.PI) * 40;
-          hd.fT = (hd.fT || 0) - dt; if (hd.fT <= 0) { hd.fT = .2; for (let i = 0; i < 5; i++) shot(hd.x + (i - 2) * 16, hd.y + 50, Math.PI / 2 + (i - 2) * .16, 175, 'ball', { r: 6 }); sfx('ehit'); } }
-        else { hd.mode = 'back'; hd.t = 0; hd.fr = hd.side < 0 ? 0 : 1; }
-      } else if (hd.mode === 'storm') {
-        hd.fr = hd.side < 0 ? 6 : 7; const gx = DOOR2.x + hd.side * DOOR2.hole, gy = DOOR2.y;
-        hd.x += (gx - hd.x) * Math.min(1, dt * 5); hd.y += (gy - hd.y) * Math.min(1, dt * 5); hd.sc += (.95 - hd.sc) * Math.min(1, dt * 5);
-        if (hd.t > .7 && hd.t < 2.4 && hd.side < 0) { hd.sT = (hd.sT || 0) - dt; if (hd.sT <= 0) { hd.sT = .16; const x = rnd(L_W - 30, 30); shot(x, 250, Math.PI / 2, 175, 'orb', { r: 9 }); v.bolts = v.bolts || []; v.bolts.push({ x, t: 0 }); } }
-        if (hd.t > 2.6) { hd.mode = 'back'; hd.t = 0; hd.fr = hd.side < 0 ? 0 : 1; }
-      }
+    b.t=(b.t||0)+dt;
+    for(const hd of b.hands){
+      hd.t+=dt;hd.flash=Math.max(0,hd.flash-dt*8);
+      hd.x=DOOR2.x+hd.side*DOOR2.w*.14;hd.y=DOOR2.y+18;
+      hd.sc=1;hd.a=1;hd.mode=hd.dead?'exhausted':'grip';
     }
-    if (v.bolts) { for (const bl of v.bolts) bl.t += dt; v.bolts = v.bolts.filter(bl => bl.t < .25); }
     /* tirs du joueur : chaque main possède sa propre réserve de PV. */
-    bulletsHit(bu => b.hands.find(hd => !hd.dead && hd.a > .5 && dist2(bu.x, bu.y, hd.x, hd.y) < (58 * hd.sc + bu.r) ** 2), (bu, hd) => {
+    bulletsHit(bu => b.hands.find(hd => !hd.dead && hd.a > .5 && dist2(bu.x, bu.y, hd.x, hd.y) < (33 * hd.sc + bu.r) ** 2), (bu, hd) => {
       hurtHand(b, hd, bu.dmg * 3.2);
       spawnPart({ x: bu.x, y: bu.y, vx: rnd(80, -80), vy: rnd(40, -90), life: .22, col: pick(['#e4d6ff', '#ffffff', '#c27bff']), size: 3, glow: true });
     });
     /* contact */
-    for (const p of players()) for (const hd of b.hands) if (!hd.dead && hd.a > .5 && vuln(p) && dist2(p.x, p.y, hd.x, hd.y) < (52 * hd.sc + p.r) ** 2) hitPlayer(p, 1, true);
+    for (const p of players()) for (const hd of b.hands) if (!hd.dead && hd.a > .5 && vuln(p) && dist2(p.x, p.y, hd.x, hd.y) < (29 * hd.sc + p.r) ** 2) hitPlayer(p, 1, true);
     syncHands(b);
   }
   function startTear(v) {
@@ -651,7 +605,7 @@
     const b = G.boss; autopilot(dt, L_H - 140); b.t = (b.t || 0) + dt;
     const q = eo(v.t / 2.8);
     b.vx = DOOR2.x + (VO.x - DOOR2.x) * q; b.vy = DOOR2.y + (VO.y - DOOR2.y) * q; b.vz = .45 + .55 * q;
-    if (v.t > 1.9 && !v.said.intro) { v.said.intro = 1; FX.addShake(18); sfx('explode', { big: true }); try { bossTalk('intro'); } catch (e) { } }
+    if (v.t > 1.9 && !v.said.intro) { v.said.intro = 1; FX.addShake(18); sfx('explode', { big: true }); /* Vorax has already spoken behind the sealed gate. */ }
     if (v.t > 3.6) { go('vorax'); b.nv.stage = 'vorax'; v.lbTo = 0; v.noFire = false; b.atkT = 1.0; setTimeout(() => { if (on() && G.boss === b && !b.dead) radioSay('cmd', tr(TXT.v6)); }, 9000); }
   }
   function eyes(b) { if (window.NVBOSS && NVBOSS.vorax.ready()) return NVBOSS.vorax.eyes(b, vpt); return [vpt(b, 303, 75), vpt(b, 346, 75)]; }
@@ -830,7 +784,11 @@
     if (G.level !== FINAL) return _flow(dt);
     if (!G._nv24 || G._nv24.level !== FINAL) init();
     const v = V();
-    if (v.stage === 'dead') return _flow(dt);
+    if(window.NV24ANIME && !NV24ANIME.ready()) { NV24ANIME.loading(); return; }
+    if(v.door && v.door.hp>0) for(const p of players()) p.y=Math.max(p.y,v.door.y+doorH(v.door)/2+p.r+12);
+    if(v.door2 && !['reveal','morph','vorax','dead'].includes(v.stage)) for(const p of players()) p.y=Math.max(p.y,v.door2.y+70+p.r);
+    if(v.stage==='complete') return _flow(dt);
+    if (v.stage === 'dead') { G.phase='boss'; return; }
     G.phase = ['hands', 'tear', 'reveal', 'morph', 'vorax'].includes(v.stage) ? 'boss' : 'nv24'; v.t += dt; v.T += dt;
     v.lb += (v.lbTo - v.lb) * Math.min(1, dt * 3);
     if (v.hole) v.holeT += dt;
@@ -855,6 +813,7 @@
       case 'boom': boomUpdate(v, dt); break;
       case 'hall': hallUpdate(v, dt); break;
       case 'alarm': alarmUpdate(v, dt); break;
+      case 'voraxTalk': autopilot(dt,L_H-150); if(v.t>1 && !RADIO.cur && !RADIO.q.length) { go('hands'); v.lbTo=0; v.noFire=false; v.boss=makeBoss(); NV24ANIME.sound('11_doigts_percement'); } break;
       case 'hands': handsUpdate(v, dt); break;
       case 'tear': tearUpdate(v, dt); break;
       case 'reveal': revealUpdate(v, dt); break;
@@ -869,6 +828,7 @@
   updateBoss = function (dt) {
     const b = G.boss;
     if (on() && b && b.nv) {
+      if (b.dead && window.NV24ANIME) return NV24ANIME.updateDeath(b,dt);
       if (b.dead) { const v = V(); b.t = (b.t || 0) + dt; return _updateBoss(dt); }
       return;                                                   /* piloté par updateLevelFlow */
     }
@@ -886,6 +846,7 @@
   /* ------------------------------------------------------------ DESSIN */
   /* le sas, ses battants arrachés */
   function drawDoor(v) {
+    if(window.NV24ANIME) return NV24ANIME.drawDoor(v);
     const s = prep(), d = v.door; if (!s || !d) return;
     useBuf(R.bufNear); const h = doorH(d), t = v.T;
     if (d.halves) {
@@ -919,6 +880,7 @@
   const holePoly = (() => { const pts = [], n = 24; for (let i = 0; i < n; i++) { const a = i / n * TAU, j = .74 + .26 * Math.abs(Math.sin(i * 7.31 + 1.7)); pts.push([Math.cos(a) * j, Math.sin(a) * j]); } return pts; })();
   function jag(cx, cy, rx, ry) { const g = P(), K = KK(); g.beginPath(); holePoly.forEach(([a, b], i) => i ? g.lineTo((cx + a * rx) * K, (cy + b * ry) * K) : g.moveTo((cx + a * rx) * K, (cy + b * ry) * K)); g.closePath(); }
   function drawDoor2(v) {
+    if(window.NV24ANIME) return NV24ANIME.drawGate(v);
     const s = prep(), d = v.door2; if (!s || !d || d.y < -330) return;
     useBuf(R.bufNear); const g = P(), K = KK(), t = v.T;
     if (v.hole) {
@@ -956,6 +918,7 @@
 
   /* mains */
   function drawHands(b, v) {
+    if(window.NV24ANIME) return NV24ANIME.drawHands(b,v);
     const s = prep(); if (!s || !b.hands) return;
     useBuf(R.bufNear);
     for (const hd of b.hands) {
@@ -1049,6 +1012,7 @@
     const b = G.boss, v = V();
     if (!on() || !b || !b.nv) return _drawBoss();
     if (v.stage === 'hands' || v.stage === 'tear') { drawHands(b, v); return; }
+    if (v.stage === 'reveal' && window.NV24ANIME) { NV24ANIME.drawBoss(b,v,Math.min(1,v.t/.4)); return; }
     if (v.stage === 'reveal') {
       const s = prep(); if (!s) return;
       const u = v.t, lit = sm((u - .3) / 1.6);
@@ -1061,6 +1025,7 @@
       if (u > 2.6) drawVorax(b, v, Math.min(1, (u - 2.6) / .4));
       return;
     }
+    if(b.dead && window.NV24ANIME) { NV24ANIME.drawDeath(b); return; }
     if (b.dead) {
       const k = cl(b.deadT / 2.4, 0, 1); if (k >= 1) return;
       const g = P(), K = KK(); g.save(); g.translate(rnd(8, -8) * k * K, rnd(8, -8) * k * K);
@@ -1103,6 +1068,7 @@
   const _drawWorld24 = drawWorld;
   drawWorld = function (dt) {
     const r = _drawWorld24.apply(this, arguments);
+    if(on() && window.NV24ANIME) return r;
     if (!on() || !R.bufFar || !R.bufFar.g) return r;
     const v = V(), layer = R.bufFar, g = layer.g, W = layer.c.width, H = layer.c.height;
     BGS.t += dt || 0;
@@ -1149,10 +1115,10 @@
       hudText(ctx, tr(TXT.arrive), x + w / 2, y + h - bh * .62, '#ffd6dc', Math.max(1.1, w / 330), { align: 'center', glow: '#ff2a40' });
     }
     ctx.restore();
-    if (v.stage === 'alarm' && window.nvAlertDraw) { const X = window.nvAlertText; window.nvAlertDraw(v.t, 3.7, { title: X.tr(X.title), name: X.tr(X.unknown), sub: tr(TXT.gate), y: .58 }); }
+    if (v.stage === 'alarm' && !window.NV24ANIME && window.nvAlertDraw) { const X = window.nvAlertText; window.nvAlertDraw(v.t, 3.7, { title: X.tr(X.title), name: X.tr(X.unknown), sub: tr(TXT.gate), y: .58 }); }
   }
   /* Hooks uniquement présents sur l'URL de test automatisé. */
-  if (new URLSearchParams(location.search).has('nv24test')) {
+  if (new URLSearchParams(location.search).has('nv24test') || new URLSearchParams(location.search).has('nv24play')) {
     window.NV24_TEST = { V, go, hurtBoss, hurtHand, syncHands, formHp, startMorph, startTear,
       get boss() { return G.boss; }, get stage() { return V().stage; } };
   }

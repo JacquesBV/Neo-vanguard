@@ -89,3 +89,11 @@ Ils ont été conservés fidèlement ; leur suppression (sans effet sur le jeu) 
 
 Chaque fonctionnalité correspond à un module nommé (ex. `44-nv24-final-rework.js`, `34-nv-fanboy-authentic.js`) : 
 une IA peut éditer un seul petit fichier au lieu d'un monolithe de 33 000 lignes. Test local : ouvrir `index.html` via un serveur HTTP, puis `git add`/`commit`/`push`.
+
+## Ajout : secteur 24 ANIME (branche modules-secteur24)
+
+Fusion de la structure modulaire avec le pack S24_integration :
+- `js/29-nv24-final-rework.js` contient désormais le contrôleur ANIME (crochets `NV24ANIME`, dialogue VORAX, deux jauges de mains, `?nv24play`).
+- `index.html` : les deux balises de fin chargent `assets/level24-anime/vertical-loop.js` puis `level24-v2/level24-anime.js` (l'ancien `level24-v2.js` n'est plus référencé).
+- Nouveaux dossiers `assets/level24-anime/` (52 WebP pc/mobile) et `assets/sector24/audio/` (26 OGG + 26 WAV), identiques bit-à-bit à la branche `secteur24-anime`.
+- Test A/B navigateur contre la version monolithe S24 : états de jeu, textures, canvas et démarrage normal identiques, aucune erreur JavaScript.
