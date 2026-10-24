@@ -4,7 +4,7 @@
 const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const mobile=matchMedia('(pointer:coarse)').matches || innerWidth<760;
 const dir='assets/level24-anime/'+(mobile?'mobile/':'pc/');
-const files={boss:'boss/vorax_postures.webp',damage:'boss/vorax_degats.webp',hands:'boss/mains_articulees.webp',foes:'ennemis/escadrille.webp',defenses:'ennemis/defenses_base.webp',gate:'sas/sas_vorax_sequence.webp',base:'sas/base_toit_devanture.webp',door:'references/sas_exterieur_intact.webp',cracked:'references/sas_exterieur_fissure.webp',open:'references/sas_exterieur_detruit.webp',space:'decor/espace_profond.webp',blue:'decor/espace_bleu.webp',red:'decor/espace_rouge.webp',ruins:'decor/ruines_parallaxe.webp',earth:'decor/terre.webp',halo:'decor/halo_terre.webp',corridor:'decor/couloir_intact.webp',debris:'decor/debris_12.webp',alert:'effets/alerte_sequence.webp',explosion:'effets/explosion_finale.webp'};
+const files={boss:'boss/vorax_postures.webp',damage:'boss/vorax_degats.webp',hands:'boss/mains_articulees.webp',foes:'ennemis/escadrille.webp',defenses:'ennemis/defenses_base.webp',gate:'sas/sas_vorax_sequence.webp',base:'sas/base_toit_devanture.webp',door:'references/sas_exterieur_intact.webp',cracked:'references/sas_exterieur_fissure.webp',open:'references/sas_exterieur_detruit.webp',space:'decor/espace_profond.webp',blue:'decor/espace_bleu.webp',red:'decor/espace_rouge.webp',earth:'decor/terre.webp',halo:'decor/halo_terre.webp',corridor:'decor/couloir_intact.webp',debris:'decor/debris_12.webp',alert:'effets/alerte_sequence.webp',explosion:'effets/explosion_finale.webp'};
 const im={},errors=[],audio=new Map();let pending=Object.keys(files).length;
 for(const [k,f] of Object.entries(files)){const i=new Image();im[k]=i;i.decoding='async';i.onload=()=>{pending--;};i.onerror=()=>{pending--;errors.push(f);console.error('[Secteur 24] Texture manquante : '+dir+f);};i.src=dir+f;}
 const on=()=>G.level===24&&G._nv24;
@@ -42,6 +42,20 @@ function drawHands(b,v){if(!b.hands)return;near(g=>{for(const h of b.hands){
  if(v.stage==='hands')bar(g,h.x,h.y-62,110,h.hp/h.maxHp,label+(h.dead?' · 0':''));
  // Fingers are painted in the gate during endurance; detached hands only during the pull.
  if(v.stage==='tear'&&v.t<2)frame(g,'hands',(h.side<0?0:4)+2,4,2,h.x,h.y,100,100,h.a);
+ // Repère visuel de dégât : la main touchée flashe (blanc chaud) et clipse.
+ if(h.flash>0&&h.a>0){
+  const fl=cl(h.flash*2.2),R=78;
+  g.save();g.globalCompositeOperation='lighter';
+  const gr=g.createRadialGradient(h.x,h.y,0,h.x,h.y,R);
+  gr.addColorStop(0,'rgba(255,255,255,'+(0.9*fl)+')');
+  gr.addColorStop(.45,'rgba(255,150,170,'+(0.55*fl)+')');
+  gr.addColorStop(1,'rgba(255,90,120,0)');
+  g.fillStyle=gr;g.fillRect(h.x-R,h.y-R,R*2,R*2);g.restore();
+  g.save();g.globalAlpha=cl(fl)*.8;g.strokeStyle='#fff4f6';g.lineWidth=2;
+  for(let i=0;i<5;i++){const a=i/5*TAU+h.side,gx=h.x+Math.cos(a)*R*.7,gy=h.y+Math.sin(a)*R*.7;
+   g.beginPath();g.moveTo(gx,gy);g.lineTo(gx+Math.cos(a)*16,gy+Math.sin(a)*16);g.stroke();}
+  g.restore();
+ }
  }});}
 const foeRows={lance:['foes',0],manta:['foes',1],dard:['foes',2],orbe:['foes',3],tourelle:['defenses',0],tambour:['defenses',1],griffe:['defenses',2],gatling:['defenses',3]};
 function drawFoe(e){const a=foeRows[e.nv];if(!a)return false;if(pending||errors.length)return false;
@@ -65,18 +79,21 @@ NVBOSS.vorax.draw=drawBoss;
 NVBOSS.vorax.eyes=b=>[socket(b,0),socket(b,1)];
 NVBOSS.vorax.hands=b=>[2,3].map(n=>{const p=socket(b,n),s=(500/629)*(b.vz||1);return [(p[0]-b.vx)/s+330.5,(p[1]-b.vy)/s+319.5];});
 NVBOSS.vorax.head=b=>{const p=socket(b,0),s=(500/629)*(b.vz||1);return [(p[0]-b.vx)/s+330.5,(p[1]-b.vy)/s+319.5];};
-function updateDeath(b,dt){if(!b.animeDeath){b.animeDeath=true;b.deadT=0;sound('23_vorax_explosion_FINALE');}
+function updateDeath(b,dt){if(!b.animeDeath){b.animeDeath=true;b.deadT=0;sound('23_vorax_explosion_FINALE');
+ // L'explosion commence tout de suite : secousse + flash, VORAX ne reste pas figé.
+ FX.addFlash(.7,'#ffd9c8');FX.addShake(22);}
  b.deadT+=dt;b.t+=dt;G.phase='boss';if(G.harvest)G.harvest.t=0;
- if(b.deadT>=2.6&&!b.animeBang){b.animeBang=true;FX.addFlash(1,'#fff');FX.addShake(35);}
- if(b.deadT>2.6&&b.deadT<7)FX.addShake(4);
- if(b.deadT>=12){G.boss=null;G.harvest=null;G._nv24.stage='complete';levelComplete();}}
-function drawDeath(b){near(g=>{const t=b.deadT||0;const f=t<2.6?Math.min(3,Math.floor(t/2.6*4)):Math.min(15,4+Math.floor((t-2.6)/9.4*12));if(t<2.6)frame(g,'damage',8+Math.min(3,Math.floor(t*2)),4,3,b.vx,b.vy,430,430);frame(g,'explosion',f,4,4,b.vx,b.vy,650,490);});}
+ if(b.deadT>=2.6&&!b.animeBang){b.animeBang=true;FX.addFlash(1,'#fff');FX.addShake(38);}
+ if(b.deadT>2.6&&b.deadT<6)FX.addShake(5);
+ if(b.deadT>=8){G.boss=null;G.harvest=null;G._nv24.stage='complete';levelComplete();}}
+function drawDeath(b){near(g=>{const t=b.deadT||0;const f=t<2.6?Math.min(3,Math.floor(t/2.6*4)):Math.min(15,4+Math.floor((t-2.6)/5.4*12));if(t<2.6)frame(g,'damage',8+Math.min(3,Math.floor(t*2)),4,3,b.vx,b.vy,430,430);frame(g,'explosion',f,4,4,b.vx,b.vy,650,490);});}
 const debrisMasks=[];
 function debrisAt(i,t){return {w:L_W*(.055+(i%3)*.015),x:L_W*(.08+((i*37)%85)/100),y:(i*L_H/7+t*(15+i)*L_H/(R.bufFar?.c.height||L_H))%(L_H+100*L_H/(R.bufFar?.c.height||L_H))-50*L_H/(R.bufFar?.c.height||L_H)};}
 function debrisContact(v){
  if(v.stage!=='approach'||!im.debris.naturalWidth)return;
  if(!debrisMasks.length){const a=im.debris;for(let i=0;i<12;i++){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(a,i%4*a.naturalWidth/4,Math.floor(i/4)*a.naturalHeight/3,a.naturalWidth/4,a.naturalHeight/3,0,0,64,64);debrisMasks.push(g.getImageData(0,0,64,64).data);}}
- for(const p of G.players||[G.player]){if(!p?.alive||p.inv>0)continue;for(let i=0;i<12;i++){const d=debrisAt(i,v.T),x=Math.floor((p.x-d.x)/d.w*64+32),y=Math.floor((p.y-d.y)/(d.w*(R.bufFar?.c.width||L_W)/L_W*L_H/(R.bufFar?.c.height||L_H))*64+32);if(x>=0&&x<64&&y>=0&&y<64&&debrisMasks[i][(y*64+x)*4+3]>180){hitPlayer(p,1,true);break;}}}
+ const t=v.sy||v.T;
+ for(const p of G.players||[G.player]){if(!p?.alive||p.inv>0)continue;for(let i=0;i<12;i++){const d=debrisAt(i,t),x=Math.floor((p.x-d.x)/d.w*64+32),y=Math.floor((p.y-d.y)/(d.w*(R.bufFar?.c.width||L_W)/L_W*L_H/(R.bufFar?.c.height||L_H))*64+32);if(x>=0&&x<64&&y>=0&&y<64&&debrisMasks[i][(y*64+x)*4+3]>180){hitPlayer(p,1,true);break;}}}
 }
 let lastState,stage,lastAtk;
 const priorFlow=updateLevelFlow;
@@ -87,11 +104,11 @@ updateLevelFlow=function(dt){const r=priorFlow(dt);if(!on())return r;const v=G._
 const priorWorld=drawWorld;
 drawWorld=function(dt){const result=priorWorld.apply(this,arguments);if(!on())return result;const v=G._nv24;if(!R.bufFar)return;const g=R.bufFar.g,W=R.bufFar.c.width,H=R.bufFar.c.height;
  g.save();g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.fillStyle='#02040c';g.fillRect(0,0,W,H);
- const space=['approach','arrive','talk','sas','boom'].includes(v.stage),t=v.T;
+ const space=['approach','arrive','talk','sas','boom'].includes(v.stage),t=v.sy||v.T;
  if(space){nv24VerticalLoop(g,im.space,t*7,W,H);g.globalAlpha=.28;nv24VerticalLoop(g,im.blue,t*12,W,H);g.globalAlpha=.12;nv24VerticalLoop(g,im.red,t*18,W,H);g.globalAlpha=1;
  // One world position, never wrapped. Both Earth layers use the exact same rectangle.
  const ew=W*1.35,ex=-W*.38,ey=-ew+t*H/34;layer(g,'halo',ex,ey,ew,ew);layer(g,'earth',ex,ey,ew,ew);
- g.globalAlpha=.32;nv24VerticalLoop(g,im.ruins,t*25,W,H);g.globalAlpha=1;
+ // Les débris flottent à la même vitesse que le fond : plus de traits verticaux sur les bords.
  for(let i=0;i<12;i++){const d=debrisAt(i,t),w=d.w*W/L_W;frame(g,'debris',i,4,3,d.x*W/L_W,d.y*H/L_H,w,w,.95);}
  }else{nv24VerticalLoop(g,im.corridor,(498-v.off)*2*H/L_H,W,H);}
  g.fillStyle='#02040c30';g.fillRect(0,0,W,H);g.restore();
