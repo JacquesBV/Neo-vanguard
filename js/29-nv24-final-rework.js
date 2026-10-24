@@ -172,7 +172,8 @@
   function init() {
     G._nv24 = {
       level: FINAL, stage: 'approach', t: 0, T: 0, off: 498, offV: 0, nearV: 0, lb: 0, lbTo: 0, noFire: false,
-      door: null, waveT: 0, waveI: 0, hole: 0, holeT: 0, alarm: 0, said: {}, flashRed: 0
+      door: null, waveT: 0, waveI: 0, hole: 0, holeT: 0, alarm: 0, said: {}, flashRed: 0,
+      sy: 0, cruise: 1
     };
     G.props && (G.props.length = 0);
   }
@@ -181,7 +182,7 @@
 
   /* --------------------------------------------------------- le premier sas */
   function makeDoor() {
-    const hp = Math.round(115 * S_().hp * (G.twoP && G.players && G.players.length > 1 ? 1.5 : 1));
+    const hp = Math.round(85 * S_().hp * (G.twoP && G.players && G.players.length > 1 ? 1.5 : 1));
     const cracks = [];
     for (let i = 0; i < 9; i++) {
       let x = rnd(150, -150), y = rnd(90, -90), a = rnd(TAU); const pts = [[x, y]];
@@ -193,22 +194,23 @@
   const doorH = d => d.w * .34;
 
   /* ------------------------------------------------------------ défenseurs */
+  /* PV revus à la baisse : le secteur 24 était trop résistant (demande joueur). */
   const FOE = {
-    lance:   { f: 0, w: 70,  hp: 4,  r: 22, sc: 160, cr: [1, 4], kind: 'drone' },
-    orbe:    { f: 1, w: 74,  hp: 7,  r: 28, sc: 260, cr: [2, 6], kind: 'stinger' },
-    griffe:  { f: 2, w: 92,  hp: 9, r: 32, sc: 300, cr: [2, 6], kind: 'stinger' },
-    tourelle:{ f: 3, w: 84,  hp: 11, r: 32, sc: 340, cr: [3, 7], kind: 'turret' },
-    manta:   { f: 4, w: 138, hp: 40, r: 54, sc: 1400, cr: [12, 22], kind: 'carrier', flip: true },
-    tambour: { f: 5, w: 98,  hp: 16, r: 36, sc: 520, cr: [4, 9], kind: 'shielder', flip: true },
-    dard:    { f: 6, w: 62,  hp: 3,  r: 18, sc: 140, cr: [1, 3], kind: 'drone', flip: true },
-    gatling: { f: 7, w: 92,  hp: 13, r: 34, sc: 420, cr: [3, 8], kind: 'turret' }
+    lance:   { f: 0, w: 70,  hp: 3,  r: 22, sc: 160, cr: [1, 4], kind: 'drone' },
+    orbe:    { f: 1, w: 74,  hp: 5,  r: 28, sc: 260, cr: [2, 6], kind: 'stinger' },
+    griffe:  { f: 2, w: 92,  hp: 6,  r: 32, sc: 300, cr: [2, 6], kind: 'stinger' },
+    tourelle:{ f: 3, w: 84,  hp: 7,  r: 32, sc: 340, cr: [3, 7], kind: 'turret' },
+    manta:   { f: 4, w: 138, hp: 26, r: 54, sc: 1400, cr: [12, 22], kind: 'carrier', flip: true },
+    tambour: { f: 5, w: 98,  hp: 10, r: 36, sc: 520, cr: [4, 9], kind: 'shielder', flip: true },
+    dard:    { f: 6, w: 62,  hp: 2,  r: 18, sc: 140, cr: [1, 3], kind: 'drone', flip: true },
+    gatling: { f: 7, w: 92,  hp: 8,  r: 34, sc: 420, cr: [3, 8], kind: 'turret' }
   };
   function foe(type, x, y, o = {}) {
     const D = FOE[type], s = S_();
     const e = spawnEnemy(D.kind, x, y, { ty: o.ty || 200 });
     Object.assign(e, { nv: type, mv: 'nv24', fire: null, aim: null, spawner: null, split: 0, guard: false, guardOn: false, ring: 0, layerCd: 0, elite: false, mini: false });
     e.r = D.r; e.hp = e.maxHp = Math.max(1, Math.round(D.hp * s.hp * (o.hp || 1) * (G.twoP && G.players && G.players.length > 1 ? 1.4 : 1)));
-    e.sc = D.sc; e.cr = D.cr; e.st = 0; e.k = 0; e.cd = o.cd !== undefined ? o.cd : rnd(1.8, .8); e.warp = .55; e.side = o.side || 0;
+    e.sc = D.sc; e.cr = D.cr; e.st = 0; e.k = 0; e.cd = o.cd !== undefined ? o.cd : rnd(1.8, .8); e.warp = 0; e.side = o.side || 0;
     e.ty = o.ty || 200; e.spinUp = 0; e.fireOn = 0; e.burst = 0; e.bT = 0; e.lockX = x; e.lockY = L_H; e.x0 = x; e.lx = x; e.bank = 0; e.aimA = Math.PI / 2; e.recoil = 0; e.ch = 0; e.spin = rnd(TAU); e.dly = o.dly || 0;
     return e;
   }
@@ -232,16 +234,21 @@
         e.spin += dt * (1.1 + e.ch * 7);
         break; }
       case 'griffe': {
-        e.stepT = (e.stepT === undefined ? .4 : e.stepT) - dt;
-        if (e.y < e.ty && !e.walk) { e.y += 110 * dt; }
+        /* poursuite continue par vélocité : plus aucun palier ni saut de position */
+        e.vx = e.vx || 0; if (!e.vy) e.vy = 120;
+        if (e.y < e.ty) { e.y += 110 * dt; e.vx = 0; }
         else {
-          if (!e.walk || e.stepT <= 0) {
-            e.walk = { x0: e.x, y0: e.y, x1: cl(T.x + rnd(90, -90), 50, L_W - 50), y1: Math.min(e.y + rnd(70, 30), L_H - 260), t: 0 };
-            e.stepT = .95; e.steps = (e.steps | 0) + 1;
-            if (e.steps % 2 === 0 && live) { const w = FOE.griffe.w, S = SP && SP.foes[2]; const tips = [[800, 380], [940, 460], [1065, 370], [1145, 430]]; for (const [px, py] of tips) { const p = S ? kp(S, px, py, e.x, e.y, w) : [e.x, e.y + 20]; shot(p[0], p[1], aimAt(p[0], p[1]) + rnd(.12, -.12), 150, 'ball', { r: 6 }); } sfx('ehit'); }
+          const tx = cl(T.x + Math.sin(e.k * 1.4 + e.spin) * 110, 50, L_W - 50);
+          const ty = cl(e.y + 55, 90, L_H - 250);
+          e.vx += cl(tx - e.x, -1, 1) * 560 * dt; e.vx = cl(e.vx, -250, 250);
+          e.vy += cl(ty - e.y, -1, 1) * 320 * dt; e.vy = cl(e.vy, 60, 240);
+          e.x += e.vx * dt; e.y += e.vy * dt;
+          e.cd -= dt;
+          if (e.cd <= 0 && live) {
+            e.cd = rnd(2.4, 1.8);
+            const w = FOE.griffe.w, S = SP && SP.foes[2]; const tips = [[800, 380], [940, 460], [1065, 370], [1145, 430]];
+            for (const [px, py] of tips) { const p = S ? kp(S, px, py, e.x, e.y, w) : [e.x, e.y + 20]; shot(p[0], p[1], aimAt(p[0], p[1]) + rnd(.12, -.12), 150, 'ball', { r: 6 }); } sfx('ehit');
           }
-          const w = e.walk; w.t = Math.min(1, w.t + dt / .38); const q = eo(w.t);
-          e.x = w.x0 + (w.x1 - w.x0) * q; e.y = w.y0 + (w.y1 - w.y0) * q;
         }
         break; }
       case 'tourelle': {
@@ -273,7 +280,7 @@
       case 'dard': {
         if (e.st === 0) { e.y += (e.ty - e.y) * Math.min(1, dt * 3.2); if (Math.abs(e.y - e.ty) < 6 || e.k > 1.4) { e.st = 1; e.k = 0; e.lockX = T.x; e.lockY = T.y; sfx('alert'); } }
         else if (e.st === 1) { if (e.k < .45) { e.lockX = T.x; e.lockY = T.y; } if (e.k > .7) { e.st = 2; e.k = 0; const a = Math.atan2(e.lockY - e.y, e.lockX - e.x); e.vx = Math.cos(a); e.vy = Math.sin(a); sfx('dash'); } }
-        else { const sp = Math.min(620, 140 + e.k * 1400); e.x += e.vx * sp * dt; e.y += e.vy * sp * dt; if (chance(dt * 60)) spawnPart({ x: e.x, y: e.y, vx: -e.vx * 60, vy: -e.vy * 60, life: .3, col: pick(['#ff3c52', '#c27bff']), size: 4, glow: true }); if (e.y < -80) e.y = L_H + 100; }
+        else { const sp = Math.min(620, 140 + e.k * 1400); e.x += e.vx * sp * dt; e.y += e.vy * sp * dt; if (chance(dt * 60)) spawnPart({ x: e.x, y: e.y, vx: -e.vx * 60, vy: -e.vy * 60, life: .3, col: pick(['#ff3c52', '#c27bff']), size: 4, glow: true }); /* pas de réapparition : le dard sort et quitte la carte */ if (e.y < -120 || e.x < -90 || e.x > L_W + 90) e.gone = true; }
         break; }
       case 'gatling': {
         e.y += v.nearV * dt; if (e.y < e.ty && v.nearV < 4) e.y += 90 * dt;
@@ -296,7 +303,11 @@
   }
   const _updateEnemies = updateEnemies;
   updateEnemies = function (dt) {
-    if (on()) for (const e of G.enemies) if (e.nv) aiFoe(e, dt);
+    if (on()) {
+      for (const e of G.enemies) if (e.nv) aiFoe(e, dt);
+      /* retrait propre des défenseurs sortis par le haut (aucune téléportation) */
+      for (let i = G.enemies.length - 1; i >= 0; i--) if (G.enemies[i].gone) G.enemies.splice(i, 1);
+    }
     return _updateEnemies(dt);
   };
   const _killEnemy = killEnemy;
@@ -334,7 +345,7 @@
         if (e.ch > .15) for (let i = 0; i < 3; i++) { const a = k * 5 + i * TAU / 3; bolt(c[0] + Math.cos(a) * 34, c[1] + Math.sin(a) * 34, c[0], c[1], Math.floor(k * 18) + i, 1.4, 'rgba(255,90,110,.9)', 5); }
         break; }
       case 'griffe': {
-        const st = e.walk ? Math.sin(e.walk.t * Math.PI) : 0;
+        const st = cl(Math.hypot(e.vx || 0, e.vy || 0) / 240, 0, 1);
         const o = { sx: 1 + st * .08, sy: 1 - st * .1 + Math.sin(k * 4) * .015, rot: e.bank * .12, flash: fl, red: hurt * .5 };
         drawS(S, e.x, e.y, w, o);
         for (const [px, py] of [[800, 380], [940, 460], [1065, 370], [1145, 430]]) { const p = kp(S, px, py, e.x, e.y, w, o); glow(p[0], p[1], 7 + Math.sin(k * 7 + px) * 2, '255,50,60', .9); }
@@ -414,18 +425,18 @@
     { t: 7,  fn() { foe('orbe', L_W * .3, -60, { ty: 200 }); foe('orbe', L_W * .7, -90, { ty: 240 }); } },
     { t: 11, fn() { for (let i = 0; i < 4; i++) foe('dard', L_W * (.2 + i * .2), -40 - i * 60, { ty: 130 + (i % 2) * 70 }); } },
     { t: 15, fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -60 - i * 30, { ty: 140 + i * 25 }); foe('griffe', MID, -100, { ty: 150 }); } },
-    { t: 20, fn() { foe('tambour', MID, -80, { ty: 200 }); } },
+    { t: 20, fn() { foe('tambour', MID, -80, { ty: 200 }); foe('tourelle', L_W * .25, -150, { ty: 120 }); foe('tourelle', L_W * .75, -150, { ty: 120 }); } },
     { t: 25, fn() { foe('griffe', L_W * .25, -70, { ty: 140 }); foe('griffe', L_W * .75, -90, { ty: 170 }); foe('lance', L_W * .5, -150, { ty: 260 }); } },
     { t: 30, fn() { foe('orbe', L_W * .2, -60, { ty: 190 }); foe('orbe', L_W * .5, -110, { ty: 270 }); foe('orbe', L_W * .8, -60, { ty: 190 }); } },
-    { t: 35, fn() { foe('manta', MID, -120, { ty: 170, cd: 2.4 }); sfx('alert'); } },
+    { t: 35, fn() { foe('manta', MID, -120, { ty: 170, cd: 2.4 }); foe('gatling', 40, -80, { side: -1, ty: 90 }); sfx('alert'); } },
     { t: 46, fn() { for (let i = 0; i < 5; i++) foe('dard', L_W * (.15 + i * .175), -40 - i * 45, { ty: 140 + (i % 2) * 60 }); } },
     { t: 50, fn() { for (let i = 0; i < 5; i++) foe('lance', L_W * LANES[i], -50 - Math.abs(i - 2) * 46, { ty: 170 + Math.abs(i - 2) * 30 }); foe('orbe', MID, -140, { ty: 300 }); } },
     { t: 55, fn() { foe('tambour', L_W * .3, -80, { ty: 190 }); foe('tambour', L_W * .7, -140, { ty: 240 }); } },
-    { t: 61, fn() { foe('griffe', L_W * .2, -70, { ty: 130 }); foe('griffe', L_W * .5, -110, { ty: 160 }); foe('griffe', L_W * .8, -70, { ty: 130 }); } },
+    { t: 61, fn() { foe('griffe', L_W * .2, -70, { ty: 130 }); foe('griffe', L_W * .5, -110, { ty: 160 }); foe('griffe', L_W * .8, -70, { ty: 130 }); foe('gatling', L_W - 40, -150, { side: 1, ty: 80 }); } },
     { t: 66, fn() { for (let i = 0; i < 6; i++) foe('lance', i % 2 ? L_W * .85 : L_W * .15, -50 - i * 55, { ty: 150 + i * 22 }); } },
-    { t: 71, fn() { foe('orbe', L_W * .3, -60, { ty: 220 }); foe('orbe', L_W * .7, -60, { ty: 220 }); for (let i = 0; i < 3; i++) foe('dard', L_W * (.25 + i * .25), -150 - i * 40, { ty: 150 }); } },
+    { t: 71, fn() { foe('orbe', L_W * .3, -60, { ty: 220 }); foe('orbe', L_W * .7, -60, { ty: 220 }); for (let i = 0; i < 3; i++) foe('dard', L_W * (.25 + i * .25), -150 - i * 40, { ty: 150 }); foe('tourelle', MID, -210, { ty: 90 }); } },
     { t: 77, fn() { foe('manta', MID, -120, { ty: 160, cd: 2.0, hp: 1.2 }); for (let i = 0; i < 4; i++) foe('lance', L_W * (.15 + i * .233), -220 - i * 30, { ty: 280 }); sfx('alert'); } },
-    { t: 87, fn() { foe('tambour', MID, -80, { ty: 210 }); foe('griffe', L_W * .25, -100, { ty: 150 }); foe('griffe', L_W * .75, -100, { ty: 150 }); } },
+    { t: 87, fn() { foe('tambour', MID, -80, { ty: 210 }); foe('griffe', L_W * .25, -100, { ty: 150 }); foe('griffe', L_W * .75, -100, { ty: 150 }); foe('gatling', 40, -160, { side: -1, ty: 80 }); } },
     { t: 93, fn() { for (let i = 0; i < 6; i++) foe('dard', L_W * (.12 + i * .152), -40 - i * 40, { ty: 130 + (i % 3) * 50 }); } },
     { t: 98, fn() { for (let i = 0; i < 7; i++) foe('lance', L_W * (.1 + i * .133), -50 - Math.abs(i - 3) * 40, { ty: 160 + Math.abs(i - 3) * 30 }); } }
   ];
@@ -437,7 +448,7 @@
     b.parts = []; b.enter = false; b.x = MID; b.y = 200; b.r = 150;
     const vMax = b.maxHp;
     b.nv = { vMax, stage: 'hands' };
-    const handHp = Math.round(vMax * .105);
+    const handHp = Math.round(vMax * .08);
     b.hp = b.maxHp = handHp * 2; b.name = tr(TXT.hands);
     const H = side => ({ side, hx: side < 0 ? 150 : 330, hy: 330, x: MID + side * DOOR2.hole, y: DOOR2.y, sc: .3, a: 0,
       hp: handHp, maxHp: handHp, dead: false, fr: side < 0 ? 0 : 1, flash: 0, mode: 'burst', t: 0, atkT: 1.6 + (side > 0 ? 1.1 : 0) });
@@ -585,17 +596,20 @@
       shards(DOOR2.x, DOOR2.y, 90, ['#8a8494', '#5c5468', '#ff3c52', '#ffffff', '#ffb070'], 560, 10);
       if (typeof SHOCK !== 'undefined') SHOCK.push({ x: DOOR2.x, y: DOOR2.y, t: 0, life: .7, max: 420, col: '#ff6070' });
     }
-    if (v.t > 3.0) {
+    /* dès que le grand sas est arraché, VORAX (dont les mains font partie) est visible */
+    if (v.t > 2.2) {
       go('reveal'); b.nv.stage = 'reveal'; b.hands = null; b.nv.form = 0; b.name = tr(TXT.form1);
-      b.hp = b.maxHp = formHp(b, 0); b.vx = DOOR2.x; b.vy = DOOR2.y; b.vz = .45; b.ph = 0; b.atk = null; b.atkT = 1.6; b.atkI = 0; b.flash = 0;
+      b.hp = b.maxHp = formHp(b); b.vx = DOOR2.x; b.vy = DOOR2.y; b.vz = .45; b.ph = 0; b.atk = null; b.atkT = 1.6; b.atkI = 0; b.flash = 0;
       sfx('bossAlarm');
     }
   }
 
   /* --------------------------------------------------------------- VORAX */
   const FORM_KEYS = ['form1', 'form2', 'form3'];
-  const FORM_HP = [.52, .60, .72];
-  function formHp(b, form) { return Math.max(1, Math.round(b.nv.vMax * FORM_HP[cl(form | 0, 0, 2)])); }
+  /* Une seule réserve de PV pour les trois formes : la jauge ne se remet plus à zéro.
+     Les changements de forme surviennent aux seuils 2/3 et 1/3 de cette réserve. */
+  const VORAX_POOL = .85;
+  function formHp(b) { return Math.max(1, Math.round(b.nv.vMax * VORAX_POOL)); }
   const ATK = [
     ['laser', 'palms', 'orbs', 'spiral', 'laser', 'rain'],
     ['laser2', 'palms', 'orbs', 'spiral', 'rain', 'laser2', 'palms'],
@@ -603,10 +617,10 @@
   ];
   function revealUpdate(v, dt) {
     const b = G.boss; autopilot(dt, L_H - 140); b.t = (b.t || 0) + dt;
-    const q = eo(v.t / 2.8);
+    const q = eo(v.t / 2.2);
     b.vx = DOOR2.x + (VO.x - DOOR2.x) * q; b.vy = DOOR2.y + (VO.y - DOOR2.y) * q; b.vz = .45 + .55 * q;
-    if (v.t > 1.9 && !v.said.intro) { v.said.intro = 1; FX.addShake(18); sfx('explode', { big: true }); /* Vorax has already spoken behind the sealed gate. */ }
-    if (v.t > 3.6) { go('vorax'); b.nv.stage = 'vorax'; v.lbTo = 0; v.noFire = false; b.atkT = 1.0; setTimeout(() => { if (on() && G.boss === b && !b.dead) radioSay('cmd', tr(TXT.v6)); }, 9000); }
+    if (v.t > 1.4 && !v.said.intro) { v.said.intro = 1; FX.addShake(18); sfx('explode', { big: true }); /* Vorax has already spoken behind the sealed gate. */ }
+    if (v.t > 2.6) { go('vorax'); b.nv.stage = 'vorax'; v.lbTo = 0; v.noFire = false; b.atkT = 1.0; setTimeout(() => { if (on() && G.boss === b && !b.dead) radioSay('cmd', tr(TXT.v6)); }, 9000); }
   }
   function eyes(b) { if (window.NVBOSS && NVBOSS.vorax.ready()) return NVBOSS.vorax.eyes(b, vpt); return [vpt(b, 303, 75), vpt(b, 346, 75)]; }
   function palms(b) {
@@ -624,19 +638,24 @@
       syncHands(b); return;
     }
     b.hp -= dmg;
+    const frac = b.hp / b.maxHp, form = b.nv.form | 0;
+    /* seuils de la réserve unique : 2/3 → forme 2, 1/3 → forme 3 */
+    if (b.hp > 0 && form === 0 && frac <= 2 / 3) { startMorph(v, b, 1); return; }
+    if (b.hp > 0 && form === 1 && frac <= 1 / 3) { startMorph(v, b, 2); return; }
     if (b.hp <= 0) {
-      const form = b.nv.form | 0;
-      if (form < 2) { startMorph(v, b); return; }
+      if (form < 2) { startMorph(v, b, form + 1); return; }
       b.hp = 0; [b.x, b.y] = vpt(b, 322, 260); b.r = 170;
       go('dead'); v.noFire = false; G.ebullets.length = 0; b.atk = null;
       G.phase = 'boss'; bossDie();
     }
   }
-  function startMorph(v, b) {
-    const from = b.nv.form | 0, to = from + 1;
+  function startMorph(v, b, to) {
+    const from = b.nv.form | 0; to = to === undefined ? from + 1 : to;
     go('morph'); b.nv.stage = 'morph'; b.nv.morphFrom = from; b.nv.form = to; b.nv.morphT = 0;
-    b.name = tr(TXT[FORM_KEYS[to]]); b.ph = to; b.atk = null; b.atkT = 1.2; b.atkI = 0; b.roar = 0;
-    b.maxHp = formHp(b, to); b.hp = 0; b.flash = 0;
+    b.name = tr(TXT[FORM_KEYS[to]]); b.ph = to; b.atk = null; b.atkT = 1.2; b.atkI = 0; b.roar = 0; b.flash = 0;
+    /* la jauge unique continue : pas de remise à zéro, pas de régénération.
+       On borne à 1 PV pour qu'un très gros tir ne vide pas la barre avant la dernière forme. */
+    b.hp = Math.max(1, b.hp);
     v.noFire = true; v.lbTo = 1; G.ebullets.length = 0; G.bullets.length = 0; G.phase = 'boss';
     for (const p of players()) p.inv = Math.max(p.inv || 0, 4.2);
     sfx('door'); FX.addShake(18); FX.addFlash(.42, from === 0 ? '#c27bff' : '#ff4058');
@@ -645,8 +664,8 @@
   function morphUpdate(v, dt) {
     const b = G.boss; if (!b) return;
     b.t = (b.t || 0) + dt; b.nv.morphT = v.t;
-    b.vx = VO.x + Math.sin(b.t * 2.2) * (4 + v.t * 2); b.vy = VO.y + Math.sin(b.t * 3.1) * 5;
-    b.vz = 1 + Math.sin(cl(v.t / 2.4, 0, 1) * Math.PI) * .09;
+    /* position stable : le tremblement vient uniquement des secousses d'écran explicites */
+    b.vx = VO.x; b.vy = VO.y; b.vz = 1;
     [b.x, b.y] = vpt(b, 322, 220);
     if (v.t > .15 && chance(dt * 24)) {
       const p = vpt(b, rnd(500, 140), rnd(500, 110)); explode(p[0], p[1], rnd(1.4, .6), '#b944ff', '#fff0f4');
@@ -659,22 +678,23 @@
       sfx(at === 2.15 ? 'bossAlarm' : 'explode', { big: true }); FX.addShake(at === 2.15 ? 24 : 14); FX.addFlash(.32, at === 1.42 ? '#ffffff' : '#ff3048');
       if (typeof SHOCK !== 'undefined') SHOCK.push({ x: b.vx, y: b.vy, t: 0, life: .75, max: 420, col: at === 1.42 ? '#ffffff' : '#ff4058' });
     }
-    if (v.t > 1.35) b.hp = Math.min(b.maxHp, b.maxHp * sm((v.t - 1.35) / .85));
+    /* la réserve de PV reste figée pendant la transformation (jauge unique non rechargée) */
     if (v.t > 3.0) {
-      go('vorax'); b.nv.stage = 'vorax'; b.hp = b.maxHp; b.atk = null; b.atkT = 1.0; b.atkI = 0;
+      go('vorax'); b.nv.stage = 'vorax'; b.atk = null; b.atkT = 1.0; b.atkI = 0;
       v.noFire = false; v.lbTo = 0; G.bullets.length = 0; sfx('bossAlarm');
     }
   }
   function voraxUpdate(v, dt) {
     const b = G.boss; if (!b) return;
     b.t = (b.t || 0) + dt; if (b.flash > 0) b.flash -= dt;
-    b.vx = VO.x + Math.sin(b.t * .55) * 16; b.vy = VO.y + Math.sin(b.t * 1.25) * 8; b.vz = 1;
+    /* VORAX reste stable au repos : plus de oscillation permanente (req. tremblement) */
+    b.vx = VO.x; b.vy = VO.y; b.vz = 1;
     [b.x, b.y] = vpt(b, 322, 220);
     const frac = b.hp / b.maxHp, ph = b.nv.form | 0;
     b.ph = ph;
     if (b.roar > 0) b.roar -= dt;
-    if ((ph >= 1 || frac < .66) && chance(dt * (ph === 2 ? 12 : 6))) { const p = vpt(b, rnd(470, 170), rnd(500, 120)); spawnPart({ x: p[0], y: p[1], vx: rnd(30, -30), vy: -rnd(70, 30), life: rnd(1.3, .6), col: pick(['#251f2e', '#3a3242']), size: rnd(14, 7) }); }
-    if ((ph === 2 || frac < .3) && chance(dt * 3)) { const p = vpt(b, rnd(470, 170), rnd(480, 140)); explode(p[0], p[1], .9, '#ff3c52', '#ffd0a0'); }
+    if (frac < .66 && chance(dt * (ph === 2 ? 12 : 6))) { const p = vpt(b, rnd(470, 170), rnd(500, 120)); spawnPart({ x: p[0], y: p[1], vx: rnd(30, -30), vy: -rnd(70, 30), life: rnd(1.3, .6), col: pick(['#251f2e', '#3a3242']), size: rnd(14, 7) }); }
+    if (frac < .34 && chance(dt * 3)) { const p = vpt(b, rnd(470, 170), rnd(480, 140)); explode(p[0], p[1], .9, '#ff3c52', '#ffd0a0'); }
     /* attaques */
     if (!b.atk) {
       b.atkT -= dt;
@@ -788,8 +808,14 @@
     if(v.door && v.door.hp>0) for(const p of players()) p.y=Math.max(p.y,v.door.y+doorH(v.door)/2+p.r+12);
     if(v.door2 && !['reveal','morph','vorax','dead'].includes(v.stage)) for(const p of players()) p.y=Math.max(p.y,v.door2.y+70+p.r);
     if(v.stage==='complete') return _flow(dt);
-    if (v.stage === 'dead') { G.phase='boss'; return; }
+    /* mort : il faut piloter updateBoss (-> animation d'explosion ANIME) depuis ce flux,
+       faute de quoi VORAX resterait figé et la fin de niveau ne se déclencherait pas. */
+    if (v.stage === 'dead') { G.phase = 'boss'; if (G.boss) updateBoss(dt); return; }
     G.phase = ['hands', 'tear', 'reveal', 'morph', 'vorax'].includes(v.stage) ? 'boss' : 'nv24'; v.t += dt; v.T += dt;
+    /* croisière : plein gaz en approche, le décor décélère et se stabilise devant la base */
+    const cruiseTarget = v.stage === 'approach' ? 1 : (['arrive', 'talk', 'sas', 'boom'].includes(v.stage) ? .12 : 0);
+    v.cruise += (cruiseTarget - v.cruise) * Math.min(1, dt * 1.4);
+    v.sy = (v.sy || 0) + dt * v.cruise;
     v.lb += (v.lbTo - v.lb) * Math.min(1, dt * 3);
     if (v.hole) v.holeT += dt;
     if (v.stage !== 'hall') { v.offV *= Math.max(0, 1 - dt * 2); v.nearV = v.offV * 3.4; }
