@@ -44,7 +44,7 @@
   const TIPS = { prev: 'Cassette précédente', rw: 'Retour rapide', play: 'Lecture / pause', stop: 'Stop', ff: 'Avance rapide', next: 'Cassette suivante', rep: 'Répétition' };
   const tips = () => { for (const k in TIPS) { const b = keys(k); b.title = tr(TIPS[k]); b.setAttribute('aria-label', tr(TIPS[k])); } Q('.nv-deck-vol').title = tr('Volume'); };
   /* ---------- état ---------- */
-  const curT = () => { const sel = $('nvTapeList').querySelector('.nv-tape-card.selected'); return catalog.find(x => x.id === (sel && sel.dataset.musicId)) || null; };
+  const curT = () => { const sel = $('nvTapeList').querySelector('.nv-tape-card.selected'); return catalog.find(x => x.id === (sel && sel.dataset.musicId)) || catalog.find(x => x.title === $('nvTrackTitle').textContent) || null; };
   const srcOf = t => 'assets/music-shop/mp3/' + t.file;
   const loaded = () => { const t = curT(); return t && au.getAttribute('src') === srcOf(t); };
   let rep = 'off';
@@ -93,32 +93,62 @@
     wm && wm.classList.add('nv-slow');
     rateTo(1, 0.32, 420, () => { au.pause(); try { au.playbackRate = 1; } catch (e) {} pitchFree(false); wm && wm.classList.remove('nv-slow'); if (after) after(); });
   }
-  async function tapeStart() {
-    try { au.playbackRate = 0.55; } catch (e) {}
-    try { await au.play(); } catch (e) { return; }
-    rateTo(0.55, 1, 380, () => pitchFree(false));
+  let playRequest = 0;
+  function cancelTapeMotion() {
+    playRequest++;
+    cancelAnimationFrame(ramp);
+    try { au.playbackRate = 1; } catch (e) {}
+    pitchFree(false);
+    wm && wm.classList.remove('nv-slow');
+  }
+  function tapeStart() {
+    const t = curT(); if (!t) return;
+    cancelTapeMotion();
+    const request = playRequest;
+    /* Une URL déjà affectée ne signifie pas que son chargement a réussi.
+       Relancer la source en erreur, et appeler play dans le geste utilisateur. */
+    if (!loaded() || au.error || au.networkState === 3) {
+      au.src = srcOf(t);
+      au.load();
+    } else if (au.ended) {
+      try { au.currentTime = 0; } catch (e) {}
+    }
+    au.muted = false;
+    applyVol();
+    /* Vitesse normale : certains lecteurs mobiles refusent le démarrage ralenti. */
+    try {
+      const context = ctx();
+      if (context && context.state === 'suspended') context.resume().catch(() => {});
+      au.play().catch(e => {
+        if (request !== playRequest || e.name === 'AbortError') return;
+        toast(tr('Lecture impossible. Appuie à nouveau sur ▶ pour réessayer.'));
+        paint();
+      });
+    } catch (e) {
+      toast(tr('Lecture impossible. Appuie à nouveau sur ▶ pour réessayer.'));
+    }
   }
   /* ---------- commandes ---------- */
   const pv = $('nvPreviewBtn');
-  /* le bouton « Écouter » reprend là où la bande s'est arrêtée (au lieu de tout recommencer) */
+  /* Une seule voie de lecture, sans clic synthétique ni attente avant play(). */
   pv.addEventListener('click', e => {
-    if (!au.paused) { e.stopImmediatePropagation(); tapeStop(); return; }
-    if (loaded() && au.currentTime > 0.2 && au.currentTime < (au.duration || 1e9) - 0.3) { e.stopImmediatePropagation(); tapeStart(); }
+    e.stopImmediatePropagation();
+    if (!au.paused) tapeStop(); else tapeStart();
   }, true);
   function playPause() {
-    const t = curT(); if (!t) return;
+    if (!curT()) return;
     clunk();
-    if (!au.paused) { tapeStop(); return; }
-    if (loaded()) tapeStart(); else pv.click();
+    if (!au.paused) tapeStop(); else tapeStart();
   }
+  $('nvTapeList').addEventListener('click', cancelTapeMotion, true);
   function stop() { clunk(); tapeStop(() => { try { au.currentTime = 0; } catch (e) {} paint(); }); }
-  function neighbour(d) {
+  function neighbour(d, autoplay = false) {
     const t = curT(), i = t ? catalog.indexOf(t) : -1, n = catalog[(i + d + catalog.length) % catalog.length];
     const card = $('nvTapeList').querySelector(`.nv-tape-card[data-music-id="${n.id}"]`);
-    const wasPlaying = !au.paused;
+    const wasPlaying = autoplay || !au.paused;
     if (wasPlaying) { au.pause(); }
     if (card) card.click();
-    if (wasPlaying) setTimeout(() => pv.click(), 120);
+    if (wasPlaying) tapeStart();
   }
   let hold = 0, holdT0 = 0, holdDir = 0;
   function seekBy(sec) { if (!au.getAttribute('src') || !isFinite(au.duration)) return; au.currentTime = Math.max(0, Math.min(au.duration - 0.25, au.currentTime + sec)); paint(); }
@@ -155,8 +185,8 @@
   /* fin de bande : répétition d'une piste ou de toute la vitrine */
   au.addEventListener('ended', () => {
     if (G.state !== 'music') return;
-    if (rep === 'one') setTimeout(() => { au.currentTime = 0; tapeStart(); }, 250);
-    else if (rep === 'all') setTimeout(() => { neighbour(1); setTimeout(() => { if (au.paused) pv.click(); }, 260); }, 350);
+    if (rep === 'one') { au.currentTime = 0; tapeStart(); }
+    else if (rep === 'all') neighbour(1, true);
   });
   /* glisser sur la bande */
   const bar = Q('.nv-deck-tape');
@@ -264,6 +294,6 @@
   }, true);
   /* en quittant la boutique : plus de bruit de bande */
   const _close = window.closeMusicShop;
-  window.closeMusicShop = function () { cancelAnimationFrame(ramp); holdEnd(); whirrStop(); try { au.playbackRate = 1; } catch (e) {} pitchFree(false); return _close.apply(this, arguments); };
+  window.closeMusicShop = function () { cancelTapeMotion(); holdEnd(); whirrStop(); try { au.playbackRate = 1; } catch (e) {} pitchFree(false); return _close.apply(this, arguments); };
   applyVol(); tips(); paint();
 })();
