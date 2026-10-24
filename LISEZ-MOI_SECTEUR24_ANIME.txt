@@ -1,0 +1,44 @@
+NEO-VANGUARD — INTÉGRATION SECTEUR 24 ANIME — 24 octobre 2026
+
+INSTALLATION
+Ce ZIP est une mise à jour du jeu existant, pas une copie autonome des 24 secteurs.
+Décompresser à la racine de Neo-vanguard en conservant tous les autres fichiers.
+Remplacer index.html et ajouter les dossiers inclus :
+- assets/level24-anime/ : visuels ANIME en WebP, versions PC et mobile, alpha conservé.
+- assets/sector24/audio/ : sons OGG et WAV du pack S24.
+- level24-v2/level24-anime.js : rendu et effets du nouveau secteur.
+Les anciens dossiers graphiques peuvent rester. L'ancien level24-v2.js n'est plus chargé.
+Base utilisée : dépôt JacquesBV/Neo-vanguard, commit 604ce4c.
+Aucune publication sur GitHub n'a été effectuée.
+
+TEST DIRECT
+Après installation, ouvrir l'URL du jeu suivie de ?nv24play
+Exemple : https://jacquesbv.github.io/Neo-vanguard/?nv24play
+Accepter l'avertissement habituel s'il apparaît, puis attendre le calibrage du rendu.
+La séquence d'histoire est sautée et le secteur 24 commence.
+Sans ce paramètre, la progression normale est conservée.
+
+DÉROULEMENT
+Approche dans l'espace en parallaxe ; Terre et halo font un passage unique.
+Arrivée devant le cadre et le sas extérieur du pack ANIME, dialogue Vesta,
+tirs sur le sas intact puis fissuré, destruction et entrée dans le couloir.
+Défenses, drones et tourelles, puis alerte animée sans nom de boss.
+Vorax parle derrière la porte fermée, avec l'identité radio VORAX, en FR/EN/ES/PT/JA.
+Ses doigts percent le dernier sas ; deux réserves d'endurance indépendantes.
+Une main épuisée reste présente. Il faut épuiser les deux avant l'arrachement.
+Révélation du Vorax rouge, trois phases de combat et rayons calculés par le moteur.
+Explosion finale de 12 secondes avec détonation à 2,6 secondes.
+
+CONTRÔLES EFFECTUÉS
+Chromium sur PC et avec viewport/tactile mobile émulés : chargement des deux profils,
+blocage devant le sas, destruction du premier sas, dialogue de Vorax avant les mains,
+indépendance des jauges, arrachement, deux transitions de forme, explosion et sortie.
+Les transitions ont été accélérées par un script de test ; ce n'est pas un test
+manuel complet de difficulté ou une mesure sur un téléphone Android physique.
+Démarrage et rendu des secteurs 1, 12 et 23 vérifiés sans le contrôleur ANIME.
+Aucune erreur JavaScript pendant ces scénarios. Tous les WebP sont décodables.
+Le code HTML hors du contrôleur 24 et du chargement de son module est identique
+à la base. L'histoire, les musiques, la boutique, les options, les codes et le flipper
+n'ont pas été modifiés.
+Les planches ANIME sont des poses peintes : l'animation combine ces poses avec les
+déplacements interpolés existants ; il ne s'agit pas d'un rig squelettique complet.
