@@ -12053,7 +12053,10 @@ function update(dt) {
     }
     const last = G.level >= MAX_LEVEL;
     const shown = last ? $('#scr-victory').classList.contains('on') : $('#scr-clear').classList.contains('on');
-    if (G.phaseT > (last ? 6.5 : 6.0) && !shown) { if (last) { if (G.state !== 'story') beginEpilogue(); } else showClearScreen(); }
+    /* Secteur 24 : laisser le temps de lire les mots de Vesta après l'explosion
+       de VORAX avant d'enchaîner sur l'épilogue (demande joueur). */
+    const endDelay = last && G.level === 24 ? 11 : (last ? 6.5 : 6.0);
+    if (G.phaseT > endDelay && !shown) { if (last) { if (G.state !== 'story') beginEpilogue(); } else showClearScreen(); }
   }
   autoSaveT += dt;
   if (autoSaveT > 20) { autoSaveT = 0; bankRunSoft(); }

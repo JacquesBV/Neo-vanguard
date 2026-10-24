@@ -182,7 +182,7 @@
 
   /* --------------------------------------------------------- le premier sas */
   function makeDoor() {
-    const hp = Math.round(85 * S_().hp * (G.twoP && G.players && G.players.length > 1 ? 1.5 : 1));
+    const hp = Math.round(60 * S_().hp * (G.twoP && G.players && G.players.length > 1 ? 1.5 : 1));
     const cracks = [];
     for (let i = 0; i < 9; i++) {
       let x = rnd(150, -150), y = rnd(90, -90), a = rnd(TAU); const pts = [[x, y]];
@@ -195,15 +195,16 @@
 
   /* ------------------------------------------------------------ défenseurs */
   /* PV revus à la baisse : le secteur 24 était trop résistant (demande joueur). */
+  /* PV de nouveau réduits (second passage joueur : le secteur restait trop dur). */
   const FOE = {
-    lance:   { f: 0, w: 70,  hp: 3,  r: 22, sc: 160, cr: [1, 4], kind: 'drone' },
-    orbe:    { f: 1, w: 74,  hp: 5,  r: 28, sc: 260, cr: [2, 6], kind: 'stinger' },
-    griffe:  { f: 2, w: 92,  hp: 6,  r: 32, sc: 300, cr: [2, 6], kind: 'stinger' },
-    tourelle:{ f: 3, w: 84,  hp: 7,  r: 32, sc: 340, cr: [3, 7], kind: 'turret' },
-    manta:   { f: 4, w: 138, hp: 26, r: 54, sc: 1400, cr: [12, 22], kind: 'carrier', flip: true },
-    tambour: { f: 5, w: 98,  hp: 10, r: 36, sc: 520, cr: [4, 9], kind: 'shielder', flip: true },
-    dard:    { f: 6, w: 62,  hp: 2,  r: 18, sc: 140, cr: [1, 3], kind: 'drone', flip: true },
-    gatling: { f: 7, w: 92,  hp: 8,  r: 34, sc: 420, cr: [3, 8], kind: 'turret' }
+    lance:   { f: 0, w: 70,  hp: 2,  r: 22, sc: 160, cr: [1, 4], kind: 'drone' },
+    orbe:    { f: 1, w: 74,  hp: 4,  r: 28, sc: 260, cr: [2, 6], kind: 'stinger' },
+    griffe:  { f: 2, w: 92,  hp: 4,  r: 32, sc: 300, cr: [2, 6], kind: 'stinger' },
+    tourelle:{ f: 3, w: 84,  hp: 5,  r: 32, sc: 340, cr: [3, 7], kind: 'turret' },
+    manta:   { f: 4, w: 138, hp: 18, r: 54, sc: 1400, cr: [12, 22], kind: 'carrier', flip: true },
+    tambour: { f: 5, w: 98,  hp: 7,  r: 36, sc: 520, cr: [4, 9], kind: 'shielder', flip: true },
+    dard:    { f: 6, w: 62,  hp: 1,  r: 18, sc: 140, cr: [1, 3], kind: 'drone', flip: true },
+    gatling: { f: 7, w: 92,  hp: 6,  r: 34, sc: 420, cr: [3, 8], kind: 'turret' }
   };
   function foe(type, x, y, o = {}) {
     const D = FOE[type], s = S_();
@@ -253,8 +254,10 @@
         break; }
       case 'tourelle': {
         e.y += v.nearV * dt; if (e.y < e.ty && v.nearV < 4) e.y += 90 * dt;
-        const want = Math.atan2(T.y - e.y, T.x - e.x), lim = .62, rel = cl(want - Math.PI / 2, -lim, lim);
-        e.aimA += cl(Math.PI / 2 + rel - e.aimA, -1.6 * dt, 1.6 * dt);
+        /* le canon suit le joueur en douceur, dans un cône limité : plus de
+           rotation folle dans tous les sens (demande joueur). */
+        const want = Math.atan2(T.y - e.y, T.x - e.x), lim = .52, rel = cl(want - Math.PI / 2, -lim, lim);
+        e.aimA += cl(Math.PI / 2 + rel - e.aimA, -1.4 * dt, 1.4 * dt);
         e.cd -= dt;
         if (e.cd <= 0 && live) { e.burst = 3; e.bT = 0; e.cd = rnd(3.3, 2.6); }
         if (e.burst > 0) { e.bT -= dt; if (e.bT <= 0) { e.bT = .2; e.burst--; e.recoil = 1; e.bar = ((e.bar | 0) + 1) % 2; const mz = muzzle(e); shot(mz[0], mz[1], e.aimA, 210, 'laser', { r: 7 }); spawnPart({ x: mz[0], y: mz[1], vx: Math.cos(e.aimA) * 90, vy: Math.sin(e.aimA) * 90, life: .14, col: '#ffd0d6', size: 7, glow: true }); sfx('cannon'); } }
@@ -284,6 +287,9 @@
         break; }
       case 'gatling': {
         e.y += v.nearV * dt; if (e.y < e.ty && v.nearV < 4) e.y += 90 * dt;
+        /* mitrailleuse murale : le canon s'oriente vers le joueur dans son secteur */
+        const gWant = cl(aimAt(e.x, e.y), e.side < 0 ? -.2 : Math.PI / 2 - .2, e.side < 0 ? Math.PI / 2 + .2 : Math.PI + .2);
+        e.aimA += cl(gWant - e.aimA, -2.0 * dt, 2.0 * dt);
         e.cd -= dt;
         if (e.cd <= 0 && live) { e.burst = 6; e.bT = 0; e.cd = rnd(3.7, 3.0); e.spinUp = 1; }
         if (e.spinUp > 0) e.spinUp = Math.max(0, e.spinUp - dt * .7);
@@ -448,7 +454,7 @@
     b.parts = []; b.enter = false; b.x = MID; b.y = 200; b.r = 150;
     const vMax = b.maxHp;
     b.nv = { vMax, stage: 'hands' };
-    const handHp = Math.round(vMax * .08);
+    const handHp = Math.round(vMax * .06);
     b.hp = b.maxHp = handHp * 2; b.name = tr(TXT.hands);
     const H = side => ({ side, hx: side < 0 ? 150 : 330, hy: 330, x: MID + side * DOOR2.hole, y: DOOR2.y, sc: .3, a: 0,
       hp: handHp, maxHp: handHp, dead: false, fr: side < 0 ? 0 : 1, flash: 0, mode: 'burst', t: 0, atkT: 1.6 + (side > 0 ? 1.1 : 0) });
@@ -547,7 +553,7 @@
   }
   function hurtHand(b, hd, dmg) {
     const v = V();
-    if (!b || !hd || hd.dead || !v || v.stage !== 'hands') return;
+    if (!b || !b.hands || !hd || hd.dead || !v || v.stage !== 'hands') return;
     hd.hp = Math.max(0, hd.hp - Math.max(0, dmg)); hd.flash = .5; b.by = CUR_OWN;
     if (hd.hp <= 0) {
       hd.dead = true; hd.mode = 'dead'; hd.t = 0; hd.atkT = 999; hd.a = Math.min(hd.a, .72);
@@ -560,6 +566,14 @@
   function handsUpdate(v, dt) {
     const b = G.boss; if (!b || !b.hands) return;
     b.t=(b.t||0)+dt;
+    /* renforts : des défenseurs arrivent en continu pour occuper le joueur
+       pendant qu'il tire sur les doigts qui trouent le sas (demande joueur). */
+    v.handT = (v.handT || 0) + dt;
+    if (v.handT > 3.4 && G.enemies.filter(e => e.nv).length < 4) {
+      v.handT = 0;
+      if (chance(.5)) { foe('lance', L_W * .24, -50, { ty: L_H * .52 }); foe('lance', L_W * .76, -80, { ty: L_H * .48 }); }
+      else foe('dard', L_W * (chance(.5) ? .3 : .7), -50, { ty: 150 });
+    }
     for(const hd of b.hands){
       hd.t+=dt;hd.flash=Math.max(0,hd.flash-dt*8);
       hd.x=DOOR2.x+hd.side*DOOR2.w*.14;hd.y=DOOR2.y+18;
@@ -576,6 +590,9 @@
   }
   function startTear(v) {
     const b = G.boss; go('tear'); v.noFire = true; v.lbTo = 1; G.ebullets.length = 0; b.hp = 1;
+    /* les renforts ont fait leur travail : le sas qui cède les emporte */
+    for (const e of G.enemies) if (e.nv) explode(e.x, e.y, 1.1, '#ff3c52', '#ffd0a0');
+    G.enemies.length = 0;
     for (const hd of b.hands) { hd.mode = 'grip'; hd.t = 0; hd.a = 1; hd.fr = hd.side < 0 ? 4 : 5; }
     sfx('door'); FX.addShake(10);
   }
@@ -608,7 +625,7 @@
   const FORM_KEYS = ['form1', 'form2', 'form3'];
   /* Une seule réserve de PV pour les trois formes : la jauge ne se remet plus à zéro.
      Les changements de forme surviennent aux seuils 2/3 et 1/3 de cette réserve. */
-  const VORAX_POOL = .85;
+  const VORAX_POOL = .72;
   function formHp(b) { return Math.max(1, Math.round(b.nv.vMax * VORAX_POOL)); }
   const ATK = [
     ['laser', 'palms', 'orbs', 'spiral', 'laser', 'rain'],
@@ -848,6 +865,11 @@
     }
     const d2 = v.door2;
     if (d2) { d2.flash = Math.max(0, d2.flash - dt * 3); d2.shake = Math.max(0, d2.shake - dt * 14); if (d2.halves) { d2.ht = (d2.ht || 0) + dt; for (const p of d2.halves) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 240 * dt; p.r += p.vr * dt; p.s += dt * .9; } } }
+    /* thème original de VORAX : démarre dès que ses mains trouent le sas et
+       couvre tout le final, s'arrête à sa mort (le boss du secteur 24 n'est pas
+       créé via spawnBoss, qui lancerait normalement la musique de boss). */
+    if (G.boss && !G.boss.dead && ['hands', 'tear', 'reveal', 'morph', 'vorax'].includes(v.stage) && !VORAX_MUSIC.running) { try { Audio2.startBossMusic(23); } catch (e) { } }
+    if ((v.stage === 'dead' || v.stage === 'complete') && VORAX_MUSIC.running) VORAX_MUSIC.stop();
     if (G.harvest && G.phase !== 'harvest') updateHarvest(dt);
   };
   const _updateBoss = updateBoss;
@@ -1143,9 +1165,105 @@
     ctx.restore();
     if (v.stage === 'alarm' && !window.NV24ANIME && window.nvAlertDraw) { const X = window.nvAlertText; window.nvAlertDraw(v.t, 3.7, { title: X.tr(X.title), name: X.tr(X.unknown), sub: tr(TXT.gate), y: .58 }); }
   }
+  /* =====================================================================
+     THÈME DE VORAX — composition originale entièrement synthétisée en
+     WebAudio (aucun fichier tiers : libre de droit par construction).
+     Ton mythique et oppressant : ralentissement à 68 BPM, ré mineur,
+     nappes graves, timbales, double pulsation de cœur, lead plaintif et
+     montée de tension en fin de boucle. Remplace la piste MP3 boss23. */
+  const VORAX_MUSIC = (() => {
+    const ROOT = 36.71;                                   /* D1 */
+    const CHORDS = [[0, 3, 7], [-2, 2, 5], [7, 11, 14], [5, 9, 12]];
+    const LEAD = [
+      [12, -1, 7, -1, 3, -1, 7, -1, 12, -1, 10, 7, 3, -1, -1, -1],
+      [10, -1, 7, -1, 5, -1, 7, -1, 10, -1, 12, 10, 7, -1, -1, -1],
+      [14, -1, 12, -1, 10, -1, 7, -1, 12, -1, 10, 7, 5, -1, 7, -1],
+      [15, -1, 14, 12, 10, 12, 14, -1, 17, -1, -1, 14, 12, -1, 10, -1]
+    ];
+    const BASS = [0, -1, -1, 0, -1, -1, 7, -1, 0, -1, -1, 7, -1, -1, 0, -1];
+    let gain = null, running = false, step = 0, nextT = 0;
+    const A = () => Audio2;
+    function node() {
+      if (gain || !A().musicGain) return gain;
+      gain = A().ctx.createGain(); gain.gain.value = 0; gain.connect(A().musicGain); return gain;
+    }
+    function vol() { return A().muted ? 0 : cl((S.opts.music || 0) / 100, 0, 1) * .9; }
+    function start() {
+      const au = A(); au.init(); au.unlock(); if (!au.ok || running) return;
+      if (!node()) return;
+      if (typeof mxStop === 'function') { try { mxStop(.6); } catch (e) { } }
+      running = true; step = 0; nextT = au.ctx.currentTime + .12;
+      au.running = true; au.mode = 'boss'; au.boss = true;
+      gain.gain.cancelScheduledValues(au.ctx.currentTime);
+      gain.gain.setTargetAtTime(vol(), au.ctx.currentTime, .8);
+    }
+    function stop() {
+      if (!running) return; running = false;
+      const au = A();
+      if (gain && au.ctx) gain.gain.setTargetAtTime(0, au.ctx.currentTime, .25);
+      try { au.running = false; } catch (e) { }
+    }
+    function tick() {
+      const au = A();
+      if (!running || !au.ok || !gain) return;
+      gain.gain.setTargetAtTime(vol(), au.ctx.currentTime, .15);
+      const sd = 60 / 68 / 4;                            /* double-croche à 68 BPM */
+      let guard = 0;
+      while (nextT < au.ctx.currentTime + .18 && guard++ < 16) {
+        const i = step % 64, bar = Math.floor(i / 16), st = i % 16, chord = CHORDS[bar];
+        /* nappe : accord mineur/majeur tenu, deux fois par mesure */
+        if (st === 0 || st === 8) for (const n of chord) au.voice(nextT, {
+          f: n2f(n + 12, ROOT), dur: sd * 7.4, type: 'sawtooth', vol: .032, dest: gain, send: .65,
+          filter: { type: 'lowpass', f: 950, q: .9 }, pan: n === chord[0] ? -.2 : .2
+        });
+        /* basse profondeur */
+        const b = BASS[st];
+        if (b >= 0) {
+          au.voice(nextT, { f: n2f(b, ROOT), dur: sd * 2.6, type: 'triangle', vol: .2, dest: gain, send: .2 });
+          au.voice(nextT, { f: n2f(b, ROOT) / 2, dur: sd * 2.2, type: 'sine', vol: .14, dest: gain });
+        }
+        /* timbale au début de chaque mesure + double pulsation de cœur */
+        if (st === 0) {
+          au.voice(nextT, { f: 118, f2: 46, dur: .42, type: 'sine', vol: .26, dest: gain });
+          au.noise(nextT, { dur: .22, vol: .14, f: 1400, f2: 120, type: 'lowpass', dest: gain });
+        }
+        if (st === 3) au.voice(nextT, { f: 62, f2: 48, dur: .16, type: 'sine', vol: .12, dest: gain });
+        /* lead mythique : timbre carré adouci, léger vibrato */
+        const ln = LEAD[bar][st];
+        if (ln >= 0) au.voice(nextT, {
+          f: n2f(ln + 24, ROOT), dur: sd * (st % 4 === 0 ? 2.6 : 1.5),
+          type: bar === 3 ? 'sawtooth' : 'square', vol: .045, dest: gain, send: .5, vibrato: .004,
+          filter: { type: 'lowpass', f: 2600, q: 1.6 }, pan: (st % 2 ? .16 : -.16)
+        });
+        /* chapeau discret sur les contretemps */
+        if (st % 2 === 1) au.noise(nextT, { dur: .03, vol: .012, f: 7800, f2: 3800, type: 'highpass', dest: gain, pan: st % 4 ? .25 : -.25 });
+        /* montée de tension : dernier demi-cycle de la boucle */
+        if (bar === 3 && st >= 10) {
+          const k = (st - 10) / 6;
+          au.noise(nextT, { dur: .18, vol: .02 + k * .05, f: 500 + k * 3200, f2: 200, type: 'bandpass', q: 1.4, dest: gain });
+          if (st % 2 === 0) au.voice(nextT, { f: n2f(19 + k * 8, ROOT), dur: .3, type: 'sawtooth', vol: .03 + k * .03, dest: gain, send: .7, filter: { type: 'lowpass', f: 1200 + k * 2600, q: 2 } });
+        }
+        nextT += sd; step++;
+      }
+    }
+    return { start, stop, tick, get running() { return running; } };
+  })();
+  /* la bande originale MP3 cède la place au thème original sur le secteur 24 */
+  if (typeof mxWant === 'function') {
+    const _mxWant = mxWant;
+    mxWant = function () { if (on() && G.boss) return null; return _mxWant.apply(this, arguments); };
+  }
+  const _s24SBM = Audio2.startBossMusic.bind(Audio2);
+  Audio2.startBossMusic = function (idx) { if (on() && G.boss) { VORAX_MUSIC.start(); return; } return _s24SBM(idx); };
+  const _s24Stop = Audio2.stopMusic.bind(Audio2);
+  Audio2.stopMusic = function () { VORAX_MUSIC.stop(); return _s24Stop(); };
+  const _s24Tick = Audio2.musicTick.bind(Audio2);
+  Audio2.musicTick = function () { _s24Tick(); try { VORAX_MUSIC.tick(); } catch (e) { } };
+
   /* Hooks uniquement présents sur l'URL de test automatisé. */
   if (new URLSearchParams(location.search).has('nv24test') || new URLSearchParams(location.search).has('nv24play')) {
     window.NV24_TEST = { V, go, hurtBoss, hurtHand, syncHands, formHp, startMorph, startTear,
-      get boss() { return G.boss; }, get stage() { return V().stage; } };
+      get boss() { return G.boss; }, get stage() { return V().stage; },
+      get music() { return { running: VORAX_MUSIC.running, mxWant: (typeof mxWant === 'function' ? mxWant() : null) }; } };
   }
 })();
