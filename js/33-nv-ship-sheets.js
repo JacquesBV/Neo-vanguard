@@ -185,7 +185,13 @@
     if ((P.vy || 0) < -60) return [ROWS.boost, Math.floor(t * 14) % 2];
     return [ROWS.idle, Math.floor(t * 11) % 4];
   }
-  const NVS = window.NVS = { cur: null, on: () => !!NVS.cur };
+  const NVS = window.NVS = {
+    cur: null, on: () => !!NVS.cur,
+    /* préchargement explicite de la planche de la coque équipée (écran titre,
+       annonce de secteur) pour que le vaisseau soit complet dès la 1re frame */
+    preload(id, gen) { try { const ship = id || S.sel.ship; const row = SHEETS[ship]; if (!row) return; const d = row[Math.max(0, Math.min(5, gen === undefined ? (G.eraIdx || 0) : gen))]; const key = d[0]; if (!IMG[key]) { const im = new Image(); im.onload = () => { im._ok = true; }; im.onerror = () => { im._bad = true; }; im.src = key; IMG[key] = im; } } catch (e) { } },
+    sheetReady() { try { return !!sheetFor(S.sel.ship); } catch (e) { return false; } }
+  };
 
   const prevSprite = drawSpriteTo;
   drawSpriteTo = function (g, K, id, x, y, opt = {}) {

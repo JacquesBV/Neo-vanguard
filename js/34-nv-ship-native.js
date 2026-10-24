@@ -218,6 +218,11 @@
     if (NVN.cur && opt && opt.kind === 'player' && draw(g, K, NVN.cur.id, x, y, opt.scale, opt.alpha, NVN.cur.P) !== false) return;
     return prevSprite.apply(this, arguments);
   };
+  /* État de préchargement de la coque native (utilisé par le moteur pour ne
+     jamais dessiner les réacteurs seuls avant la coque — le « hublot fantôme »). */
+  window.NVN_READY = function (id, gen) {
+    try { return !!master(id, ROW_OF_GEN[Math.max(0, Math.min(5, gen | 0))]); } catch (e) { return false; }
+  };
   const prevPlayer = drawPlayer;
   drawPlayer = function (pl) {
     const P = pl || G.player, id = S.sel.ship;

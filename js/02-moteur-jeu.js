@@ -6472,6 +6472,7 @@ function spawnPlayers() {
     const P = makePlayer(i);
     P.lives = d.lives - 1;                       /* vies supplémentaires */
     P.bombs = clamp(2 + D.lv('bomb'), 0, 5);
+    P.flyAway = null;                            /* réarmement du flyaway de fin de S24 */
     G.players.push(P);
   }
   placePlayers();
@@ -6540,6 +6541,17 @@ function updatePlayerOne(P, dt) {
     P.dead += dt; if (P.dead > 1.6) respawn(P); return;
   }
   P.anim += dt;
+  /* --- fin du S24 : départ en accélération, réacteurs en boost, vibration --- */
+  if (P.flyAway != null) {
+    P.flyAway += dt;
+    P.vx = lerp2(P.vx || 0, 0, dt * 3);
+    P.vy = lerp2(P.vy || 0, -1050, Math.min(1, dt * 1.7));   /* poussée croissante */
+    P.x += P.vx * dt; P.y += P.vy * dt;
+    P.bank = lerp2(P.bank || 0, 0, dt * 4);
+    const beat = Math.floor(P.flyAway * 5);
+    if (beat !== P._flyBeat) { P._flyBeat = beat; FX.addShake(5); try { if (navigator.vibrate) navigator.vibrate(35); } catch (e) { } }
+    return;
+  }
   if (cheatOn('power')) P.power = 5;   /* cheat ARMEMENT MAXIMAL */
   const ax = axis(P.id);
   let dx = ax.x, dy = ax.y;
@@ -7454,8 +7466,19 @@ function updateBoss(dt) {
   b.t += dt;
   if (b.flash > 0) b.flash -= dt;
   for (const p of b.parts) { p.t += dt; if (p.flash > 0) p.flash -= dt; p.oa += dt * 0.5 * (p.dead ? 0 : 1); }
-  /* entrée */
-  if (b.enter) { b.y = lerp2(b.y, 265, dt * 1.15); if (b.y > 256) b.enter = false; return; }
+  /* entrée : la bannière se déclenche au moment exact où le boss pénètre
+     dans le champ, avec secousse, flash et vibration — jamais avant. */
+  if (b.enter) {
+    b.y = lerp2(b.y, 265, dt * 1.15);
+    if (b.y > 256) {
+      b.enter = false;
+      G.bossEnterT = 2.4; G.bossWarnTotal = 2.4; G.bossWarnT = 2.4;
+      FX.addShake(16); FX.addFlash(0.22, R.era === 0 ? TH.livery.gb[2] : '#ff405f');
+      Audio2.sfx('bossAlarm');
+      try { if (navigator.vibrate) navigator.vibrate(80); } catch (e) { }
+    }
+    return;
+  }
   /* état visuel : iris qui s'ouvre quand les têtes tombent, fumée quand la
      coque cède, étincelles sur les passages de phase */
   if (b.openT === undefined) b.openT = 0;
@@ -7659,7 +7682,7 @@ function updateLevelFlow(dt) {
     G.waveT += dt;
     while (G.waveIdx < G.plan.length && G.plan[G.waveIdx].t <= G.waveT) { G.plan[G.waveIdx].fn(); G.waveIdx++; }
     if (G.waveIdx >= G.plan.length && G.enemies.length === 0 && G.waveT > G.plan[G.plan.length - 1].t + 3) {
-      G.phase = 'bossWarn'; G.bossWarnT = 0;
+      G.phase = 'bossWarn'; G.bossWarnT = 0; G.bossWarnTotal = 3.6; G.bossEnterT = 0;
       if (typeof radioClear === 'function') radioClear();
       Audio2.sfx('bossAlarm');
       FX.addFlash(0.22, R.era === 0 ? TH.livery.gb[2] : '#ff405f');
@@ -7789,8 +7812,22 @@ function playerEnergy() {
   return LV_ENG;
 }
 function drawPlayers() { for (const P of G.players) drawPlayer(P); }
+/* La coque peinte (modules 33/34) est-elle prête ? Tant qu'elle ne l'est pas,
+   on ne dessine PAS les réacteurs du moteur : auparavant une lueur cyan
+   (« hublot ») apparaissait seule, avant le vaisseau. */
+function shipArtReady() {
+  try {
+    if (window.NVN_READY && !NVN_READY(S.sel.ship, R.era)) {
+      if (window.NVS && typeof NVS.sheetReady === 'function' && NVS.sheetReady()) return true;
+      return false;
+    }
+    return true;
+  } catch (e) { return true; }
+}
 function drawPlayer(pl) {
   const P = pl || G.player; if (!P || !P.alive) return;
+  /* flyaway final : une fois hors champ, ne plus rien dessiner */
+  if (P.flyAway != null && P.y < -160) return;
   useBuf(R.bufNear);
   const g = PAINT.g, K = PAINT.K, e = R.era;
   /* L'invulnérabilité protège sans rendre le vaisseau translucide. */
@@ -7803,12 +7840,12 @@ function drawPlayer(pl) {
   const hue = h.hue, sat = h.sat, light = h.light;
   playerEnergy();
   CUR_TWK = liveryTweak(h); TWK_SIG = h._sig || '';
-  /* --- réacteurs animés (sous le sprite) --- */
+  /* --- réacteurs animés (sous le sprite), seulement si la coque est prête --- */
   const fl = 0.75 + Math.sin(P.anim * 34) * 0.22;
   const baseBox = spriteBox(S.sel.ship);
   const box = { w: baseBox.w * playerTouchScale, h: baseBox.h * playerTouchScale };
-  const jets = EXH[S.sel.ship] || [{ x: -0.08, y: 0.45, r: 0.03 }, { x: 0.08, y: 0.45, r: 0.03 }];
-  for (const j of jets) {
+  const jets = (EXH[S.sel.ship] || [{ x: -0.08, y: 0.45, r: 0.03 }, { x: 0.08, y: 0.45, r: 0.03 }]);
+  if (shipArtReady()) for (const j of jets) {
     const cx = x + j.x * box.w * 0.5, cy = y + j.y * box.h * 0.5;
     const wj = Math.max(2, j.r * box.w * 0.8);
     if (e === 0) { fr(cx - wj * 0.5, cy, wj, 6 * fl, TH.livery.gb[3]); continue; }
@@ -8036,7 +8073,30 @@ function drawBoss() {
   const body = { kind: 'boss', hue, sat, light, flash: b.flash > 0 ? (e === 0 ? 0.85 : e === 1 ? 0.34 : 0.18) : 0 };
   const P2 = G.player;
   const spin = { rot: 0 };
-  /* halo : le boss est toujours éclairé par le dessous (moteurs, noyaux) */
+  /* halo : le boss est toujours éclairé par le dessous (moteurs, noyaux).
+     Halo pulsant + lens flare sur les attaques/flashs (éteint en ère 0 LCD
+     et réduit sur mobile pour tenir le framerate). */
+  if (e >= 1) {
+    const pulse = 0.82 + 0.18 * Math.sin(t * 2.4);
+    const rad = b.r * (IS_TOUCH ? 1.5 : 1.9) * pulse;
+    g.save(); g.globalCompositeOperation = 'lighter';
+    const hg = g.createRadialGradient(x * K, y * K, 0, x * K, y * K, rad * K);
+    hg.addColorStop(0, hexA(bossCol, IS_TOUCH ? 0.16 : 0.24)); hg.addColorStop(0.55, hexA(bossCol, 0.08)); hg.addColorStop(1, hexA(bossCol, 0));
+    g.fillStyle = hg; g.beginPath(); g.arc(x * K, y * K, rad * K, 0, TAU); g.fill();
+    const flare = Math.max(b.flash > 0 ? 0.9 : 0, (b.atkT < 0.45 ? 1 - b.atkT / 0.45 : 0) * 0.8);
+    if (flare > 0.05 && !IS_TOUCH) {
+      const fr2 = b.r * 0.9, fxk = x * K, fyk = y * K;
+      g.globalAlpha = flare * 0.7; g.strokeStyle = hexA(energy, 0.9); g.lineWidth = 2 * K;
+      g.beginPath();
+      g.moveTo(fxk - fr2 * K, fyk); g.lineTo(fxk + fr2 * K, fyk);
+      g.moveTo(fxk, fyk - fr2 * 0.6 * K); g.lineTo(fxk, fyk + fr2 * 0.6 * K);
+      g.stroke();
+      const fg = g.createRadialGradient(fxk, fyk, 0, fxk, fyk, fr2 * 0.35 * K);
+      fg.addColorStop(0, hexA(energy, 0.85 * flare)); fg.addColorStop(1, hexA(energy, 0));
+      g.fillStyle = fg; g.beginPath(); g.arc(fxk, fyk, fr2 * 0.35 * K, 0, TAU); g.fill();
+    }
+    g.restore();
+  }
 
   if (kind === 0) {
     /* ---------- GOLIATH-PRIME : forteresse à deux tourelles de flanc ------ */
@@ -8929,8 +8989,9 @@ function drawHUD() {
       ctx.fillRect(bx + i * 22, by + 14, 18, 4);
     }
   }
-  /* Avertissement compact, placé juste sous le HUD plutôt qu'au milieu du terrain. */
-  if (G.phase === 'bossWarn') drawBossWarning();
+  /* Avertissement compact, placé juste sous le HUD plutôt qu'au milieu du terrain.
+     Une seconde occurrence se joue à l'entrée effective du boss (G.bossEnterT). */
+  if (G.phase === 'bossWarn' || G.bossEnterT > 0) drawBossWarning();
   if (S.opts.fps) hudText(ctx, Math.round(R.fps) + ' FPS · ' + R.era + '·' + pCount + 'p' + (GPU.ready ? ' · GPU ' + GPU.fps : ''), x0 + w - 8, y0 + h - 44, '#8ba0c2', 1, { align: 'right' });
   ctx.restore();
   if (G.harvest) drawHarvest();
@@ -9795,7 +9856,7 @@ function toggleFullscreen() {
 
 
 /* ========================= 5. BOUCLE, ÉTATS & DÉMARRAGE =================== */
-const INTRO_DUR = 4.4;
+const INTRO_DUR = 2.8;                       /* annonce courte : le pilotage commence tout de suite */
 let introT = 0, sideRes = 0, autoSaveT = 0;
 
 /* aperçu graphique choisi dans les options (0 auto) */
@@ -10517,6 +10578,10 @@ function startLevel(level) {
   }
   trimCaches();
   SCROLL.y = 0;
+  /* préchargement des sprites du vaisseau équipé : la coque (et pas seulement
+     son réacteur) est prête dès la première frame du secteur */
+  try { if (window.NVS && NVS.preload) NVS.preload(S.sel.ship, G.eraIdx); if (window.NVN_READY) NVN_READY(S.sel.ship, G.eraIdx); } catch (e) { }
+  G._flyStart = 0; G.bossEnterT = 0;
   G.state = 'intro'; introT = 0;
   hideScreens();
   Audio2.startMusic(G.eraIdx, level);
@@ -11988,7 +12053,12 @@ function update(dt) {
   SCROLL.boost = lerp2(SCROLL.boost, wantBoost, dt * (wantBoost > 1 ? 2.2 : 1.1));
   SCROLL.y += SCROLL.speed * SCROLL.boost * dt;
   const st = G.state;
-  if (st === 'title') { titleT += dt; updateAttract(dt); return; }
+  if (st === 'title') {
+    titleT += dt; updateAttract(dt);
+    /* préchauffage discret des sprites du vaisseau équipé, 1×/s */
+    if (!G._shipWarmT || (G._shipWarmT -= dt) <= 0) { G._shipWarmT = 1; try { if (window.NVS && NVS.preload) NVS.preload(S.sel.ship, G.eraIdx || 0); if (window.NVN_READY) NVN_READY(S.sel.ship, G.eraIdx || 0); } catch (e) { } }
+    return;
+  }
   if (st === 'warp') {
     warpUpdate(dt);
     if (G.state === 'warp') {
@@ -12008,6 +12078,9 @@ function update(dt) {
   if (st === 'intro') {
     introT += dt;
     useBuf(R.bufNear);
+    /* le vaisseau est déjà visible ET maniable pendant l'annonce : plus de
+       secteur lancé sans vaisseau en main (les vagues, elles, attendent 'play') */
+    updatePlayers(dt);
     updateParts(dt); updateFTs(dt); updateShocks(dt);
     collFreeUpdate(dt);
     if (introT >= INTRO_DUR) { G.state = 'play'; G.waveT = 0; }
@@ -12025,6 +12098,7 @@ function update(dt) {
   if (typeof NET !== 'undefined' && NET.role === 'guest') { updateGuest(dt); return; }
   /* --- jeu --- */
   G.t += dt;
+  if (G.bossEnterT > 0) { G.bossEnterT -= dt; G.bossWarnT = Math.max(0, G.bossEnterT); }
   updatePlayers(dt);
   updateEnemies(dt);
   updateBullets(dt);
@@ -12056,6 +12130,14 @@ function update(dt) {
     /* Secteur 24 : laisser le temps de lire les mots de Vesta après l'explosion
        de VORAX avant d'enchaîner sur l'épilogue (demande joueur). */
     const endDelay = last && G.level === 24 ? 11 : (last ? 6.5 : 6.0);
+    /* S24 : le vaisseau quitte le champ en boost, propulseurs hurlants,
+       avec secousses et vibration, avant l'épilogue. */
+    if (last && G.level === 24 && G.phaseT > 3.0 && !G._flyStart) {
+      G._flyStart = G.phaseT;
+      for (const p of (G.players || [])) if (p.alive) { p.flyAway = 0; p._flyBeat = -1; p.vy = -120; }
+      Audio2.sfx('warp'); FX.addShake(12);
+      try { if (navigator.vibrate) navigator.vibrate([50, 30, 50, 30, 120]); } catch (e) { }
+    }
     if (G.phaseT > endDelay && !shown) { if (last) { if (G.state !== 'story') beginEpilogue(); } else showClearScreen(); }
   }
   autoSaveT += dt;
@@ -15882,6 +15964,7 @@ const MUSIC_FILES = {
   boss21: 'music/boss21.mp3',
   boss22: 'music/boss22.mp3',
   boss23: 'music/boss23.mp3',
+  vorax: 'music/boss24-vorax.mp3',
   era0: 'music/era0.mp3', era1: 'music/era1.mp3', era2: 'music/era2.mp3',
   era3: 'music/era3.mp3', era4: 'music/era4.mp3', era5: 'music/era5.mp3',
 };
@@ -15891,6 +15974,7 @@ const MUSIC_CREDITS = [
   ['shop', 'Juhani Junkala — Bazaar (CC0)'],
   ['ending', 'Juhani Junkala — Retro Game Music Pack : Ending (CC0)'],
   ['boss', 'Juhani Junkala — Epic Boss Battle (CC0)'],
+  ['vorax', 'Cleyton Kauffman — Battle RPG Theme (CC0, OpenGameArt) : thème final de VORAX (secteur 24)'],
   ['bossThemes', 'HydroGene — High Quality 16-bit RPG Music (CC0) : thèmes dédiés aux 24 affrontements'],
   ['era0', 'OpenGameArt « NES shooter music » — Mars (CC0)'],
   ['era1', 'Juhani Junkala — Retro Game Music Pack : Level 1 (CC0)'],
@@ -15905,7 +15989,7 @@ function mxEnabled() { return MX.ok && S.opts.ost !== 0; }
 function mxVol() { return Audio2.muted ? 0 : clamp((S.opts.music | 0) / 100, 0, 1) * 0.9; }
 /* égalisation de niveau : RMS mesuré par piste (dBFS) → gain pour ramener tout
    le monde vers −16 dB ; les pistes déjà douces restent à 1 (plafond HTMLAudio) */
-const MX_RMS = { boss: -10.0, boss0: -17.2, boss1: -17.2, boss2: -16.8, boss3: -18.6, boss4: -18.0, boss5: -17.9, boss6: -18.2, boss7: -17.6, boss8: -15.1, boss9: -20.8, boss10: -17.9, boss11: -18.2, boss12: -18.6, boss13: -16.2, boss14: -17.6, boss15: -17.9, boss16: -21.3, boss17: -18.8, boss18: -16.4, boss19: -21.0, boss20: -17.8, boss21: -18.3, boss22: -18.7, boss23: -18.1, ending: -12.4, era0: -20.8, era1: -8.6, era2: -8.6, era3: -9.9, era4: -19.4, era5: -9.1, shop: -14.8, story: -15.8, title: -16, gate: -16 };
+const MX_RMS = { boss: -10.0, boss0: -17.2, boss1: -17.2, boss2: -16.8, boss3: -18.6, boss4: -18.0, boss5: -17.9, boss6: -18.2, boss7: -17.6, boss8: -15.1, boss9: -20.8, boss10: -17.9, boss11: -18.2, boss12: -18.6, boss13: -16.2, boss14: -17.6, boss15: -17.9, boss16: -21.3, boss17: -18.8, boss18: -16.4, boss19: -21.0, boss20: -17.8, boss21: -18.3, boss22: -18.7, boss23: -18.1, vorax: -14.4, ending: -12.4, era0: -20.8, era1: -8.6, era2: -8.6, era3: -9.9, era4: -19.4, era5: -9.1, shop: -14.8, story: -15.8, title: -16, gate: -16 };
 function mxGain(key) { const r = MX_RMS[key]; return r === undefined ? 1 : Math.min(1, Math.pow(10, (-16 - r) / 20)); }
 function mxKeyOf(a) { for (const k in MX.els) if (MX.els[k] === a) return k; return null; }
 function mxEl(key) {
