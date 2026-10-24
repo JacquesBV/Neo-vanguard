@@ -129,22 +129,44 @@
     const r = o.rot || 0, c = Math.cos(r), s = Math.sin(r);
     return [x + lx * c - ly * s, y + lx * s + ly * c];
   }
+  /* PERF MOBILE : timbres radiaux/flammes précalculés une fois par couleur,
+     puis réutilisés en drawImage (aucun createGradient par frame). */
+  const GLOW_STAMPS = new Map();
+  function glowStamp(rgb) {
+    let c = GLOW_STAMPS.get(rgb);
+    if (!c) {
+      const S = 64; c = document.createElement('canvas'); c.width = c.height = S;
+      const x = c.getContext('2d'), gr = x.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+      gr.addColorStop(0, 'rgba(' + rgb + ',1)'); gr.addColorStop(.35, 'rgba(' + rgb + ',.45)'); gr.addColorStop(1, 'rgba(' + rgb + ',0)');
+      x.fillStyle = gr; x.fillRect(0, 0, S, S);
+      GLOW_STAMPS.set(rgb, c); if (GLOW_STAMPS.size > 48) GLOW_STAMPS.delete(GLOW_STAMPS.keys().next().value);
+    }
+    return c;
+  }
+  const FLAME_STAMPS = new Map();
+  function flameStamp(rgb) {
+    let c = FLAME_STAMPS.get(rgb);
+    if (!c) {
+      const W = 32, H = 64; c = document.createElement('canvas'); c.width = W; c.height = H;
+      const x = c.getContext('2d'), gr = x.createLinearGradient(0, H, 0, 0);
+      gr.addColorStop(0, 'rgba(255,255,255,.95)'); gr.addColorStop(.22, 'rgba(' + rgb + ',.85)'); gr.addColorStop(1, 'rgba(' + rgb + ',0)');
+      x.fillStyle = gr; x.beginPath(); x.moveTo(W * .2, H * .95); x.quadraticCurveTo(W * .3, H * .5, W / 2, 1); x.quadraticCurveTo(W * .7, H * .5, W * .8, H * .95); x.quadraticCurveTo(W / 2, H, W * .2, H * .95); x.fill();
+      x.globalAlpha = .55; x.fillStyle = '#ffffff'; x.beginPath(); x.ellipse(W / 2, H * .96, W * .28, W * .12, 0, 0, TAU); x.fill();
+      FLAME_STAMPS.set(rgb, c); if (FLAME_STAMPS.size > 24) FLAME_STAMPS.delete(FLAME_STAMPS.keys().next().value);
+    }
+    return c;
+  }
   function glow(x, y, r, rgb, a) {
     if (!(a > 0) || !(r > 0) || !isFinite(x) || !isFinite(y)) return;
     const g = P(), K = KK(); g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = Math.min(1, a);
-    const gr = g.createRadialGradient(x * K, y * K, 0, x * K, y * K, r * K);
-    gr.addColorStop(0, 'rgba(' + rgb + ',1)'); gr.addColorStop(.35, 'rgba(' + rgb + ',.45)'); gr.addColorStop(1, 'rgba(' + rgb + ',0)');
-    g.fillStyle = gr; g.fillRect((x - r) * K, (y - r) * K, 2 * r * K, 2 * r * K); g.restore();
+    g.drawImage(glowStamp(rgb), (x - r) * K, (y - r) * K, 2 * r * K, 2 * r * K); g.restore();
   }
   /* flamme de réacteur : ang = direction dans laquelle la flamme s'étire */
   function flame(x, y, ang, len, wid, t, rgb = '176,92,255') {
     const g = P(), K = KK(), f = .78 + .22 * Math.sin(t * 47 + x) + .12 * Math.sin(t * 83 + y);
     const L = len * f;
     g.save(); g.translate(x * K, y * K); g.rotate(ang - Math.PI / 2); g.globalCompositeOperation = 'lighter';
-    const gr = g.createLinearGradient(0, 0, 0, L * K);
-    gr.addColorStop(0, 'rgba(255,255,255,.95)'); gr.addColorStop(.22, 'rgba(' + rgb + ',.85)'); gr.addColorStop(1, 'rgba(' + rgb + ',0)');
-    g.fillStyle = gr; g.beginPath(); g.moveTo(-wid / 2 * K, 0); g.quadraticCurveTo(-wid * .35 * K, L * .55 * K, 0, L * K); g.quadraticCurveTo(wid * .35 * K, L * .55 * K, wid / 2 * K, 0); g.closePath(); g.fill();
-    g.globalAlpha = .55; g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(0, 1 * K, wid * .28 * K, wid * .2 * K, 0, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = .95; g.drawImage(flameStamp(rgb), -wid / 2 * K, -L * K, wid * K, L * K);
     g.restore();
   }
   function bolt(x1, y1, x2, y2, seed, w, col, jag = 12) {
@@ -163,10 +185,16 @@
   const S_ = () => eScale();
   function shot(x, y, ang, sp, kind = 'ball', o = {}) { eb(x, y, ang, sp * S_().bs, kind, o); }
   function aimAt(x, y) { const t = target(x, y); return Math.atan2(t.y - y, t.x - x); }
+  const MOBILE = matchMedia('(pointer:coarse)').matches || innerWidth < 760;
   function shards(x, y, n, cols, spd = 260, size = 5) {
+    if (MOBILE) n = Math.max(4, Math.ceil(n / 2));            /* mobile : moitié moins de fragments */
     for (let i = 0; i < n; i++) { const a = rnd(TAU), v = rnd(spd, spd * .3); spawnPart({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, life: rnd(1.1, .4), col: pick(cols), size: rnd(size, size * .4), glow: true, drag: .94 }); }
   }
   function sfx(n, o) { try { Audio2.sfx(n, o); } catch (e) { } }
+  /* échantillons du pack ANIME (assets/sector24/audio) : chaque événement
+     important du secteur 24 a enfin son son dédié. Le synthé reste en secours
+     via sfx() si le fichier est absent. */
+  function packSnd(n) { try { if (window.NV24ANIME) NV24ANIME.sound(n); } catch (e) { } }
 
   /* =============================================================== ÉTAT */
   function init() {
@@ -224,7 +252,7 @@
         if (e.st === 0) { e.y += (e.ty - e.y) * Math.min(1, dt * 2.4); e.x = e.x0 + Math.sin(e.k * 2.2 + e.spin) * 30; if (e.k > 1.6) { e.st = 1; e.k = 0; } }
         else if (e.st === 1) { e.x = e.x0 + Math.sin(e.k * 2.2 + e.spin) * 30 + Math.sin(e.k * 1.1) * 70; e.y += 16 * dt; if (e.k > 2.6) { e.st = 2; e.k = 0; e.vx = 0; e.vy = 60; } }
         else { e.vx += cl(T.x - e.x, -1, 1) * 260 * dt; e.vx = cl(e.vx, -170, 170); e.vy = Math.min(360, e.vy + 380 * dt); e.x += e.vx * dt; e.y += e.vy * dt; }
-        e.cd -= dt; if (live && e.st < 2 && e.cd <= 0) { e.cd = rnd(2.7, 1.9); const [mx, my] = [e.x, e.y + 20]; shot(mx, my, aimAt(mx, my), 165, 'ball', { r: 7 }); e.recoil = .5; sfx('ehit'); }
+        e.cd -= dt; if (live && e.st < 2 && e.cd <= 0) { e.cd = rnd(2.7, 1.9); const [mx, my] = [e.x, e.y + 20]; shot(mx, my, aimAt(mx, my), 165, 'ball', { r: 7 }); e.recoil = .5; sfx('ehit'); packSnd('01_intercepteur_tir'); }
         if (chance(dt * 26)) spawnPart({ x: e.x + rnd(14, -14), y: e.y - 28, vx: rnd(20, -20), vy: -rnd(90, 40), life: .28, col: pick(['#c27bff', '#ffffff', '#8a5cff']), size: 2.4, glow: true });
         break; }
       case 'orbe': {
@@ -248,7 +276,7 @@
           if (e.cd <= 0 && live) {
             e.cd = rnd(2.4, 1.8);
             const w = FOE.griffe.w, S = SP && SP.foes[2]; const tips = [[800, 380], [940, 460], [1065, 370], [1145, 430]];
-            for (const [px, py] of tips) { const p = S ? kp(S, px, py, e.x, e.y, w) : [e.x, e.y + 20]; shot(p[0], p[1], aimAt(p[0], p[1]) + rnd(.12, -.12), 150, 'ball', { r: 6 }); } sfx('ehit');
+            for (const [px, py] of tips) { const p = S ? kp(S, px, py, e.x, e.y, w) : [e.x, e.y + 20]; shot(p[0], p[1], aimAt(p[0], p[1]) + rnd(.12, -.12), 150, 'ball', { r: 6 }); } sfx('ehit'); packSnd('01_intercepteur_tir');
           }
         }
         break; }
@@ -259,7 +287,7 @@
         const want = Math.atan2(T.y - e.y, T.x - e.x), lim = .52, rel = cl(want - Math.PI / 2, -lim, lim);
         e.aimA += cl(Math.PI / 2 + rel - e.aimA, -1.4 * dt, 1.4 * dt);
         e.cd -= dt;
-        if (e.cd <= 0 && live) { e.burst = 3; e.bT = 0; e.cd = rnd(3.3, 2.6); }
+        if (e.cd <= 0 && live) { e.burst = 3; e.bT = 0; e.cd = rnd(3.3, 2.6); packSnd('02_tourelle_double'); }
         if (e.burst > 0) { e.bT -= dt; if (e.bT <= 0) { e.bT = .2; e.burst--; e.recoil = 1; e.bar = ((e.bar | 0) + 1) % 2; const mz = muzzle(e); shot(mz[0], mz[1], e.aimA, 210, 'laser', { r: 7 }); spawnPart({ x: mz[0], y: mz[1], vx: Math.cos(e.aimA) * 90, vy: Math.sin(e.aimA) * 90, life: .14, col: '#ffd0d6', size: 7, glow: true }); sfx('cannon'); } }
         break; }
       case 'manta': {
@@ -269,7 +297,7 @@
         if (e.cd <= 0 && e.y > 60) {
           e.cd = 3.1; e.salvo = ((e.salvo | 0) + 1);
           const S = SP && SP.foes[4], pods = [[100, 690], [130, 630], [345, 640], [375, 690]];
-          if (e.salvo % 2) { for (const [px, py] of pods) { const p = S ? kp(S, px, py, e.x, e.y, FOE.manta.w, { rot: Math.PI }) : [e.x, e.y]; shot(p[0], p[1], Math.PI / 2 + rnd(.5, -.5), 115, 'missile', { r: 8, steer: 1.5 }); } sfx('cannon'); }
+          if (e.salvo % 2) { for (const [px, py] of pods) { const p = S ? kp(S, px, py, e.x, e.y, FOE.manta.w, { rot: Math.PI }) : [e.x, e.y]; shot(p[0], p[1], Math.PI / 2 + rnd(.5, -.5), 115, 'missile', { r: 8, steer: 1.5 }); } sfx('cannon'); packSnd('03_missile_depart'); }
           else { const a = aimAt(e.x, e.y + 40); for (let i = 0; i < 9; i++) shot(e.x, e.y + 40, a + (i - 4) * .13, 150, 'ball', { r: 9 }); sfx('ehit'); }
           e.recoil = 1;
         }
@@ -282,7 +310,7 @@
         break; }
       case 'dard': {
         if (e.st === 0) { e.y += (e.ty - e.y) * Math.min(1, dt * 3.2); if (Math.abs(e.y - e.ty) < 6 || e.k > 1.4) { e.st = 1; e.k = 0; e.lockX = T.x; e.lockY = T.y; sfx('alert'); } }
-        else if (e.st === 1) { if (e.k < .45) { e.lockX = T.x; e.lockY = T.y; } if (e.k > .7) { e.st = 2; e.k = 0; const a = Math.atan2(e.lockY - e.y, e.lockX - e.x); e.vx = Math.cos(a); e.vy = Math.sin(a); sfx('dash'); } }
+        else if (e.st === 1) { if (e.k < .45) { e.lockX = T.x; e.lockY = T.y; } if (e.k > .7) { e.st = 2; e.k = 0; const a = Math.atan2(e.lockY - e.y, e.lockX - e.x); e.vx = Math.cos(a); e.vy = Math.sin(a); sfx('dash'); packSnd('01_intercepteur_tir'); } }
         else { const sp = Math.min(620, 140 + e.k * 1400); e.x += e.vx * sp * dt; e.y += e.vy * sp * dt; if (chance(dt * 60)) spawnPart({ x: e.x, y: e.y, vx: -e.vx * 60, vy: -e.vy * 60, life: .3, col: pick(['#ff3c52', '#c27bff']), size: 4, glow: true }); /* pas de réapparition : le dard sort et quitte la carte */ if (e.y < -120 || e.x < -90 || e.x > L_W + 90) e.gone = true; }
         break; }
       case 'gatling': {
@@ -291,7 +319,7 @@
         const gWant = cl(aimAt(e.x, e.y), e.side < 0 ? -.2 : Math.PI / 2 - .2, e.side < 0 ? Math.PI / 2 + .2 : Math.PI + .2);
         e.aimA += cl(gWant - e.aimA, -2.0 * dt, 2.0 * dt);
         e.cd -= dt;
-        if (e.cd <= 0 && live) { e.burst = 6; e.bT = 0; e.cd = rnd(3.7, 3.0); e.spinUp = 1; }
+        if (e.cd <= 0 && live) { e.burst = 6; e.bT = 0; e.cd = rnd(3.7, 3.0); e.spinUp = 1; packSnd('02_tourelle_double'); }
         if (e.spinUp > 0) e.spinUp = Math.max(0, e.spinUp - dt * .7);
         if (e.burst > 0) { e.bT -= dt; if (e.bT <= 0) { e.bT = .075; e.burst--; e.recoil = 1; const mz = muzzle(e); const a = cl(aimAt(mz[0], mz[1]), e.side < 0 ? -.2 : Math.PI / 2 - .2, e.side < 0 ? Math.PI / 2 + .2 : Math.PI + .2); shot(mz[0], mz[1], a + rnd(.06, -.06), 235, 'ball', { r: 5 }); if (e.burst % 3 === 0) sfx('ehit'); } }
         e.spin += dt * (3 + (e.burst > 0 ? 30 : e.spinUp * 20));
@@ -321,7 +349,9 @@
     if (e && e.nv && on()) {
       shards(e.x, e.y, e.nv === 'manta' ? 34 : 14, ['#c27bff', '#ff3c52', '#ffffff', '#7a6c8f'], e.nv === 'manta' ? 340 : 220, e.nv === 'manta' ? 8 : 5);
       if (typeof SHOCK !== 'undefined') SHOCK.push({ x: e.x, y: e.y, t: 0, life: .35, max: e.r * 2.6, col: '#c27bff' });
-      if (e.nv === 'manta') { FX.addShake(10); FX.addFlash(.2, '#ffd9f0'); for (let i = 0; i < 4; i++) explode(e.x + rnd(50, -50), e.y + rnd(30, -30), 1.6, '#ff3c52', '#ffd0a0'); }
+      if (e.nv === 'manta' || e.nv === 'tambour') { FX.addShake(10); FX.addFlash(.2, '#ffd9f0'); for (let i = 0; i < 4; i++) explode(e.x + rnd(50, -50), e.y + rnd(30, -30), 1.6, '#ff3c52', '#ffd0a0'); packSnd('06_bombardier_explosion'); }
+      else if (e.nv === 'tourelle' || e.nv === 'gatling') packSnd('07_tourelle_detruite');
+      else packSnd('05_drone_explosion');
     }
     return _killEnemy(e);
   };
@@ -496,7 +526,7 @@
       d.emitT = 1.5 * rate; d.side *= -1;
       const ex = d.x + d.side * d.w * .41, ey = d.y - h * .18;
       const a = aimAt(ex, ey); for (let i = -1; i <= 1; i++) shot(ex, ey, a + i * .18, 170, 'ball', { r: 8 });
-      d['fl' + d.side] = .25; sfx('ehit');
+      d['fl' + d.side] = .25; sfx('ehit'); packSnd('04_impact_blindage');
     }
     if (d.ringT <= 0) { d.ringT = 4.2 * rate; d.core = 1; }
     if (d.corePrev > .35 && d.core <= .35) { const n = 14; for (let i = 0; i < n; i++) shot(d.x, d.y + 10, i / n * TAU + v.t, 118, 'orb', { r: 9 }); sfx('ehit'); FX.addShake(3); }
@@ -533,11 +563,11 @@
     v.offV += (want - v.offV) * Math.min(1, dt * 1.5); v.off = Math.max(0, v.off - v.offV * dt);
     v.nearV = v.offV * 3.4;
     v.door2.y = Math.max(-400, DOOR2.y - v.off * 3.4);
-    if (v.off <= 0 && v.waveI >= HALL.length && !G.enemies.length) { go('alarm'); v.lbTo = 1; v.noFire = true; G.ebullets.length = 0; radioClear && radioClear(); radioSay('cmd', tr(TXT.v4)); sfx('bossAlarm'); }
+    if (v.off <= 0 && v.waveI >= HALL.length && !G.enemies.length) { go('alarm'); v.lbTo = 1; v.noFire = true; G.ebullets.length = 0; radioClear && radioClear(); radioSay('cmd', tr(TXT.v4)); sfx('bossAlarm'); packSnd('15_alerte_electricite'); setTimeout(() => packSnd('16_alerte_verre_brise'), 600); }
   }
   function alarmUpdate(v, dt) {
     autopilot(dt, L_H - 150); v.alarm = v.t;
-    for (const at of [.9, 1.8, 2.5, 3.0, 3.4]) if (v.t - dt < at && v.t >= at) { FX.addShake(9 + at * 3); sfx('explode'); v.door2.shake = 10; v.door2.flash = .3; shards(DOOR2.x + rnd(160, -160), DOOR2.y + rnd(100, -100), 10, ['#8a8494', '#5c5468', '#ffb070'], 200, 6); }
+    for (const at of [.9, 1.8, 2.5, 3.0, 3.4]) if (v.t - dt < at && v.t >= at) { FX.addShake(9 + at * 3); sfx('explode'); packSnd('09_sas_impact'); v.door2.shake = 10; v.door2.flash = .3; shards(DOOR2.x + rnd(160, -160), DOOR2.y + rnd(100, -100), 10, ['#8a8494', '#5c5468', '#ffb070'], 200, 6); }
     if (v.t > 3.7) {
       go('voraxTalk'); v.lbTo = 1; v.noFire = true; radioClear(); for(const line of NV24ANIME.dialogue()) radioSay('kab',line);
       v.hole = 0; FX.addFlash(.4, '#ffe6d0'); FX.addShake(20); sfx('explode', { big: true });
@@ -594,7 +624,7 @@
     for (const e of G.enemies) if (e.nv) explode(e.x, e.y, 1.1, '#ff3c52', '#ffd0a0');
     G.enemies.length = 0;
     for (const hd of b.hands) { hd.mode = 'grip'; hd.t = 0; hd.a = 1; hd.fr = hd.side < 0 ? 4 : 5; }
-    sfx('door'); FX.addShake(10);
+    sfx('door'); FX.addShake(10); packSnd('25_base_effondrement');
   }
   function tearUpdate(v, dt) {
     const b = G.boss; autopilot(dt, L_H - 140);
@@ -636,7 +666,12 @@
     const b = G.boss; autopilot(dt, L_H - 140); b.t = (b.t || 0) + dt;
     const q = eo(v.t / 2.2);
     b.vx = DOOR2.x + (VO.x - DOOR2.x) * q; b.vy = DOOR2.y + (VO.y - DOOR2.y) * q; b.vz = .45 + .55 * q;
-    if (v.t > 1.4 && !v.said.intro) { v.said.intro = 1; FX.addShake(18); sfx('explode', { big: true }); /* Vorax has already spoken behind the sealed gate. */ }
+    if (v.t > 1.4 && !v.said.intro) {
+      v.said.intro = 1; FX.addShake(18); sfx('explode', { big: true }); /* Vorax has already spoken behind the sealed gate. */
+      /* bannière synchronisée avec l'arrivée réelle de Vorax + vibration */
+      G.bossEnterT = 2.4; G.bossWarnTotal = 2.4; G.bossWarnT = 2.4;
+      try { if (navigator.vibrate) navigator.vibrate([60, 40, 90]); } catch (e) { }
+    }
     if (v.t > 2.6) { go('vorax'); b.nv.stage = 'vorax'; v.lbTo = 0; v.noFire = false; b.atkT = 1.0; setTimeout(() => { if (on() && G.boss === b && !b.dead) radioSay('cmd', tr(TXT.v6)); }, 9000); }
   }
   function eyes(b) { if (window.NVBOSS && NVBOSS.vorax.ready()) return NVBOSS.vorax.eyes(b, vpt); return [vpt(b, 303, 75), vpt(b, 346, 75)]; }
@@ -676,6 +711,7 @@
     v.noFire = true; v.lbTo = 1; G.ebullets.length = 0; G.bullets.length = 0; G.phase = 'boss';
     for (const p of players()) p.inv = Math.max(p.inv || 0, 4.2);
     sfx('door'); FX.addShake(18); FX.addFlash(.42, from === 0 ? '#c27bff' : '#ff4058');
+    packSnd('21_vorax_bouclier'); setTimeout(() => packSnd('24_debris_retombee'), 900);
     radioSay('cmd', tr(to === 1 ? TXT.morph1 : TXT.morph2));
   }
   function morphUpdate(v, dt) {
@@ -776,7 +812,9 @@
         if (chance(dt * 46)) for (const h of palms(b)) { const a = rnd(TAU), r = rnd(74, 34); spawnPart({ x: h[0] + Math.cos(a) * r, y: h[1] + Math.sin(a) * r, vx: -Math.cos(a) * r * 3.4, vy: -Math.sin(a) * r * 3.4, life: .3, col: pick(['#ff2238', '#ff8a96', '#ffffff']), size: 3, glow: true }); }
       } else if (t < charge + fire) {
         A.ch = 1; const u = (t - charge) / fire;
-        if (!A.fired) { A.fired = true; sfx('laser'); FX.addFlash(.14, '#ff2238'); FX.addShake(8); }
+        /* 19_VORAX_laser est joué par l'anime à la fin du faisceau (A.ends,
+           garde A.animeSound) : ne pas le redéclencher ici (doublon constaté). */
+        if (!A.fired) { A.fired = true; sfx('laser'); packSnd('20_vorax_poing'); FX.addFlash(.14, '#ff2238'); FX.addShake(8); }
         const spread = 112 + Math.sin(u * Math.PI) * (ph === 2 ? 105 : 55);
         A.ends = [cl(A.tx + spread, -40, L_W + 40), cl(A.tx - spread, -40, L_W + 40)];
         const H = palms(b);
@@ -822,8 +860,9 @@
     if (!G._nv24 || G._nv24.level !== FINAL) init();
     const v = V();
     if(window.NV24ANIME && !NV24ANIME.ready()) { NV24ANIME.loading(); return; }
-    if(v.door && v.door.hp>0) for(const p of players()) p.y=Math.max(p.y,v.door.y+doorH(v.door)/2+p.r+12);
-    if(v.door2 && !['reveal','morph','vorax','dead'].includes(v.stage)) for(const p of players()) p.y=Math.max(p.y,v.door2.y+70+p.r);
+    /* le flyaway final (p.flyAway) est exempté des butées de position du sas */
+    if(v.door && v.door.hp>0) for(const p of players()) if(p.flyAway==null) p.y=Math.max(p.y,v.door.y+doorH(v.door)/2+p.r+12);
+    if(v.door2 && !['reveal','morph','vorax','dead'].includes(v.stage)) for(const p of players()) if(p.flyAway==null) p.y=Math.max(p.y,v.door2.y+70+p.r);
     if(v.stage==='complete') return _flow(dt);
     /* mort : il faut piloter updateBoss (-> animation d'explosion ANIME) depuis ce flux,
        faute de quoi VORAX resterait figé et la fin de niveau ne se déclencherait pas. */
@@ -865,11 +904,8 @@
     }
     const d2 = v.door2;
     if (d2) { d2.flash = Math.max(0, d2.flash - dt * 3); d2.shake = Math.max(0, d2.shake - dt * 14); if (d2.halves) { d2.ht = (d2.ht || 0) + dt; for (const p of d2.halves) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 240 * dt; p.r += p.vr * dt; p.s += dt * .9; } } }
-    /* thème original de VORAX : démarre dès que ses mains trouent le sas et
-       couvre tout le final, s'arrête à sa mort (le boss du secteur 24 n'est pas
-       créé via spawnBoss, qui lancerait normalement la musique de boss). */
-    if (G.boss && !G.boss.dead && ['hands', 'tear', 'reveal', 'morph', 'vorax'].includes(v.stage) && !VORAX_MUSIC.running) { try { Audio2.startBossMusic(23); } catch (e) { } }
-    if ((v.stage === 'dead' || v.stage === 'complete') && VORAX_MUSIC.running) VORAX_MUSIC.stop();
+ /* La musique de VORAX (piste CC0 « vorax ») est pilotée par le sélecteur
+       mxWant surchargé plus bas : aucun déclencheur direct ici. */
     if (G.harvest && G.phase !== 'harvest') updateHarvest(dt);
   };
   const _updateBoss = updateBoss;
@@ -962,7 +998,13 @@
     }
   }
   const _drawProps = drawProps;
-  drawProps = function () { _drawProps(); if (!on()) return; const v = V(); if (v.door2) drawDoor2(v); if (v.door) drawDoor(v); };
+  drawProps = function () {
+    _drawProps(); if (!on()) return; const v = V();
+    /* Une fois le grand sas arraché, il ne doit plus réapparaître (ni pendant
+       le combat, ni à la mort de VORAX) : la salle du cœur prend le relais. */
+    if (['reveal', 'morph', 'vorax', 'dead', 'complete'].includes(v.stage)) return;
+    if (v.door2) drawDoor2(v); if (v.door) drawDoor(v);
+  };
 
   /* mains */
   function drawHands(b, v) {
@@ -1143,13 +1185,27 @@
     return r;
   };
   /* bandes de cinéma, titre, alarme rouge et lumière des rayons */
+  /* Vignette rouge S24 : un seul timbre canvas, recalculé si le cadre change
+     (mobile/redimensionnement), au lieu d'un radial gradient par frame. */
+  let VIGN = null;
+  function vignStamp(w, h) {
+    const W = Math.round(w), H = Math.round(h);
+    if (!VIGN || VIGN.width !== W || VIGN.height !== H) {
+      VIGN = document.createElement('canvas'); VIGN.width = W; VIGN.height = H;
+      const x = VIGN.getContext('2d');
+      const vg = x.createRadialGradient(W / 2, H / 2, H * .25, W / 2, H / 2, H * .78);
+      vg.addColorStop(0, 'rgba(255,20,40,0)'); vg.addColorStop(1, 'rgba(255,20,40,.6)');
+      x.fillStyle = vg; x.fillRect(0, 0, W, H);
+    }
+    return VIGN;
+  }
   const _hud = drawHUD;
   drawHUD = function () {
     if (!on()) return _hud.apply(this, arguments);
     const v = V(), x = PF.x, y = PF.y, w = PF.w, h = PF.h;
     const b = G.boss, A = b && !b.dead && b.atk, laser = A && (A.name.startsWith('laser') || A.name === 'sweep' || A.name === 'palms') ? (A.ends ? 1 : (A.ch || 0) * .45) : 0;
     const red = Math.max((v.stage === 'alarm' || v.stage === 'tear') ? (.5 + .5 * Math.sin(v.T * 12)) * .5 : 0, laser * .32, b && b.roar > 0 ? b.roar * .3 : 0);
-    if (red > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = red; const vg = ctx.createRadialGradient(x + w / 2, y + h / 2, h * .25, x + w / 2, y + h / 2, h * .78); vg.addColorStop(0, 'rgba(255,20,40,0)'); vg.addColorStop(1, 'rgba(255,20,40,.6)'); ctx.fillStyle = vg; ctx.fillRect(x, y, w, h); ctx.restore(); }
+    if (red > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = red; ctx.drawImage(vignStamp(w, h), x, y, w, h); ctx.restore(); }
     const r = _hud.apply(this, arguments);
     if (v.lb < .01) return r;
     if (typeof hudOvRun === 'function') hudOvRun('nv24lb', bars, [v]); else bars(v);
@@ -1166,104 +1222,29 @@
     if (v.stage === 'alarm' && !window.NV24ANIME && window.nvAlertDraw) { const X = window.nvAlertText; window.nvAlertDraw(v.t, 3.7, { title: X.tr(X.title), name: X.tr(X.unknown), sub: tr(TXT.gate), y: .58 }); }
   }
   /* =====================================================================
-     THÈME DE VORAX — composition originale entièrement synthétisée en
-     WebAudio (aucun fichier tiers : libre de droit par construction).
-     Ton mythique et oppressant : ralentissement à 68 BPM, ré mineur,
-     nappes graves, timbales, double pulsation de cœur, lead plaintif et
-     montée de tension en fin de boucle. Remplace la piste MP3 boss23. */
-  const VORAX_MUSIC = (() => {
-    const ROOT = 36.71;                                   /* D1 */
-    const CHORDS = [[0, 3, 7], [-2, 2, 5], [7, 11, 14], [5, 9, 12]];
-    const LEAD = [
-      [12, -1, 7, -1, 3, -1, 7, -1, 12, -1, 10, 7, 3, -1, -1, -1],
-      [10, -1, 7, -1, 5, -1, 7, -1, 10, -1, 12, 10, 7, -1, -1, -1],
-      [14, -1, 12, -1, 10, -1, 7, -1, 12, -1, 10, 7, 5, -1, 7, -1],
-      [15, -1, 14, 12, 10, 12, 14, -1, 17, -1, -1, 14, 12, -1, 10, -1]
-    ];
-    const BASS = [0, -1, -1, 0, -1, -1, 7, -1, 0, -1, -1, 7, -1, -1, 0, -1];
-    let gain = null, running = false, step = 0, nextT = 0;
-    const A = () => Audio2;
-    function node() {
-      if (gain || !A().musicGain) return gain;
-      gain = A().ctx.createGain(); gain.gain.value = 0; gain.connect(A().musicGain); return gain;
-    }
-    function vol() { return A().muted ? 0 : cl((S.opts.music || 0) / 100, 0, 1) * .9; }
-    function start() {
-      const au = A(); au.init(); au.unlock(); if (!au.ok || running) return;
-      if (!node()) return;
-      if (typeof mxStop === 'function') { try { mxStop(.6); } catch (e) { } }
-      running = true; step = 0; nextT = au.ctx.currentTime + .12;
-      au.running = true; au.mode = 'boss'; au.boss = true;
-      gain.gain.cancelScheduledValues(au.ctx.currentTime);
-      gain.gain.setTargetAtTime(vol(), au.ctx.currentTime, .8);
-    }
-    function stop() {
-      if (!running) return; running = false;
-      const au = A();
-      if (gain && au.ctx) gain.gain.setTargetAtTime(0, au.ctx.currentTime, .25);
-      try { au.running = false; } catch (e) { }
-    }
-    function tick() {
-      const au = A();
-      if (!running || !au.ok || !gain) return;
-      gain.gain.setTargetAtTime(vol(), au.ctx.currentTime, .15);
-      const sd = 60 / 68 / 4;                            /* double-croche à 68 BPM */
-      let guard = 0;
-      while (nextT < au.ctx.currentTime + .18 && guard++ < 16) {
-        const i = step % 64, bar = Math.floor(i / 16), st = i % 16, chord = CHORDS[bar];
-        /* nappe : accord mineur/majeur tenu, deux fois par mesure */
-        if (st === 0 || st === 8) for (const n of chord) au.voice(nextT, {
-          f: n2f(n + 12, ROOT), dur: sd * 7.4, type: 'sawtooth', vol: .032, dest: gain, send: .65,
-          filter: { type: 'lowpass', f: 950, q: .9 }, pan: n === chord[0] ? -.2 : .2
-        });
-        /* basse profondeur */
-        const b = BASS[st];
-        if (b >= 0) {
-          au.voice(nextT, { f: n2f(b, ROOT), dur: sd * 2.6, type: 'triangle', vol: .2, dest: gain, send: .2 });
-          au.voice(nextT, { f: n2f(b, ROOT) / 2, dur: sd * 2.2, type: 'sine', vol: .14, dest: gain });
-        }
-        /* timbale au début de chaque mesure + double pulsation de cœur */
-        if (st === 0) {
-          au.voice(nextT, { f: 118, f2: 46, dur: .42, type: 'sine', vol: .26, dest: gain });
-          au.noise(nextT, { dur: .22, vol: .14, f: 1400, f2: 120, type: 'lowpass', dest: gain });
-        }
-        if (st === 3) au.voice(nextT, { f: 62, f2: 48, dur: .16, type: 'sine', vol: .12, dest: gain });
-        /* lead mythique : timbre carré adouci, léger vibrato */
-        const ln = LEAD[bar][st];
-        if (ln >= 0) au.voice(nextT, {
-          f: n2f(ln + 24, ROOT), dur: sd * (st % 4 === 0 ? 2.6 : 1.5),
-          type: bar === 3 ? 'sawtooth' : 'square', vol: .045, dest: gain, send: .5, vibrato: .004,
-          filter: { type: 'lowpass', f: 2600, q: 1.6 }, pan: (st % 2 ? .16 : -.16)
-        });
-        /* chapeau discret sur les contretemps */
-        if (st % 2 === 1) au.noise(nextT, { dur: .03, vol: .012, f: 7800, f2: 3800, type: 'highpass', dest: gain, pan: st % 4 ? .25 : -.25 });
-        /* montée de tension : dernier demi-cycle de la boucle */
-        if (bar === 3 && st >= 10) {
-          const k = (st - 10) / 6;
-          au.noise(nextT, { dur: .18, vol: .02 + k * .05, f: 500 + k * 3200, f2: 200, type: 'bandpass', q: 1.4, dest: gain });
-          if (st % 2 === 0) au.voice(nextT, { f: n2f(19 + k * 8, ROOT), dur: .3, type: 'sawtooth', vol: .03 + k * .03, dest: gain, send: .7, filter: { type: 'lowpass', f: 1200 + k * 2600, q: 2 } });
-        }
-        nextT += sd; step++;
-      }
-    }
-    return { start, stop, tick, get running() { return running; } };
-  })();
-  /* la bande originale MP3 cède la place au thème original sur le secteur 24 */
+     THÈME DE VORAX — vraie piste libre de droit (CC0) lue depuis
+     music/boss24-vorax.mp3 (« Battle RPG Theme », Cleyton Kauffman,
+     OpenGameArt, CC0). On se contente de router le sélecteur de musique du
+     moteur (MX) vers cette piste pendant tout l'affrontement final, dès que
+     les mains trouent le sas ; le séquenceur chiptune reste en secours si
+     le fichier manque. Aucun synthétiseur maison : zéro coût CPU ici. */
+  const VORAX_MUSIC_STAGES = ['hands', 'tear', 'reveal', 'morph', 'vorax'];
   if (typeof mxWant === 'function') {
     const _mxWant = mxWant;
-    mxWant = function () { if (on() && G.boss) return null; return _mxWant.apply(this, arguments); };
+    mxWant = function () {
+      if (on() && G.boss) {
+        const st = V().stage;
+        if (VORAX_MUSIC_STAGES.includes(st)) return 'vorax';
+        if (st === 'dead' || st === 'complete') return null;   /* silence : l'explosion parle */
+      }
+      return _mxWant.apply(this, arguments);
+    };
   }
-  const _s24SBM = Audio2.startBossMusic.bind(Audio2);
-  Audio2.startBossMusic = function (idx) { if (on() && G.boss) { VORAX_MUSIC.start(); return; } return _s24SBM(idx); };
-  const _s24Stop = Audio2.stopMusic.bind(Audio2);
-  Audio2.stopMusic = function () { VORAX_MUSIC.stop(); return _s24Stop(); };
-  const _s24Tick = Audio2.musicTick.bind(Audio2);
-  Audio2.musicTick = function () { _s24Tick(); try { VORAX_MUSIC.tick(); } catch (e) { } };
 
   /* Hooks uniquement présents sur l'URL de test automatisé. */
   if (new URLSearchParams(location.search).has('nv24test') || new URLSearchParams(location.search).has('nv24play')) {
-    window.NV24_TEST = { V, go, hurtBoss, hurtHand, syncHands, formHp, startMorph, startTear,
+    window.NV24_TEST = { V, go, hurtBoss, hurtHand, syncHands, formHp, startMorph, startTear, killEnemy,
       get boss() { return G.boss; }, get stage() { return V().stage; },
-      get music() { return { running: VORAX_MUSIC.running, mxWant: (typeof mxWant === 'function' ? mxWant() : null) }; } };
+      get music() { return { key: (typeof mxWant === 'function' ? mxWant() : null), mxKey: (typeof MX !== 'undefined' ? MX.key : null), mxFailed: (typeof MX !== 'undefined' ? !!MX.failed.vorax : false) }; } };
   }
 })();

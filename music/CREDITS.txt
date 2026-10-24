@@ -20,7 +20,10 @@ gate.mp3      non utilisé (l'écran d'entrée joue title.mp3)   « Tragic ambie
 Les pistes de Juhani Junkala sont publiées en CC0 sur OpenGameArt (compte SubspaceAudio) et archive.org.
 Sans fichier, le jeu bascule sur son séquenceur chiptune intégré.
 
-Thème de VORAX (secteur 24, boss final) : composition ORIGINALE du projet,
-entièrement synthétisée en WebAudio dans js/29-nv24-final-rework.js (objet VORAX_MUSIC).
-Aucun fichier tiers, aucun sample : libre de droit par construction (œuvre du jeu).
-La piste boss23.mp3 n'est plus lue pendant l'affrontement final.
+Thème de VORAX (secteur 24, boss final) : « Battle RPG Theme »
+par Cleyton Kauffman — https://soundcloud.com/cleytonkauffman
+Source OpenGameArt : https://opengameart.org/content/boss-battle-theme
+Licence CC0 1.0 (domaine public volontaire, aucune attribution obligatoire).
+Fichier : music/boss24-vorax.mp3. Remplace l'ancienne composition WebAudio
+et la piste boss23.mp3 pendant l'affrontement final. Si le fichier manque,
+le séquenceur chiptune intégré prend automatiquement le relais.

@@ -24,6 +24,19 @@ function sound(name){
   a.volume=cl((S.opts.sfx||0)/100);a.currentTime=0;const p=a.play();if(p)p.catch(()=>{});
  }catch(e){console.error('[Secteur 24] Audio',name,e);}
 }
+/* Ambiance réacteur en boucle : elle occupe la salle du cœur pendant tout
+   l'affrontement VORAX, puis s'éteint à sa mort. Volume doux, sous la musique. */
+let amb=null;
+function ambStart(){
+ if(Audio2.muted||!S.opts.sfx)return;
+ try{
+  if(!amb){amb=new Audio();amb.preload='auto';amb.loop=true;
+   amb.src='assets/sector24/audio/'+(amb.canPlayType('audio/ogg')?'ogg/26_ambiance_reacteur_BOUCLE.ogg':'wav/26_ambiance_reacteur_BOUCLE.wav');
+   amb.onerror=()=>{if(amb.src.endsWith('.ogg'))amb.src='assets/sector24/audio/wav/26_ambiance_reacteur_BOUCLE.wav';};}
+  amb.volume=cl((S.opts.sfx||0)/100)*.32;const p=amb.play();if(p)p.catch(()=>{});
+ }catch(e){}
+}
+function ambStop(){try{if(amb){amb.pause();amb.currentTime=0;}}catch(e){}}
 function frame(g,key,f,cols,rows,x,y,w,h,alpha=1){const a=im[key];if(!a||!a.naturalWidth)return;const cw=a.naturalWidth/cols,ch=a.naturalHeight/rows;g.save();g.globalAlpha*=alpha;g.drawImage(a,(f%cols)*cw,Math.floor(f/cols)*ch,cw,ch,x-w/2,y-h/2,w,h);g.restore();}
 function layer(g,key,x,y,w,h,alpha=1){const a=im[key];if(!a||!a.naturalWidth)return;g.save();g.globalAlpha*=alpha;g.drawImage(a,x,y,w,h);g.restore();}
 function near(fn){useBuf(R.bufNear);const g=PAINT.g,K=PAINT.K;g.save();g.scale(K,K);fn(g);g.restore();}
@@ -65,45 +78,46 @@ const foeRows={lance:['foes',0],manta:['foes',1],dard:['foes',2],orbe:['foes',3]
 const FOE_W={lance:70,manta:138,dard:62,orbe:74,tourelle:84,tambour:98,griffe:92,gatling:92};
 /* Un seul cadre par ennemi : les ailes/lames sont fixes (fini le battement).
    La mise en vie vient d'effets procéduraux : réacteurs, LEDs, flashs de tir,
-   anneaux de charge — aucun cycle de planche qui décale la silhouette. */
+   anneaux de charge — aucun cycle de planche qui décale la silhouette.
+   PERF MOBILE : tous les halos/flamme sont des TIMBRES précalculés une fois
+   (drawImage) au lieu de createRadialGradient/createLinearGradient par frame. */
 const FLYERS={lance:1,manta:1,dard:1,orbe:1,griffe:1,tambour:1};
+const STAMPS=(()=>{const mk=(S,draw)=>{const c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');draw(x,S);return c;};
+ const red=mk(64,(x,S)=>{const g=x.createRadialGradient(S/2,S/2,0,S/2,S/2,S/2);g.addColorStop(0,'rgba(255,60,72,.85)');g.addColorStop(.45,'rgba(255,40,60,.35)');g.addColorStop(1,'rgba(255,40,60,0)');x.fillStyle=g;x.fillRect(0,0,S,S);});
+ const muzzle=mk(48,(x,S)=>{const g=x.createRadialGradient(S/2,S/2,0,S/2,S/2,S/2);g.addColorStop(0,'rgba(255,250,235,.95)');g.addColorStop(.5,'rgba(255,150,70,.6)');g.addColorStop(1,'rgba(255,80,40,0)');x.fillStyle=g;x.fillRect(0,0,S,S);});
+ const flame=mk(80,(x,S)=>{const g=x.createLinearGradient(0,S,0,0);g.addColorStop(0,'rgba(255,246,225,.95)');g.addColorStop(.35,'rgba(255,138,48,.8)');g.addColorStop(1,'rgba(255,40,60,0)');x.fillStyle=g;x.beginPath();x.moveTo(S*.34,S*.92);x.quadraticCurveTo(S*.42,S*.45,S/2,2);x.quadraticCurveTo(S*.58,S*.45,S*.66,S*.92);x.quadraticCurveTo(S/2,S,S*.34,S*.92);x.fill();});
+ return {red,muzzle,flame};})();
 function drawFoe(e){const a=foeRows[e.nv];if(!a)return false;if(pending||errors.length)return false;
  const w=FOE_W[e.nv],h=w*2/3,k=e.k||0,rot=(e.nv==='tourelle'||e.nv==='gatling');
  near(g=>{
   g.translate(e.x,e.y);
   if(rot)g.rotate((e.aimA||Math.PI/2)-Math.PI/2);
-  /* réacteur : flamme tremblante derrière l'appareil (vers le haut de l'écran) */
+  /* une seule passe additive pour tous les effets sous la coque */
+  g.save();g.globalCompositeOperation='lighter';
+  /* réacteur : timbre flamme redimensionné, orienté vers le haut de l'écran */
   if(FLYERS[e.nv]){
-   const fl=.7+.3*Math.sin(k*22+(e.spin||0))+.15*Math.sin(k*41),len=h*.42*fl,wf=w*.13;
-   g.save();g.globalCompositeOperation='lighter';
-   const gr=g.createLinearGradient(0,-h*.34,0,-h*.34-len);
-   gr.addColorStop(0,'rgba(255,246,225,.95)');gr.addColorStop(.35,'rgba(255,138,48,.8)');gr.addColorStop(1,'rgba(255,40,60,0)');
-   g.fillStyle=gr;g.beginPath();g.moveTo(-wf,-h*.34);g.quadraticCurveTo(0,-h*.34-len*1.25,wf,-h*.34);g.quadraticCurveTo(0,-h*.34-len*.55,-wf,-h*.34);g.fill();
-   g.globalAlpha=.5;g.fillStyle='#fff2d8';g.beginPath();g.ellipse(0,-h*.36,wf*.32,h*.07,0,0,TAU);g.fill();g.restore();
+   const fl=.7+.3*Math.sin(k*22+(e.spin||0))+.15*Math.sin(k*41),len=h*.62*fl,wf=w*.34*fl;
+   g.globalAlpha=.92;g.drawImage(STAMPS.flame,-wf/2,-h*.34-len*.8,wf,len);
   }
-  /* orbe qui charge son tir radial : halo rouge pulsé + anneau */
+  /* orbe qui charge son tir radial : anneau (+ halo timbre sur PC) */
   if(e.nv==='orbe'&&e.ch>0){
-   g.save();g.globalCompositeOperation='lighter';
    const rr=w*.42+e.ch*w*.35;
-   const rg=g.createRadialGradient(0,0,0,0,0,rr);rg.addColorStop(0,'rgba(255,60,72,'+(.5*e.ch)+')');rg.addColorStop(1,'rgba(255,40,60,0)');
-   g.fillStyle=rg;g.fillRect(-rr,-rr,rr*2,rr*2);
-   g.strokeStyle='rgba(255,90,110,'+(.8*e.ch)+')';g.lineWidth=2;g.beginPath();g.arc(0,0,w*.3*e.ch,0,TAU);g.stroke();g.restore();
+   if(!mobile){g.globalAlpha=.85*e.ch;g.drawImage(STAMPS.red,-rr,-rr,rr*2,rr*2);}
+   g.globalAlpha=.8*e.ch;g.strokeStyle='rgba(255,90,110,.9)';g.lineWidth=2;g.beginPath();g.arc(0,0,w*.3*e.ch,0,TAU);g.stroke();
   }
+  /* flash de bouche au tir (recul) */
+  if(e.recoil>0){const rr=w*.34*(.6+e.recoil);g.globalAlpha=Math.min(1,e.recoil);g.drawImage(STAMPS.muzzle,-rr,h*.36-rr,rr*2,rr*2);}
+  g.restore();g.globalAlpha=1;
   /* silhouette fixe : toujours la première case de la ligne de la planche */
   frame(g,a[0],a[1]*4,4,4,0,0,w,h);
-  /* LEDs de coque qui clignotent en opposition */
+  /* LEDs de coque qui clignotent en opposition (une seule basse additive) */
   const ledOn=Math.sin(k*7+(e.spin||0))>0;
   g.save();g.globalCompositeOperation='lighter';
   for(const s of [-1,1]){g.globalAlpha=ledOn?(s<0?.95:.35):(s<0?.35:.95);
    g.fillStyle=s<0?'#ff3b52':'#46d8ff';g.beginPath();g.arc(s*w*.28,h*.12,Math.max(1.8,w*.045),0,TAU);g.fill();}
-  g.restore();g.globalAlpha=1;
   /* tambour : ses prises rouges s'allument pendant la rafale */
-  if(e.nv==='tambour'&&e.fireOn>0){g.save();g.globalCompositeOperation='lighter';g.globalAlpha=.5+.5*Math.sin(k*18);
-   g.fillStyle='rgba(255,60,72,.9)';for(const s of [-1,1]){g.beginPath();g.arc(s*w*.3,-h*.1,Math.max(2,w*.06),0,TAU);g.fill();}g.restore();}
-  /* flash de bouche au tir (recul) */
-  if(e.recoil>0){g.save();g.globalCompositeOperation='lighter';const rr=w*.16*(.6+e.recoil);
-   const mg=g.createRadialGradient(0,h*.36,0,0,h*.36,rr);mg.addColorStop(0,'rgba(255,250,235,.95)');mg.addColorStop(.5,'rgba(255,150,70,.6)');mg.addColorStop(1,'rgba(255,80,40,0)');
-   g.fillStyle=mg;g.fillRect(-rr,h*.36-rr,rr*2,rr*2);g.restore();}
+  if(e.nv==='tambour'&&e.fireOn>0){g.globalAlpha=.5+.5*Math.sin(k*18);g.fillStyle='rgba(255,60,72,.9)';for(const s of [-1,1]){g.beginPath();g.arc(s*w*.3,-h*.1,Math.max(2,w*.06),0,TAU);g.fill();}}
+  g.restore();g.globalAlpha=1;
   if(e.hp<e.maxHp)bar(g,0,-h*.6,w*.7,e.hp/e.maxHp,'');
  });return true;
 }
@@ -117,9 +131,12 @@ function pose(b){const A=b.atk;if(A&&A.ch>.05)return 8+Math.min(3,Math.floor(cl(
 function geom(b){const w=545*(500/629)*(b.vz||1),h=w;return {w,h,x:b.vx-w/2,y:b.vy-h/2};}
 function socket(b,n){const q=geom(b),p=sockets[pose(b)][n];return [q.x+p[0]*q.w,q.y+p[1]*q.h];}
 function drawBoss(b,v,alpha=1){if(pending||errors.length)return false;near(g=>{const q=geom(b),A=b.atk,f=pose(b);
+ /* halo rouge pulsant derrière Vorax (timbre précalculé, léger sur mobile) */
+ if(v.stage!=='morph'){const rr=q.w*.62*(1+.08*Math.sin(b.t*2.4));g.save();g.globalCompositeOperation='lighter';g.globalAlpha=(mobile?.26:.38)*alpha;g.drawImage(STAMPS.red,b.vx-rr,b.vy-rr,rr*2,rr*2);g.restore();}
  if(v.stage==='morph'){frame(g,'damage',4+Math.min(3,Math.floor(v.t*4)),4,3,b.vx,b.vy,q.w,q.h,alpha*(1-cl(v.t/2.4)));frame(g,'boss',f,4,4,b.vx,b.vy,q.w,q.h,alpha*cl(v.t/2.4));}
  else frame(g,'boss',f,4,4,b.vx,b.vy,q.w,q.h,alpha);
- if(A&&A.ch>.05){g.save();g.globalCompositeOperation='lighter';const pts=A.name==='palms'||A.name==='orbs'?[2,3]:[0,1];for(const n of pts){const p=socket(b,n),r=8+28*cl(A.ch);const gr=g.createRadialGradient(...p,0,...p,r);gr.addColorStop(0,'#fff1de');gr.addColorStop(.25,'#ff253b');gr.addColorStop(1,'#ff253b00');g.fillStyle=gr;g.fillRect(p[0]-r,p[1]-r,r*2,r*2);}g.restore();}
+ /* télégraphe d'attaque : timbres précalculés (plus de gradient par frame) */
+ if(A&&A.ch>.05){g.save();g.globalCompositeOperation='lighter';const pts=A.name==='palms'||A.name==='orbs'?[2,3]:[0,1];for(const n of pts){const p=socket(b,n),r=8+28*cl(A.ch);g.globalAlpha=.9;g.drawImage(STAMPS.red,p[0]-r,p[1]-r,r*2,r*2);const r2=r*.5;g.drawImage(STAMPS.muzzle,p[0]-r2,p[1]-r2,r2*2,r2*2);}g.restore();}
  if(v.stage==='morph'){g.strokeStyle='#ff2645';g.lineWidth=2;for(let i=0;i<5;i++){const x=b.vx+Math.sin(b.t*9+i)*q.w*.4,y=b.vy+i*22-44;g.beginPath();g.moveTo(x,y);g.lineTo(x+16,y+18);g.lineTo(x-8,y+29);g.stroke();}}
  });return true;}
 NVBOSS.vorax.ready=()=>pending===0&&!errors.length;
@@ -148,7 +165,9 @@ function debrisContact(v){
 let lastState,stage,lastAtk;
 const priorFlow=updateLevelFlow;
 updateLevelFlow=function(dt){const r=priorFlow(dt);if(!on())return r;const v=G._nv24;debrisContact(v);if(lastState!==v){lastState=v;stage=null;lastAtk=null;}
- if(stage!==v.stage){stage=v.stage;const snd={arrive:'08_sas_verrouille',boom:'10_sas_rupture',alarm:'14_alerte_sirene',tear:'13_porte_arrachee',reveal:'17_vorax_apparition',morph:'22_vorax_surcharge'}[stage];if(snd)sound(snd);}
+ if(stage!==v.stage){stage=v.stage;const snd={arrive:'08_sas_verrouille',boom:'10_sas_rupture',alarm:'14_alerte_sirene',tear:'13_porte_arrachee',reveal:'17_vorax_apparition',morph:'22_vorax_surcharge'}[stage];if(snd)sound(snd);
+  if(['reveal','morph','vorax'].includes(v.stage))ambStart();
+  if(['dead','complete'].includes(v.stage))ambStop();}
  /* Son de charge répété (18_vorax_charge) retiré : il pesait à chaque attaque.
     Le début d'attaque garde son alerte du moteur ; seul le tir laser résonne. */
  const A=G.boss&&G.boss.atk;if(A!==lastAtk)lastAtk=A;

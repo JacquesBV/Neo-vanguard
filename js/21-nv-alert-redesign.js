@@ -75,7 +75,7 @@
     try {
       const up = bossForLevel(G.level), X = window.nvAlertText;
       const name = up.def.final ? TT(X.unknown) : up.def.name + (up.mk ? ' MK-' + (up.mk + 1) : '');
-      window.nvAlertDraw(Math.max(0, G.bossWarnT || 0), 3.6, { title: TT(X.title), name, sub: TT(X.sub) });
+      window.nvAlertDraw(Math.max(0, G.bossWarnT || 0), G.bossWarnTotal || 3.6, { title: TT(X.title), name, sub: TT(X.sub) });
     } catch (err) { return _warn(); }
   };
 })();
