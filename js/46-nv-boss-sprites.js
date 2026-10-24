@@ -325,7 +325,7 @@
     if (s.form && !b.dead) { try { if (Math.random() < 0.3) addLight(b.x, b.y, 200, huecol(b, 66), 0.3, 0); } catch (e) { } }
     /* têtes / modules détachables */
     if (b.parts && b.parts.length && !b.dead) drawParts(g, K, b, n, s, era, kb);
-    if (s.bannerT >= 0) banner(g, K, b, n, s, era);
+    /* Bandeau de transformation désactivé. */
   }
 
   function morphFX(g, K, b, s, era, x, y) {
@@ -507,7 +507,7 @@
       if (s.hitT > 0 && q >= 0.45) { const k = s.hitT / 0.24; frame(g, K, VN, s.cur, x - 6 * k, y, kb, { s: sc, a: 0.3 * k * a, kind: 'red', op: 'lighter' }); frame(g, K, VN, s.cur, x + 6 * k, y, kb, { s: sc, a: 0.3 * k * a, kind: 'cyan', op: 'lighter' }); }
       if (b.dead) frame(g, K, VN, s.cur, x, y, kb, { s: sc, a: cl((b.deadT || 0) / 1.4, 0, 1) * 0.6 * a, kind: 'white', op: 'lighter' });
       if (s.morphT >= 0) morphFX(g, K, { t, def: { hue: 352 } }, s, era, x, y);
-      if (s.bannerT >= 0) banner(g, K, { def: { name: 'VORAX', hue: 352 }, r: 150 }, VN, s, era);
+      /* Bandeau de transformation désactivé. */
       return true;
     },
   };
