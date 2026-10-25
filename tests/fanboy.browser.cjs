@@ -14,7 +14,7 @@ const fs=require('node:fs');
   for(let level=1;level<=4;level++){
    await page.evaluate(l=>{startLevel(l);hideScreens();},level);
    await page.waitForFunction(()=>!nvFluid.CAL.on,{}, {timeout:45000});
-   const geometry=await page.evaluate(()=>{G.state='play';G.player.inv=999;sideRes=resizeView().sideRes;return {ratio:PF.w/PF.h,left:PF.x-60*(PF.w/480),right:PF.x+540*(PF.w/480),top:PF.y-90*(PF.w/480),bottom:PF.y+750*(PF.w/480),w:view.w,h:view.h};});
+   const geometry=await page.evaluate(()=>{G.state='play';G.player.inv=999;sideRes=resizeView().sideRes;return {ratio:PF.w/PF.h,left:PF.x-172*(PF.w/560),right:PF.x+708*(PF.w/560),top:PF.y-228*(PF.w/560),bottom:PF.y+1272*(PF.w/560),w:view.w,h:view.h};});
    assert(Math.abs(geometry.ratio-4/3)<.001);assert(geometry.left>=0&&geometry.right<=geometry.w+.01);assert(geometry.top>=0&&geometry.bottom<=geometry.h+.01);
    const stable=await page.evaluate(()=>{const before=JSON.stringify(PF);for(let i=0;i<5;i++)resizeView();return before===JSON.stringify(PF)});assert(stable);
    if(level===1){

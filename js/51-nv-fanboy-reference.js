@@ -147,84 +147,131 @@
     const result = oldResize.apply(this, arguments);
     if (!framed()) return result;
     const W = view.w, H = view.h;
-    // One portrait shell, with an 480 × 360 presentation aperture; world dimensions stay engine-owned.
+    // Fit the complete rendered device; preserve the engine's 4:3 world.
     const margin = 8, touchPad = IS_TOUCH ? 100 : 0;
-    const shellScale = Math.max(.05, Math.min((W - 2 * margin) / 600,
-      (H - touchPad - 2 * margin) / 840));
-    PF.s = shellScale * 480 / L_W;
+    const shellScale = Math.max(.05, Math.min((W - 2 * margin) / 880,
+      (H - touchPad - 2 * margin) / 1500));
+    PF.s = shellScale * 560 / L_W;
     PF.w = L_W * PF.s; PF.h = L_H * PF.s;
-    PF.x = (W - 600 * shellScale) / 2 + 60 * shellScale;
-    PF.y = margin + Math.max(0, (H - touchPad - 2 * margin - 840 * shellScale) / 2) + 90 * shellScale;
+    PF.x = (W - 880 * shellScale) / 2 + (244 - 72) * shellScale;
+    PF.y = margin + Math.max(0, (H - touchPad - 2 * margin - 1500 * shellScale) / 2) + 228 * shellScale;
     R.vig = null; R.fog = null; gpuResize();
     return result;
   };
 
-  /* Static vector asset and existing in-game hull; no animation loop or timer. */
-  const shell = new Image(); shell.src = 'assets/fanboy/nv01-shell.svg';
-  const ship = new Image(); ship.src = 'assets/ships-native/r0-falcon.png';
-  function panel(x, y, w, h, cut) {
-    ctx.beginPath(); ctx.moveTo(x + cut, y); ctx.lineTo(x + w - cut, y);
-    ctx.lineTo(x + w, y + cut); ctx.lineTo(x + w, y + h - cut);
-    ctx.lineTo(x + w - cut, y + h); ctx.lineTo(x + cut, y + h);
-    ctx.lineTo(x, y + h - cut); ctx.lineTo(x, y + cut); ctx.closePath();
+  /* Detailed raster shell with an alpha aperture; all motion stays in the
+     existing renderer. Cropped key textures retain the reference materials. */
+  const shell = new Image(); shell.src = 'assets/fanboy/nv01-shell-render-v2.png';
+  const ship = new Image(); ship.src = 'assets/media/ships-shop/falcon.webp';
+  const keyStates = new Float32Array(6);
+  let keyTime = null;
+  function ledPath() {
+    ctx.beginPath(); ctx.moveTo(239, 190); ctx.lineTo(806, 190);
+    ctx.lineTo(838, 222); ctx.lineTo(838, 657); ctx.lineTo(807, 690);
+    ctx.lineTo(237, 690); ctx.lineTo(206, 659); ctx.lineTo(206, 222); ctx.closePath();
   }
-  function button(x, y, label, pressed, color, direction) {
-    ctx.save(); ctx.translate(x, y + (pressed ? 4 : 0));
-    panel(-23, -23, 46, 46, 11);
-    ctx.fillStyle = pressed ? '#111b24' : '#334354'; ctx.fill();
-    ctx.strokeStyle = pressed ? color : '#617486'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = color;
-    if (direction !== undefined) {
-      ctx.rotate(direction); ctx.beginPath(); ctx.moveTo(0, -9);
-      ctx.lineTo(8, 5); ctx.lineTo(-8, 5); ctx.closePath(); ctx.fill();
-    } else {
-      ctx.font = '600 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(label, 0, 1);
-    }
+  function keyPath(x, y, r) {
+    ctx.beginPath(); ctx.moveTo(x - r * .65, y - r); ctx.lineTo(x + r * .65, y - r);
+    ctx.lineTo(x + r, y - r * .65); ctx.lineTo(x + r, y + r * .4);
+    ctx.lineTo(x + r * .4, y + r); ctx.lineTo(x - r * .4, y + r);
+    ctx.lineTo(x - r, y + r * .4); ctx.lineTo(x - r, y - r * .65); ctx.closePath();
+  }
+  function pressedKey(x, y, r, amount, color, round) {
+    if (amount < .01 || !shell.complete || !shell.naturalWidth) return;
+    ctx.save();
+    if (round) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); }
+    else keyPath(x, y, r);
+    ctx.fillStyle = '#02050b'; ctx.fill();
+    ctx.save(); ctx.clip();
+    const inset = amount * 2.5, drop = amount * 5;
+    ctx.drawImage(shell, x - r, y - r, r * 2, r * 2,
+      x - r + inset, y - r + inset + drop, r * 2 - inset * 2, r * 2 - inset * 2);
+    const glow = ctx.createRadialGradient(x, y, r * .12, x, y, r);
+    glow.addColorStop(0, color); glow.addColorStop(1, 'transparent');
+    ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = amount * .55;
+    ctx.fillStyle = glow; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    ctx.restore();
+    ctx.globalAlpha = amount; ctx.strokeStyle = color; ctx.lineWidth = 3;
+    ctx.shadowColor = color; ctx.shadowBlur = round ? 24 : 13; ctx.stroke();
     ctx.restore();
   }
   const oldFrame = drawMachineFrame;
   drawMachineFrame = function () {
-    if (!active()) return oldFrame.apply(this, arguments);
+    if (!active()) { keyTime = null; keyStates.fill(0); return oldFrame.apply(this, arguments); }
     if (!framed()) return;
-    const scale = PF.w / 480, x = PF.x - 60 * scale, y = PF.y - 90 * scale;
-    ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
-    if (shell.complete && shell.naturalWidth) ctx.drawImage(shell, 0, 0, 600, 840);
+    const scale = PF.w / 560, x = PF.x - 244 * scale, y = PF.y - 228 * scale;
+    ctx.save();
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    // Quiet studio backdrop keeps the material and emissive detail legible.
+    const stage = ctx.createLinearGradient(0, 0, view.w, view.h);
+    stage.addColorStop(0, '#071b29'); stage.addColorStop(.45, '#040810'); stage.addColorStop(1, '#211025');
+    ctx.fillStyle = stage; ctx.fillRect(0, 0, view.w, view.h);
+    ctx.translate(x, y); ctx.scale(scale, scale);
+    ctx.fillStyle = '#020407'; ctx.fillRect(241, 213, 568, 454);
+    if (shell.complete && shell.naturalWidth) ctx.drawImage(shell, 0, 0);
     const end = G.plan && G.plan.length ? G.plan[G.plan.length - 1].t + 3 : G.levelDur;
     const progress = Math.max(0, Math.min(1, (G.waveT || 0) / Math.max(1, end)));
     const warning = G.phase === 'bossWarn';
     const danger = warning || G.phase === 'boss' || G.phase === 'harvest' || G.phase === 'clear';
     const mix = (a, b, t) => 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',') + ')';
-    const green = [62, 240, 157], orange = [255, 164, 48], red = [255, 52, 73];
+    const green = [91, 255, 5], orange = [255, 139, 4], red = [255, 20, 39];
     const smooth = v => { v = Math.max(0, Math.min(1, v)); return v * v * (3 - 2 * v); };
-    const color = danger ? 'rgb(255,52,73)' : progress < .65
+    const color = danger ? 'rgb(255,20,39)' : progress < .65
       ? mix(green, orange, smooth((progress - .35) / .15))
       : mix(orange, red, smooth((progress - .75) / .15));
     const signal = window.nvAlertSignal(Math.max(0, G.bossWarnT || 0), G.bossWarnTotal || 3.6);
-    ctx.globalAlpha = warning ? signal.envelope * (signal.blink ? 1 : .12) : 1;
-    ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.shadowColor = color; ctx.shadowBlur = 10;
-    panel(53, 83, 494, 374, 7); ctx.stroke();
+    ctx.globalAlpha = warning ? signal.envelope * (signal.blink ? 1 : .10) : 1;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.strokeStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 22;
+    ctx.lineWidth = 12; ledPath(); ctx.stroke();
+    ctx.shadowBlur = 7; ctx.lineWidth = 4; ctx.strokeStyle = '#e6ffd7'; ctx.stroke();
+    ctx.strokeStyle = color; ctx.shadowBlur = 18; ctx.lineWidth = 12;
+    ctx.beginPath();
+    ctx.moveTo(191, 124); ctx.lineTo(223, 90);
+    ctx.moveTo(815, 90); ctx.lineTo(846, 124);
+    ctx.moveTo(117, 1100); ctx.lineTo(117, 1227);
+    ctx.moveTo(908, 1100); ctx.lineTo(908, 1227); ctx.stroke();
     ctx.shadowBlur = 0; ctx.globalAlpha = 1;
-    // Fixed power light is independent of warning and progression.
-    ctx.fillStyle = '#75efff'; ctx.beginPath(); ctx.arc(545, 53, 4, 0, Math.PI * 2); ctx.fill();
+    // The fixed red POWER light is part of the shell texture, outside this layer.
     const p = G.player, input = p && p.controlVisual;
     const live = G.state === 'play' && p && p.alive && !p.out;
     const dx = live && input ? input.x : 0, dy = live && input ? input.y : 0;
-    button(140, 580, '', dy < -.1, '#72ddeb', 0);
-    button(89, 631, '', dx < -.1, '#72ddeb', -Math.PI / 2);
-    button(191, 631, '', dx > .1, '#72ddeb', Math.PI / 2);
-    button(140, 682, '', dy > .1, '#72ddeb', Math.PI);
-    button(414, 650, 'P', live && input && input.fire, '#72ddeb');
-    button(493, 600, 'Ω', live && ((input && input.bomb) || p.nvBombVisual > 0), '#f6ba64');
-    ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#92a5b7';
-    ctx.fillText('PULSE', 414, 687); ctx.fillText('NOVA', 493, 637);
+    const targets = [dy < -.1, dx < -.1, dx > .1, dy > .1,
+      live && input && input.fire, live && ((input && input.bomb) || p.nvBombVisual > 0)];
+    // Interpolate on simulation time; pause cannot leave keys held down.
+    const now = Number(G.t) || 0, dt = keyTime === null ? 1 / 60 : Math.max(0, Math.min(.05, now - keyTime));
+    keyTime = now;
+    for (let i = 0; i < keyStates.length; i++) {
+      const target = targets[i] ? 1 : 0;
+      keyStates[i] = live ? keyStates[i] + (target - keyStates[i]) * Math.min(1, dt * 32) : 0;
+    }
+    pressedKey(282, 880, 42, keyStates[0], '#00dfff', false);
+    pressedKey(211, 950, 42, keyStates[1], '#00dfff', false);
+    pressedKey(351, 950, 42, keyStates[2], '#00dfff', false);
+    pressedKey(282, 1016, 42, keyStates[3], '#00dfff', false);
+    pressedKey(646, 955, 63, keyStates[4], '#00cfff', true);
+    pressedKey(798, 900, 64, keyStates[5], '#ff1635', true);
     if (ship.complete && ship.naturalWidth) {
-      ctx.save(); ctx.globalAlpha = .8; ctx.translate(302, 635); ctx.rotate(-.22);
-      // Exact hull used by module 34, without generating a substitute ship.
-      ctx.drawImage(ship, -37, -52, 74, 104); ctx.restore();
+      // Use the game's original full-color Vanguard artwork, without inventing a ship.
+      ctx.save(); ctx.translate(419, 1250); ctx.rotate(-.18);
+      ctx.drawImage(ship, 0, 170, 720, 410, -220, -110, 440, 250); ctx.restore();
     }
     ctx.restore();
   };
+
+  // Desktop telemetry belongs beside the complete device, not over its armor.
+  function sideFrame(fn, self, args) {
+    if (!framed() || IS_TOUCH || !sideRes) return fn.apply(self, args);
+    const saved = { x: PF.x, y: PF.y, w: PF.w, h: PF.h }, scale = PF.w / 560;
+    PF.x -= (244 - 72 + 20) * scale;
+    PF.w = 920 * scale;
+    PF.h = Math.max(saved.h, view.h - PF.y - 24);
+    try { return fn.apply(self, args); } finally { Object.assign(PF, saved); }
+  }
+  const oldSidePanels = drawSidePanels;
+  drawSidePanels = function () { return sideFrame(oldSidePanels, this, arguments); };
+  const oldRadioSide = drawRadioSide;
+  drawRadioSide = function () { return sideFrame(oldRadioSide, this, arguments); };
 
   /* Le verre : grille de sortie physique, matte et reflet de lumière ambiante
      d'une pièce éclairée, fixé à la vitre (il ne suit pas le monde). */
@@ -306,5 +353,5 @@
     return oldRender.apply(this, arguments);
   };
 
-  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 6, inks: Object.freeze(inks), shell: true, glass: true });
+  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 7, inks: Object.freeze(inks), shell: true, glass: true });
 })();

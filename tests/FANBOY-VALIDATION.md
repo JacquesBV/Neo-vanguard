@@ -1,4 +1,4 @@
-# Validation NV-01 — 25 octobre 2026
+# Validation NV-01 — 25 octobre 2026 (proposition détaillée v2, locale)
 
 Test navigateur : `fanboy.browser.cjs` (Node.js + Playwright, Microsoft Edge).
 Servir la racine du dépôt sur `http://127.0.0.1:8765`, puis lancer
@@ -22,7 +22,7 @@ Vérifié :
 - Analyse syntaxique des quatre modules modifiés et `git diff --check`.
 
 Mesure locale de 100 dessins de coque dans Edge sans interface : médiane
-0,20 ms, percentile 95 de 0,40 ms. Cette mesure porte sur la coque, pas sur
+0,10 ms, percentile 95 de 0,30 ms. Cette mesure porte sur la coque, pas sur
 les performances complètes du jeu ni sur un téléphone physique.
 
 La modification réutilise la boucle de rendu et l'horloge de simulation.
