@@ -2598,7 +2598,7 @@ const IS_TOUCH = (window.matchMedia && matchMedia('(pointer: coarse)').matches) 
 const TOUCH_ACTOR_SCALE = 1.22; /* même profondeur et même échelle de contact pour tous les acteurs */
 
 const PF   = { x: 0, y: 0, w: 480, h: 860, s: 1 };   /* zone de jeu (unités logiques) */
-const L_W = 480; let L_H = 860;                          /* référentiel des coordonnées de jeu */
+let L_W = 480; let L_H = 860;                          /* référentiel des coordonnées de jeu */
 
 /* --- état du rendu -------------------------------------------------------- */
 const R = {
@@ -3192,8 +3192,11 @@ function setEra(era, silent) {
      vectoriel du HD sans en prendre la finesse. */
   if (R.sec === undefined || ERAS[R.sec] === undefined || ERAS[R.sec].sty !== R.era) R.sec = R.era;
   const E = ERAS[R.sec];
-  /* FanBoy : écran au format 4/3 (480 x 360), le monde n'est jamais étiré. */
-  L_H = R.era === 0 && R.sec === 0 ? 360 : 860;
+  /* FanBoy : monde 640 x 480 (4/3) — sprites, décor et textes in-game plus
+     petits à l'écran ; le monde n'est jamais étiré. Autres générations : 480 x 860. */
+  const gb0 = R.era === 0 && R.sec === 0;
+  L_W = gb0 ? 640 : 480;
+  L_H = gb0 ? 480 : 860;
   R.S = eraS(R.sec);
   const w = Math.round(L_W * R.S), h = Math.round(L_H * R.S);
   /* PERF MOBILE : les 10 calques sont réutilisés (redimensionnés sur place) au lieu d'être
@@ -6620,6 +6623,8 @@ function updatePlayerOne(P, dt) {
 function lerp2(a, b, t) { return a + (b - a) * clamp(t, 0, 1); }
 
 function emitTrail(P) {
+  /* FanBoy (ère 0, niveau trail 0) : aucune traînée derrière/devant le vaisseau. */
+  if ((ERAS[R.sec] || ERAS[R.era] || {}).trail === 0) return;
   const tr = S.sel.trail, e = R.era;
   const x = P.x + rnd(3, -3), y = P.y + 20;
   if (tr === 'pixel') {
@@ -8870,8 +8875,8 @@ function drawHUD() {
   const P2p = twoP ? G.players[1] : null;
   if (!st) return;
   ctx.save();
-  /* bandeau supérieur */
-  const barH = e === 0 ? 42 : e === 3 ? 44 : 42;
+  /* bandeau supérieur (FanBoy : plus fin, l'écran de jeu reste dégagé) */
+  const barH = e === 0 ? 34 : e === 3 ? 44 : 42;
   ctx.globalAlpha = e === 0 ? 1 : 0.62;
   ctx.fillStyle = e === 0 ? TH.bg : 'rgba(2,6,14,.72)';
   ctx.fillRect(x0, y0, w, barH);
@@ -8913,7 +8918,7 @@ function drawHUD() {
   } else drawHullGauge(P || G.players[0], x0 + 8, hullY, w - 16, scl, true);
 
   /* pied de HUD : vies, bombes, puissance */
-  const fy = y0 + h - (e === 0 ? 22 : 26) - (document.body.classList.contains('touch') ? 64 : 0);
+  const fy = y0 + h - (e === 0 ? 19 : 26) - (document.body.classList.contains('touch') ? 64 : 0);
   ctx.globalAlpha = e === 0 ? 1 : 0.7;
   ctx.fillStyle = e === 0 ? TH.bg : 'rgba(2,6,14,.72)';
   const noFoot = document.body.classList.contains('touch');
@@ -8999,8 +9004,9 @@ function drawHUD() {
     }
   }
   /* Avertissement compact, placé juste sous le HUD plutôt qu'au milieu du terrain.
-     Une seconde occurrence se joue à l'entrée effective du boss (G.bossEnterT). */
-  if (G.phase === 'bossWarn' || G.bossEnterT > 0) drawBossWarning();
+     Une seule occurrence : celle de la phase d'avertissement. L'entrée effective
+     du boss (G.bossEnterT) ne redessine plus de seconde bannière. */
+  if (G.phase === 'bossWarn') drawBossWarning();
   if (S.opts.fps) hudText(ctx, Math.round(R.fps) + ' FPS · ' + R.era + '·' + pCount + 'p' + (GPU.ready ? ' · GPU ' + GPU.fps : ''), x0 + w - 8, y0 + h - 44, '#8ba0c2', 1, { align: 'right' });
   ctx.restore();
   if (G.harvest) drawHarvest();
@@ -14179,10 +14185,10 @@ function drawRadio() {
   const e = R.era, p = PF;
   const who = RADIO_WHO[m.who] || RADIO_WHO.cmd;
   const fade = Math.min(1, RADIO.t / 0.25, (m.dur - RADIO.t) / 0.35);
-  const barH = e === 0 ? 26 : e === 3 ? 34 : 28;
-  const fsz = clamp(Math.round(p.w / 34), 11, 17);
-  const bw = Math.min(p.w - 16, 560), bh = fsz * 4.2;
-  const bx = p.x + (p.w - bw) / 2, by = p.y + barH + 34;
+  const barH = e === 0 ? 21 : e === 3 ? 34 : 28;
+  const fsz = e === 0 ? clamp(Math.round(p.w / 42), 9, 14) : clamp(Math.round(p.w / 34), 11, 17);
+  const bw = Math.min(p.w - 16, e === 0 ? 460 : 560), bh = fsz * 4.2;
+  const bx = p.x + (p.w - bw) / 2, by = p.y + barH + (e === 0 ? 28 : 34);
   ctx.save();
   ctx.globalAlpha = clamp(fade, 0, 1) * 0.96;
   const col = e === 0 ? TH.livery.gb[3] : who.col;
@@ -20019,6 +20025,12 @@ function hudOvRun(key, fn, args) {
   try {
     ctx = g; HUDOV.dirty = true;
     g.setTransform(HUDOV.d, 0, 0, HUDOV.d, 0, 0);
+    /* FanBoy : la bannière de secteur est réduite de 20 %, centrée sur l'écran
+       de jeu (le HUD, ancré en haut et en bas, est ajusté dans drawHUD). */
+    if (key === 'ban' && R.era === 0 && R.sec === 0) {
+      const hs = 0.8, cx = PF.x + PF.w / 2, cy = PF.y + PF.h / 2;
+      g.setTransform(HUDOV.d * hs, 0, 0, HUDOV.d * hs, HUDOV.d * cx * (1 - hs), HUDOV.d * cy * (1 - hs));
+    }
     g.imageSmoothingEnabled = true;
     return fn.apply(null, args);
   } finally { ctx = prev; HUDOV.busy = false; }
