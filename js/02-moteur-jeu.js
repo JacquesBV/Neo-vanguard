@@ -6582,6 +6582,10 @@ function updatePlayerOne(P, dt) {
     if (dl > 2) { dx = ddx / Math.max(dl, 40); dy = ddy / Math.max(dl, 40); }
     else { dx = 0; dy = 0; }
   }
+  // Presentation observes the resolved keyboard/gamepad/pointer input.
+  const visual = P.controlVisual || (P.controlVisual = {});
+  visual.x = dx; visual.y = dy;
+  P.nvBombVisual = Math.max(0, (P.nvBombVisual || 0) - dt);
   const sp = st.speed * (keys.Shift ? 0.55 : 1);
   P.vx = lerp2(P.vx, dx * sp, dt * 12); P.vy = lerp2(P.vy, dy * sp, dt * 12);
   P.x = clamp(P.x + P.vx * dt, 32, L_W - 32);
@@ -6602,10 +6606,12 @@ function updatePlayerOne(P, dt) {
       ? (keys.f || keys.l)
       : (keys[' '] || keys.Enter || keys.Control || keys.Meta || pointer.down))
     || S.opts.autofire || !!(pad && pad.fire);
+  visual.fire = !!firing;
   if (firing && P.fireCd <= 0) { fireWeapon(P); P.fireCd = st.fireCd; }
   /* bombe : touche propre à chaque joueur, ou bouton de la manette */
   P.bombCd = Math.max(0, P.bombCd - dt);
   const bombKey = P.id === 2 ? (keys.g || keys.k) : keys.g;
+  visual.bomb = !!(bombKey || (pad && pad.bomb));
   if ((bombKey || (pad && pad.bomb)) && P.bombCd <= 0) { P.bombCd = 0.4; useBomb(P); }
 
   /* drones */
@@ -7067,6 +7073,7 @@ function useBomb(pl) {
   if (G.state !== 'play') return false;
   if (!nvLevelLive()) return false;
   const who = pl || G.player;
+  if (who) who.nvBombVisual = .14;
   if (typeof NET !== 'undefined' && NET.role === 'guest') {
     /* retour visuel immédiat chez l'invité, effet réel décidé par l'hôte */
     netSend('b|1'); Audio2.sfx('bomb'); pushBombRing(G.player, TH.pLite);
@@ -8929,7 +8936,7 @@ function drawHUD() {
     drawHudFooter(P2p, x0 + w - 10, fy, -1, scl, true);
   } else {
     drawHudFooter(P || G.players[0], x0 + 10, fy, 1, scl);
-    drawPwrGauge(P || G.players[0], x0 + w - 10 - 4, fy, 1, scl);
+    drawPwrGauge(P || G.players[0], x0 + w - 14 - (e === 0 ? 75 * scl : 0), fy, 1, scl);
   }
   /* jauge de bouclier */
   if (st.shields > 0 && !noFoot) {

@@ -150,7 +150,7 @@
   const _hud = drawHUD;
   drawHUD = function () {
     const r = _hud.apply(this, arguments);
-    try { if (!IS_TOUCH && O.gbBezel && gbEra() && playing()) { if (typeof hudOvRun === 'function') hudOvRun('gbBezel', drawBezel, []); else drawBezel(); } } catch (e) { }
+    try { if (!window.NV_FANBOY_REFERENCE && !IS_TOUCH && O.gbBezel && gbEra() && playing()) { if (typeof hudOvRun === 'function') hudOvRun('gbBezel', drawBezel, []); else drawBezel(); } } catch (e) { }
     return r;
   };
 
@@ -351,7 +351,7 @@
       row(body, L5('Rémanence LCD', 'LCD ghosting'), L5('Secteurs FanBoy : les objets laissent une légère traînée, comme sur l’écran lent d’origine', 'FanBoy sectors: moving objects leave a faint trail, like the original slow screen'), 'gbGhost', [['off', no], ['low', L5('Légère', 'Light')], ['strong', L5('Forte', 'Strong')]]);
       row(body, L5('Contraste LCD', 'LCD contrast'), L5('Comme la molette sur le côté de la console', 'Like the wheel on the side of the console'), 'gbContrast', [['low', L5('Faible', 'Low')], ['normal', 'Normal'], ['high', L5('Fort', 'High')]]);
       row(body, L5('Clignotement des sprites', 'Sprite flicker'), L5('Au-delà de 5 ennemis sur une même ligne, ils clignotent comme sur la vraie console', 'Above 5 enemies on one line they flicker, as on the real console'), 'gbFlicker', [[0, no], [1, yes]]);
-      if (!IS_TOUCH) row(body, L5('Cadre de console (PC)', 'Console frame (PC)'), L5('Coque grise, voyant d’alimentation et inscription autour de l’écran FanBoy', 'Grey shell, power light and lettering around the FanBoy screen'), 'gbBezel', [[1, yes], [0, no]]);
+      if (!IS_TOUCH) row(body, L5('Cadre de console (PC)', 'Console frame (PC)'), L5('Coque noire NV-01, commandes réactives et cadre LED autour de l’écran FanBoy', 'Black NV-01 shell, reactive controls and LED frame around the FanBoy screen'), 'gbBezel', [[1, yes], [0, no]]);
       row(body, L5('Puce sonore FanBoy', 'FanBoy sound chip'), L5('Secteurs 1 à 4 : 4 voies (2 carrés, onde 4 bits, bruit) et une musique composée pour la puce', 'Sectors 1-4: 4 channels (2 pulses, 4-bit wave, noise) and music written for the chip'), 'gbChip', [[1, yes], [0, no]], () => { route(); Audio2.applyOutputMode(); });
       row(body, L5('Sortie sonore FanBoy', 'FanBoy audio output'), L5('Haut-parleur : son étroit et mono · Casque : stéréo séparée', 'Speaker: narrow mono sound · Headphones: hard-panned stereo'), 'gbOut', [['speaker', L5('Haut-parleur', 'Speaker')], ['headphones', L5('Casque', 'Headphones')]], () => { route(); Audio2.applyOutputMode(); });
     } catch (e) { }

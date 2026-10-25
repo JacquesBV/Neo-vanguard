@@ -1,10 +1,10 @@
-/* FanBoy KFM-01 — coque portable et LCD réfléchissant positif, réédition 5.
+/* FanBoy NV-01 — coque portable et LCD réfléchissant positif, réédition 6.
  * Retrouve les encres LCD estimées d'après les captures fournies (fond sauge
  * clair, structures olive sombre), telles que validées à l'écran : la palette
  * interne du moteur (indices de terrain, ombrages, collisions) n'est pas
  * modifiée, seule la présentation convertit les encres à l'affichage.
  * Ce module pose aussi :
- *   · la coque d'origine autour de l'écran, agrandie au maximum sur téléphone ;
+ *   · une coque noire verticale NV-01 et ses commandes réactives ;
  *   · le verre LCD : grille de pixels physique, matte et reflet de lumière
  *     ambiante fixé à la vitre ;
  *   · un cadrage épinglé : aucun rescale / resize en pleine partie ;
@@ -143,74 +143,86 @@
 
   /* ------------------------------------ cadrage : grand, et jamais revu */
   const oldResize = resizeView;
-  let pinS = null, viewKey = '';
   resizeView = function () {
     const result = oldResize.apply(this, arguments);
-    if (!framed()) { pinS = null; return result; }
-    const key = view.w + 'x' + view.h + '@' + view.dpr;
-    if (key !== viewKey) { viewKey = key; pinS = null; }   /* rotation vraie : recalcul */
-    const W = view.w, H = view.h, d = view.dpr;
-    const bandTop = 33, bandBottom = 47;                   /* bandeau + mentonnière coque */
-    const outer = IS_TOUCH ? 6 : Math.max(10, Math.min(24, W * .04));
-    const shellSide = IS_TOUCH ? Math.max(10, Math.min(20, W * .045)) : 34;
-    const touchPad = IS_TOUCH ? 100 : 0;                   /* barre tactile fixe en bas */
-    const availableW = Math.max(1, W - result.sideRes * 2 - (outer + shellSide) * 2);
-    const availableH = Math.max(1, H - touchPad - outer * 2 - bandTop - bandBottom);
-    const scale = Math.min(availableW / L_W, availableH / L_H);
-    const sourceScale = Math.max(.2, R.S || 1);
-    const whole = Math.floor(scale * d / sourceScale);
-    PF.s = (!IS_TOUCH && whole >= 1) ? sourceScale * whole / d : scale;
-    if (pinS === null) pinS = PF.s; else PF.s = pinS;      /* aucun rescale en partie */
+    if (!framed()) return result;
+    const W = view.w, H = view.h;
+    // One portrait shell, with an 480 × 360 presentation aperture; world dimensions stay engine-owned.
+    const margin = 8, touchPad = IS_TOUCH ? 100 : 0;
+    const shellScale = Math.max(.05, Math.min((W - 2 * margin) / 600,
+      (H - touchPad - 2 * margin) / 840));
+    PF.s = shellScale * 480 / L_W;
     PF.w = L_W * PF.s; PF.h = L_H * PF.s;
-    PF.x = Math.round((W - PF.w) * .5 * d) / d;
-    PF.y = Math.round((outer + bandTop + (availableH - PF.h) * .5) * d) / d;
+    PF.x = (W - 600 * shellScale) / 2 + 60 * shellScale;
+    PF.y = margin + Math.max(0, (H - touchPad - 2 * margin - 840 * shellScale) / 2) + 90 * shellScale;
     R.vig = null; R.fog = null; gpuResize();
     return result;
   };
 
-  /* Coque biseautée symétrique, bandeau horizontal, voyant à droite.
-     Aucun logo constructeur, slogan d'origine ou marque déposée. */
+  /* Static vector asset and existing in-game hull; no animation loop or timer. */
+  const shell = new Image(); shell.src = 'assets/fanboy/nv01-shell.svg';
+  const ship = new Image(); ship.src = 'assets/ships-native/r0-falcon.png';
   function panel(x, y, w, h, cut) {
     ctx.beginPath(); ctx.moveTo(x + cut, y); ctx.lineTo(x + w - cut, y);
     ctx.lineTo(x + w, y + cut); ctx.lineTo(x + w, y + h - cut);
     ctx.lineTo(x + w - cut, y + h); ctx.lineTo(x + cut, y + h);
     ctx.lineTo(x, y + h - cut); ctx.lineTo(x, y + cut); ctx.closePath();
   }
+  function button(x, y, label, pressed, color, direction) {
+    ctx.save(); ctx.translate(x, y + (pressed ? 4 : 0));
+    panel(-23, -23, 46, 46, 11);
+    ctx.fillStyle = pressed ? '#111b24' : '#334354'; ctx.fill();
+    ctx.strokeStyle = pressed ? color : '#617486'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = color;
+    if (direction !== undefined) {
+      ctx.rotate(direction); ctx.beginPath(); ctx.moveTo(0, -9);
+      ctx.lineTo(8, 5); ctx.lineTo(-8, 5); ctx.closePath(); ctx.fill();
+    } else {
+      ctx.font = '600 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(label, 0, 1);
+    }
+    ctx.restore();
+  }
   const oldFrame = drawMachineFrame;
   drawMachineFrame = function () {
     if (!active()) return oldFrame.apply(this, arguments);
     if (!framed()) return;
-    const side = Math.min(PF.x - 5, 34), x = PF.x - side, y = PF.y - 33;
-    const w = PF.w + side * 2, h = PF.h + 80;
-    ctx.save();
-    const shell = ctx.createLinearGradient(x, y, x + w, y + h);
-    shell.addColorStop(0, '#e0e1d8'); shell.addColorStop(.45, '#c8ccc1'); shell.addColorStop(1, '#afb8ac');
-    panel(x, y, w, h, 13); ctx.fillStyle = shell; ctx.fill();
-    ctx.strokeStyle = '#788577'; ctx.lineWidth = 1.5; ctx.stroke();
-    panel(x + 5, y + 5, w - 10, PF.h + 46, 9);
-    ctx.fillStyle = '#535a53'; ctx.fill();
-    ctx.strokeStyle = '#394039'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.fillStyle = '#a8b8a1'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.font = '600 8px sans-serif';
-    ctx.fillText('KFM-01  /  DOT DISPLAY', PF.x + 2, PF.y - 17, PF.w - 32);
-    ctx.fillStyle = '#e84036'; ctx.shadowColor = '#ff3c20'; ctx.shadowBlur = 7;
-    ctx.beginPath(); ctx.arc(PF.x + PF.w - 7, PF.y - 17, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#31382c'; ctx.lineWidth = 3;
-    ctx.strokeRect(PF.x - 1.5, PF.y - 1.5, PF.w + 3, PF.h + 3);
-    const cy = PF.y + PF.h + 30;
-    const fs = Math.min(22, PF.w * .084);
-    ctx.font = `700 ${fs}px sans-serif`; ctx.textAlign = 'center';
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '2px';
-    ctx.fillStyle = '#274c45'; ctx.fillText('FANBOY', PF.x + PF.w * .5, cy, PF.w * .70);
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
-    const ex = PF.x + 7;
-    ctx.strokeStyle = '#3e7564'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(ex + 5, cy - 7); ctx.lineTo(ex - 2, cy);
-    ctx.lineTo(ex + 5, cy + 7); ctx.moveTo(ex + 10, cy - 7);
-    ctx.lineTo(ex + 17, cy); ctx.lineTo(ex + 10, cy + 7); ctx.stroke();
-    ctx.fillStyle = '#6d7d6c';
-    for (let i = 0; i < 3; i++) ctx.fillRect(PF.x + PF.w - 16 + i * 5, cy - 6, 2, 12);
+    const scale = PF.w / 480, x = PF.x - 60 * scale, y = PF.y - 90 * scale;
+    ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+    if (shell.complete && shell.naturalWidth) ctx.drawImage(shell, 0, 0, 600, 840);
+    const end = G.plan && G.plan.length ? G.plan[G.plan.length - 1].t + 3 : G.levelDur;
+    const progress = Math.max(0, Math.min(1, (G.waveT || 0) / Math.max(1, end)));
+    const warning = G.phase === 'bossWarn';
+    const danger = warning || G.phase === 'boss' || G.phase === 'harvest' || G.phase === 'clear';
+    const mix = (a, b, t) => 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',') + ')';
+    const green = [62, 240, 157], orange = [255, 164, 48], red = [255, 52, 73];
+    const smooth = v => { v = Math.max(0, Math.min(1, v)); return v * v * (3 - 2 * v); };
+    const color = danger ? 'rgb(255,52,73)' : progress < .65
+      ? mix(green, orange, smooth((progress - .35) / .15))
+      : mix(orange, red, smooth((progress - .75) / .15));
+    const signal = window.nvAlertSignal(Math.max(0, G.bossWarnT || 0), G.bossWarnTotal || 3.6);
+    ctx.globalAlpha = warning ? signal.envelope * (signal.blink ? 1 : .12) : 1;
+    ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.shadowColor = color; ctx.shadowBlur = 10;
+    panel(53, 83, 494, 374, 7); ctx.stroke();
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    // Fixed power light is independent of warning and progression.
+    ctx.fillStyle = '#75efff'; ctx.beginPath(); ctx.arc(545, 53, 4, 0, Math.PI * 2); ctx.fill();
+    const p = G.player, input = p && p.controlVisual;
+    const live = G.state === 'play' && p && p.alive && !p.out;
+    const dx = live && input ? input.x : 0, dy = live && input ? input.y : 0;
+    button(140, 580, '', dy < -.1, '#72ddeb', 0);
+    button(89, 631, '', dx < -.1, '#72ddeb', -Math.PI / 2);
+    button(191, 631, '', dx > .1, '#72ddeb', Math.PI / 2);
+    button(140, 682, '', dy > .1, '#72ddeb', Math.PI);
+    button(414, 650, 'P', live && input && input.fire, '#72ddeb');
+    button(493, 600, 'Ω', live && ((input && input.bomb) || p.nvBombVisual > 0), '#f6ba64');
+    ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#92a5b7';
+    ctx.fillText('PULSE', 414, 687); ctx.fillText('NOVA', 493, 637);
+    if (ship.complete && ship.naturalWidth) {
+      ctx.save(); ctx.globalAlpha = .8; ctx.translate(302, 635); ctx.rotate(-.22);
+      // Exact hull used by module 34, without generating a substitute ship.
+      ctx.drawImage(ship, -37, -52, 74, 104); ctx.restore();
+    }
     ctx.restore();
   };
 
@@ -294,5 +306,5 @@
     return oldRender.apply(this, arguments);
   };
 
-  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 5, inks: Object.freeze(inks), shell: true, glass: true });
+  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 6, inks: Object.freeze(inks), shell: true, glass: true });
 })();

@@ -18,12 +18,18 @@
     for (let sx = x - step * 2 + off; sx < x + w + step; sx += step) { ctx.beginPath(); ctx.moveTo(sx, y + hh); ctx.lineTo(sx + step * .5, y + hh); ctx.lineTo(sx + step * .5 + hh, y); ctx.lineTo(sx + hh, y); ctx.closePath(); ctx.fill(); }
     ctx.restore();
   }
+  // Single phase/envelope for both the WARNING banner and the NV-01 LEDs.
+  window.nvAlertSignal = function (t, total) {
+    return { pulse: .5 + .5 * Math.sin(t * 13), blink: Math.floor(t * 6) % 2 === 0,
+      envelope: Math.min(sm(t / .4), sm((total - t) / .35)) };
+  };
   window.nvAlertDraw = function (t, total, o) {
     const e = R.era, gb = e === 0, x0 = PF.x, y0 = PF.y, w = PF.w, h = PF.h;
     const red = gb ? TH.livery.gb[3] : '#ff2b45', amber = gb ? TH.livery.gb[2] : '#ffd166', ink = gb ? TH.bg : '#12040a', white = gb ? TH.livery.gb[3] : '#ffffff';
-    const kout = sm((total - t) / .35), k = Math.min(sm(t / .4), kout);
+    const signal = window.nvAlertSignal(t, total);
+    const kout = sm((total - t) / .35), k = signal.envelope;
     if (k <= 0) return;
-    const pulse = .5 + .5 * Math.sin(t * 13), blink = Math.floor(t * 6) % 2 === 0;
+    const { pulse, blink } = signal;
     const cy = y0 + h * (o.y || .38), bandH = Math.max(108, h * .155), sh = Math.max(12, h * .02);
     const bh = bandH * sm(t / .5) * kout, slide = (1 - sm(t / .35)) * w + (1 - kout) * w;
     const HD = TH.ramp >= 255, put = (str, x, y, col, size, opt) => hudText(ctx, str, x, y + (HD ? size * 3.5 : 0), col, size, opt);
