@@ -28,10 +28,10 @@ const fs=require('node:fs');
     const pad=await page.evaluate(()=>{const orig=navigator.getGamepads.bind(navigator);navigator.getGamepads=()=>[{connected:true,axes:[-1,.8],buttons:Array.from({length:16},(_,i)=>({pressed:i===0,value:i===0?1:0}))}];updatePlayerOne(G.player,1/60);const v={...G.player.controlVisual};navigator.getGamepads=orig;return v;});assert(pad.x<0&&pad.y>0&&pad.fire);
     if(mobile){
      const client=await context.newCDPSession(page);
-     const loc=await page.evaluate(()=>({x:PF.x+PF.w/2,y:PF.y+PF.h*.7}));
+     const loc=await page.evaluate(()=>{G.player.x=L_W/2;G.player.y=L_H/2;G.player.vx=G.player.vy=0;return {x:PF.x+PF.w/2,y:PF.y+PF.h*.7};});
      await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[loc]});
      await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:loc.x+35,y:loc.y-20}]});
-     const drag=await page.evaluate(()=>{updatePlayerOne(G.player,1/60);return {down:pointer.down,drag:pointer.drag,input:{...G.player.controlVisual}}});assert(drag.down&&drag.drag&&drag.input.x>0&&drag.input.y<0);
+     const drag=await page.evaluate(()=>{updatePlayerOne(G.player,1/60);return {down:pointer.down,drag:pointer.drag,input:{...G.player.controlVisual},x:G.player.x,y:G.player.y}});assert(drag.down&&drag.drag&&drag.x>240&&drag.y<430);
      await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     }
    }
@@ -56,10 +56,10 @@ const fs=require('node:fs');
    await page.setViewportSize({width:390,height:844});
    await page.evaluate(()=>{G.phase='waves';G.state='play';G.player.inv=3;hideScreens();resizeView();render(0);});
    await page.waitForTimeout(150);
-   const bounds=await page.locator('#touchui').boundingBox();const field=await page.evaluate(()=>({bottom:PF.y+PF.h,h:view.h}));
+   const bounds=await page.locator('#fx-controls').boundingBox();const field=await page.evaluate(()=>({bottom:PF.y+PF.h,h:view.h}));
    assert(bounds&&bounds.y>=field.bottom&&bounds.y+bounds.height<=field.h+.1);
    await page.screenshot({path:output+'/fanboy-mobile-play.png'});
-   await page.locator('#tpause').click();assert.equal(await page.evaluate(()=>G.state),'pause');
+   await page.locator('#fx-pause').click();assert.equal(await page.evaluate(()=>G.state),'pause');
   }
   if(mobile){await page.setViewportSize({width:844,height:390});await page.evaluate(()=>{startLevel(1);});await page.waitForFunction(()=>!nvFluid.CAL.on,{}, {timeout:45000});await page.screenshot({path:output+'/fanboy-mobile-landscape.png'});}
   assert.deepEqual(errors,[]);await context.close();

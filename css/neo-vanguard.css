@@ -1336,3 +1336,20 @@ body.fanboy-fx #touchui .weapon-step{flex:0 0 31%;min-width:0;min-height:30px;op
 body.fanboy-fx #touchui .weapon-current{min-width:0;min-height:30px;opacity:0}
 body.fanboy-fx #touchui #tpause{position:absolute!important;right:10%;top:0;width:16%;height:28%;min-height:40px;opacity:0;pointer-events:auto}
 body.fanboy-fx #touchui button:focus-visible{opacity:1;outline:2px solid #66eaff}
+/* FX v9: labelled live controls; the screen remains an independent drag surface. */
+body.fanboy-fx #touchui{display:none!important}
+#fx-controls{display:none;position:absolute;z-index:5;pointer-events:none;touch-action:none}
+body.fanboy-fx.playing #fx-controls{display:block}
+#fx-controls button{position:absolute;touch-action:none;pointer-events:auto;user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer;padding:0;border:0;margin:0}
+#fx-stick{left:4%;top:8%;width:32%;height:70%;border-radius:50%;background:transparent}
+#fx-controls .fx-key{width:48px;height:48px;min-width:44px;min-height:44px;border-radius:50%;background:transparent;transform:translate(-50%,-50%);color:var(--key-color);outline:1px solid var(--key-color);outline-offset:-3px;box-shadow:0 0 7px color-mix(in srgb,var(--key-color) 18%,transparent)}
+#fx-controls .fx-key span{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;min-width:35px;padding:3px 1px;border-radius:6px;background:#090e18;color:var(--key-color);font:900 9px/1.05 system-ui,sans-serif;letter-spacing:.02em;text-shadow:0 0 5px color-mix(in srgb,var(--key-color) 55%,transparent)}
+#fx-controls .fx-key small{font:800 8px/1 system-ui,sans-serif;margin-top:1px}
+#fx-controls .fx-fire{left:70%;top:28%;--key-color:#63ff8c}
+#fx-controls .fx-bomb{left:88%;top:28%;--key-color:#ff5870}
+#fx-controls .fx-weapon{left:70%;top:73%;--key-color:#51cfff}
+#fx-controls .fx-pause{left:88%;top:73%;--key-color:#ffd36c}
+#fx-controls .fx-key.is-held,#fx-controls .fx-key:active{transform:translate(-50%,-50%) translateY(2px) scale(.96);box-shadow:inset 0 2px 8px #000,0 0 14px var(--key-color)}
+#fx-controls button:focus-visible{outline:2px solid white;outline-offset:2px}
+body.fanboy-fx{touch-action:none}
+body.fanboy-fx canvas{touch-action:none}

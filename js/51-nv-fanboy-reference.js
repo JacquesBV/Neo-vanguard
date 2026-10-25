@@ -201,8 +201,43 @@
     const pulse=window.nvAlertSignal(Math.max(0,G.bossWarnT||0),G.bossWarnTotal||3.6);
     return {color,progress,alpha:warning ? pulse.envelope*(pulse.blink?1:.10):1};
   }
+  const fxInput={x:0,y:0,stickDown:false,fire:false,weaponFlash:0,pauseFlash:false,active:()=>framed()&&G.state==='play'};
+  window.NV_FX_INPUT=fxInput;
+  const fxControls=document.createElement('div');fxControls.id='fx-controls';fxControls.setAttribute('role','group');fxControls.setAttribute('aria-label','Commandes FanBoy FX');
+  fxControls.innerHTML='<button id="fx-stick" aria-label="Piloter le vaisseau avec le stick" title="Piloter · le doigt sur l’écran reste disponible"></button><button id="fx-fire" class="fx-key fx-fire" aria-label="Maintenir pour tirer"><span>TIR</span></button><button id="fx-bomb" class="fx-key fx-bomb" aria-label="Utiliser une bombe"><span>BOMBE<small id="fx-bomb-count"></small></span></button><button id="fx-weapon" class="fx-key fx-weapon" aria-label="Changer d’arme"><span>ARME</span></button><button id="fx-pause" class="fx-key fx-pause" aria-label="Pause"><span>PAUSE</span></button>';
+  document.getElementById('stage').appendChild(fxControls);
+  const fxStick=fxControls.querySelector('#fx-stick'),fxBombCount=fxControls.querySelector('#fx-bomb-count');
+  let stickPointer=null,firePointer=null;
+  function resetFxInput(){fxInput.x=fxInput.y=0;fxInput.stickDown=fxInput.fire=false;stickPointer=firePointer=null;fxControls.querySelectorAll('.is-held').forEach(el=>el.classList.remove('is-held'));}
+  function moveStick(e){
+    const b=fxStick.getBoundingClientRect(),r=Math.min(b.width,b.height)*.38;
+    let x=(e.clientX-b.x-b.width/2)/r,y=(e.clientY-b.y-b.height/2)/r;
+    const length=Math.hypot(x,y),scale=length>.04?Math.min(1,(length-.04)/.96)/length:0;
+    fxInput.x=x*scale;fxInput.y=y*scale;
+  }
+  fxStick.addEventListener('pointerdown',e=>{if(!fxInput.active()||stickPointer!==null)return;e.preventDefault();stickPointer=e.pointerId;fxInput.stickDown=true;fxStick.setPointerCapture(e.pointerId);moveStick(e);Audio2.unlock();});
+  fxStick.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer)moveStick(e);});
+  function releaseStick(e){if(e.pointerId!==stickPointer)return;stickPointer=null;fxInput.x=fxInput.y=0;fxInput.stickDown=false;if(G.player){G.player.vx=0;G.player.vy=0;}}
+  for(const event of ['pointerup','pointercancel','lostpointercapture'])fxStick.addEventListener(event,releaseStick);
+  function action(id){if(!fxInput.active())return;Audio2.unlock();if(id==='fx-bomb')useBomb();else if(id==='fx-weapon'){cycleWeapon(1);fxInput.weaponFlash=(G.t||0)+.14;}else if(id==='fx-pause')pauseGame();}
+  fxControls.querySelectorAll('.fx-key').forEach(button=>{
+    button.addEventListener('pointerdown',e=>{if(!fxInput.active())return;e.preventDefault();button.setPointerCapture(e.pointerId);button.classList.add('is-held');if(button.id==='fx-fire'){firePointer=e.pointerId;fxInput.fire=true;}else action(button.id);});
+    const release=e=>{button.classList.remove('is-held');if(e.pointerId===firePointer){firePointer=null;fxInput.fire=false;}};
+    for(const event of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(event,release);
+    button.addEventListener('click',e=>{if(e.detail===0)action(button.id);});
+    if(button.id==='fx-fire'){
+      button.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(fxInput.active())fxInput.fire=true;}});
+      button.addEventListener('keyup',()=>{fxInput.fire=false;});button.addEventListener('blur',()=>{fxInput.fire=false;});
+    }
+  });
+  fxStick.addEventListener('keydown',e=>{const m={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(m&&fxInput.active()){e.preventDefault();fxInput.x=m[0];fxInput.y=m[1];fxInput.stickDown=true;}});
+  fxStick.addEventListener('keyup',()=>{fxInput.x=fxInput.y=0;fxInput.stickDown=false;});
+  addEventListener('blur',resetFxInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetFxInput();});
+
   // The supplied art is a material atlas, never a displayed gameplay image.
   // Only armor and separate control cutouts are sampled from it.
+  const gameMark=new Image();gameMark.src='bandeau-readme.png';
+  const gameShip=new Image();gameShip.src='assets/media/ships-shop/falcon.webp';
   const fxAtlas=new Image();let armorPattern=null;
   fxAtlas.onload=()=>{const tile=document.createElement('canvas');tile.width=tile.height=96;tile.getContext('2d').drawImage(fxAtlas,390,1260,96,96,0,0,96,96);armorPattern=ctx.createPattern(tile,'repeat');sceneDirty=true;};
   fxAtlas.src='assets/fanboy/fx-material-reference.png';
@@ -231,6 +266,14 @@
         ctx.drawImage(fxAtlas,931,1155,93,35,x+w-rail,spacerY,rail,controlsTop-spacerY);
       }
       ctx.drawImage(fxAtlas,0,1190,1024,346,x,controlsTop,w,controlsH);
+      // Replace the unused right stick and arbitrary ABXY markings with a
+      // textured plate, one real pilot stick, and four labelled action keys.
+      ctx.save();ctx.beginPath();ctx.roundRect(x+w*.055,controlsTop+controlsH*.04,w*.89,controlsH*.86,9);ctx.clip();
+      ctx.fillStyle=armorPattern||'#262b34';ctx.fillRect(x,controlsTop,w,controlsH);ctx.restore();
+      if(controlsTop-spacerY>30)label('ÉCRAN : GLISSER POUR PILOTER',x+w*.5,controlsTop-11,Math.min(9,w*.023),'#c1d5e4','center');
+      if(gameMark.complete&&gameMark.naturalWidth)ctx.drawImage(gameMark,56,110,710,72,x+w*.36,controlsTop+controlsH*.12,w*.24,w*.024);
+      if(gameShip.complete&&gameShip.naturalWidth)ctx.drawImage(gameShip,0,170,720,410,x+w*.36,controlsTop+controlsH*.27,w*.24,w*.137);
+      label('PILOTAGE',x+w*.20,controlsTop+controlsH*.83,Math.min(9,w*.023),'#77e6ff','center');
     }else panel(x,q.y,w,q.h,'#171e29','#647084',12);
     panel(PF.x-5,PF.y-5,PF.w+10,PF.h+10,'#02050a','#667385',5);
     ctx.save();ctx.globalAlpha=sig.alpha;ctx.strokeStyle=sig.color;ctx.shadowColor=sig.color;ctx.shadowBlur=10;ctx.lineWidth=3;
@@ -239,25 +282,22 @@
     const now=Number(G.t)||0,dt=keyTime===null?1/60:clamp(now-keyTime,0,.05);keyTime=now;
     const k=live?1-Math.exp(-32*dt):1;
     stickX+=((input.x||0)-stickX)*k;stickY+=((input.y||0)-stickY)*k;
-    const targets=[!!input.fire,!!(input.bomb || p&&p.nvBombVisual>0),!!input.x,!!input.y];
+    const targets=[!!input.fire,!!(input.bomb || p&&p.nvBombVisual>0),fxInput.weaponFlash>now,!!fxInput.pauseFlash];
     keyStates.forEach((v,i)=>{keyStates[i]=v+(Number(live&&targets[i])-v)*k;});
     if(loaded){
-      const sx=w/1024,sy=controlsH/346;
-      function cap(cx,cy,r,dx,dy,amount,color){
-        const destX=x+cx*sx,destY=controlsTop+(cy-1190)*sy;
-        const rx=r*sx,ry=r*sy;
-        ctx.save();ctx.beginPath();ctx.ellipse(destX,destY,rx,ry,0,0,TAU);ctx.clip();
-        // Paint the socket, then a displaced, inset cap from the same material.
-        ctx.fillStyle='#05070c';ctx.fillRect(destX-rx,destY-ry,rx*2,ry*2);
-        const press=amount*1.2;
-        ctx.drawImage(fxAtlas,cx-r,cy-r,r*2,r*2,destX-rx+dx+press*.3,destY-ry+dy+press,rx*2-press*.6,ry*2-press*.6);
-        ctx.restore();
-        if(amount>.01){ctx.save();ctx.strokeStyle=color;ctx.shadowColor=color;ctx.shadowBlur=8;ctx.globalAlpha=amount*.8;ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(destX+dx,destY+dy+press,rx*.88,ry*.88,0,0,TAU);ctx.stroke();ctx.restore();}
+      // Stick cap follows resolved input; no second decorative stick remains.
+      const stickCX=x+w*.20,stickCY=controlsTop+controlsH*.43,stickR=Math.min(w*.105,controlsH*.34);
+      ctx.save();ctx.beginPath();ctx.arc(stickCX,stickCY,stickR,0,TAU);ctx.clip();ctx.fillStyle='#03060b';ctx.fill();
+      ctx.drawImage(fxAtlas,92,1220,216,216,stickCX-stickR+stickX*4,stickCY-stickR+stickY*4,stickR*2,stickR*2);ctx.restore();
+      const positions=[[.70,.28,'#63ff8c'],[.88,.28,'#ff5870'],[.70,.73,'#51cfff'],[.88,.73,'#ffd36c']];
+      for(let i=0;i<positions.length;i++){
+        const [cx,cy,color]=positions[i],bx=x+w*cx,by=controlsTop+controlsH*cy,r=Math.min(23,w*.059);
+        const press=keyStates[i]*1.5;
+        ctx.save();ctx.beginPath();ctx.arc(bx,by,r,0,TAU);ctx.clip();
+        ctx.drawImage(fxAtlas,850,1262,96,96,bx-r+press*.2,by-r+press,r*2-press*.4,r*2-press*.4);ctx.restore();
+        ctx.strokeStyle=color;ctx.shadowColor=color;ctx.shadowBlur=keyStates[i]*10;ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.arc(bx,by+press,r*.94,0,TAU);ctx.stroke();ctx.shadowBlur=0;
       }
-      cap(200,1328,79,stickX*5,stickY*5,Math.min(1,Math.hypot(stickX,stickY)),'#27daff');
-      cap(637,1351,56,0,keyStates[0]*2,keyStates[0],'#27daff');
-      cap(834,1372,39,0,0,keyStates[0],'#37e9ff');
-      cap(898,1310,39,0,0,keyStates[1],'#ff3f63');
       // Neutral cyan in the reference is replaced by the shared sector signal.
       for(const side of [x+w*.039,x+w*.96]){
         ctx.save();ctx.globalAlpha=sig.alpha;ctx.strokeStyle=sig.color;ctx.shadowColor=sig.color;ctx.shadowBlur=7;ctx.lineWidth=2;
@@ -291,7 +331,7 @@
     if(anyCheat())label('*',x+w-2,ty-15,8,'#ffd675','right');
     // Hull, shield and boss telemetry live in the armor, outside PF.
     const b=G.boss;
-    const y=fy+10;
+    const y=fy+14;
     const hull=p.maxHp || 1;
     label('COQUE '+Math.round(p.hp||0)+'  / '+(hull||1)+'  •  SH '+(p.shield||0),x+5,y,fs-1,'#b1c6d8');
     if(b&&!b.dead){
@@ -381,15 +421,21 @@
 
   /* Entrer/sortir d'un menu restaure les marges de viewport appropriées. */
   const oldRender = render;
-  let lastFrameState = null;
+  let lastFrameState = null,controlGeometry="";
   render = function () {
     const state = framed();
     document.body.classList.toggle('fanboy-fx', state);
+    if(!state || G.state!=='play')resetFxInput();
+    if(state && layout){const q=layout,h=Math.max(1,Math.min(q.y+q.h-PF.y-PF.h-26,q.w*346/1024));
+      const geometry=[q.x,q.y+q.h-h,q.w,h].join(':');
+      if(geometry!==controlGeometry){controlGeometry=geometry;fxControls.style.left=q.x+'px';fxControls.style.top=(q.y+q.h-h)+'px';fxControls.style.width=q.w+'px';fxControls.style.height=h+'px';}
+      const count=String(G.player?G.player.bombs:0);if(fxBombCount.textContent!==count)fxBombCount.textContent=count;
+    }
     if (state !== lastFrameState) { lastFrameState = state; sideRes = resizeView().sideRes; }
     const result=oldRender.apply(this, arguments);
     if(state && ['play','pause','clear','victory'].includes(G.state))hudOvRun('fxHUD',drawShellHUD,[]);
     return result;
   };
 
-  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 8, inks: Object.freeze(inks), shell: true, glass: true });
+  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 9, inks: Object.freeze(inks), shell: true, glass: true });
 })();

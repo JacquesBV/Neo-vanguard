@@ -6560,6 +6560,8 @@ function updatePlayerOne(P, dt) {
   const ax = axis(P.id);
   let dx = ax.x, dy = ax.y;
   if (pad) { dx = clamp(dx + pad.x, -1, 1); dy = clamp(dy + pad.y, -1, 1); }
+  const fx = P.id === 1 && window.NV_FX_INPUT && window.NV_FX_INPUT.active() ? window.NV_FX_INPUT : null;
+  if(fx && fx.stickDown){dx=clamp(dx+fx.x,-1,1);dy=clamp(dy+fx.y,-1,1);}
   /* --- pilotage au doigt : RELATIF ------------------------------------------
      Le doigt ne désigne pas un point où aller, il pousse le vaisseau. On
      reprend donc la position mémorisée à la pose du doigt et on y ajoute le
@@ -6585,9 +6587,21 @@ function updatePlayerOne(P, dt) {
   visual.x = dx; visual.y = dy;
   P.nvBombVisual = Math.max(0, (P.nvBombVisual || 0) - dt);
   const sp = st.speed * (keys.Shift ? 0.55 : 1);
-  P.vx = lerp2(P.vx, dx * sp, dt * 12); P.vy = lerp2(P.vy, dy * sp, dt * 12);
-  P.x = clamp(P.x + P.vx * dt, 32, L_W - 32);
-  P.y = clamp(P.y + P.vy * dt, 76, L_H - 42);
+  if(fx && pointer.drag && pointer.down && tx !== null){
+    // Direct relative touch: one screen pixel of finger travel moves the
+    // ship by one screen pixel, without the keyboard speed cap or inertia.
+    const previousX=P.x,previousY=P.y;
+    P.x=clamp(tx,32,L_W-32);P.y=clamp(ty,76,L_H-42);
+    P.vx=0;P.vy=0;
+    visual.x=clamp((P.x-previousX)/Math.max(1,sp*dt),-1,1);
+    visual.y=clamp((P.y-previousY)/Math.max(1,sp*dt),-1,1);
+    // Rebase at edges so reversing the finger responds immediately.
+    pointer.grabX=P.x;pointer.grabY=P.y;pointer.baseX=pointer.x;pointer.baseY=pointer.y;
+  }else{
+    P.vx = fx && fx.stickDown ? dx * sp : lerp2(P.vx, dx * sp, dt * 12); P.vy = fx && fx.stickDown ? dy * sp : lerp2(P.vy, dy * sp, dt * 12);
+    P.x = clamp(P.x + P.vx * dt, 32, L_W - 32);
+    P.y = clamp(P.y + P.vy * dt, 76, L_H - 42);
+  }
   /* inclinaison visuelle */
   P.bank = lerp2(P.bank, clamp(P.vx / (st.speed || 1), -1, 1), dt * 8);
 
@@ -6603,7 +6617,7 @@ function updatePlayerOne(P, dt) {
   const firing = (P.id === 2
       ? (keys.f || keys.l)
       : (keys[' '] || keys.Enter || keys.Control || keys.Meta || pointer.down))
-    || S.opts.autofire || !!(pad && pad.fire);
+    || S.opts.autofire || !!(pad && pad.fire) || !!(fx && (fx.fire || fx.stickDown));
   visual.fire = !!firing;
   if (firing && P.fireCd <= 0) { fireWeapon(P); P.fireCd = st.fireCd; }
   /* bombe : touche propre à chaque joueur, ou bouton de la manette */
@@ -12585,7 +12599,7 @@ function wirePointer() {
   const busy = t => !!(t && t.closest &&
     t.closest('button, a, input, select, textarea, label, #touchui, .screen.on, #toast'));
   const poser = e => {
-    const t = e.clientX !== undefined ? e : (e.touches && e.touches[0]);
+    const t = e.clientX !== undefined ? e : (e.touches && (Array.from(e.touches).find(t=>t.identifier===pilotId)||e.touches[0]));
     if (!t || t.clientX === undefined) return;
     pointer.x = t.clientX / (view.w || window.innerWidth);
     pointer.y = t.clientY / (view.h || window.innerHeight);
@@ -12627,17 +12641,25 @@ function wirePointer() {
     }
     if (doubleTap && G.state === 'play') useBomb();            /* double tap = bombe */
   };
-  const haut = () => { pointer.down = false; doigts = 0; pointer.drag = false; };
+  let pilotId=null;
+  const haut = () => { pointer.down = false; doigts = 0; pointer.drag = false; pilotId=null; };
   if (window.PointerEvent) {
-    addEventListener('pointerdown', e => { if (!busy(e.target)) bas(e, e.pointerType === 'touch'); }, { capture: true });
-    addEventListener('pointermove', e => { if (!busy(e.target)) poser(e); }, { capture: true, passive: true });
-    addEventListener('pointerup', haut, { capture: true });
-    addEventListener('pointercancel', haut, { capture: true });
+    addEventListener('pointerdown', e => {
+      if(busy(e.target))return;
+      if(e.pointerType==='touch' && pilotId!==null){if(G.state==='play')useBomb();return;}
+      if(e.pointerType==='touch' && G.state==='play')e.preventDefault();
+      pilotId=e.pointerId;bas(e,e.pointerType==='touch');
+    }, {capture:true});
+    addEventListener('pointermove', e => {if(pilotId!==null ? e.pointerId===pilotId : !busy(e.target))poser(e);}, {capture:true,passive:true});
+    addEventListener('pointerup', e=>{if(e.pointerId===pilotId)haut();}, {capture:true});
+    addEventListener('pointercancel', e=>{if(e.pointerId===pilotId)haut();}, {capture:true});
+    addEventListener('blur',haut);
   } else {
-    addEventListener('touchstart', e => { if (!busy(e.target)) { bas(e, true); e.preventDefault(); } }, { capture: true, passive: false });
-    addEventListener('touchmove', e => { if (!busy(e.target)) { poser(e); e.preventDefault(); } }, { capture: true, passive: false });
-    addEventListener('touchend', haut, { capture: true });
-    addEventListener('touchcancel', haut, { capture: true });
+    addEventListener('touchstart', e=>{if(busy(e.target))return;e.preventDefault();if(pilotId!==null){if(G.state==='play')useBomb();return;}pilotId=e.changedTouches[0].identifier;bas(e,true);}, {capture:true,passive:false});
+    addEventListener('touchmove', e=>{if(pilotId!==null){poser(e);e.preventDefault();}}, {capture:true,passive:false});
+    addEventListener('touchend', e=>{if(Array.from(e.changedTouches).some(t=>t.identifier===pilotId))haut();}, {capture:true});
+    addEventListener('touchcancel', e=>{if(Array.from(e.changedTouches).some(t=>t.identifier===pilotId))haut();}, {capture:true});
+    addEventListener('blur',haut);
     addEventListener('mousedown', e => { if (!busy(e.target)) bas(e, false); }, { capture: true });
     addEventListener('mousemove', e => { if (!busy(e.target)) poser(e); }, { capture: true });
     addEventListener('mouseup', haut, { capture: true });
