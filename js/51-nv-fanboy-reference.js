@@ -1,10 +1,10 @@
-/* FanBoy NV-01 — coque portable et LCD réfléchissant positif, réédition 6.
+/* FanBoy FX portrait — matériaux de la référence et LCD positif, réédition 8.
  * Retrouve les encres LCD estimées d'après les captures fournies (fond sauge
  * clair, structures olive sombre), telles que validées à l'écran : la palette
  * interne du moteur (indices de terrain, ombrages, collisions) n'est pas
  * modifiée, seule la présentation convertit les encres à l'affichage.
  * Ce module pose aussi :
- *   · une coque noire verticale NV-01 et ses commandes réactives ;
+ *   · une coque FX texturée, découpée en panneaux adaptables, et commandes réactives ;
  *   · le verre LCD : grille de pixels physique, matte et reflet de lumière
  *     ambiante fixé à la vitre ;
  *   · un cadrage épinglé : aucun rescale / resize en pleine partie ;
@@ -141,137 +141,170 @@
     try { return oldTerrain.apply(this, arguments); } finally { S.opts.lcdCalm = calm; }
   };
 
-  /* ------------------------------------ cadrage : grand, et jamais revu */
+  /* Portrait FX : one viewport, one existing render loop, no image aperture.
+     PF remains the only world/input transform. Pixel sectors use whole
+     physical output pixels; the shell absorbs the remaining space. */
+  let layout = null;
   const oldResize = resizeView;
   resizeView = function () {
     const result = oldResize.apply(this, arguments);
     if (!framed()) return result;
     const W = view.w, H = view.h;
-    // Fit the complete rendered device; preserve the engine's 4:3 world.
-    const margin = 8, touchPad = IS_TOUCH ? 100 : 0;
-    const shellScale = Math.max(.05, Math.min((W - 2 * margin) / 880,
-      (H - touchPad - 2 * margin) / 1500));
-    PF.s = shellScale * 560 / L_W;
-    PF.w = L_W * PF.s; PF.h = L_H * PF.s;
-    PF.x = (W - 880 * shellScale) / 2 + (244 - 72) * shellScale;
-    PF.y = margin + Math.max(0, (H - touchPad - 2 * margin - 1500 * shellScale) / 2) + 228 * shellScale;
+    // Raster pixels map to physical screen pixels even when adaptive effects
+    // run at reduced quality. Only the lightweight FX display uses native DPR.
+    const d = Math.max(1, window.devicePixelRatio || 1);
+    view.dpr=d;cv.width=Math.round(W*d);cv.height=Math.round(H*d);
+    ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
+    const style = getComputedStyle(document.documentElement);
+    const safeTop = parseFloat(style.getPropertyValue('--fx-safe-top')) || 0;
+    const safeBottom = parseFloat(style.getPropertyValue('--fx-safe-bottom')) || 0;
+    const top = 42 + safeTop;
+    const bottom = (IS_TOUCH ? W * 346 / 1024 : 148) + 26 + safeBottom;
+    const availableW = Math.max(1, W - 24), availableH = Math.max(1, H - top - bottom);
+    const rasterW = R.bufC.w, rasterH = R.bufC.h;
+    const fit = Math.min(availableW / rasterW, availableH / rasterH);
+    const pixels = Math.floor(fit * d);
+    const scale = pixels >= 1 ? pixels / d : fit;
+    PF.w = rasterW * scale; PF.h = rasterH * scale;
+    PF.s = PF.w / L_W;
+    PF.x = Math.round((W - PF.w) / 2 * d) / d;
+    PF.y = Math.round(top * d) / d;
+    const shellW = IS_TOUCH ? W : Math.min(W, PF.w + 48);
+    const deviceH=IS_TOUCH ? H-safeTop-safeBottom : top+PF.h+26+shellW*346/1024;
+    const deviceY=IS_TOUCH ? safeTop : Math.max(0,(H-deviceH)/2);
+    if(!IS_TOUCH)PF.y=Math.round((deviceY+top)*d)/d;
+    layout = { x:(W-shellW)/2, y:deviceY, w:shellW, h:deviceH,
+      top:PF.y, bottom:PF.y+PF.h, controlsY:PF.y+PF.h+36 };
+    document.body.classList.add('fanboy-fx');
+    document.body.style.setProperty('--fx-touch-width', shellW+'px');
+    const deckH=Math.min(H-safeBottom-PF.y-PF.h-26,shellW*346/1024);
+    document.body.style.setProperty('--fx-controls-top', (H-safeBottom-deckH)+'px');
+    document.body.style.setProperty('--fx-controls-height', deckH+'px');
     R.vig = null; R.fog = null; gpuResize();
-    return result;
+    return { sideRes:0 };
   };
-
-  /* Detailed raster shell with an alpha aperture; all motion stays in the
-     existing renderer. Cropped key textures retain the reference materials. */
-  const shell = new Image(); shell.src = 'assets/fanboy/nv01-shell-render-v2.png';
-  const ship = new Image(); ship.src = 'assets/media/ships-shop/falcon.webp';
-  const keyStates = new Float32Array(6);
-  let keyTime = null;
-  function ledPath() {
-    ctx.beginPath(); ctx.moveTo(239, 190); ctx.lineTo(806, 190);
-    ctx.lineTo(838, 222); ctx.lineTo(838, 657); ctx.lineTo(807, 690);
-    ctx.lineTo(237, 690); ctx.lineTo(206, 659); ctx.lineTo(206, 222); ctx.closePath();
+  function panel(x,y,w,h,fill,stroke,r=10) {
+    ctx.beginPath(); ctx.roundRect(x,y,w,h,r);
+    ctx.fillStyle=fill; ctx.fill();
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}
   }
-  function keyPath(x, y, r) {
-    ctx.beginPath(); ctx.moveTo(x - r * .65, y - r); ctx.lineTo(x + r * .65, y - r);
-    ctx.lineTo(x + r, y - r * .65); ctx.lineTo(x + r, y + r * .4);
-    ctx.lineTo(x + r * .4, y + r); ctx.lineTo(x - r * .4, y + r);
-    ctx.lineTo(x - r, y + r * .4); ctx.lineTo(x - r, y - r * .65); ctx.closePath();
+  function label(text,x,y,size=11,color='#bdeeff',align='left') {
+    ctx.font='700 '+size+'px system-ui,sans-serif';ctx.textAlign=align;
+    ctx.textBaseline='middle';ctx.fillStyle=color;ctx.fillText(text,x,y);
   }
-  function pressedKey(x, y, r, amount, color, round) {
-    if (amount < .01 || !shell.complete || !shell.naturalWidth) return;
-    ctx.save();
-    if (round) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); }
-    else keyPath(x, y, r);
-    ctx.fillStyle = '#02050b'; ctx.fill();
-    ctx.save(); ctx.clip();
-    const inset = amount * 2.5, drop = amount * 5;
-    ctx.drawImage(shell, x - r, y - r, r * 2, r * 2,
-      x - r + inset, y - r + inset + drop, r * 2 - inset * 2, r * 2 - inset * 2);
-    const glow = ctx.createRadialGradient(x, y, r * .12, x, y, r);
-    glow.addColorStop(0, color); glow.addColorStop(1, 'transparent');
-    ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = amount * .55;
-    ctx.fillStyle = glow; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    ctx.restore();
-    ctx.globalAlpha = amount; ctx.strokeStyle = color; ctx.lineWidth = 3;
-    ctx.shadowColor = color; ctx.shadowBlur = round ? 24 : 13; ctx.stroke();
-    ctx.restore();
+  function signal() {
+    const end=G.plan && G.plan.length ? G.plan[G.plan.length-1].t+3 : G.levelDur || 50;
+    const progress=clamp((G.waveT||0)/Math.max(1,end),0,1);
+    const warning=G.phase==='bossWarn';
+    const danger=warning || ['boss','harvest','clear'].includes(G.phase);
+    const color=danger || progress>=.9 ? '#ff233e' : progress>=.5 ? '#ff9a20' : '#55ff77';
+    const pulse=window.nvAlertSignal(Math.max(0,G.bossWarnT||0),G.bossWarnTotal||3.6);
+    return {color,progress,alpha:warning ? pulse.envelope*(pulse.blink?1:.10):1};
   }
-  const oldFrame = drawMachineFrame;
-  drawMachineFrame = function () {
-    if (!active()) { keyTime = null; keyStates.fill(0); return oldFrame.apply(this, arguments); }
-    if (!framed()) return;
-    const scale = PF.w / 560, x = PF.x - 244 * scale, y = PF.y - 228 * scale;
-    ctx.save();
-    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-    // Quiet studio backdrop keeps the material and emissive detail legible.
-    const stage = ctx.createLinearGradient(0, 0, view.w, view.h);
-    stage.addColorStop(0, '#071b29'); stage.addColorStop(.45, '#040810'); stage.addColorStop(1, '#211025');
-    ctx.fillStyle = stage; ctx.fillRect(0, 0, view.w, view.h);
-    ctx.translate(x, y); ctx.scale(scale, scale);
-    ctx.fillStyle = '#020407'; ctx.fillRect(241, 213, 568, 454);
-    if (shell.complete && shell.naturalWidth) ctx.drawImage(shell, 0, 0);
-    const end = G.plan && G.plan.length ? G.plan[G.plan.length - 1].t + 3 : G.levelDur;
-    const progress = Math.max(0, Math.min(1, (G.waveT || 0) / Math.max(1, end)));
-    const warning = G.phase === 'bossWarn';
-    const danger = warning || G.phase === 'boss' || G.phase === 'harvest' || G.phase === 'clear';
-    const mix = (a, b, t) => 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',') + ')';
-    const green = [91, 255, 5], orange = [255, 139, 4], red = [255, 20, 39];
-    const smooth = v => { v = Math.max(0, Math.min(1, v)); return v * v * (3 - 2 * v); };
-    const color = danger ? 'rgb(255,20,39)' : progress < .65
-      ? mix(green, orange, smooth((progress - .35) / .15))
-      : mix(orange, red, smooth((progress - .75) / .15));
-    const signal = window.nvAlertSignal(Math.max(0, G.bossWarnT || 0), G.bossWarnTotal || 3.6);
-    ctx.globalAlpha = warning ? signal.envelope * (signal.blink ? 1 : .10) : 1;
-    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    ctx.strokeStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 22;
-    ctx.lineWidth = 12; ledPath(); ctx.stroke();
-    ctx.shadowBlur = 7; ctx.lineWidth = 4; ctx.strokeStyle = '#e6ffd7'; ctx.stroke();
-    ctx.strokeStyle = color; ctx.shadowBlur = 18; ctx.lineWidth = 12;
-    ctx.beginPath();
-    ctx.moveTo(191, 124); ctx.lineTo(223, 90);
-    ctx.moveTo(815, 90); ctx.lineTo(846, 124);
-    ctx.moveTo(117, 1100); ctx.lineTo(117, 1227);
-    ctx.moveTo(908, 1100); ctx.lineTo(908, 1227); ctx.stroke();
-    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
-    // The fixed red POWER light is part of the shell texture, outside this layer.
-    const p = G.player, input = p && p.controlVisual;
-    const live = G.state === 'play' && p && p.alive && !p.out;
-    const dx = live && input ? input.x : 0, dy = live && input ? input.y : 0;
-    const targets = [dy < -.1, dx < -.1, dx > .1, dy > .1,
-      live && input && input.fire, live && ((input && input.bomb) || p.nvBombVisual > 0)];
-    // Interpolate on simulation time; pause cannot leave keys held down.
-    const now = Number(G.t) || 0, dt = keyTime === null ? 1 / 60 : Math.max(0, Math.min(.05, now - keyTime));
-    keyTime = now;
-    for (let i = 0; i < keyStates.length; i++) {
-      const target = targets[i] ? 1 : 0;
-      keyStates[i] = live ? keyStates[i] + (target - keyStates[i]) * Math.min(1, dt * 32) : 0;
-    }
-    pressedKey(282, 880, 42, keyStates[0], '#00dfff', false);
-    pressedKey(211, 950, 42, keyStates[1], '#00dfff', false);
-    pressedKey(351, 950, 42, keyStates[2], '#00dfff', false);
-    pressedKey(282, 1016, 42, keyStates[3], '#00dfff', false);
-    pressedKey(646, 955, 63, keyStates[4], '#00cfff', true);
-    pressedKey(798, 900, 64, keyStates[5], '#ff1635', true);
-    if (ship.complete && ship.naturalWidth) {
-      // Use the game's original full-color Vanguard artwork, without inventing a ship.
-      ctx.save(); ctx.translate(419, 1250); ctx.rotate(-.18);
-      ctx.drawImage(ship, 0, 170, 720, 410, -220, -110, 440, 250); ctx.restore();
+  // The supplied art is a material atlas, never a displayed gameplay image.
+  // Only armor and separate control cutouts are sampled from it.
+  const fxAtlas=new Image();let armorPattern=null;
+  fxAtlas.onload=()=>{const tile=document.createElement('canvas');tile.width=tile.height=96;tile.getContext('2d').drawImage(fxAtlas,390,1260,96,96,0,0,96,96);armorPattern=ctx.createPattern(tile,'repeat');sceneDirty=true;};
+  fxAtlas.src='assets/fanboy/fx-material-reference.png';
+  const keyStates=new Float32Array(4);let keyTime=null;
+  let stickX=0,stickY=0;
+  const oldFrame=drawMachineFrame;
+  drawMachineFrame=function(){
+    if(!framed() || !layout){keyTime=null;keyStates.fill(0);stickX=stickY=0;return oldFrame.apply(this,arguments);}
+    const q=layout,sig=signal(),x=q.x,w=q.w;
+    ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+    ctx.fillStyle='#03060b';ctx.fillRect(0,0,view.w,view.h);
+    const loaded=fxAtlas.complete&&fxAtlas.naturalWidth;
+    const controlsH=Math.max(1,Math.min(q.y+q.h-PF.y-PF.h-26,w*346/1024));
+    const controlsTop=q.y+q.h-controlsH;
+    // Separate top, side rails and control deck adapt to the aperture. The
+    // gameplay pixels and reference HUD are deliberately never sampled.
+    if(loaded){
+      ctx.drawImage(fxAtlas,0,0,1024,83,x,q.y,w,Math.max(1,w*83/1024));
+      ctx.drawImage(fxAtlas,0,83,94,1072,x,PF.y-27,Math.max(1,PF.x-x),PF.h+57);
+      ctx.drawImage(fxAtlas,931,83,93,1072,PF.x+PF.w,PF.y-27,Math.max(1,x+w-PF.x-PF.w),PF.h+57);
+      const spacerY=PF.y+PF.h+26;
+      if(controlsTop>spacerY){
+        ctx.fillStyle=armorPattern||'#262b34';ctx.fillRect(x,spacerY,w,controlsTop-spacerY);
+        const rail=Math.max(10,(PF.x-x));
+        ctx.drawImage(fxAtlas,0,1155,94,35,x,spacerY,rail,controlsTop-spacerY);
+        ctx.drawImage(fxAtlas,931,1155,93,35,x+w-rail,spacerY,rail,controlsTop-spacerY);
+      }
+      ctx.drawImage(fxAtlas,0,1190,1024,346,x,controlsTop,w,controlsH);
+    }else panel(x,q.y,w,q.h,'#171e29','#647084',12);
+    panel(PF.x-5,PF.y-5,PF.w+10,PF.h+10,'#02050a','#667385',5);
+    ctx.save();ctx.globalAlpha=sig.alpha;ctx.strokeStyle=sig.color;ctx.shadowColor=sig.color;ctx.shadowBlur=10;ctx.lineWidth=3;
+    ctx.strokeRect(PF.x-4,PF.y-4,PF.w+8,PF.h+8);ctx.shadowBlur=3;ctx.lineWidth=1;ctx.strokeStyle='#e0fff3';ctx.strokeRect(PF.x-4,PF.y-4,PF.w+8,PF.h+8);ctx.restore();
+    const p=G.player,live=G.state==='play'&&p&&p.alive&&!p.out,input=live&&p.controlVisual||{};
+    const now=Number(G.t)||0,dt=keyTime===null?1/60:clamp(now-keyTime,0,.05);keyTime=now;
+    const k=live?1-Math.exp(-32*dt):1;
+    stickX+=((input.x||0)-stickX)*k;stickY+=((input.y||0)-stickY)*k;
+    const targets=[!!input.fire,!!(input.bomb || p&&p.nvBombVisual>0),!!input.x,!!input.y];
+    keyStates.forEach((v,i)=>{keyStates[i]=v+(Number(live&&targets[i])-v)*k;});
+    if(loaded){
+      const sx=w/1024,sy=controlsH/346;
+      function cap(cx,cy,r,dx,dy,amount,color){
+        const destX=x+cx*sx,destY=controlsTop+(cy-1190)*sy;
+        const rx=r*sx,ry=r*sy;
+        ctx.save();ctx.beginPath();ctx.ellipse(destX,destY,rx,ry,0,0,TAU);ctx.clip();
+        // Paint the socket, then a displaced, inset cap from the same material.
+        ctx.fillStyle='#05070c';ctx.fillRect(destX-rx,destY-ry,rx*2,ry*2);
+        const press=amount*1.2;
+        ctx.drawImage(fxAtlas,cx-r,cy-r,r*2,r*2,destX-rx+dx+press*.3,destY-ry+dy+press,rx*2-press*.6,ry*2-press*.6);
+        ctx.restore();
+        if(amount>.01){ctx.save();ctx.strokeStyle=color;ctx.shadowColor=color;ctx.shadowBlur=8;ctx.globalAlpha=amount*.8;ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(destX+dx,destY+dy+press,rx*.88,ry*.88,0,0,TAU);ctx.stroke();ctx.restore();}
+      }
+      cap(200,1328,79,stickX*5,stickY*5,Math.min(1,Math.hypot(stickX,stickY)),'#27daff');
+      cap(637,1351,56,0,keyStates[0]*2,keyStates[0],'#27daff');
+      cap(834,1372,39,0,0,keyStates[0],'#37e9ff');
+      cap(898,1310,39,0,0,keyStates[1],'#ff3f63');
+      // Neutral cyan in the reference is replaced by the shared sector signal.
+      for(const side of [x+w*.039,x+w*.96]){
+        ctx.save();ctx.globalAlpha=sig.alpha;ctx.strokeStyle=sig.color;ctx.shadowColor=sig.color;ctx.shadowBlur=7;ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(side,controlsTop+controlsH*.38);ctx.lineTo(side,controlsTop+controlsH*.72);ctx.stroke();ctx.restore();
+      }
     }
     ctx.restore();
   };
-
-  // Desktop telemetry belongs beside the complete device, not over its armor.
-  function sideFrame(fn, self, args) {
-    if (!framed() || IS_TOUCH || !sideRes) return fn.apply(self, args);
-    const saved = { x: PF.x, y: PF.y, w: PF.w, h: PF.h }, scale = PF.w / 560;
-    PF.x -= (244 - 72 + 20) * scale;
-    PF.w = 920 * scale;
-    PF.h = Math.max(saved.h, view.h - PF.y - 24);
-    try { return fn.apply(self, args); } finally { Object.assign(PF, saved); }
+  // The arcade base can bypass drawMachineFrame: select the FX backdrop here.
+  const oldBackdrop=drawBackdrop;
+  drawBackdrop=function(){if(framed())return drawMachineFrame();return oldBackdrop.apply(this,arguments);};
+  function drawShellHUD(){
+    if(!layout || !G.player)return;
+    const p=G.player,q=layout,x=PF.x,w=PF.w;
+    ctx.save();
+    const fs=Math.max(9,Math.min(12,w/28));
+    const ty=PF.y-16;
+    panel(x,ty-10,w,20,'#061322','#20566d',4);
+    label('1P '+fmt(p.score),x+7,ty,fs,'#c4f3ff');
+    label('S'+String(G.level).padStart(2,'0'),x+w/2,ty,fs,'#46dfff','center');
+    label('V '+(cheatOn('lives')?'∞':p.lives)+'  B '+(cheatOn('bombs')?'∞':p.bombs),x+w-7,ty,fs,'#c4f3ff','right');
+    const fy=PF.y+PF.h+11;
+    panel(x,fy-10,w,20,'#061322','#20566d',4);
+    label('PWR '+p.power,x+7,fy,fs,'#40dbff');
+    const weapon=G.stats && G.stats.weapon;
+    label(weapon ? L(weapon.name) : 'ARME',x+w*.5,fy,fs,'#def7ff','center');
+    label('$ '+fmt(NET.role==='guest' ? HUDNET.credits||0 : G.credits+S.credits),x+w-7,fy,fs,'#ffd675','right');
+    if(G.twoP && G.players[1]){
+      const p2=G.players[1];label('2P '+fmt(p2.score)+'  V '+p2.lives+'  B '+p2.bombs,x+w/2,fy+16,fs-1,'#ffb8e6','center');
+    }
+    if(anyCheat())label('*',x+w-2,ty-15,8,'#ffd675','right');
+    // Hull, shield and boss telemetry live in the armor, outside PF.
+    const b=G.boss;
+    const y=fy+10;
+    const hull=p.maxHp || 1;
+    label('COQUE '+Math.round(p.hp||0)+'  / '+(hull||1)+'  •  SH '+(p.shield||0),x+5,y,fs-1,'#b1c6d8');
+    if(b&&!b.dead){
+      const bw=w*.38,bx=x+w-bw;
+      panel(bx,y-6,bw,12,'#260a15','#7f263b',2);
+      ctx.fillStyle='#ff3856';ctx.fillRect(bx+2,y-4,(bw-4)*clamp(b.hp/b.maxHp,0,1),8);
+    }
+    ctx.restore();
+    if(G.phase==='bossWarn')drawBossWarning();
   }
-  const oldSidePanels = drawSidePanels;
-  drawSidePanels = function () { return sideFrame(oldSidePanels, this, arguments); };
-  const oldRadioSide = drawRadioSide;
-  drawRadioSide = function () { return sideFrame(oldRadioSide, this, arguments); };
+  const oldSidePanels=drawSidePanels,oldRadioSide=drawRadioSide;
+  drawSidePanels=function(){if(!framed())return oldSidePanels.apply(this,arguments);};
+  drawRadioSide=function(){if(!framed())return oldRadioSide.apply(this,arguments);};
 
   /* Le verre : grille de sortie physique, matte et reflet de lumière ambiante
      d'une pièce éclairée, fixé à la vitre (il ne suit pas le monde). */
@@ -329,7 +362,7 @@
     finally { TH = previous; S.opts.gbBezel = bezel; }
   }
   const oldHUD = drawHUD;
-  drawHUD = function () { return displayTheme(oldHUD, this, arguments); };
+  drawHUD = function () { if (framed()) return; return displayTheme(oldHUD, this, arguments); };
   const oldBanner = drawEraBanner;
   drawEraBanner = function () { return displayTheme(oldBanner, this, arguments); };
 
@@ -340,8 +373,10 @@
     const keys = ['crt', 'crtMask', 'crtVignette', 'shaderSmooth'];
     const saved = keys.map(k => S.opts[k]);
     Object.assign(S.opts, { crt: 'off', crtMask: 'off', crtVignette: 0, shaderSmooth: false });
+    ctx.save();
+    if(framed()){ctx.beginPath();ctx.rect(PF.x,PF.y,PF.w,PF.h);ctx.clip();}
     try { return oldPresent.apply(this, arguments); }
-    finally { keys.forEach((k, i) => { if (saved[i] === undefined) delete S.opts[k]; else S.opts[k] = saved[i]; }); }
+    finally { ctx.restore(); keys.forEach((k, i) => { if (saved[i] === undefined) delete S.opts[k]; else S.opts[k] = saved[i]; }); }
   };
 
   /* Entrer/sortir d'un menu restaure les marges de viewport appropriées. */
@@ -349,9 +384,12 @@
   let lastFrameState = null;
   render = function () {
     const state = framed();
+    document.body.classList.toggle('fanboy-fx', state);
     if (state !== lastFrameState) { lastFrameState = state; sideRes = resizeView().sideRes; }
-    return oldRender.apply(this, arguments);
+    const result=oldRender.apply(this, arguments);
+    if(state && ['play','pause','clear','victory'].includes(G.state))hudOvRun('fxHUD',drawShellHUD,[]);
+    return result;
   };
 
-  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 7, inks: Object.freeze(inks), shell: true, glass: true });
+  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 8, inks: Object.freeze(inks), shell: true, glass: true });
 })();

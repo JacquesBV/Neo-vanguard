@@ -1322,3 +1322,17 @@ html.nvpc #scr-help .panel.narrow{width:min(1240px,calc(96vw / var(--nvz)))}
 .nv-fl-hide{display:none!important}
 #nvPauseFluid{margin-top:10px;text-align:center;font:700 11px/1.4 ui-monospace,Consolas,monospace;color:#7fe9f5;letter-spacing:.06em;opacity:.85}
 
+
+/* FanBoy FX: keep real touch targets within the lower armor. */
+:root{--fx-safe-top:env(safe-area-inset-top,0px);--fx-safe-bottom:env(safe-area-inset-bottom,0px)}
+body.fanboy-fx #touchui{width:var(--fx-touch-width);max-width:100%;box-sizing:border-box;left:50%;right:auto;transform:translateX(-50%);padding-bottom:max(8px,env(safe-area-inset-bottom));background:transparent}
+body.fanboy-fx #touchui .bomb-control{min-height:48px}
+
+/* Large real hit targets over the reference control deck. Flight stays relative. */
+body.fanboy-fx #touchui{top:var(--fx-controls-top);bottom:auto;height:var(--fx-controls-height);padding:0!important;pointer-events:none}
+body.fanboy-fx #touchui .bomb-control{position:absolute;right:0;top:28%;width:20%;height:42%;min-height:44px;opacity:0;pointer-events:auto}
+body.fanboy-fx #touchui .weapon-control{position:absolute;left:27%;bottom:4%;width:43%;height:30px;max-width:none;gap:2px;pointer-events:auto;background:transparent;border:0;box-shadow:none}
+body.fanboy-fx #touchui .weapon-step{flex:0 0 31%;min-width:0;min-height:30px;opacity:0}
+body.fanboy-fx #touchui .weapon-current{min-width:0;min-height:30px;opacity:0}
+body.fanboy-fx #touchui #tpause{position:absolute!important;right:10%;top:0;width:16%;height:28%;min-height:40px;opacity:0;pointer-events:auto}
+body.fanboy-fx #touchui button:focus-visible{opacity:1;outline:2px solid #66eaff}

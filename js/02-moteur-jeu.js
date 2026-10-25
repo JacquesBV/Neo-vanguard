@@ -3192,11 +3192,9 @@ function setEra(era, silent) {
      vectoriel du HD sans en prendre la finesse. */
   if (R.sec === undefined || ERAS[R.sec] === undefined || ERAS[R.sec].sty !== R.era) R.sec = R.era;
   const E = ERAS[R.sec];
-  /* FanBoy : monde 640 x 480 (4/3) — sprites, décor et textes in-game plus
-     petits à l'écran ; le monde n'est jamais étiré. Autres générations : 480 x 860. */
-  const gb0 = R.era === 0 && R.sec === 0;
-  L_W = gb0 ? 640 : 480;
-  L_H = gb0 ? 480 : 860;
+  /* Référentiel portrait commun : aucun étirement des sprites. */
+  L_W = 480;
+  L_H = 860;
   R.S = eraS(R.sec);
   const w = Math.round(L_W * R.S), h = Math.round(L_H * R.S);
   /* PERF MOBILE : les 10 calques sont réutilisés (redimensionnés sur place) au lieu d'être
