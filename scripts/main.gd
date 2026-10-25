@@ -58,6 +58,8 @@ func _ready() -> void:
 		_run_module20_test()
 	if OS.get_environment("NV_TEST") == "8":
 		_run_bonus_test()
+	if OS.get_environment("NV_TEST") == "9":
+		_run_vorax_test()
 
 
 # test 8 : les ajouts v6 — flipper Néon Orbit (menu + table), Neo-Vanguard FM
@@ -731,3 +733,59 @@ func _dump(n: Node, depth: int) -> void:
 			c.global_position, c.size, c.get_combined_minimum_size()])
 	for ch in n.get_children():
 		_dump(ch, depth + 1)
+
+# test 9 : séquence VORAX complète (module 29) — mains → tear → reveal →
+# morphs (seuils 2/3 et 1/3) → mort, avec captures de chaque état
+func _run_vorax_test() -> void:
+	await get_tree().process_frame
+	var dir := "/tmp/shots9"
+	DirAccess.make_dir_recursive_absolute(dir)
+	print("TEST9: secteur 24…")
+	begin_campaign(24)
+	await get_tree().create_timer(0.2).timeout
+	launch_level()
+	await get_tree().create_timer(0.6).timeout
+	game.phase = 2   # Phase.BOSS_WARN ; le sas cède → boom → spawn_vorax
+	game.boss_warn_t = 0.0
+	game.sas["hp"] = 0.0
+	await get_tree().create_timer(0.8).timeout
+	print("TEST9: stage=", game.vorax.get("stage", "?"), " mains=", game.vorax.hands.size(),
+		" hp_boss=", game.boss.hp, "/", game.boss.max_hp, " nom=", game.boss.name)
+	print("TEST9: art mains=", game.vorax_tex.has("hands"), " art boss=", game.vorax_tex.has("boss"),
+		" porte=", game.nv24_tex.has("door"))
+	await get_tree().create_timer(0.6).timeout
+	get_viewport().get_texture().get_image().save_png(dir + "/1-hands.png")
+	# détruire les deux mains → tear
+	for hd in game.vorax.hands:
+		game._hurt_hand(hd, 999999.0)
+	await get_tree().create_timer(0.3).timeout
+	print("TEST9: après mains → stage=", game.vorax.stage, " no_fire=", game.nv24_no_fire())
+	get_viewport().get_texture().get_image().save_png(dir + "/2-tear.png")
+	await get_tree().create_timer(2.4).timeout
+	print("TEST9: après tear → stage=", game.vorax.stage, " forme=", game.vorax.form,
+		" hp=", game.boss.hp, "/", game.boss.max_hp, " nom=", game.boss.name)
+	get_viewport().get_texture().get_image().save_png(dir + "/3-reveal.png")
+	await get_tree().create_timer(2.6).timeout
+	print("TEST9: stage=", game.vorax.stage, " attaque=", game.vorax.atk.get("name", "—"),
+		" no_fire=", game.nv24_no_fire())
+	get_viewport().get_texture().get_image().save_png(dir + "/4-vorax.png")
+	# descendre sous les 2/3 → morph 1
+	game.vorax_pool_damage(float(game.boss.max_hp) * 0.5, 1.0)
+	await get_tree().create_timer(0.4).timeout
+	print("TEST9: morph → stage=", game.vorax.stage, " forme=", game.vorax.form, " nom=", game.boss.name,
+		" hp=", game.boss.hp, "/", game.boss.max_hp)
+	get_viewport().get_texture().get_image().save_png(dir + "/5-morph.png")
+	await get_tree().create_timer(3.0).timeout
+	print("TEST9: retour combat → stage=", game.vorax.stage, " forme=", game.vorax.form)
+	# vider la réserve → morph 2 puis mort
+	game.vorax_pool_damage(float(game.boss.hp), 1.0)
+	await get_tree().create_timer(0.4).timeout
+	print("TEST9: morph2 → stage=", game.vorax.stage, " forme=", game.vorax.form, " nom=", game.boss.name)
+	await get_tree().create_timer(3.2).timeout
+	game.vorax_pool_damage(float(game.boss.hp) + 10.0, 1.0)
+	await get_tree().create_timer(0.5).timeout
+	print("TEST9: fin → stage=", game.vorax.stage, " boss.dead=", game.boss.dead,
+		" phase=", game.phase, " état=", game.state)
+	get_viewport().get_texture().get_image().save_png(dir + "/6-fin.png")
+	print("TEST9: OK")
+	get_tree().quit()
