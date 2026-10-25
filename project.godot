@@ -1,0 +1,104 @@
+; Engine configuration file.
+; NEO VANGUARD — portage Godot 4
+; Généré pour Godot 4.3+ (rendu GL Compatibility, fonctionne aussi à l'export Web)
+
+config_version=5
+
+[application]
+
+config/name="Neo Vanguard"
+config/description="Shoot them up vertical rétro-évolutif : 24 secteurs, six générations de consoles. Portage Godot du jeu original."
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Data="*res://scripts/data.gd"
+Sheets="*res://scripts/sheets.gd"
+Save="*res://scripts/save.gd"
+Audio2="*res://scripts/audio2.gd"
+Tickets="*res://scripts/tickets.gd"
+Nv24Audio="*res://scripts/nv24_audio.gd"
+
+[audio]
+
+general/text_to_speech=true
+
+[display]
+
+window/size/viewport_width=480
+window/size/viewport_height=860
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/handheld/orientation=1
+
+[input]
+
+move_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194319), Object(InputEventKey,"physical_keycode":65), Object(InputEventJoypadMotion,"axis":0,"axis_value":-1.0)]
+}
+move_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194321), Object(InputEventKey,"physical_keycode":68), Object(InputEventJoypadMotion,"axis":0,"axis_value":1.0)]
+}
+move_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194320), Object(InputEventKey,"physical_keycode":87), Object(InputEventJoypadMotion,"axis":1,"axis_value":-1.0)]
+}
+move_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194322), Object(InputEventKey,"physical_keycode":83), Object(InputEventJoypadMotion,"axis":1,"axis_value":1.0)]
+}
+fire={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":32), Object(InputEventKey,"physical_keycode":4194309), Object(InputEventKey,"physical_keycode":4194326), Object(InputEventKey,"physical_keycode":4194327), Object(InputEventMouseButton,"button_index":1), Object(InputEventJoypadButton,"button_index":0), Object(InputEventJoypadButton,"button_index":7)]
+}
+bomb={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":71), Object(InputEventMouseButton,"button_index":2), Object(InputEventJoypadButton,"button_index":1), Object(InputEventJoypadButton,"button_index":6)]
+}
+slow={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194325)]
+}
+weapon_next={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":88), Object(InputEventJoypadButton,"button_index":5)]
+}
+pause={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194305), Object(InputEventKey,"physical_keycode":80), Object(InputEventJoypadButton,"button_index":11)]
+}
+move2_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":65)]
+}
+move2_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":68)]
+}
+move2_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":87)]
+}
+move2_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":83)]
+}
+fire2={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":70), Object(InputEventKey,"physical_keycode":76)]
+}
+bomb2={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":71), Object(InputEventKey,"physical_keycode":75)]
+}
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.02, 0.024, 0.06, 1)

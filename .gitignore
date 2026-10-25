@@ -1,0 +1,4 @@
+.godot/
+originaux/
+*.tmp
+.DS_Store
