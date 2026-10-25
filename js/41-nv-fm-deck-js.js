@@ -45,8 +45,8 @@
   const tips = () => { for (const k in TIPS) { const b = keys(k); b.title = tr(TIPS[k]); b.setAttribute('aria-label', tr(TIPS[k])); } Q('.nv-deck-vol').title = tr('Volume'); };
   /* ---------- état ---------- */
   const curT = () => { const sel = $('nvTapeList').querySelector('.nv-tape-card.selected'); return catalog.find(x => x.id === (sel && sel.dataset.musicId)) || catalog.find(x => x.title === $('nvTrackTitle').textContent) || null; };
-  const srcOf = t => 'assets/music-shop/mp3/' + t.file;
-  const loaded = () => { const t = curT(); return t && au.getAttribute('src') === srcOf(t); };
+  const srcOf = t => 'assets/music-shop/mp3/' + t.file + '?v=fm-20261025-2';
+  const loaded = () => { const t = curT(); return t && (au.getAttribute('src') || '').split('?')[0] === srcOf(t).split('?')[0]; };
   let rep = 'off';
   try { rep = localStorage.getItem('nvFmRep') || 'off'; } catch (e) {}
   let vol = (S.opts && S.opts.fmVol !== undefined) ? S.opts.fmVol : Math.round(Math.max(0, Math.min(1, (Number(S.opts && S.opts.music) || 50) / 100)) * 100);
@@ -105,8 +105,6 @@
     const t = curT(); if (!t) return;
     cancelTapeMotion();
     const request = playRequest;
-    /* Une URL déjà affectée ne signifie pas que son chargement a réussi.
-       Relancer la source en erreur, et appeler play dans le geste utilisateur. */
     if (!loaded() || au.error || au.networkState === 3) {
       au.src = srcOf(t);
       au.load();
@@ -115,18 +113,41 @@
     }
     au.muted = false;
     applyVol();
-    /* Vitesse normale : certains lecteurs mobiles refusent le démarrage ralenti. */
+    /* La reprise de WebAudio ne doit jamais empêcher l'appel direct à play. */
     try {
       const context = ctx();
-      if (context && context.state === 'suspended') context.resume().catch(() => {});
-      au.play().catch(e => {
-        if (request !== playRequest || e.name === 'AbortError') return;
-        toast(tr('Lecture impossible. Appuie à nouveau sur ▶ pour réessayer.'));
-        paint();
-      });
-    } catch (e) {
-      toast(tr('Lecture impossible. Appuie à nouveau sur ▶ pour réessayer.'));
+      if (context && context.state === 'suspended') {
+        const resumed = context.resume();
+        if (resumed && resumed.catch) resumed.catch(() => {});
+      }
+    } catch (e) {}
+    const active = () => request === playRequest && curT() && curT().id === t.id && G.state === 'music';
+    const failed = e => {
+      if (!active() || (e && e.name === 'AbortError')) return;
+      const denied = e && e.name === 'NotAllowedError';
+      toast(tr(denied
+        ? 'Appuie sur ▶ pour autoriser la lecture audio.'
+        : 'Chargement audio impossible. Vérifie ta connexion puis réessaie ▶.'));
+      paint();
+    };
+    function attempt(retried) {
+      try {
+        const result = au.play();
+        if (result && result.catch) result.catch(e => {
+          if (!active() || (e && (e.name === 'AbortError' || e.name === 'NotAllowedError'))) {
+            failed(e); return;
+          }
+          /* Une seule nouvelle requête après erreur média ; pas de boucle.
+             Le cache d'une réponse interrompue ou invalide est ainsi évité. */
+          if (!retried && (au.error || (e && e.name === 'NotSupportedError'))) {
+            au.src = srcOf(t) + '&retry=' + Date.now();
+            au.load();
+            attempt(true);
+          } else failed(e);
+        });
+      } catch (e) { failed(e); }
     }
+    attempt(false);
   }
   /* ---------- commandes ---------- */
   const pv = $('nvPreviewBtn');
