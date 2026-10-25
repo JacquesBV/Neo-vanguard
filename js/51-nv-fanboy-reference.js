@@ -222,6 +222,23 @@
     shade.addColorStop(0, 'rgba(25,34,18,.12)'); shade.addColorStop(.12, 'rgba(25,34,18,0)');
     shade.addColorStop(.72, 'rgba(25,34,18,.025)'); shade.addColorStop(1, 'rgba(25,34,18,.10)');
     ctx.fillStyle = shade; ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
+    // Reflected room light on a passive LCD: broad soft highlight, fixed to
+    // the glass rather than the scrolling world. No emissive bloom.
+    const reflection = ctx.createLinearGradient(PF.x, PF.y + PF.h, PF.x + PF.w, PF.y);
+    reflection.addColorStop(0, 'rgba(244,247,223,0)');
+    reflection.addColorStop(.52, 'rgba(244,247,223,.015)');
+    reflection.addColorStop(.80, 'rgba(244,247,223,.065)');
+    reflection.addColorStop(1, 'rgba(250,252,235,.17)');
+    ctx.fillStyle = reflection; ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
+    const glint = ctx.createLinearGradient(PF.x + PF.w * .74, 0, PF.x + PF.w, 0);
+    glint.addColorStop(0, 'rgba(250,252,235,0)');
+    glint.addColorStop(.55, 'rgba(250,252,235,.025)');
+    glint.addColorStop(.82, 'rgba(250,252,235,.085)');
+    glint.addColorStop(1, 'rgba(250,252,235,.015)');
+    ctx.fillStyle = glint; ctx.fillRect(PF.x + PF.w * .74, PF.y, PF.w * .26, PF.h);
+    ctx.strokeStyle = 'rgba(241,246,217,.18)'; ctx.lineWidth = 1 / view.dpr;
+    ctx.beginPath(); ctx.moveTo(PF.x, PF.y + 1 / view.dpr);
+    ctx.lineTo(PF.x + PF.w, PF.y + 1 / view.dpr); ctx.stroke();
     ctx.restore();
   };
 
@@ -261,5 +278,5 @@
     if (state !== lastFrameState) { lastFrameState = state; sideRes = resizeView().sideRes; }
     return oldRender.apply(this, arguments);
   };
-  window.NV_FANBOY_REFERENCE = Object.freeze({ inks: Object.freeze(inks), revision: 2 });
+  window.NV_FANBOY_REFERENCE = Object.freeze({ inks: Object.freeze(inks), revision: 3 });
 })();

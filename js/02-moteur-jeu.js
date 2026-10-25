@@ -2598,7 +2598,7 @@ const IS_TOUCH = (window.matchMedia && matchMedia('(pointer: coarse)').matches) 
 const TOUCH_ACTOR_SCALE = 1.22; /* même profondeur et même échelle de contact pour tous les acteurs */
 
 const PF   = { x: 0, y: 0, w: 480, h: 860, s: 1 };   /* zone de jeu (unités logiques) */
-const L_W = 480, L_H = 860;                          /* référentiel des coordonnées de jeu */
+const L_W = 480; let L_H = 860;                          /* référentiel des coordonnées de jeu */
 
 /* --- état du rendu -------------------------------------------------------- */
 const R = {
@@ -3176,6 +3176,7 @@ function drawTerrain(layer) {
 /* résolution interne d'un secteur : celle du HD suit la qualité adaptative */
 function eraS(sec) {
   const E = ERAS[clamp(sec | 0, 0, 5)] || ERAS[0];
+  if (sec === 0 && (!S.opts || !S.opts.consoleRes || S.opts.consoleRes === 'auto' || S.opts.consoleRes === 'gb')) return 160 / L_W;
   /* Mode natif demandé : on utilise la largeur raster verticale de la machine
      comme densité de pixel, puis on conserve le cadrage portrait 480×860.
      Cela évite de déformer ou couper le terrain sur téléphone et PC. */
@@ -3191,6 +3192,8 @@ function setEra(era, silent) {
      vectoriel du HD sans en prendre la finesse. */
   if (R.sec === undefined || ERAS[R.sec] === undefined || ERAS[R.sec].sty !== R.era) R.sec = R.era;
   const E = ERAS[R.sec];
+  /* FanBoy: 160 x 144 square pixels, without stretching the world. */
+  L_H = R.era === 0 && R.sec === 0 ? 432 : 860;
   R.S = eraS(R.sec);
   const w = Math.round(L_W * R.S), h = Math.round(L_H * R.S);
   /* PERF MOBILE : les 10 calques sont réutilisés (redimensionnés sur place) au lieu d'être
