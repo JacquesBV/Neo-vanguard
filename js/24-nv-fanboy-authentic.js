@@ -17,7 +17,9 @@
   const def = (k, v) => { if (O[k] === undefined) O[k] = v; };
   def('gbGhost', 'low'); def('gbContrast', 'normal'); def('gbFlicker', 1); def('gbChip', 1); def('gbOut', 'speaker'); def('gbBezel', 1);
   const gbEra = () => (R.era | 0) === 0;
-  const playing = () => ['intro', 'play', 'pause', 'clear'].includes(G.state);
+  /* pendant l'analyse du support, aucune musique : ni puce, ni piste */
+  const calOn = () => !!(window.nvFluid && window.nvFluid.CAL && window.nvFluid.CAL.on);
+  const playing = () => !calOn() && ['intro', 'play', 'pause', 'clear'].includes(G.state);
 
   /* ================================================================ IMAGE */
   const FX0 = { inv: 0, wave: 0, lastPh: null, frame: 0 };
@@ -316,8 +318,16 @@
     if (GM.next < now - .5) GM.next = now + .05;
     while (GM.next < now + .16) { gmSchedule(song, GM.step, GM.next, sd); GM.step = (GM.step + 1) % 128; GM.next += sd; }
   };
-  /* la piste enregistrée se tait pendant que la puce joue */
-  if (typeof mxWant === 'function') { const _mw = mxWant; mxWant = function () { return gmWant() ? null : _mw.apply(this, arguments); }; }
+  /* la piste enregistrée se tait pendant que la puce joue, et reste tue
+     pendant l'analyse du support (l'écran de mesure est silencieux) */
+  if (typeof mxWant === 'function') { const _mw = mxWant; mxWant = function () { return (gmWant() || calOn()) ? null : _mw.apply(this, arguments); }; }
+  /* et elle ne démarre même pas au-dessus : sur FanBoy, la puce sonore EST la
+     musique du secteur — plus jamais deux musiques simultanées. */
+  const _sm = Audio2.startMusic;
+  Audio2.startMusic = function (e) {
+    if ((e | 0) === 0 && O.gbChip !== 0) return;
+    return _sm.apply(this, arguments);
+  };
 
   /* ============================================================ OPTIONS */
   const L5 = (fr, en) => (LG() === 'fr' ? fr : en);

@@ -3192,8 +3192,8 @@ function setEra(era, silent) {
      vectoriel du HD sans en prendre la finesse. */
   if (R.sec === undefined || ERAS[R.sec] === undefined || ERAS[R.sec].sty !== R.era) R.sec = R.era;
   const E = ERAS[R.sec];
-  /* FanBoy: 160 x 144 square pixels, without stretching the world. */
-  L_H = R.era === 0 && R.sec === 0 ? 432 : 860;
+  /* FanBoy : écran au format 4/3 (480 x 360), le monde n'est jamais étiré. */
+  L_H = R.era === 0 && R.sec === 0 ? 360 : 860;
   R.S = eraS(R.sec);
   const w = Math.round(L_W * R.S), h = Math.round(L_H * R.S);
   /* PERF MOBILE : les 10 calques sont réutilisés (redimensionnés sur place) au lieu d'être

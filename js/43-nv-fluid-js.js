@@ -76,6 +76,9 @@
     ui.sec.innerHTML = `${T5('SECTEUR', 'SECTOR', 'SECTOR', 'SETOR', 'セクター')} <b>${String(level).padStart(2, '0')}</b>${name ? ' · ' + (typeof L === 'function' ? L(name) : name) : ''}`;
     ui.tip.textContent = TIPS[(level + (Date.now() / 1000 | 0)) % TIPS.length]();
     ui.box.classList.remove('out'); ui.box.classList.add('on');
+    /* l'écran d'analyse est exclusif : aucune musique ne tourne pendant la
+       mesure (la reprise est relancée à la disparition de l'overlay). */
+    try { Audio2.stopMusic(); } catch (e) {}
   }
   function hide() { ui.box.classList.add('out'); setTimeout(() => { ui.box.classList.remove('on', 'out'); }, 340); }
   /* ---------- le calibrage d'un secteur ---------- */
@@ -138,7 +141,13 @@
       if (token === RUN) {
         hide(); learn.n = 0; learn.t = 0;
         await wait(420);
-        if (token === RUN) CAL.on = false;
+        if (token === RUN) {
+          CAL.on = false;
+          /* une seule musique, relancée quand l'overlay a disparu : la puce
+             sonore sur FanBoy (le wrapper de 24 ignore la piste enregistrée),
+             la piste du secteur sur les autres générations. */
+          try { if (G.state === 'intro' || G.state === 'play') Audio2.startMusic(G.eraIdx | 0, G.level | 0); } catch (e) {}
+        }
       }
     }
   }
