@@ -132,7 +132,15 @@
       chip(`<b>${target()}</b> ${T5('i/s visés', 'fps target', 'fps objetivo', 'fps alvo', 'fps目標')}`);
       await wait(known !== undefined ? 380 : 900);
     } catch (e) { console.warn('calibrage', e); }
-    finally { if (token === RUN) { CAL.on = false; hide(); learn.n = 0; learn.t = 0; } }
+    finally {
+      /* séquence stricte : l'écran d'analyse s'efface d'abord, et la partie ne
+         reprend qu'une fois l'overlay disparu — aucune superposition. */
+      if (token === RUN) {
+        hide(); learn.n = 0; learn.t = 0;
+        await wait(420);
+        if (token === RUN) CAL.on = false;
+      }
+    }
   }
   const _sl = startLevel;
   startLevel = function () {
@@ -144,8 +152,12 @@
     } catch (e) { CAL.on = false; }
     return r;
   };
-  /* la partie ne réagit pas aux touches pendant l'écran de chargement */
+  /* l'analyse de l'appareil est EXCLUSIVE : pendant l'écran de chargement, ni
+     clavier, ni souris, ni doigt n'atteignent le jeu (F11 reste libre). */
   addEventListener('keydown', e => { if (CAL.on && e.key !== 'F11') { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  for (const ev of ['pointerdown', 'mousedown', 'touchstart']) {
+    addEventListener(ev, e => { if (CAL.on) { e.stopImmediatePropagation(); e.preventDefault(); } }, { capture: true, passive: false });
+  }
   /* ---------- apprentissage en jouant : si le secteur rame, il sera allégé ---------- */
   const learn = { t: 0, n: 0 };
   setInterval(() => {

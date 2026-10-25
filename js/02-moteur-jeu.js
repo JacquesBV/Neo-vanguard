@@ -7056,17 +7056,22 @@ function drawBombRings() {
 }
 
 function useBomb(pl) {
+  /* VERROU : la bombe n'existe que dans un secteur réellement en jeu. Ni
+     l'intro, ni l'écran d'analyse du support, ni les menus ne peuvent la
+     déclencher — plus aucun effet lancé alors que le niveau n'est pas là. */
+  if (G.state !== 'play') return false;
+  if (!nvLevelLive()) return false;
   const who = pl || G.player;
   if (typeof NET !== 'undefined' && NET.role === 'guest') {
     /* retour visuel immédiat chez l'invité, effet réel décidé par l'hôte */
     netSend('b|1'); Audio2.sfx('bomb'); pushBombRing(G.player, TH.pLite);
     for (const b of G.ebullets) spawnPart({ x: b.x, y: b.y, vx: rnd(90, -90), vy: rnd(90, -90), life: 0.3, col: TH.pLite, size: 3.2, glow: R.era >= 2 });
     G.ebullets.length = 0;
-    return;
+    return true;
   }
-  if (G.daily && G.mods.includes('nobomb')) { if (!G.nobombMsg) { G.nobombMsg = 1; toast('Défi du jour : bombes interdites'); } return; }
+  if (G.daily && G.mods.includes('nobomb')) { if (!G.nobombMsg) { G.nobombMsg = 1; toast('Défi du jour : bombes interdites'); } return false; }
   const infiniteBombs = cheatOn('bombs');
-  if (!who || (!infiniteBombs && who.bombs <= 0) || !who.alive || G.state !== 'play') return;
+  if (!who || (!infiniteBombs && who.bombs <= 0) || !who.alive) return false;
   if (!infiniteBombs) who.bombs--;
   G.bombs = G.players[0].bombs; CUR_OWN = who.id;
   Audio2.sfx('bomb'); pushBombRing(who, TH.pLite); FX.addShake(20); FX.stop(0.05);   /* aucun voile plein écran : seules les particules et la secousse */
@@ -7083,6 +7088,7 @@ function useBomb(pl) {
     const a = rnd(TAU), v = rnd(560, 120);
     spawnPart({ x: P.x, y: P.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(0.9, 0.4), col: pick([TH.pLite, TH.acc, TH.gold]), size: rnd(7, 3), drag: 0.9, glow: true });
   }
+  return true;
 }
 
 
@@ -11829,8 +11835,11 @@ function boxFinish() {
   const after = G.box.after === 'auto'
     ? (R.sec !== eraOfLevel(next) ? 'warp' : 'level') : G.box.after;
   if (after === 'warp') { beginWarp(next); return; }
+  /* startLevel arme l'intro EXCLUSIVE (démarrage console FanBoy de 2,8 s ;
+     les autres générations enchaînent aussitôt). On ne force plus 'play'
+     ici : c'est ce court-circuit qui lançait l'analyse du support et le jeu
+     en même temps, l'un par-dessus l'autre. */
   startLevel(next);
-  G.state = 'play'; G.waveT = 0; G.phase = 'waves';
   FX.addFlash(0.22, TH.pGlow);
 }
 
@@ -12047,14 +12056,30 @@ function areaDamage(x, y, r, dmg, except) {
 }
 
 /* --------------------------------- mise à jour ----------------------------- */
+/* la machine FanBoy est-elle aux commandes ? (générations pocket : ère 0, secteur 0) */
+function gbMachine() { return (R.era | 0) === 0 && (R.sec | 0) === 0; }
+/* le secteur est-il réellement en place et jouable ? Sert de verrou unique aux
+   actions de jeu (bombe, pause) : ni écran d'analyse, ni chargement en cours,
+   ni plan absent ne laissent passer une commande. */
+function nvLevelLive() {
+  try {
+    if (window.nvFluid && window.nvFluid.CAL && window.nvFluid.CAL.on) return false;
+    const ld = document.getElementById('nvLoad');
+    if (ld && (ld.classList.contains('on') || ld.classList.contains('out'))) return false;
+  } catch (e) { }
+  return !!(G.plan && G.level > 0 && G.player);
+}
 function update(dt) {
   FX.update(dt);
-  decorUpdate(dt);
-  updatePetals(dt);
+  /* INTRO EXCLUSIVE : pendant l'annonce d'un secteur, aucune tâche de jeu ne
+     tourne derrière l'écran affiché — décor, pétales et défilement attendent. */
+  const introHold = G.state === 'intro';
+  if (!introHold) decorUpdate(dt);
+  if (!introHold) updatePetals(dt);
   /* défilement : accéléré pendant les transitions (effet de saut hyperspatial) */
-  const wantBoost = G.state === 'intro' ? 5 : (G.phase === 'bossWarn' ? 1.7 : 1);
+  const wantBoost = introHold ? 1 : (G.phase === 'bossWarn' ? 1.7 : 1);
   SCROLL.boost = lerp2(SCROLL.boost, wantBoost, dt * (wantBoost > 1 ? 2.2 : 1.1));
-  SCROLL.y += SCROLL.speed * SCROLL.boost * dt;
+  if (!introHold) SCROLL.y += SCROLL.speed * SCROLL.boost * dt;
   const st = G.state;
   if (st === 'title') {
     titleT += dt; updateAttract(dt);
@@ -12079,14 +12104,14 @@ function update(dt) {
     return;
   }
   if (st === 'intro') {
+    /* INTRO EXCLUSIVE : rien ne simule derrière l'annonce — ni défilement, ni
+       vaisseau, ni particules, ni tirs. Les secteurs FanBoy affichent le
+       démarrage de la console (écran opaque, plein cadre) ; les autres
+       générations enchaînent directement sur le décollage, sans temps mort
+       superposé au jeu. */
     introT += dt;
     useBuf(R.bufNear);
-    /* le vaisseau est déjà visible ET maniable pendant l'annonce : plus de
-       secteur lancé sans vaisseau en main (les vagues, elles, attendent 'play') */
-    updatePlayers(dt);
-    updateParts(dt); updateFTs(dt); updateShocks(dt);
-    collFreeUpdate(dt);
-    if (introT >= INTRO_DUR) { G.state = 'play'; G.waveT = 0; }
+    if (introT >= INTRO_DUR || !gbMachine()) { G.state = 'play'; G.waveT = 0; }
     return;
   }
   if (st !== 'play') { /* menus : on laisse vivre le fond */
@@ -12181,16 +12206,19 @@ function render(dt) {
     presentFrame();
     if (G.state === 'intro') drawEraBanner(introT / INTRO_DUR);
     if (G.state === 'warp') drawWarp();
-    if (G.state !== 'title' && G.state !== 'warp') drawHUD();
+    /* démarrage FanBoy : l'écran de la console occupe tout le cadre —
+       aucun HUD ne se superpose à l'annonce */
+    if (G.state !== 'title' && G.state !== 'warp' && !(G.state === 'intro' && gbMachine())) drawHUD();
 
   } else {
     /* menus : décor en mouvement léger */
     drawWorld(dt);
     presentFrame();
   }
-  drawSidePanels(sideRes);
-  /* l'interface tactile n'existe qu'en vol */
-  const playing = G.state === 'play' || G.state === 'intro';
+  /* démarrage FanBoy : les panneaux latéraux attendent la partie */
+  if (!(G.state === 'intro' && gbMachine())) drawSidePanels(sideRes);
+  /* l'interface tactile n'existe qu'en vol — et pas pendant le démarrage FanBoy */
+  const playing = G.state === 'play' || (G.state === 'intro' && !gbMachine());
   if (document.body.classList.contains('playing') !== playing) document.body.classList.toggle('playing', playing);
   if (playing) syncTouchUI();
 }
@@ -12376,9 +12404,13 @@ function onKeyDown(k, ev) {
     return;
   }
   if (G.state === 'play' || G.state === 'intro') {
-    if (k === 'Escape' || k === 'p') { pauseGame(); return; }
-    if (k === 'b' || k === 'Shift' || k === 'Control') { useBomb(); return; }
-    if (k === 'x' || k === 'w' || k === 'Tab') { cycleWeapon(ev && ev.shiftKey ? -1 : 1); return; }
+    if (G.state === 'play') {
+      if (k === 'Escape' || k === 'p') { pauseGame(); return; }
+      /* bombe : uniquement en partie — jamais pendant l'intro ni le démarrage */
+      if (k === 'b' || k === 'Shift' || k === 'Control') { useBomb(); return; }
+      if (k === 'x' || k === 'w' || k === 'Tab') { cycleWeapon(ev && ev.shiftKey ? -1 : 1); return; }
+    }
+    return;   /* intro/démarrage : aucune touche de jeu n'atteint la simulation */
   } else if (G.state === 'pause') {
     if (k === 'Escape' || k === 'p') resumeGame();
     else if (IS_NEXT(k)) pressPrimary();
@@ -12389,7 +12421,10 @@ function onKeyDown(k, ev) {
 }
 function pauseGame() {
   if (G.state === 'warp') { skipWarp(); return; }
-  if (G.state !== 'play' && G.state !== 'intro') return;
+  /* seule une partie en cours se met en pause : l'intro exclusive (monde figé,
+     démarrage console) et l'analyse du support ne sont pas interruptibles */
+  if (G.state !== 'play') return;
+  if (!nvLevelLive()) return;
   G.state = 'pause'; Audio2.stopMusic(); Audio2.sfx('ui');
   showScreen('pause'); refreshUI();
 }
@@ -15685,8 +15720,9 @@ function hudLayers() {
   if (!['title', 'intro', 'play', 'pause', 'warp', 'clear', 'victory'].includes(st)) return;
   if (st === 'intro') drawEraBanner(introT / INTRO_DUR);
   if (st === 'warp') drawWarp();
-  if (st !== 'title' && st !== 'warp') drawHUD();
-  drawSidePanels(sideRes);
+  /* démarrage FanBoy : écran console exclusif, aucun HUD par-dessus */
+  if (st !== 'title' && st !== 'warp' && !(st === 'intro' && gbMachine())) drawHUD();
+  if (!(st === 'intro' && gbMachine())) drawSidePanels(sideRes);
 }
 {
   const _gpuPresent = gpuPresent;
@@ -21405,10 +21441,10 @@ frame = function (now) {
   NVP.next = Math.max(NVP.next + iv, now + iv * 0.4);
   lastT = now;
   R.fps = lerp(R.fps, 1 / Math.max(raw, 0.0001), 0.06);
-  let dt = Math.min(raw, 0.05);
-  if (FX.hitstop > 0) { FX.hitstop -= raw; dt *= 0.04; }
-  if (FX.slowT > 0) { FX.slowT -= raw; dt *= FX.slow; } else FX.slow = 1;
-  if (cheatOn('slow') && (G.state === 'play' || G.state === 'intro')) dt *= 0.6;   /* cheat TEMPS RALENTI */
+  let mul = 1;
+  if (FX.hitstop > 0) { FX.hitstop -= raw; mul *= 0.04; }
+  if (FX.slowT > 0) { FX.slowT -= raw; mul *= FX.slow; } else FX.slow = 1;
+  if (cheatOn('slow') && (G.state === 'play' || G.state === 'intro')) mul *= 0.6;   /* cheat TEMPS RALENTI */
   if (nvMenuFrozen()) {                      /* menu ouvert : on ne simule ni ne dessine rien */
     NVP.idle = (NVP.idle || 0) + raw;
     if (NVP.idle > 0.25) { NVP.idle = 0; try { update(0.05); } catch (err) {} }
@@ -21422,7 +21458,21 @@ frame = function (now) {
   applyNVGraphics();
   perfAdapt(raw);
   try {
-    update(dt);
+    let dt;
+    if (gbMachine()) {
+      /* CADENCE DE LA VRAIE CONSOLE : pas de temps fixe à 59,73 images/s
+         (4 194 304 Hz ÷ 70 224 cycles par trame). Chaque pas de simulation
+         dure exactement 1/59,7275 s : les animations avancent par pas
+         réguliers, comme sur la machine d'origine, jamais interpolées. */
+      const GB_STEP = 1 / 59.7275;
+      NVP.acc = Math.min((NVP.acc || 0) + Math.min(raw, 0.25), 0.5);
+      let n = 0;
+      while (NVP.acc >= GB_STEP && n < 6) { update(GB_STEP * mul); NVP.acc -= GB_STEP; n++; }
+      dt = n * GB_STEP * mul;
+    } else {
+      dt = Math.min(raw, 0.05) * mul;
+      update(dt);
+    }
     const animatedScene = ['title', 'play', 'intro', 'warp', 'box', 'story'].includes(G.state);
     if (animatedScene || sceneDirty) { render(dt); sceneDirty = false; }
   } catch (err) {

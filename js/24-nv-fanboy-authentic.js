@@ -15,7 +15,7 @@
   const cl = (v, a, b) => Math.max(a, Math.min(b, v));
   const O = S.opts;
   const def = (k, v) => { if (O[k] === undefined) O[k] = v; };
-  def('gbGhost', 'low'); def('gbContrast', 'normal'); def('gbFlicker', 0); def('gbChip', 1); def('gbOut', 'speaker'); def('gbBezel', 1);
+  def('gbGhost', 'low'); def('gbContrast', 'normal'); def('gbFlicker', 1); def('gbChip', 1); def('gbOut', 'speaker'); def('gbBezel', 1);
   const gbEra = () => (R.era | 0) === 0;
   const playing = () => ['intro', 'play', 'pause', 'clear'].includes(G.state);
 
@@ -60,7 +60,13 @@
   };
   /* déclencheurs */
   const _bomb = useBomb;
-  useBomb = function () { const r = _bomb.apply(this, arguments); if (gbEra()) { FX0.inv = .16; FX0.wave = Math.max(FX0.wave, .5); } return r; };
+  useBomb = function () {
+    const r = _bomb.apply(this, arguments);
+    /* le flash négatif et le raster ne suivent que si la bombe est RÉELLEMENT
+       partie : plus d'effet déclenché pendant l'intro ou l'écran d'analyse */
+    if (r && gbEra()) { FX0.inv = .16; FX0.wave = Math.max(FX0.wave, .5); }
+    return r;
+  };
   const _die = bossDie;
   bossDie = function () { const r = _die.apply(this, arguments); if (gbEra()) { FX0.inv = .3; FX0.wave = 1; } return r; };
   const _upd = update;
@@ -93,11 +99,13 @@
     return _enemy.apply(this, arguments);
   };
 
-  /* séquence de démarrage (secteur 1) : le logo descend, puis le « ding » */
+  /* séquence de démarrage (tous les secteurs FanBoy) : le logo descend, puis le « ding » */
   let dingDone = false;
   function drawBoot(t) {
     const x = PF.x, y = PF.y, w = PF.w, h = PF.h, gb = (TH.livery && TH.livery.gb) || GB4, s = t * INTRO_DUR;
-    const fade = s > 3.7 ? cl(1 - (s - 3.7) / .6, 0, 1) : 1;
+    /* fondu de sortie : le boot se dissout en fin d'annonce sur le secteur
+       prêt à décoller — plus de coupure nette entre les deux écrans */
+    const fade = t > .84 ? cl(1 - (t - .84) / .16, 0, 1) : 1;
     ctx.save(); ctx.globalAlpha = fade;
     ctx.fillStyle = gb[3]; ctx.fillRect(x, y, w, h);
     const yy = y + h * .44 * Math.min(1, s / 2.1) - (s < 2.1 ? 0 : 0);
@@ -109,7 +117,10 @@
   }
   const _ban = drawEraBanner;
   drawEraBanner = function (t) {
-    if (gbEra() && (G.level | 0) === 1 && G.state === 'intro') { if (t < .05) dingDone = false; return typeof hudOvRun === 'function' ? hudOvRun('banGB', drawBoot, [t]) : drawBoot(t); }
+    /* démarrage console sur TOUS les secteurs FanBoy (1 à 4) : l'écran de boot
+       est exclusif — monde figé derrière, aucun HUD, aucune commande de jeu —
+       comme une vraie cartouche qu'on lance. */
+    if (gbEra() && G.state === 'intro') { if (t < .05) dingDone = false; return typeof hudOvRun === 'function' ? hudOvRun('banGB', drawBoot, [t]) : drawBoot(t); }
     return _ban.apply(this, arguments);
   };
 

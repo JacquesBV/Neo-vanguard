@@ -115,6 +115,9 @@
   window.nvCap = function () {
     const o = S.opts.frameRate;
     let cap = o === 'auto' ? (IS_TOUCH ? 60 : 144) : clamp(Number(o) || 60, 30, 240);
+    /* Secteurs FanBoy (1 à 4) : la cadence de la vraie console portable —
+       59,73 images par seconde (4 194 304 Hz ÷ 70 224 cycles), jamais au-delà. */
+    try { if (typeof gbMachine === 'function' && gbMachine()) cap = Math.min(cap, 59.73); } catch (e) {}
     if (battOn()) cap = Math.min(cap, 30);
     return cap;
   };

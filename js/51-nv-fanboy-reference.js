@@ -1,141 +1,48 @@
-/* FanBoy KFM-01: original portable shell and positive reflective LCD.
- * Display inks estimated from the supplied video captures (2026-10-25).
- * Internal palette stays unchanged: terrain, sprite shading and collision
- * generation keep their existing indices. Only presentation converts the inks.
+/* FanBoy KFM-01 — coque portable et verre LCD, SANS AUCUNE retouche des encres.
+ * Le rendu authentique passe uniquement par la présentation physique et la
+ * cadence : la palette interne (GB4), les livrées, le terrain et les sprites
+ * restent EXACTEMENT tels que le moteur les peint — aucune conversion de
+ * teinte, aucune inversion de polarité, aucun recalcul de décor.
+ * Ce module ajoute seulement :
+ *   · la coque portable originale autour de l'écran (PC et mobile) ;
+ *   · le verre LCD : grille de pixels physique, matte neutre et reflet de
+ *     lumière ambiante sur la vitre (blanc neutre, jamais teinté) ;
+ *   · le cadrage du viewport FanBoy (160×144 natifs, pixels carrés) ;
+ *   · la désactivation des masques CRT / phosphores / flou shader sur cette
+ *     génération (un LCD n'a pas de tube).
  */
 (() => {
   'use strict';
-  const inks = ['#9ea483', '#7d8267', '#595c4c', '#2f3329']; // source dark -> display light
-  const rgb = inks.map(c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)));
-  const sourceLum = GB4.map(c => {
-    const p = [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
-    return p[0] * .2126 + p[1] * .7152 + p[2] * .0722;
-  });
   const active = () => R.era === 0 && G.eraIdx === 0 && G.state !== 'story' && G.state !== 'title';
   const framed = () => active() && S.opts.gbBezel !== 0;
-  // One-time default migration; subsequent player choices remain intact.
-  if (S.opts.fanboyReference !== 1) {
-    S.opts.gbContrast = 'normal'; S.opts.gbGhost = 'low'; S.opts.gbBezel = 1;
-    S.opts.fanboyReference = 1;
+
+  /* Migration unique : les défauts d'animation authentiques de l'écran LCD.
+     Encres et couleurs ne sont jamais touchées. */
+  if (S.opts.fanboyGlassV4 !== 1) {
+    S.opts.fanboyGlassV4 = 1;
+    S.opts.gbFlicker = 1;            /* clignotement des sprites comme sur l'écran d'origine */
+    S.opts.gbBezel = 1;              /* coque autour de l'écran */
     saveGame();
   }
 
-  const oldPalette = applyGameBoyPalette;
-  applyGameBoyPalette = function (buf) {
-    oldPalette.apply(this, arguments);
-    if (!active() || !buf || !buf.g) return;
-    const w = buf.c.width, h = buf.c.height;
-    let image;
-    try { image = buf.g.getImageData(0, 0, w, h); } catch (err) { return; }
-    const d = image.data;
-    for (let i = 0; i < d.length; i += 4) {
-      if (!d[i + 3]) continue;
-      const lum = d[i] * .2126 + d[i + 1] * .7152 + d[i + 2] * .0722;
-      let k = 0, delta = Infinity;
-      for (let j = 0; j < 4; j++) {
-        const distance = Math.abs(lum - sourceLum[j]);
-        if (distance < delta) { delta = distance; k = j; }
-      }
-      const p = rgb[k]; d[i] = p[0]; d[i + 1] = p[1]; d[i + 2] = p[2];
-    }
-    buf.g.putImageData(image, 0, 0);
-  };
-
-  /* Art has its own polarity: dark outlines/cockpits, light hulls. The
-     positive LCD background must not turn every sprite into a negative. */
-  const artPalette = GB4.slice().reverse();
-  function artTheme(fn, self, args) {
-    if (!active()) return fn.apply(self, args);
-    const previous = TH;
-    const copy = { ...TH, livery: { ...TH.livery, gb: artPalette } };
-    for (const key of Object.keys(copy)) {
-      const index = GB4.indexOf(copy[key]); if (index >= 0) copy[key] = artPalette[index];
-    }
-    TH = copy;
-    try { return fn.apply(self, args); } finally { TH = previous; }
-  }
-  const oldSprite = drawSpriteTo;
-  drawSpriteTo = function () { return artTheme(oldSprite, this, arguments); };
-  const oldBossSprite = drawBossSprite;
-  drawBossSprite = function () { return artTheme(oldBossSprite, this, arguments); };
-  const oldCore = drawPlayerCore;
-  drawPlayerCore = function () { return artTheme(oldCore, this, arguments); };
-
-  // Keep each structure's geometry, but restore its inked edges and lit faces.
-  const oldDecorCanvas = decorCanvas, correctedDecor = new WeakMap();
-  decorCanvas = function () {
-    const record = oldDecorCanvas.apply(this, arguments);
-    if (!active() || !record || !record.c) return record;
-    if (correctedDecor.has(record)) return correctedDecor.get(record);
-    const c = document.createElement('canvas'); c.width = record.c.width; c.height = record.c.height;
-    const g = c.getContext('2d'); g.drawImage(record.c, 0, 0);
-    const im = g.getImageData(0, 0, c.width, c.height), d = im.data;
-    // Original decorative bake was dimmed one tone: lift faces, retain lines.
-    const map = [3, 1, 0, 0];
-    for (let i = 0; i < d.length; i += 4) {
-      if (!d[i + 3]) continue;
-      const l = d[i] * .2126 + d[i + 1] * .7152 + d[i + 2] * .0722;
-      let k = 0;
-      for (let j = 1; j < 4; j++) if (Math.abs(l - sourceLum[j]) < Math.abs(l - sourceLum[k])) k = j;
-      const p = GB4[map[k]];
-      d[i] = parseInt(p.slice(1, 3), 16); d[i + 1] = parseInt(p.slice(3, 5), 16); d[i + 2] = parseInt(p.slice(5, 7), 16);
-    }
-    g.putImageData(im, 0, 0);
-    const rec = { ...record, c, sh: null }; correctedDecor.set(record, rec); return rec;
-  };
-  const oldDecorBlit = decorBlit;
-  decorBlit = function (list, layer) {
-    if (!active()) return oldDecorBlit.apply(this, arguments);
-    useBuf(layer);
-    const g = PAINT.g, K = PAINT.K;
-    g.imageSmoothingEnabled = false;
-    for (const item of list) {
-      const rec = decorCanvas(item.ci, item.w, item.h, item.seed, K);
-      const x = Math.round(item.x * K), y = Math.round(item.y * K);
-      if (!rec.sh) {
-        rec.sh = document.createElement('canvas'); rec.sh.width = rec.c.width; rec.sh.height = rec.c.height;
-        const sg = rec.sh.getContext('2d'); sg.drawImage(rec.c, 0, 0);
-        sg.globalCompositeOperation = 'source-in'; sg.fillStyle = GB4[2]; sg.fillRect(0, 0, rec.c.width, rec.c.height);
-      }
-      g.save(); g.globalAlpha *= .35;
-      g.drawImage(rec.sh, x + Math.round(6 * K), y + Math.round(9 * K)); g.restore();
-      g.drawImage(rec.c, x, y);
-      const ch = CHUNKS[item.ci];
-      if (ch.anim) artTheme(ch.anim, ch, [item.x, item.y, item.w, item.h, DEC.t, item.seed]);
-    }
-  };
-  const oldFloor = decorDrawFloor;
-  decorDrawFloor = function (layer) {
-    if (!active()) return oldFloor.apply(this, arguments);
-    useBuf(layer);
-    const g = layer.g, K = layer.K;
-    const tile = 64, scroll = SCROLL.y * FLOOR_SPD;
-    const start = Math.floor(-scroll / tile) - 1;
-    const offset = start * tile + scroll;
-    g.fillStyle = GB4[0]; g.fillRect(0, 0, layer.c.width, layer.c.height);
-    // Sparse floor seams: a pale floor, engraved joints, no inverted checker fog.
-    g.fillStyle = GB4[1];
-    for (let row = 0; offset + row * tile < L_H + tile; row++) {
-      const y = Math.round((offset + row * tile) * K);
-      g.fillRect(0, y, layer.c.width, 1);
-      for (let x = ((row + start) & 1) * tile; x < L_W; x += tile * 2) {
-        g.fillRect(Math.round(x * K), y, 1, Math.round(tile * K));
-      }
-    }
-    decorBlit(DEC.floor, layer);
-  };
-  const oldTerrain = drawTerrain;
-  drawTerrain = function () {
-    if (!active()) return oldTerrain.apply(this, arguments);
-    // Module 32's dark-background smoothing would erase the restored ink edges.
-    const calm = S.opts.lcdCalm; S.opts.lcdCalm = false;
-    try { return oldTerrain.apply(this, arguments); } finally { S.opts.lcdCalm = calm; }
-  };
-
+  /* Cadrage : la coque réserve ses marges autour du viewport 160×144.
+     Pendant le démarrage console, l'écran ne bouge pas : une baisse
+     automatique de résolution en plein boot ferait tressauter la vitre. */
   const oldResize = resizeView;
+  let pinS = null;
   resizeView = function () {
     const result = oldResize.apply(this, arguments);
-    if (!framed()) return result;
+    if (!framed()) { pinS = null; return result; }
+    if (G.state === 'intro') {
+      if (pinS !== null && pinS !== PF.s) {
+        PF.s = pinS; PF.w = L_W * PF.s; PF.h = L_H * PF.s;
+        PF.x = Math.round((view.w - PF.w) * .5 * view.dpr) / view.dpr;
+        PF.y = Math.round((view.h - PF.h) * .5 * view.dpr) / view.dpr;
+        gpuResize();          /* resynchronise le calque GPU (uniforme uPF) */
+      } else if (pinS === null) pinS = PF.s;
+      return result;
+    }
+    pinS = null;
     const W = view.w, H = view.h, d = view.dpr;
     const touchPad = IS_TOUCH ? 64 : 0;
     const side = Math.max(22, Math.min(44, W * .085));
@@ -153,8 +60,8 @@
     return result;
   };
 
-  // Chamfered symmetric shell, horizontal header, right-hand power light.
-  // No manufacturer logo, original slogan, trademark suffix or copied wordmark.
+  // Coque biseautée symétrique, bandeau horizontal, voyant à droite.
+  // Aucun logo constructeur, slogan d'origine ou marque déposée.
   function panel(x, y, w, h, cut) {
     ctx.beginPath(); ctx.moveTo(x + cut, y); ctx.lineTo(x + w - cut, y);
     ctx.lineTo(x + w, y + cut); ctx.lineTo(x + w, y + h - cut);
@@ -189,7 +96,7 @@
     if ('letterSpacing' in ctx) ctx.letterSpacing = '2px';
     ctx.fillStyle = '#274c45'; ctx.fillText('FANBOY', PF.x + PF.w * .5, cy, PF.w * .70);
     if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
-    // Split diamond insignia, distinct from the original console lettering.
+    // Insigne en losange double, distinct de toute lettre de console existante.
     const ex = PF.x + 7;
     ctx.strokeStyle = '#3e7564'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(ex + 5, cy - 7); ctx.lineTo(ex - 2, cy);
@@ -200,17 +107,20 @@
     ctx.restore();
   };
 
+  /* Le verre : grille de pixels, matte et REFLET DE LUMIÈRE ambiante.
+     Uniquement du blanc et du gris neutres — la teinte du jeu n'est jamais
+     modifiée, le reflet se pose sur la vitre comme dans une vraie pièce. */
   const oldGlass = drawScreenGlass;
   let grid = null, gridKey = '';
   drawScreenGlass = function () {
     if (!active()) return oldGlass.apply(this, arguments);
     ctx.save(); ctx.beginPath(); ctx.rect(PF.x, PF.y, PF.w, PF.h); ctx.clip();
-    // A physical output grid avoids resampling the native sprites.
+    // Grille de sortie physique : évite de rééchantillonner les sprites natifs.
     const step = Math.max(2, Math.round(PF.w * view.dpr / R.bufC.w));
     const key = step + ':' + view.dpr;
     if (key !== gridKey) {
       const tile = document.createElement('canvas'); tile.width = tile.height = step;
-      const g = tile.getContext('2d'); g.fillStyle = 'rgba(35,43,29,.055)';
+      const g = tile.getContext('2d'); g.fillStyle = 'rgba(16,18,16,.05)';
       g.fillRect(0, 0, 1, step); g.fillRect(1, 0, step - 1, 1);
       grid = ctx.createPattern(tile, 'repeat'); gridKey = key;
     }
@@ -218,49 +128,43 @@
       ctx.save(); ctx.translate(PF.x, PF.y); ctx.scale(1 / view.dpr, 1 / view.dpr);
       ctx.fillStyle = grid; ctx.fillRect(0, 0, PF.w * view.dpr, PF.h * view.dpr); ctx.restore();
     }
+    // Matte de la dalle : ombre neutre en haut et en bas, fixe sur la vitre.
     const shade = ctx.createLinearGradient(0, PF.y, 0, PF.y + PF.h);
-    shade.addColorStop(0, 'rgba(25,34,18,.12)'); shade.addColorStop(.12, 'rgba(25,34,18,0)');
-    shade.addColorStop(.72, 'rgba(25,34,18,.025)'); shade.addColorStop(1, 'rgba(25,34,18,.10)');
+    shade.addColorStop(0, 'rgba(10,12,10,.12)'); shade.addColorStop(.12, 'rgba(10,12,10,0)');
+    shade.addColorStop(.72, 'rgba(10,12,10,.025)'); shade.addColorStop(1, 'rgba(10,12,10,.10)');
     ctx.fillStyle = shade; ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
-    // Reflected room light on a passive LCD: broad soft highlight, fixed to
-    // the glass rather than the scrolling world. No emissive bloom.
+    // Reflet de la lumière ambiante sur un LCD passif : large highlight doux,
+    // fixé à la vitre (il ne suit pas le monde qui défile). Blanc neutre.
     const reflection = ctx.createLinearGradient(PF.x, PF.y + PF.h, PF.x + PF.w, PF.y);
-    reflection.addColorStop(0, 'rgba(244,247,223,0)');
-    reflection.addColorStop(.52, 'rgba(244,247,223,.015)');
-    reflection.addColorStop(.80, 'rgba(244,247,223,.065)');
-    reflection.addColorStop(1, 'rgba(250,252,235,.17)');
+    reflection.addColorStop(0, 'rgba(255,255,255,0)');
+    reflection.addColorStop(.52, 'rgba(255,255,255,.015)');
+    reflection.addColorStop(.80, 'rgba(255,255,255,.06)');
+    reflection.addColorStop(1, 'rgba(255,255,255,.16)');
     ctx.fillStyle = reflection; ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
+    // Balayage plus marqué dans le coin supérieur droit, comme une fenêtre.
     const glint = ctx.createLinearGradient(PF.x + PF.w * .74, 0, PF.x + PF.w, 0);
-    glint.addColorStop(0, 'rgba(250,252,235,0)');
-    glint.addColorStop(.55, 'rgba(250,252,235,.025)');
-    glint.addColorStop(.82, 'rgba(250,252,235,.085)');
-    glint.addColorStop(1, 'rgba(250,252,235,.015)');
+    glint.addColorStop(0, 'rgba(255,255,255,0)');
+    glint.addColorStop(.55, 'rgba(255,255,255,.025)');
+    glint.addColorStop(.82, 'rgba(255,255,255,.085)');
+    glint.addColorStop(1, 'rgba(255,255,255,.015)');
     ctx.fillStyle = glint; ctx.fillRect(PF.x + PF.w * .74, PF.y, PF.w * .26, PF.h);
-    ctx.strokeStyle = 'rgba(241,246,217,.18)'; ctx.lineWidth = 1 / view.dpr;
+    // Liseré lumineux du bord haut de la vitre.
+    ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1 / view.dpr;
     ctx.beginPath(); ctx.moveTo(PF.x, PF.y + 1 / view.dpr);
     ctx.lineTo(PF.x + PF.w, PF.y + 1 / view.dpr); ctx.stroke();
     ctx.restore();
   };
 
-  function displayTheme(fn, self, args) {
-    if (!active()) return fn.apply(self, args);
-    const previous = TH, copy = { ...TH };
-    for (const key of Object.keys(copy)) {
-      const index = GB4.indexOf(copy[key]); if (index >= 0) copy[key] = inks[index];
-    }
-    copy.livery = { ...TH.livery, gb: inks };
-    TH = copy;
-    // Disable the old frame painted over the playfield by module 24.
-    const bezel = S.opts.gbBezel; S.opts.gbBezel = 0;
-    try { return fn.apply(self, args); }
-    finally { TH = previous; S.opts.gbBezel = bezel; }
-  }
+  /* La coque complète remplace le simple cadre peint par le module 24 :
+     on l'écarte le temps du HUD pour ne pas doubler les bordures. */
   const oldHUD = drawHUD;
-  drawHUD = function () { return displayTheme(oldHUD, this, arguments); };
-  const oldBanner = drawEraBanner;
-  drawEraBanner = function () { return displayTheme(oldBanner, this, arguments); };
+  drawHUD = function () {
+    if (!framed()) return oldHUD.apply(this, arguments);
+    const bezel = S.opts.gbBezel; S.opts.gbBezel = 0;
+    try { return oldHUD.apply(this, arguments); } finally { S.opts.gbBezel = bezel; }
+  };
 
-  // FanBoy has no CRT mask, RGB phosphors or global shader blur.
+  // Le FanBoy n'a ni masque CRT, ni phosphores RGB, ni flou shader global.
   const oldPresent = presentFrame;
   presentFrame = function () {
     if (!active()) return oldPresent.apply(this, arguments);
@@ -270,7 +174,8 @@
     try { return oldPresent.apply(this, arguments); }
     finally { keys.forEach((k, i) => { if (saved[i] === undefined) delete S.opts[k]; else S.opts[k] = saved[i]; }); }
   };
-  // Entering/leaving a menu also restores the appropriate viewport margins.
+
+  // Entrer/sortir d'un menu restaure les marges de viewport appropriées.
   const oldRender = render;
   let lastFrameState = null;
   render = function () {
@@ -278,5 +183,6 @@
     if (state !== lastFrameState) { lastFrameState = state; sideRes = resizeView().sideRes; }
     return oldRender.apply(this, arguments);
   };
-  window.NV_FANBOY_REFERENCE = Object.freeze({ inks: Object.freeze(inks), revision: 3 });
+
+  window.NV_FANBOY_REFERENCE = Object.freeze({ revision: 4, shell: true, glass: true, inks: 'untouched' });
 })();
