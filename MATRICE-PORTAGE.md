@@ -29,30 +29,7 @@ Les preuves « TESTn » sont les harnais `NV_TEST=n` (voir RAPPORT-TESTS.md) ; c
 | 24 | fanboy-authentic | `ui/shell_layer.gd` + `assets/fanboy*` | CONFORME | capture 9-comparaison |
 | 25/26/27 | options/title/shop reorg | `options_screen.gd`, `title_screen.gd`, `shop_screen.gd` | CONFORME | ordre des menus conforme, TEST2 |
 | 28 | insert-coin-and-bonus | `game.gd` (crédits, bonus) + `main.gd` | CONFORME | TEST1/2 |
-| 29 | **nv24-final-rework (secteur 24)** | `game.gd` (sas, couloir, radio), `nv24_audio.gd` | **PARTIEL** | porté : sas (60 PV×diff, ×1,5 en 2J, 9 fissures `makeDoor`), couloir `corridor-tile` ×0,6, art sas `airlock`, 16/16 échantillons `packSnd`, repli synthé, radio VESTA+voix, enchaînement boom→boss. **À porter** : états `hands/tear/reveal/vorax` (mains atlas, barre partagée), 3 formes + patterns (yeux→rayons, paumes croisées, singularité), multijoueur ×1,4 des FOE |
-| 30 + 31 + 37 + 38 + 41 | FM (boutique, relook, étiquettes, meuble, deck/walkman) | `ui/fm_screen.gd` + `assets/music-shop/` | CONFORME | catalogue JSON exact (31 titres, prix 80–335), familles/ères, cases→open, filtres, achat CR, lecture mp3, sfx dédicacés ; TEST8 |
-| 32 | lcd-calm | `shell_layer.gd` (LCD sobre) | CONFORME | coque T11 |
-| 33 | ship-sheets | `sheets.gd` | CONFORME | sprites vaisseaux |
-| 34 | ship-native | `sheets.gd` (r0-*.png natifs) | CONFORME | sélection boutique |
-| 35/36 | pause-btn / title-mute | `main.gd` (pause), `audio2.gd` (`set_muted`, M) | CONFORME | TEST2 |
-| 39 | homing-sprite | `game.gd` (missiles tête chercheuse) | CONFORME | TEST7 |
-| 40 | voice-gender | `audio2.gd` `speak()` (voix système) | PARTIEL | genre de voix VESTA non sélectif (TTS système FR) |
-| 42 | help-js | `ui/help_screen.gd` | CONFORME | TEST2 |
-| 43 | fluid-js (rendu web) | — | N/A | technique de rendu navigateur, natif sans objet |
-| 44 | progress-map | `help_screen.gd` (carte de progression) | CONFORME | capture 3-help |
-| 45 | brief-art | `brief_screen.gd` + `assets/ui-art/briefings` | CONFORME | capture 5-brief |
-| 46/48 | boss-sprites / big-sprites | `boss_atlas.gd` (cuisson taille réelle) | CONFORME | TEST7 |
-| 47 | tickets | `tickets.gd`, `ui/ticket_view.gd` | CONFORME | TEST5 (séries NV-001/NV-002, 65 %, codes) |
-| 49 | nv-mix | `audio2.gd` (duck, gains) | CONFORME | valeurs .40/.70/.63/1.00 appliquées |
-| 51 | fanboy-reference | `ui/shell_layer.gd` | PARTIEL | coque conforme ; contrôles FX ajoutés par le commit figé non reproduits |
-
-## B. Contenu & ressources
-
-| Élément | Emplacement source | Équivalent Godot | État | Preuve / Écart |
-|---|---|---|---|---|
-| 24 secteurs, 6 ères, phases (intro/vagues/warning/boss/récolte) | 02 | `game.gd`, `data.gd` | CONFORME | TEST1/3 |
-| 8 ennemis mod. 20 + 6 mini-boss + roster de base | 02 (l.12851+) | `game.gd` + `sil_data.gd` + `pocket_baker.gd` | CONFORME | TEST7 |
-| 24 boss + atlas officiels | 46/48 + `assets/bosses` | `boss_atlas.gd` | CONFORME | captures boss |
+| 29 | **nv24-final-rework (secteur 24)** | `game.gd` (sas, couloir, radio, **vorax_update + rendu**), `nv24_audio.gd` | **PORTÉ (TEST9 vert)** | séquence complète : sas (60 PV×diff, ×1,5 en 2J, 9 fissures), boom→hall→alarme→**hands** (poings atlas `vorax-hands-atlas`, PV séparés, renforts, contact) → **tear** (battants arrachés animés `doors/airlock`) → **reveal** (marionnette `vorax-intro`, zoom .45→1) → **vorax** 3 formes (réserve unique ×.72, seuils 2/3 et 1/3, 7 attaques laser/laser2/sweep/palms/orbs/spiral/rain, tête ×1.7 / bras ×.55, radios v5/palm/morph en 5 langues) → mort. **Écart consigné** : les 8 défenseurs FOE dédiés non portés, renforts = vagues génériques |es` | `boss_atlas.gd` | CONFORME | captures boss |
 | Musiques de jeu (mp3 ères/boss/fin) | `assets/music` (40) | `audio2.gd` | CONFORME | fichiers, boucles, transitions |
 | FM : 31 mp3 + jaquettes + sfx + walkman | `assets/music-shop` (156) | `fm_screen.gd` | CONFORME | TEST8, contrôle par cassette (lecture, durée, pas de 0:00 bloqué) |
 | Flipper : table, 19 wav, musique 32 s | `assets/pinball` (26) | `pinball/`, `pinball_screen.gd` | CONFORME | TEST8, capture |

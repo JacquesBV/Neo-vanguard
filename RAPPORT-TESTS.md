@@ -51,3 +51,32 @@
 - Archive : `neo-vanguard-godot-v7.zip` (contenu identique au dossier `godot/` poussé sur la branche).
 - Contrôles exécutés : création → **extraction complète** → présence de `project.godot` → `godot --headless --import` depuis le dossier extrait → `NV_TEST=1` et `NV_TEST=8` relancés **depuis l'extraction**. Résultats en fin de session (voir réponse d'accompagnement — l'archive n'est déclarée vérifiée que si ces deux tests passent).
 - MD5 publié avec le lien Drive.
+
+## Mise à jour du 25/10 (2e session) — ré-exécution et extension
+Environnement réinstallé : Godot 4.3-stable (`4.3.stable.official.77dcf97d8`) + xvfb,
+import `--headless --import` : **0 erreur**.
+
+| Test | Résultat | Points clés |
+|---|---|---|
+| NV_TEST=1 (fumée) | VERT | titre, menu, 8 s de jeu, crédits 93500, max_level 24, bombe |
+| NV_TEST=2 (écrans) | VERT | boutique/options/codes (kabrak77, BANQUE!) /records/commandes/histoire, S24→era5 |
+| NV_TEST=5 (tickets) | VERT | NV-002/NV-001, anti-doublon NEOMELODIES, CAFAITFLIPPER→unlocks.pinball |
+| NV_TEST=7 (module 20) | VERT | alert 0,85 s stéréo, 0 recette manquante, 28 ennemis ≥ 21, 14 kinds, sprites cuits |
+| NV_TEST=8 (v6) | VERT | FM 31/31, achat+lecture boss-24 (PLAYING·STEREO), flipper playing, prologue art, sas hp 81,7/186 |
+| **NV_TEST=9 (VORAX, nouveau)** | VERT | séquence complète : hands(2 mains, poings atlas)→tear→reveal(VORAX·CUIRASSÉ, réserve 23 213 PV)→morph 2/3→NÉCRO-RÉACTEUR→SINGULARITÉ→dead ; 6 captures `/tmp/shots9` |
+
+### C. Comparatifs visuels (captures dans `apercu-godot/`)
+- `4-pinball-table.png` : table de secours dessinée (parois = colliders exacts,
+  rampes translucides, 3 bumpers, réacteur, batteurs, cibles, bille + ombre,
+  lance-bille, afficheur) — comparaison avec le site impossible (binaires retirés
+  par l'auteur, 404) : **comparaison source↔port non réalisable pour les PNG du
+  flipper**, le repli est validé géométriquement contre le moteur.
+- `1-hands.png` (poings dans le grand sas), `3-reveal.png` (révélation),
+  `4-vorax.png` (combat échelle 1), `5-morph.png`, `6-fin.png` : séquence 24.
+- Limites : les captures source du site web n'ont pas été rejouées côte à côte
+  dans un navigateur pour cette session (pilote logiciel, pas d'audio réel).
+
+### D. Sauvegardes web → native (rappel de la procédure)
+localStorage `neovanguard.save.v3` (JSON) → copier le contenu dans
+`user://neovanguard.save.v3.json` (Linux : `~/.local/share/godot/app_userdata/…`).
+Aucune conversion nécessaire (mêmes clés), vérifiée par TEST2 (records/codes).
