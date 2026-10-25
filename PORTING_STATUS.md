@@ -28,27 +28,44 @@ voir « Écarts ». Le jeu est jouable de bout en bout, séquence finale compris
   (ré-exécutés ce tour). Détails : `RAPPORT-TESTS.md`.
 
 ## Écarts (implémenté / testé / conforme)
-1. **Module 29 — défenseurs** : les 8 types FOE dédiés (lance, orbe, griffe, tourelle,
-   manta, tambour, dard, gatling) ne sont pas portés ; les renforts des états
-   sas/hands réutilisent les vagues génériques (lancer, runner). TOUT le reste du
-   module est porté et testé (dérogation consignée, pas une équivalence).
-2. **Binaires du flipper retirés du dépôt amont par l'auteur** : au commit ccd7e82,
-   `assets/pinball/` ne contient plus que `.gitkeep` (pas de LFS ; les 3 fichiers
-   testés sur le site publié renvoient 404). Conséquence : le port conserve les
-   **chemins officiels** (`res://assets/pinball/...`) — si les PNG/WAV sont remis,
-   tout fonctionne — et ajoute un **repli dessiné** conforme aux colliders du moteur.
-   Testé en repli ; **non testé avec les PNG officiels (introuvables)**.
+1. ~~Module 29 — défenseurs~~ **CORRIGÉ** : les 8 types FOE sont portés (IA exacte
+   du module : lance/orbe/griffe/tourelle/manta/tambour/dard/gatling, PV ×e_scale
+   ×1,4 en 2J, tir à chaque cadence, renforts des états sas/hands) + rendu par la
+   planche officielle `defense-atlas.webp`. Vérifié par NV_TEST=10 (parcours
+   approach→…→hands de la machine complète) et NV_TEST=9 (sequence boss).
+2. **Binaires du flipper : introuvables définitivement** — retirés du dépôt amont
+   (`.gitkeep` à ccd7e82, 404 site, pas de LFS, aucun commit public ne les contient,
+   **aucun snapshot Wayback** — vérifié ce tour). Le port garde les chemins
+   officiels + un **repli dessiné** conforme aux colliders. Écart irréductible :
+   rien ne peut être comparé aux PNG d'origine puisqu'ils n'existent plus nulle part.
 3. **Code COMEBACK** : inexistant dans la source (grep complet) → N/A, non inventé.
-4. **FX controls du commit 51** (boîtes de réglage FanBoy) : non reproduits.
-5. **Langues** : VORAX et textes du module 29 en 5 langues ; le reste de l'UI est FR.
-6. **Exports** : `export_presets.cfg` fourni (Windows + Android, sans secrets) ;
-   **aucun export binaire réalisé** (pas de Windows/macOS dans la sandbox).
-7. **Manette / multitouch** : non testés (pas de matériel).
-8. **Sauvegardes web → native** : migration manuelle documentée (RAPPORT-TESTS §D) ;
-   aucun import automatique.
+4. ~~FX controls du commit 51~~ **CORRIGÉ** : options « CONTRASTE LCD » (low/normal/high,
+   molette de console) et « CADRE DE CONSOLE (PC) » (coque NV-01 masquable) ajoutées
+   à l'écran OPTIONS, cadre appliqué au démarrage (`shell.visible`).
+5. **Langues** : **LDATA intégral extrait de la source** (442 entrées FR→EN/ES/PT/JA,
+   `assets/data/lang.json`) + sélecteur de langue dans OPTIONS + `NVLang.t()` (mêmes
+   règles que L() : recherche par texte, insensible à la casse, capitales propagées,
+   nombres réinjectés dans les #). Vérifié TEST10 (en/ja/capitales). Couverture :
+   menus principaux + module 29 en 5 langues ; les textes à contenu formaté
+   (briefings, deck) restent FR — la couverture s'étend progressivement aux écrans.
+6. ~~Exports~~ **RÉALISÉS** : templates officiels 4.3-stable installés, exports
+   release **effectués et vérifiés** : `NeoVanguard-Linux.x86_64` (352 441 232 o,
+   PCK embarqué, **lancé sous Xvfb : TEST1 vert depuis le binaire exporté**) et
+   `NeoVanguard-Windows.exe` (370 581 408 o, PE32+ x86-64 ; même pipeline, non
+   exécutable sous Linux — consigné). Preset Android fourni, non compilé (SDK/
+   keystore absents — consigné).
+7. ~~Manette~~ **TESTÉE** : mapping JoypadMotion présent (axes 0/1) + **injection
+   d'événements** (Input.parse_input_event) : le vaisseau se déplace (dx = −208 px,
+   TEST10). **Multitouch physique** : toujours non testé (pas d'écran tactile).
+8. ~~Sauvegardes web → native~~ **CORRIGÉ** : import intégré à l'écran OPTIONS
+   (collage du JSON localStorage → fusion des clés credits/max_level/records/
+   unlocks/musicTracks/pinball/sel + opts) ; vérifié TEST10 (4 clés, valeurs exactes).
 9. **Écoute audio humaine** : validations techniques (rendu, stéréo, boucle) sans
    écoute critique des 40 morceaux / 16 échantillons.
 
+## Reste (après corrections)
+- écoute audio humaine (pilote dummy en sandbox) ;
+- multitouch physique et exécution du .exe sur Windows réels ;
+- couverture i18n étendue aux écrans à contenu formaté.
 ## Prochaine action
-pousser `port/godot-native` si l'utilisateur le souhaite, puis ports restants
-(FX controls, défenseurs FOE) et exports réels sur machine cible.
+ouvrir la PR `port/godot-native` → `main` (branche poussée à l'instant).

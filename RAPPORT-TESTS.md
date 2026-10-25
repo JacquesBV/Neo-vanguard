@@ -80,3 +80,14 @@ import `--headless --import` : **0 erreur**.
 localStorage `neovanguard.save.v3` (JSON) → copier le contenu dans
 `user://neovanguard.save.v3.json` (Linux : `~/.local/share/godot/app_userdata/…`).
 Aucune conversion nécessaire (mêmes clés), vérifiée par TEST2 (records/codes).
+
+## Mise à jour — corrections des écarts (3e session)
+| Test | Résultat | Contenu |
+|---|---|---|
+| NV_TEST=9 (machine) | VERT | séquence VORAX complète via la machine d'états (voraxTalk→hands→tear→reveal→vorax→dead) |
+| **NV_TEST=10 (nouveau)** | VERT | i18n LDATA (en/ja/capitales), import sauvegarde web (4 clés), **manette injectée (dx=−208)**, machine nv24 : approach→arrive(y=300)→talk→sas→boom(battants t=1,3)→hall(porte2 −400→205)→alarm→voraxTalk→**hands(2 mains)** ; 3 captures |
+| NV_TEST=1/2/5/7/8 | VERTS | non-régression après le grand patch |
+| **Export Linux** | **RÉUSSI + LANCÉ** | `NeoVanguard-Linux.x86_64` 352 441 232 o, PCK embarqué, **TEST1 vert depuis le binaire exporté** |
+| **Export Windows** | RÉUSSI | `NeoVanguard-Windows.exe` 370 581 408 o, PE32+ x86-64 (non exécutable sous Linux, consigné) |
+
+Sauvegarde de test réinitialisée avant preuves (l'import TEST10 écrivait user://).

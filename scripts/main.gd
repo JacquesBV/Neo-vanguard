@@ -60,6 +60,8 @@ func _ready() -> void:
 		_run_bonus_test()
 	if OS.get_environment("NV_TEST") == "9":
 		_run_vorax_test()
+	if OS.get_environment("NV_TEST") == "10":
+		_run_inputs_test()
 
 
 # test 8 : les ajouts v6 — flipper Néon Orbit (menu + table), Neo-Vanguard FM
@@ -122,8 +124,9 @@ func _run_bonus_test() -> void:
 	await get_tree().create_timer(0.2).timeout
 	launch_level()
 	await get_tree().create_timer(0.6).timeout
-	game.phase = 2   # Phase.BOSS_WARN (enum INTRO, WAVES, BOSS_WARN, …)
-	game.boss_warn_t = 0.0
+	game.vorax.stage = "sas"                  # machine nv24 : le sas en combat
+	game.vorax.t = 0.0
+	game.sas["y"] = 300.0                     # porte en position (après arrive)
 	game.sas["hp"] = game.sas["max"] * 0.45   # fissures visibles
 	await get_tree().create_timer(0.4).timeout
 	await _snap(dir + "/6-sas-secteur24.png")
@@ -401,6 +404,7 @@ func _attach_hud() -> void:
 	shell.main = self
 	add_child(shell)
 	move_child(shell, tr.get_index())
+	shell.visible = bool(Save.S.opts.get("frame", true))   # module 24 : cadre PC
 	# HUD pleine résolution par-dessus le champ rétro (comme le HUD HTML d'origine)
 	var hud := preload("res://scripts/ui/hud_overlay.gd").new()
 	hud.game = game
@@ -745,10 +749,10 @@ func _run_vorax_test() -> void:
 	await get_tree().create_timer(0.2).timeout
 	launch_level()
 	await get_tree().create_timer(0.6).timeout
-	game.phase = 2   # Phase.BOSS_WARN ; le sas cède → boom → spawn_vorax
-	game.boss_warn_t = 0.0
-	game.sas["hp"] = 0.0
-	await get_tree().create_timer(0.8).timeout
+	game.vorax.stage = "voraxTalk"   # court-circuit : percée des mains immédiate
+	game.vorax.t = 0.0
+	game.enemies.clear()
+	await get_tree().create_timer(1.8).timeout
 	print("TEST9: stage=", game.vorax.get("stage", "?"), " mains=", game.vorax.hands.size(),
 		" hp_boss=", game.boss.hp, "/", game.boss.max_hp, " nom=", game.boss.name)
 	print("TEST9: art mains=", game.vorax_tex.has("hands"), " art boss=", game.vorax_tex.has("boss"),
@@ -788,4 +792,89 @@ func _run_vorax_test() -> void:
 		" phase=", game.phase, " état=", game.state)
 	get_viewport().get_texture().get_image().save_png(dir + "/6-fin.png")
 	print("TEST9: OK")
+	get_tree().quit()
+
+# test 10 : machine nv24 de bout en bout (approach→…→hands) + manette
+# (événements injectés) + i18n LDATA + import de sauvegarde web
+func _run_inputs_test() -> void:
+	await get_tree().process_frame
+	var dir := "/tmp/shots10"
+	DirAccess.make_dir_recursive_absolute(dir)
+	print("TEST10: i18n — Boutique(en)=", NVLang.t("⬢ Boutique") if Save.S.opts.lang == "fr" else "?")
+	Save.S.opts.lang = "en"
+	print("TEST10: i18n en → Boutique=", NVLang.t("⬢ Boutique"), " Options=", NVLang.t("⚙ Options"),
+		" Retour=", NVLang.t("◀ Retour"), " capitales: SHOP=", NVLang.t("BOUTIQUE"))
+	Save.S.opts.lang = "ja"
+	print("TEST10: i18n ja → Boutique=", NVLang.t("⬢ Boutique"))
+	Save.S.opts.lang = "fr"
+	# import de sauvegarde web (même logique que l'écran options)
+	var web := '{"credits": 12345, "max_level": 17, "records": [{"score": 90000}], "opts": {"diff": 2}}'
+	var parsed: Variant = JSON.parse_string(web)
+	var n := 0
+	for k in ["credits", "max_level", "records", "unlocks", "musicTracks", "pinball", "sel"]:
+		if (parsed as Dictionary).has(k):
+			Save.S[k] = parsed[k]
+			n += 1
+	for k in ["music", "sfx", "diff", "autofire", "speech", "shake", "lang"]:
+		if (parsed as Dictionary).get("opts", {}).has(k):
+			Save.S.opts[k] = parsed["opts"][k]
+			n += 1
+	print("TEST10: import web → clés=", n, " crédits=", Save.S.credits, " max_level=", Save.S.max_level,
+		" diff=", Save.S.opts.diff, " (attendu 3/12345/17/2)")
+	# ---- manette : injection d'un axe gauche → le joueur 1 avance à gauche
+	begin_campaign(1)
+	await get_tree().create_timer(0.2).timeout
+	launch_level()
+	await get_tree().create_timer(0.5).timeout
+	var x0: float = game.first_player().x
+	var ev := InputEventJoypadMotion.new()
+	ev.axis = JOY_AXIS_LEFT_X
+	ev.axis_value = -1.0
+	Input.parse_input_event(ev)
+	await get_tree().create_timer(0.6).timeout
+	var ev0 := InputEventJoypadMotion.new()
+	ev0.axis = JOY_AXIS_LEFT_X
+	ev0.axis_value = 0.0
+	Input.parse_input_event(ev0)
+	var x1: float = game.first_player().x
+	print("TEST10: manette axe X → déplacement dx=", snappedf(x1 - x0, 0.1), " (attendu < 0)")
+	# ---- machine nv24 : saut d'étapes contrôlées
+	begin_campaign(24)
+	await get_tree().create_timer(0.2).timeout
+	launch_level()
+	await get_tree().create_timer(0.4).timeout
+	print("TEST10: nv24 départ stage=", game.vorax.stage, " (attendu approach)")
+	game.vorax.wave_t = 101.0
+	await get_tree().create_timer(0.4).timeout   # toutes les vagues d'approche se déclenchent
+	game.enemies.clear()
+	await get_tree().create_timer(3.0).timeout
+	print("TEST10: après approche → ", game.vorax.stage, " (attendu arrive) porte y=", snappedf(game.sas.y, 1.0))
+	await get_tree().create_timer(3.6).timeout
+	print("TEST10: → ", game.vorax.stage, " (attendu talk)")
+	await get_tree().create_timer(5.8).timeout
+	print("TEST10: → ", game.vorax.stage, " (attendu sas) no_fire=", game.nv24_no_fire())
+	game.sas["hp"] = 0.0
+	await get_tree().create_timer(0.3).timeout
+	print("TEST10: sas détruit → ", game.vorax.stage, " (attendu boom) battants=", game.sas.halves != null)
+	await get_tree().create_timer(1.7).timeout   # les battants naissent à t=1,3
+	get_viewport().get_texture().get_image().save_png(dir + "/1-boom-battants.png")
+	print("TEST10: battants 1er sas = ", game.sas.halves != null, " (attendu true)")
+	await get_tree().create_timer(1.6).timeout
+	print("TEST10: → ", game.vorax.stage, " (attendu hall) porte2 y=", snappedf(game.vorax.door2.y, 1.0))
+	game.vorax.off = 0.0
+	game.vorax.off_v = 0.0
+	game.vorax.wave_t = 30.0
+	game.vorax.wave_i = game.NV_HALL.size()
+	await get_tree().create_timer(0.4).timeout
+	game.enemies.clear()
+	await get_tree().create_timer(3.0).timeout
+	print("TEST10: → ", game.vorax.stage, " (attendu alarm) porte2 y=", snappedf(game.vorax.door2.y, 1.0))
+	get_viewport().get_texture().get_image().save_png(dir + "/2-alarm.png")
+	await get_tree().create_timer(4.2).timeout
+	print("TEST10: → ", game.vorax.stage, " (attendu voraxTalk)")
+	await get_tree().create_timer(1.6).timeout
+	print("TEST10: → ", game.vorax.stage, " (attendu hands) mains=", game.vorax.hands.size())
+	await get_tree().create_timer(0.8).timeout
+	get_viewport().get_texture().get_image().save_png(dir + "/3-hands-machine.png")
+	print("TEST10: OK")
 	get_tree().quit()

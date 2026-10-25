@@ -33,7 +33,7 @@ func _ready() -> void:
 	ui.label(v, "PROCHAINE MACHINE : %s · %s" % [era.sys, era.name], 11, ui.DIM)
 	ui.spacer(v, 6)
 
-	var head := ui.label(v, "— CAMPAGNE —", 13, ui.ACC)
+	var head := ui.label(v, NVLang.t("— CAMPAGNE —"), 13, ui.ACC)
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	if int(Save.S.max_level) > 1:
@@ -51,14 +51,14 @@ func _ready() -> void:
 
 	var head2 := ui.label(v, "— PRÉPARATION —", 13, ui.ACC)
 	head2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	ui.button(v, "⬢ Boutique — vaisseaux, armes, livrées", func(): main.show_shop())
-	ui.button(v, "▤ L'histoire — le récit complet", func(): main.show_story())
-	ui.button(v, "⚙ Options", func(): main.show_options())
-	ui.button(v, "? Commandes", func(): main.show_help())
-	ui.button(v, "☠ Codes — 10 codes secrets à trouver", func(): main.show_cheats())
-	ui.button(v, "▦ Records", func(): main.show_records())
+	ui.button(v, NVLang.t("⬢ Boutique") + " — vaisseaux, armes, livrées", func(): main.show_shop())
+	ui.button(v, NVLang.t("L'histoire") + " — le récit complet", func(): main.show_story())
+	ui.button(v, NVLang.t("⚙ Options"), func(): main.show_options())
+	ui.button(v, NVLang.t("Commandes"), func(): main.show_help())
+	ui.button(v, NVLang.t("☠ Menu cheat") + " — 10 codes secrets à trouver", func(): main.show_cheats())
+	ui.button(v, NVLang.t("Classement"), func(): main.show_records())
 	ui.spacer(v, 10)
-	ui.button(v, "◀ Quitter le jeu", func(): get_tree().quit())
+	ui.button(v, NVLang.t("◀ Retour") + " · quitter", func(): get_tree().quit())
 
 func ui2_toast(t: String) -> void:
 	var l := Label.new()

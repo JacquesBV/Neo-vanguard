@@ -126,15 +126,30 @@ func begin_level(lv: int, is_daily := false, mods: Array = []) -> void:
 	spiral_a = 0.0
 	plan = build_plan(level)
 	wave_idx = 0; wave_t = 0.0
-	# module 29 : au secteur 24, l'alerte amirale devient le sas de la base
+	# module 29 : au secteur 24, la machine complète nv24 remplace le flot
+	# générique (approach → arrive → talk → sas → boom → hall → alarm →
+	# voraxTalk → hands → tear → reveal → vorax → dead)
 	sas = {}
 	vorax = {}
 	nv24_said = {}
 	if level == Data.MAX_LEVEL:
 		var shp: float = Save.e_scale(level).hp
 		var dhp := maxi(1, int(round(60.0 * shp * (1.5 if two_p else 1.0))))
-		sas = { "hp": float(dhp), "max": float(dhp), "flash": 0.0, "w": 216.0, "h": 74.0, "x": Data.FW / 2.0, "y": 118.0, "boom": false }
+		sas = { "hp": float(dhp), "max": float(dhp), "flash": 0.0, "shake": 0.0,
+			"w": 430.0, "h": 146.2, "x": Data.FW / 2.0, "y": -190.0, "boom": false,
+			"halves": null, "emit_t": 1.4, "ring_t": 3.2, "side": 1, "core": 0.0,
+			"core_prev": 0.0, "fl_l": 0.0, "fl_r": 0.0 }
+		vorax = {
+			"stage": "approach", "t": 0.0, "form": 0, "said": {}, "no_fire": false,
+			"hand_t": 0.0, "v_max": 0, "hole": false, "hole_t": 0.0, "atk": {}, "atk_i": 0,
+			"wave_t": 0.0, "wave_i": 0, "off": 498.0, "off_v": 0.0, "near_v": 0.0, "cruise": 1.0,
+			"alarm_hits": {},
+			"door2": { "x": Data.FW / 2.0, "y": -400.0, "w": 470.0, "shake": 0.0, "flash": 0.0, "halves": null, "ht": 0.0 },
+			"hands": [],
+		}
+		plan = []
 		nv24_load_art()
+		_vorax_art()
 	phase = Phase.INTRO
 	phase_t = 0.0
 	scroll_y = 0.0
@@ -235,12 +250,19 @@ func _process(delta: float) -> void:
 		if slow_t <= 0.0: slow_f = 1.0
 	var dt := delta * slow_f * (0.6 if Save.cheat_on("slow") else 1.0)
 	level_t += dt
-	scroll_y += Data.SCROLL_SPEED * dt
+	if level == Data.MAX_LEVEL and not vorax.is_empty():
+		_nv24_scroll(dt)
+	else:
+		scroll_y += Data.SCROLL_SPEED * dt
 	time_accum += dt
 	if shake > 0.0: shake = maxf(0.0, shake - delta * 60.0)
 	if flash > 0.0: flash = maxf(0.0, flash - delta * 2.4)
 
-	match phase:
+	var nv24_run: bool = level == Data.MAX_LEVEL and not vorax.is_empty() \
+		and phase != Phase.HARVEST and phase != Phase.CLEAR
+	if nv24_run:
+		_nv24_update(dt)
+	match (-1 if nv24_run else phase):
 		Phase.INTRO:
 			intro_t += dt
 			phase_t += dt
@@ -282,19 +304,10 @@ func _process(delta: float) -> void:
 					boss_warn_t = Data.BOSS_WARN_DUR
 			if boss_warn_t > Data.BOSS_WARN_DUR:
 				phase = Phase.BOSS
-			if level == Data.MAX_LEVEL:
-				Nv24Audio.sound("11_doigts_percement")
-				nv24_radio("v6", "Vise la tête, Vanguard. C'est là qu'il est fragile.")
-				spawn_vorax()
-			else:
 				spawn_boss()
 		Phase.BOSS:
-			if level == Data.MAX_LEVEL and not vorax.is_empty():
-				vorax_update(dt)      # module 29 : mains → déchirure → révélation → 3 formes
-				_update_props(dt)
-			else:
-				update_boss(dt)
-				_update_props(dt)
+			update_boss(dt)
+			_update_props(dt)
 		Phase.HARVEST:
 			update_harvest(dt)
 		Phase.CLEAR:
@@ -657,7 +670,7 @@ func update_bullets(dt: float) -> void:
 		b.y += b.vy * dt
 		# module 29 : pendant l'alerte du secteur 24, le sas encaisse les tirs
 		if not sas.is_empty() and not sas.boom and sas.hp > 0.0:
-			if absf(b.x - sas.x) < sas.w / 2.0 + b.r and absf(b.y - sas.y) < sas.h / 2.0 + b.r:
+			if absf(b.x - sas.x) < sas.w * 0.46 + b.r and absf(b.y - sas.y) < sas.h * 0.45 + b.r:
 				sas.hp -= b.dmg
 				sas.flash = 0.09
 				if randf() < 0.34:
@@ -742,6 +755,11 @@ func update_enemies(dt: float) -> void:
 		if e.flash > 0.0: e.flash -= dt
 		if e.hit_fx_t > 0.0: e.hit_fx_t -= dt
 		if e.spawn_t > 0.0: e.spawn_t -= dt
+		if e.has("nv24f"):
+			_ai_nv_foe(e, dt)
+			if e.y < -240.0 or e.y > Data.FH + 220.0 or e.x < -140.0 or e.x > Data.FW + 140.0:
+				enemies.remove_at(i)
+			continue
 		var sp: float = Data.SCROLL_SPEED * e.mvx
 		match e.mv:
 			"dive":
@@ -1356,7 +1374,7 @@ func boss_damage(dmg: float, part: Dictionary = {}) -> void:
 	if boss.is_empty() or boss.dead: return
 	# module 29 : bombes — routage vers les mains puis la réserve unique
 	if not vorax.is_empty() and not vorax.get("dead", false):
-		vorax_pool_damage(dmg * 2.2, 1.0)
+		vorax_pool_damage(dmg * 0.5, 1.0)   # bombes : demi-dégâts (module 29)
 		return
 	if boss.y < 0: return  # le boss n'est pas encore entré dans le champ
 	if not part.is_empty():
@@ -1968,9 +1986,28 @@ func _draw() -> void:
 		draw_rect(Rect2(0, 0, Data.FW, Data.FH), fc)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
+## battants arrachés d'une porte (vol + rotation + fondu)
+func _draw_door_halves() -> void:
+	var door: Texture2D = nv24_tex.get("door")
+	if door == null or sas.get("halves") == null:
+		return
+	var hw := float(sas.w) / 2.0
+	var hh := float(sas.h)
+	var fade: float = clampf(1.0 - (float(vorax.t) - 1.3) / 1.6, 0.0, 1.0) if String(vorax.stage) == "boom" else clampf(1.0 - float(vorax.get("hole_t", 0.0)) / 1.6, 0.0, 1.0)
+	if fade <= 0.0: return
+	for i in 2:
+		var hlv: Dictionary = sas.halves[i]
+		draw_set_transform(Vector2(float(hlv.x), float(hlv.y)), float(hlv.r), Vector2.ONE)
+		var rx := 0.0 if i == 0 else 432.0
+		draw_texture_rect_region(door, Rect2(-hw / 2.0, -hh / 2.0, hw, hh), Rect2(rx, 0.0, 432.0, 572.0), Color(0.8, 0.78, 0.82, fade))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
 ## le sas de confinement (module 29) : battants, fissures révélées par les
 ## dégâts, flash d'impact, barre de vie, consigne « DÉTRUIS LE SAS »
 func _draw_sas() -> void:
+	if sas.get("halves") != null:
+		_draw_door_halves()
+		return
 	if sas.boom and sas.hp <= 0.0:
 		return
 	var r := Rect2(sas.x - sas.w / 2.0, sas.y - sas.h / 2.0, sas.w, sas.h)
@@ -2101,6 +2138,9 @@ func ox_shake() -> float:
 
 func _draw_enemies() -> void:
 	for e in enemies:
+		if e.has("nv24f"):
+			_draw_nv_foe(e)
+			continue
 		var th: Dictionary = Data.ETHEME.get(e.kind, Data.ETHEME.drone)
 		var body: Color = Color.from_hsv(th.h / 360.0, th.s, clampf(th.l * 1.9, 0, 1))
 		if era_idx == 0:
@@ -2886,7 +2926,8 @@ func nv24_no_fire() -> bool:
 
 func _vorax_art() -> void:
 	for key in [["hands", "res://assets/sector24/hands/vorax-hands-atlas.webp"],
-			["boss", "res://assets/sector24/boss/vorax-intro.webp"]]:
+			["boss", "res://assets/sector24/boss/vorax-intro.webp"],
+			["foes", "res://assets/sector24/enemies/defense-atlas.webp"]]:
 		if vorax_tex.has(key[0]) or not ResourceLoader.exists(key[1]):
 			continue
 		var t: Texture2D = load(key[1])
@@ -2899,6 +2940,7 @@ func _vorax_art() -> void:
 			vorax_tex[key[0]] = t
 
 func spawn_vorax() -> void:
+	# makeBoss (module 29) : les mains partagent une barre (2 × vMax × .06)
 	_vorax_art()
 	var idx := Data.boss_music_idx(level)
 	var s := Save.e_scale(level)
@@ -2906,25 +2948,27 @@ func spawn_vorax() -> void:
 	var hand_hp := maxi(1, int(round(v_max * 0.06)))
 	var mid: float = Data.FW / 2.0
 	boss = {
-		"name": nv_txt("hands"), "x": mid, "y": 223.0, "r": 150.0,
+		"name": nv_txt("hands"), "x": mid, "y": 205.0, "r": 150.0,
 		"hp": hand_hp * 2, "max_hp": hand_hp * 2, "t": 0.0, "ph": 0,
 		"atk_idx": 0, "atk_t": 1.2, "flash": 0.0, "dead": false, "dead_t": 0.0,
 		"enter": false, "sc": 0, "cr": 0, "parts": [], "by": 1, "hue": 278,
-		"tele": 0.0, "tx": mid, "ty": 223.0, "seed": randf() * TAU,
+		"tele": 0.0, "tx": mid, "ty": 205.0, "seed": randf() * TAU,
 	}
-	vorax = {
-		"stage": "hands", "t": 0.0, "form": 0, "said": {}, "no_fire": false,
-		"hand_t": 0.0, "v_max": v_max, "hole": false, "atk": {}, "atk_i": 0,
-		"door2": { "x": mid, "y": 205.0, "w": 470.0, "shake": 0.0, "halves": null, "ht": 0.0 },
-		"hands": [
-			{ "side": -1, "x": mid - 65.8, "y": 223.0, "hp": hand_hp, "max": hand_hp,
-				"dead": false, "fr": 0, "flash": 0.0, "a": 1.0, "t": 0.0 },
-			{ "side": 1, "x": mid + 65.8, "y": 223.0, "hp": hand_hp, "max": hand_hp,
-				"dead": false, "fr": 1, "flash": 0.0, "a": 1.0, "t": 0.0 },
-		],
-	}
+	vorax.stage = "hands"
+	vorax.t = 0.0
+	vorax.no_fire = false
+	vorax.v_max = v_max
+	vorax.hole = false
+	vorax.atk = {}
+	vorax.atk_i = 0
+	vorax.hands = [
+		{ "side": -1, "x": mid - 65.8, "y": 223.0, "hp": hand_hp, "max": hand_hp,
+			"dead": false, "fr": 0, "flash": 0.0, "a": 1.0, "t": 0.0 },
+		{ "side": 1, "x": mid + 65.8, "y": 223.0, "hp": hand_hp, "max": hand_hp,
+			"dead": false, "fr": 1, "flash": 0.0, "a": 1.0, "t": 0.0 },
+	]
+	Nv24Audio.sound("11_doigts_percement")
 	Audio2.sfx("alert")
-	Audio2.speak("Alerte. Quelque chose force le grand sas.")
 	Audio2.start_boss_music(idx)
 
 func _vx_pt(px: float, py: float) -> Vector2:
@@ -3047,25 +3091,6 @@ func _v_shot(x: float, y: float, ang: float, speed: float, kind: String, r: floa
 	var s := Save.e_scale(level)
 	eb(x, y, ang, speed * s.bs, kind, r, steer)
 
-func vorax_update(dt: float) -> void:
-	if boss.is_empty(): return
-	var stage: String = String(vorax.get("stage", ""))
-	vorax.t = float(vorax.get("t", 0.0)) + dt
-	vorax.no_fire = stage in ["tear", "reveal", "morph"]
-	# la zone sous le grand sas reste fermée jusqu'à la révélation
-	if not vorax.door2.is_empty() and not (stage in ["reveal", "morph", "vorax", "dead"]):
-		for p in players:
-			if p.get("fly_away") == null:
-				p.y = maxf(float(p.y), float(vorax.door2.y) + 70.0 + float(p.r))
-	if boss.flash > 0.0: boss.flash = maxf(0.0, boss.flash - dt)
-	match stage:
-		"hands": _hands_update(dt)
-		"tear": _tear_update(dt)
-		"reveal": _reveal_update(dt)
-		"morph": _morph_update(dt)
-		"vorax": _vorax_fight(dt)
-		"dead": pass
-
 func _hands_update(dt: float) -> void:
 	var v := vorax
 	var d2: Dictionary = v.door2
@@ -3078,10 +3103,10 @@ func _hands_update(dt: float) -> void:
 	if float(v.hand_t) > 3.4 and nv_alive < 4:
 		v.hand_t = 0.0
 		if randf() < 0.5:
-			spawn_enemy("lancer", Data.FW * 0.24, -50.0, { "ty": Data.FH * 0.52 })
-			spawn_enemy("lancer", Data.FW * 0.76, -80.0, { "ty": Data.FH * 0.48 })
+			nv_foe("lance", Data.FW * 0.24, -50.0, { "ty": Data.FH * 0.52 })
+			nv_foe("lance", Data.FW * 0.76, -80.0, { "ty": Data.FH * 0.48 })
 		else:
-			spawn_enemy("runner", Data.FW * (0.3 if randf() < 0.5 else 0.7), -50.0, { "ty": 150.0 })
+			nv_foe("dard", Data.FW * (0.3 if randf() < 0.5 else 0.7), -50.0, { "ty": 150.0 })
 	for hd in v.hands:
 		hd.t += dt
 		hd.flash = maxf(0.0, float(hd.flash) - dt * 8.0)
@@ -3438,21 +3463,36 @@ func _draw_vorax() -> void:
 	var stage: String = String(v.stage)
 	var d2: Dictionary = v.door2
 	var door: Texture2D = nv24_tex.get("door")
-	# grand sas : entier (mains), tremblant (déchirure) puis deux battants arrachés
-	if door != null and not bool(v.get("hole", false)):
+	# grand sas : entier (hall→mains), assombri + alarme rouge, puis battants
+	if door != null and not bool(v.get("hole", false)) and float(d2.y) > -330.0:
 		var dw: float = float(d2.w)
 		var dh: float = dw * 572.0 / 864.0
 		var sx: float = float(d2.get("shake", 0.0)) * randf_range(-1.0, 1.0)
 		var sy2: float = float(d2.get("shake", 0.0)) * randf_range(-1.0, 1.0)
-		draw_texture_rect(door, Rect2(float(d2.x) - dw / 2.0 + sx, float(d2.y) - dh / 2.0 + sy2, dw, dh), false)
+		var dr := Rect2(float(d2.x) - dw / 2.0 + sx, float(d2.y) - dh / 2.0 + sy2, dw, dh)
+		var alarm: float = (0.5 + 0.5 * sin(boss.t * 10.0)) if stage in ["alarm", "hands", "tear"] else 0.0
+		var tint := Color(0.55 + alarm * 0.25, 0.55, 0.6 + alarm * 0.1)
+		draw_texture_rect(door, dr, false, tint)
+		for sxx in [-1.0, 1.0]:
+			for syy in [-0.36, 0.36]:
+				draw_circle(Vector2(float(d2.x) + sx + sxx * dw * 0.44, float(d2.y) + sy2 + syy * dh * 0.5),
+					5.0 + alarm * 8.0, Color(1.0, 0.12, 0.18, 0.5 + alarm * 0.5))
+		if stage == "hands":
+			for hd in v.hands:
+				var hpx := Vector2(float(hd.x), float(hd.y))
+				draw_circle(hpx, 50.0, Color(0.02, 0.01, 0.04))
+				draw_arc(hpx, 50.0, 0, TAU, 32, Color(1.0, 0.45, 0.3, 0.7), 2.5)
 	if door != null and d2.get("halves") != null:
 		var dw2: float = float(d2.w) / 2.0
 		var dh2: float = float(d2.w) * 572.0 / 864.0
-		for hlv: Dictionary in d2.halves:
-			draw_set_transform(Vector2(float(hlv.x), float(hlv.y)), float(hlv.r), Vector2.ONE)
-			var rx := 0.0 if float(hlv.vx) < 0.0 else dw2 * (864.0 / float(d2.w))
-			draw_texture_rect_region(door, Rect2(-dw2 / 2.0, -dh2 / 2.0, dw2, dh2), Rect2(rx, 0.0, 432.0, 572.0))
-			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var fade: float = clampf(1.0 - float(d2.get("ht", 0.0)) / 1.7, 0.0, 1.0)
+		if fade > 0.0:
+			for hlv: Dictionary in d2.halves:
+				draw_set_transform(Vector2(float(hlv.x), float(hlv.y)), float(hlv.r), Vector2.ONE)
+				var rx := 0.0 if float(hlv.vx) < 0.0 else dw2 * (864.0 / float(d2.w))
+				draw_texture_rect_region(door, Rect2(-dw2 / 2.0, -dh2 / 2.0, dw2, dh2), Rect2(rx, 0.0, 432.0, 572.0),
+					Color(0.75, 0.72, 0.78, fade))
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# mains (atlas officiel : poing = 0/1, prise = 4/5)
 	var hands_tex: Texture2D = vorax_tex.get("hands")
 	if hands_tex != null:
@@ -3499,11 +3539,545 @@ func _draw_vorax() -> void:
 		for e2 in froms2:
 			draw_circle(e2, 10.0 + 9.0 * glow, Color(1.0, 0.2, 0.25, 0.35 + 0.5 * glow))
 			draw_line(e2, Vector2(tx, Data.FH), Color(1.0, 0.2, 0.25, 0.14 * glow), 2.0)
-	# battants du grand sas : vol + rotation
+
+
+# =========================================================================
+#  MODULE 29 — machine nv24 complète + défenseurs FOE (29-nv24-final-rework.js)
+#  Le référentiel source (L_W×L_H = 480×860) est identique au port : toutes
+#  les coordonnées/timings ci-dessous sont repris tels quels.
+# =========================================================================
+## planche des défenseurs : 8 silhouettes (coordonnées de la planche webp)
+const NV_FR := [Rect2(9, 35, 408, 439), Rect2(424, 55, 352, 387), Rect2(767, 62, 390, 422),
+	Rect2(1157, 16, 368, 463), Rect2(11, 498, 457, 488), Rect2(478, 509, 310, 457),
+	Rect2(788, 502, 390, 479), Rect2(1190, 504, 323, 430)]
+## les 8 types FOE (PV revus par l'auteur, ×e_scale, ×1,4 en 2 joueurs)
+const NV_FOE := {
+	"lance": { "f": 0, "w": 70.0, "hp": 2, "r": 22.0, "sc": 160, "cr": [1, 4], "kind": "drone" },
+	"orbe": { "f": 1, "w": 74.0, "hp": 4, "r": 28.0, "sc": 260, "cr": [2, 6], "kind": "stinger" },
+	"griffe": { "f": 2, "w": 92.0, "hp": 4, "r": 32.0, "sc": 300, "cr": [2, 6], "kind": "stinger" },
+	"tourelle": { "f": 3, "w": 84.0, "hp": 5, "r": 32.0, "sc": 340, "cr": [3, 7], "kind": "turret" },
+	"manta": { "f": 4, "w": 138.0, "hp": 18, "r": 54.0, "sc": 1400, "cr": [12, 22], "kind": "carrier" },
+	"tambour": { "f": 5, "w": 98.0, "hp": 7, "r": 36.0, "sc": 520, "cr": [4, 9], "kind": "shielder" },
+	"dard": { "f": 6, "w": 62.0, "hp": 1, "r": 18.0, "sc": 140, "cr": [1, 3], "kind": "drone" },
+	"gatling": { "f": 7, "w": 92.0, "hp": 6, "r": 34.0, "sc": 420, "cr": [3, 8], "kind": "turret" },
+}
+## vagues : [type, x, y, ty, side, cd, hp] — x ≤ 1 = fraction de FW, sinon pixels
+const NV_APPROACH := [
+	{ "t": 2.0, "sp": [["lance", 0.18, -50, 150, 0, 0, 1], ["lance", 0.34, -96, 190, 0, 0, 1], ["lance", 0.5, -142, 230, 0, 0, 1], ["lance", 0.66, -96, 190, 0, 0, 1], ["lance", 0.82, -50, 150, 0, 0, 1]] },
+	{ "t": 7.0, "sp": [["orbe", 0.3, -60, 200, 0, 0, 1], ["orbe", 0.7, -90, 240, 0, 0, 1]] },
+	{ "t": 11.0, "sp": [["dard", 0.2, -40, 130, 0, 0, 1], ["dard", 0.4, -100, 200, 0, 0, 1], ["dard", 0.6, -160, 130, 0, 0, 1], ["dard", 0.8, -220, 200, 0, 0, 1]] },
+	{ "t": 15.0, "sp": [["lance", 0.18, -60, 140, 0, 0, 1], ["lance", 0.34, -90, 165, 0, 0, 1], ["lance", 0.5, -120, 190, 0, 0, 1], ["lance", 0.66, -150, 215, 0, 0, 1], ["lance", 0.82, -180, 240, 0, 0, 1], ["griffe", 0.5, -100, 150, 0, 0, 1]] },
+	{ "t": 20.0, "sp": [["tambour", 0.5, -80, 200, 0, 0, 1], ["tourelle", 0.25, -150, 120, 0, 0, 1], ["tourelle", 0.75, -150, 120, 0, 0, 1]] },
+	{ "t": 25.0, "sp": [["griffe", 0.25, -70, 140, 0, 0, 1], ["griffe", 0.75, -90, 170, 0, 0, 1], ["lance", 0.5, -150, 260, 0, 0, 1]] },
+	{ "t": 30.0, "sp": [["orbe", 0.2, -60, 190, 0, 0, 1], ["orbe", 0.5, -110, 270, 0, 0, 1], ["orbe", 0.8, -60, 190, 0, 0, 1]] },
+	{ "t": 35.0, "sp": [["manta", 0.5, -120, 170, 0, 2.4, 1], ["gatling", 40.0, -80, 90, -1, 0, 1]], "alert": true },
+	{ "t": 46.0, "sp": [["dard", 0.15, -40, 140, 0, 0, 1], ["dard", 0.325, -85, 200, 0, 0, 1], ["dard", 0.5, -130, 140, 0, 0, 1], ["dard", 0.675, -175, 200, 0, 0, 1], ["dard", 0.85, -220, 140, 0, 0, 1]] },
+	{ "t": 50.0, "sp": [["lance", 0.18, -50, 170, 0, 0, 1], ["lance", 0.34, -96, 200, 0, 0, 1], ["lance", 0.5, -142, 230, 0, 0, 1], ["lance", 0.66, -96, 200, 0, 0, 1], ["lance", 0.82, -50, 170, 0, 0, 1], ["orbe", 0.5, -140, 300, 0, 0, 1]] },
+	{ "t": 55.0, "sp": [["tambour", 0.3, -80, 190, 0, 0, 1], ["tambour", 0.7, -140, 240, 0, 0, 1]] },
+	{ "t": 61.0, "sp": [["griffe", 0.2, -70, 130, 0, 0, 1], ["griffe", 0.5, -110, 160, 0, 0, 1], ["griffe", 0.8, -70, 130, 0, 0, 1], ["gatling", 440.0, -150, 80, 1, 0, 1]] },
+	{ "t": 66.0, "sp": [["lance", 0.15, -50, 150, 0, 0, 1], ["lance", 0.85, -105, 172, 0, 0, 1], ["lance", 0.15, -160, 194, 0, 0, 1], ["lance", 0.85, -215, 216, 0, 0, 1], ["lance", 0.15, -270, 238, 0, 0, 1], ["lance", 0.85, -325, 260, 0, 0, 1]] },
+	{ "t": 71.0, "sp": [["orbe", 0.3, -60, 220, 0, 0, 1], ["orbe", 0.7, -60, 220, 0, 0, 1], ["dard", 0.25, -150, 150, 0, 0, 1], ["dard", 0.5, -190, 150, 0, 0, 1], ["dard", 0.75, -230, 150, 0, 0, 1], ["tourelle", 0.5, -210, 90, 0, 0, 1]] },
+	{ "t": 77.0, "sp": [["manta", 0.5, -120, 170, 0, 2.0, 1.2], ["lance", 0.15, -220, 280, 0, 0, 1], ["lance", 0.383, -250, 280, 0, 0, 1], ["lance", 0.616, -280, 280, 0, 0, 1], ["lance", 0.849, -310, 280, 0, 0, 1]], "alert": true },
+	{ "t": 87.0, "sp": [["tambour", 0.5, -80, 210, 0, 0, 1], ["griffe", 0.25, -100, 150, 0, 0, 1], ["griffe", 0.75, -100, 150, 0, 0, 1], ["gatling", 40.0, -160, 80, -1, 0, 1]] },
+	{ "t": 93.0, "sp": [["dard", 0.12, -40, 130, 0, 0, 1], ["dard", 0.272, -80, 180, 0, 0, 1], ["dard", 0.424, -120, 230, 0, 0, 1], ["dard", 0.576, -160, 130, 0, 0, 1], ["dard", 0.728, -200, 180, 0, 0, 1], ["dard", 0.88, -240, 230, 0, 0, 1]] },
+	{ "t": 98.0, "sp": [["lance", 0.1, -170, 250, 0, 0, 1], ["lance", 0.233, -130, 220, 0, 0, 1], ["lance", 0.366, -90, 190, 0, 0, 1], ["lance", 0.5, -50, 160, 0, 0, 1], ["lance", 0.633, -90, 190, 0, 0, 1], ["lance", 0.766, -130, 220, 0, 0, 1], ["lance", 0.899, -170, 250, 0, 0, 1]] },
+]
+const NV_HALL := [
+	{ "t": 0.4, "sp": [["tourelle", 0.3, -60, 120, 0, 0, 1], ["tourelle", 0.7, -140, 60, 0, 0, 1]] },
+	{ "t": 1.4, "sp": [["lance", 0.18, -50, 150, 0, 0, 1], ["lance", 0.34, -96, 190, 0, 0, 1], ["lance", 0.5, -142, 230, 0, 0, 1], ["lance", 0.66, -96, 190, 0, 0, 1], ["lance", 0.82, -50, 150, 0, 0, 1]] },
+	{ "t": 4.5, "sp": [["gatling", 40.0, -80, 80, -1, 0, 1], ["orbe", 0.3, -60, 210, 0, 0, 1], ["orbe", 0.7, -90, 250, 0, 0, 1]] },
+	{ "t": 7.7, "sp": [["griffe", 0.25, -70, 140, 0, 0, 1], ["griffe", 0.75, -90, 170, 0, 0, 1], ["gatling", 440.0, -150, 60, 1, 0, 1]] },
+	{ "t": 10.5, "sp": [["dard", 0.2, -40, 120, 0, 0, 1], ["dard", 0.4, -100, 190, 0, 0, 1], ["dard", 0.6, -160, 120, 0, 0, 1], ["dard", 0.8, -220, 190, 0, 0, 1]] },
+	{ "t": 13.3, "sp": [["tambour", 0.5, -80, 200, 0, 0, 1], ["tourelle", 0.2, -70, 90, 0, 0, 1], ["tourelle", 0.8, -70, 90, 0, 0, 1]] },
+	{ "t": 16.8, "sp": [["manta", 0.5, -120, 170, 0, 2.4, 1], ["gatling", 40.0, -60, 70, -1, 0, 1], ["gatling", 440.0, -60, 70, 1, 0, 1]], "alert": true },
+	{ "t": 21.7, "sp": [["lance", 0.18, -60, 140, 0, 0, 1], ["lance", 0.34, -90, 165, 0, 0, 1], ["lance", 0.5, -120, 190, 0, 0, 1], ["lance", 0.66, -150, 215, 0, 0, 1], ["lance", 0.82, -180, 240, 0, 0, 1], ["orbe", 0.5, -120, 300, 0, 0, 1]] },
+	{ "t": 24.5, "sp": [["dard", 0.25, -50, 160, 0, 0, 1], ["dard", 0.5, -100, 160, 0, 0, 1], ["dard", 0.75, -150, 160, 0, 0, 1], ["griffe", 0.5, -90, 150, 0, 0, 1]] },
+	{ "t": 27.3, "sp": [["tourelle", 0.25, -60, 100, 0, 0, 1], ["tourelle", 0.5, -120, 70, 0, 0, 1], ["tourelle", 0.75, -60, 100, 0, 0, 1], ["tambour", 0.5, -160, 260, 0, 0, 1]] },
+]
+const NV_HALL_END := 31.0
+
+## spawn d'un défenseur (foe du module 29)
+func nv_foe(type: String, x: float, y: float, opt := {}) -> Dictionary:
+	var D: Dictionary = NV_FOE[type]
+	var s := Save.e_scale(level)
+	var e := spawn_enemy(D.kind, x, y, { "ty": opt.get("ty", 200.0) })
+	e["nv24f"] = type
+	e.r = D.r
+	e.hp = maxi(1, int(round(float(D.hp) * s.hp * float(opt.get("hp", 1.0)) * (1.4 if two_p else 1.0))))
+	e.max_hp = e.hp
+	e.sc = D.sc
+	e.cr = D.cr
+	e["st"] = 0
+	e["k"] = 0.0
+	e["cd"] = float(opt.get("cd", 0.0))
+	if float(opt.get("cd", 0.0)) <= 0.0:
+		e["cd"] = randf_range(0.8, 1.8)
+	e["spin"] = randf() * TAU
+	e["side"] = int(opt.get("side", 0))
+	e["aim_a"] = PI / 2.0
+	e["burst"] = 0
+	e["b_t"] = 0.0
+	e["x0"] = x
+	e["lx"] = x
+	e["ang"] = PI / 2.0
+	e["recoil"] = 0.0
+	e["ch"] = 0.0
+	e["salvo"] = 0
+	e["s_t"] = 0.0
+	e["fire_on"] = 0.0
+	e["spin_up"] = 0.0
+	e["bank"] = 0.0
+	e["vx"] = 0.0
+	e["vy"] = 0.0
+	return e
+
+## vagues : exécution d'une ligne de table
+func _nv_spawns(row: Dictionary) -> void:
+	for sp in row.sp:
+		var x: float = float(sp[1]) if float(sp[1]) > 1.0 else float(sp[1]) * Data.FW
+		var opt := { "ty": float(sp[3]) }
+		if int(sp[4]) != 0: opt["side"] = int(sp[4])
+		if float(sp[5]) > 0.0: opt["cd"] = float(sp[5])
+		if float(sp[6]) != 1.0: opt["hp"] = float(sp[6])
+		nv_foe(String(sp[0]), x, float(sp[2]), opt)
+	if row.get("alert", false):
+		Audio2.sfx("alert")
+
+## IA exacte des 8 défenseurs (aiFoe du module 29)
+func _ai_nv_foe(e: Dictionary, dt: float) -> void:
+	e.k += dt
+	var live: bool = float(e.y) > 10.0 and float(e.y) < Data.FH - 40.0
+	var T := nearest_player(e.x, e.y)
+	var tx: float = float(T.get("x", Data.FW / 2.0)) if not T.is_empty() else Data.FW / 2.0
+	var ty: float = float(T.get("y", Data.FH - 150.0)) if not T.is_empty() else Data.FH - 150.0
+	var v := vorax
+	match String(e.nv24f):
+		"lance":
+			if int(e.st) == 0:
+				e.y += (float(e.ty) - float(e.y)) * minf(1.0, dt * 2.4)
+				e.x = float(e.x0) + sin(float(e.k) * 2.2 + float(e.spin)) * 30.0
+				if float(e.k) > 1.6: e.st = 1; e.k = 0.0
+			elif int(e.st) == 1:
+				e.x = float(e.x0) + sin(float(e.k) * 2.2 + float(e.spin)) * 30.0 + sin(float(e.k) * 1.1) * 70.0
+				e.y += 16.0 * dt
+				if float(e.k) > 2.6: e.st = 2; e.k = 0.0; e.vx = 0.0; e.vy = 60.0
+			else:
+				e.vx += clampf(tx - float(e.x), -1.0, 1.0) * 260.0 * dt
+				e.vx = clampf(float(e.vx), -170.0, 170.0)
+				e.vy = minf(360.0, float(e.vy) + 380.0 * dt)
+				e.x += float(e.vx) * dt
+				e.y += float(e.vy) * dt
+			e.cd -= dt
+			if live and int(e.st) < 2 and float(e.cd) <= 0.0:
+				e.cd = randf_range(1.9, 2.7)
+				_v_shot(float(e.x), float(e.y) + 20.0, atan2(ty - float(e.y) - 20.0, tx - float(e.x)), 165.0, "ball", 7.0)
+				e.recoil = 0.5
+				Nv24Audio.sound("01_intercepteur_tir")
+			if randf() < dt * 26.0:
+				spawn_part(float(e.x) + randf_range(-14, 14), float(e.y) - 28.0, randf_range(-20, 20), -randf_range(40.0, 90.0), 0.28, Color("#c27bff"), 2.4, true)
+		"orbe":
+			if float(e.y) < float(e.ty): e.y += (float(e.ty) - float(e.y) + 30.0) * dt * 1.6
+			e.x = clampf(float(e.x0) + sin(float(e.k) * 0.8 + float(e.spin)) * 60.0, 40.0, Data.FW - 40.0)
+			e.y += sin(float(e.k) * 1.7) * 10.0 * dt
+			e.cd -= dt
+			if float(e.cd) <= 0.0 and live:
+				e.ch = minf(1.0, float(e.ch) + dt / 1.1)
+				if float(e.ch) >= 1.0:
+					e.ch = 0.0
+					e.cd = randf_range(3.4, 4.3)
+					for i in 10:
+						_v_shot(float(e.x), float(e.y), float(i) / 10.0 * TAU + float(e.spin), 120.0, "orb", 8.0)
+					Audio2.sfx("ehit")
+			e.spin += dt * (1.1 + float(e.ch) * 7.0)
+		"griffe":
+			if float(e.y) < float(e.ty):
+				e.y += 110.0 * dt
+				e.vx = 0.0
+			else:
+				var gx := clampf(tx + sin(float(e.k) * 1.4 + float(e.spin)) * 110.0, 50.0, Data.FW - 50.0)
+				var gy := clampf(float(e.y) + 55.0, 90.0, Data.FH - 250.0)
+				e.vx += clampf(gx - float(e.x), -1.0, 1.0) * 560.0 * dt
+				e.vx = clampf(float(e.vx), -250.0, 250.0)
+				e.vy += clampf(gy - float(e.y), -1.0, 1.0) * 320.0 * dt
+				e.vy = clampf(float(e.vy), 60.0, 240.0)
+				e.x += float(e.vx) * dt
+				e.y += float(e.vy) * dt
+				e.cd -= dt
+				if float(e.cd) <= 0.0 and live:
+					e.cd = randf_range(1.8, 2.4)
+					for i in 4:
+						var mx: float = float(e.x) + [-36.0, 0.0, 36.0, 52.0][i]
+						_v_shot(mx, float(e.y) + 20.0, atan2(ty - float(e.y) - 20.0, mx - float(e.x)) + randf_range(-0.12, 0.12), 150.0, "ball", 6.0)
+					Nv24Audio.sound("01_intercepteur_tir")
+		"tourelle":
+			e.y += float(v.get("near_v", 0.0)) * dt
+			if float(e.y) < float(e.ty) and float(v.get("near_v", 0.0)) < 4.0: e.y += 90.0 * dt
+			var want := atan2(ty - float(e.y), tx - float(e.x))
+			var rel := clampf(want - PI / 2.0, -0.52, 0.52)
+			e.aim_a += clampf(PI / 2.0 + rel - float(e.aim_a), -1.4 * dt, 1.4 * dt)
+			e.cd -= dt
+			if float(e.cd) <= 0.0 and live:
+				e.burst = 3
+				e.b_t = 0.0
+				e.cd = randf_range(2.6, 3.3)
+				Nv24Audio.sound("02_tourelle_double")
+			if int(e.burst) > 0:
+				e.b_t -= dt
+				if float(e.b_t) <= 0.0:
+					e.b_t = 0.2
+					e.burst = int(e.burst) - 1
+					e.recoil = 1.0
+					var mz := Vector2(float(e.x) + cos(float(e.aim_a)) * 22.0, float(e.y) + sin(float(e.aim_a)) * 22.0)
+					_v_shot(mz.x, mz.y, float(e.aim_a), 210.0, "laser", 7.0)
+					spawn_part(mz.x, mz.y, cos(float(e.aim_a)) * 90.0, sin(float(e.aim_a)) * 90.0, 0.14, Color("#ffd0d6"), 7.0, true)
+					Audio2.sfx("cannon")
+		"manta":
+			if float(e.y) < float(e.ty): e.y += maxf(26.0, (float(e.ty) - float(e.y)) * 1.2) * dt
+			else: e.x = clampf(Data.FW / 2.0 + sin(float(e.k) * 0.45) * 130.0, 80.0, Data.FW - 80.0)
+			e.cd -= dt
+			if float(e.cd) <= 0.0 and float(e.y) > 60.0:
+				e.cd = 3.1
+				e.salvo = int(e.salvo) + 1
+				if int(e.salvo) % 2 == 1:
+					for pod in [[-40.0, -40.0], [-25.0, -100.0], [25.0, -90.0], [40.0, -40.0]]:
+						_v_shot(float(e.x) + pod[0], float(e.y) + pod[1], PI / 2.0 + randf_range(-0.5, 0.5), 115.0, "missile", 8.0, 1.5)
+					Audio2.sfx("cannon")
+					Nv24Audio.sound("03_missile_depart")
+				else:
+					var a := atan2(ty - float(e.y) - 40.0, tx - float(e.x))
+					for i in 9:
+						_v_shot(float(e.x), float(e.y) + 40.0, a + (i - 4) * 0.13, 150.0, "ball", 9.0)
+					Audio2.sfx("ehit")
+				e.recoil = 1.0
+		"tambour":
+			if float(e.y) < float(e.ty): e.y += (float(e.ty) - float(e.y) + 40.0) * dt * 1.4
+			else: e.x = clampf(float(e.x0) + sin(float(e.k) * 0.6 + float(e.spin)) * 90.0, 60.0, Data.FW - 60.0)
+			e.spin += dt * 2.4
+			e.cd -= dt
+			if float(e.cd) <= 0.0 and float(e.y) > 40.0:
+				e.fire_on = 2.2
+				e.cd = 4.0
+			if float(e.fire_on) > 0.0:
+				e.fire_on = float(e.fire_on) - dt
+				e.s_t -= dt
+				if float(e.s_t) <= 0.0:
+					e.s_t = 0.13
+					e.ang = float(e.ang) + 0.5
+					for i in 2:
+						_v_shot(float(e.x), float(e.y), float(e.ang) + i * PI, 125.0, "ball", 8.0)
+		"dard":
+			if int(e.st) == 0:
+				e.y += (float(e.ty) - float(e.y)) * minf(1.0, dt * 3.2)
+				if absf(float(e.y) - float(e.ty)) < 6.0 or float(e.k) > 1.4:
+					e.st = 1; e.k = 0.0
+					e["lock_x"] = tx; e["lock_y"] = ty
+					Audio2.sfx("alert")
+			elif int(e.st) == 1:
+				if float(e.k) < 0.45: e.lock_x = tx; e.lock_y = ty
+				if float(e.k) > 0.7:
+					e.st = 2; e.k = 0.0
+					var a2 := atan2(float(e.lock_y) - float(e.y), float(e.lock_x) - float(e.x))
+					e.vx = cos(a2); e.vy = sin(a2)
+					Audio2.sfx("dash")
+					Nv24Audio.sound("01_intercepteur_tir")
+			else:
+				var sp := minf(620.0, 140.0 + float(e.k) * 1400.0)
+				e.x += float(e.vx) * sp * dt
+				e.y += float(e.vy) * sp * dt
+				if randf() < dt * 60.0:
+					spawn_part(float(e.x), float(e.y), -float(e.vx) * 60.0, -float(e.vy) * 60.0, 0.3, Color("#ff3c52") if randf() < 0.5 else Color("#c27bff"), 4.0, true)
+		"gatling":
+			e.y += float(v.get("near_v", 0.0)) * dt
+			if float(e.y) < float(e.ty) and float(v.get("near_v", 0.0)) < 4.0: e.y += 90.0 * dt
+			var lo := -0.2 if int(e.side) < 0 else PI / 2.0 - 0.2
+			var hi := PI / 2.0 + 0.2 if int(e.side) < 0 else PI + 0.2
+			var gw := clampf(atan2(ty - float(e.y), tx - float(e.x)), lo, hi)
+			e.aim_a += clampf(gw - float(e.aim_a), -2.0 * dt, 2.0 * dt)
+			e.cd -= dt
+			if float(e.cd) <= 0.0 and live:
+				e.burst = 6
+				e.b_t = 0.0
+				e.cd = randf_range(3.0, 3.7)
+				e.spin_up = 1.0
+				Nv24Audio.sound("02_tourelle_double")
+			if float(e.spin_up) > 0.0: e.spin_up = maxf(0.0, float(e.spin_up) - dt * 0.7)
+			if int(e.burst) > 0:
+				e.b_t -= dt
+				if float(e.b_t) <= 0.0:
+					e.b_t = 0.075
+					e.burst = int(e.burst) - 1
+					e.recoil = 1.0
+					var mz2 := Vector2(float(e.x) + cos(float(e.aim_a)) * 18.0, float(e.y) + sin(float(e.aim_a)) * 18.0)
+					_v_shot(mz2.x, mz2.y, clampf(atan2(ty - mz2.y, tx - mz2.x), lo, hi) + randf_range(-0.06, 0.06), 235.0, "ball", 5.0)
+					if int(e.burst) % 3 == 0: Audio2.sfx("ehit")
+			e.spin += dt * (3.0 + (30.0 if int(e.burst) > 0 else float(e.spin_up) * 20.0))
+	# inclinaison + fumée de dégâts
+	e.bank = clampf((float(e.x) - float(e.lx)) / maxf(dt, 0.001) / 260.0, -1.0, 1.0)
+	e.lx = e.x
+	if float(e.hp) < float(e.max_hp) * 0.45 and randf() < dt * 8.0:
+		spawn_part(float(e.x) + randf_range(-float(e.r) * 0.6, float(e.r) * 0.6), float(e.y) + randf_range(-float(e.r) * 0.5, float(e.r) * 0.5),
+			randf_range(-14, 14), -randf_range(20.0, 50.0), randf_range(0.5, 0.9), Color("#2a2234"), randf_range(5.0, 9.0), false)
+
+## rendu des défenseurs : planche officielle defense-atlas
+func _draw_nv_foe(e: Dictionary) -> void:
+	var tex: Texture2D = vorax_tex.get("foes")
+	var D: Dictionary = NV_FOE.get(String(e.nv24f), NV_FOE["lance"])
+	if tex == null:
+		draw_circle(Vector2(float(e.x), float(e.y)), float(e.r), Color("#5a4a6a"))
+		return
+	var region: Rect2 = NV_FR[int(D.f)]
+	var w: float = float(D.w)
+	var h := w * region.size.y / region.size.x
+	var mod := Color(1, 1, 1)
+	if float(e.flash) > 0.0: mod = Color(1.0, 0.55, 0.6)
+	draw_texture_rect_region(tex, Rect2(float(e.x) - w / 2.0, float(e.y) - h / 2.0, w, h), region, mod)
+
+## ------------------------------------------------------- machine nv24
+func _nv24_scroll(dt: float) -> void:
+	# croisière : plein gaz en approche, décélération devant la base (module 29)
+	var stage := String(vorax.stage)
+	var target := 1.0 if stage == "approach" else (0.12 if stage in ["arrive", "talk", "sas", "boom"] else 0.0)
+	vorax.cruise += (target - float(vorax.cruise)) * minf(1.0, dt * 1.4)
+	scroll_y += Data.SCROLL_SPEED * float(vorax.cruise) * dt
+	if stage != "hall":
+		vorax.off_v *= maxf(0.0, 1.0 - dt * 2.0)
+		vorax.near_v = float(vorax.off_v) * 3.4
+	# battants du grand sas : vol + rotation (240 px/s², échelle ×.9/s)
+	var d2: Dictionary = vorax.door2
 	if d2.get("halves") != null:
+		d2.ht = float(d2.get("ht", 0.0)) + dt
 		for hlv: Dictionary in d2.halves:
-			hlv.x += float(hlv.vx) * get_process_delta_time()
-			hlv.y += float(hlv.vy) * get_process_delta_time()
-			hlv.vy += 260.0 * get_process_delta_time()
-			hlv.r += float(hlv.vr) * get_process_delta_time()
-			hlv.s += get_process_delta_time() * 1.1
+			hlv.x += float(hlv.vx) * dt
+			hlv.y += float(hlv.vy) * dt
+			hlv.vy += 240.0 * dt
+			hlv.r += float(hlv.vr) * dt
+			hlv.s += dt * 0.9
+	if sas.get("halves") != null:
+		for hlv: Dictionary in sas.halves:
+			hlv.x += float(hlv.vx) * dt
+			hlv.y += float(hlv.vy) * dt
+			hlv.vy += 260.0 * dt
+			hlv.r += float(hlv.vr) * dt
+	d2.shake = maxf(0.0, float(d2.get("shake", 0.0)) - dt * 14.0)
+	d2.flash = maxf(0.0, float(d2.get("flash", 0.0)) - dt * 3.0)
+
+func _nv24_update(dt: float) -> void:
+	var stage := String(vorax.stage)
+	vorax.t = float(vorax.t) + dt
+	vorax.no_fire = stage in ["arrive", "talk", "alarm", "voraxTalk", "tear", "reveal", "morph"]
+	# butées des joueurs devant les portes (le fly_away final est exempté)
+	if not sas.is_empty() and not bool(sas.get("boom", false)) and float(sas.get("hp", 0.0)) > 0.0:
+		for p in players:
+			if p.get("fly_away") == null:
+				p.y = maxf(float(p.y), float(sas.y) + float(sas.h) / 2.0 + float(p.r) + 12.0)
+	if stage in ["hall", "alarm", "voraxTalk", "hands", "tear"]:
+		for p in players:
+			if p.get("fly_away") == null:
+				p.y = maxf(float(p.y), float(vorax.door2.y) + 70.0 + float(p.r))
+	match stage:
+		"approach": _ap_update(dt)
+		"arrive": _arrive_update(dt)
+		"talk": _talk_update(dt)
+		"sas": _sas_fight(dt)
+		"boom": _boom2_update(dt)
+		"hall": _hall_update(dt)
+		"alarm": _alarm_update(dt)
+		"voraxTalk": _vtalk_update(dt)
+		"hands": _hands_update(dt)
+		"tear": _tear_update(dt)
+		"reveal": _reveal_update(dt)
+		"morph": _morph_update(dt)
+		"vorax": _vorax_fight(dt)
+		"dead":
+			# comme le module : piloter updateBoss pour l'animation de mort,
+			# faute de quoi la récolte/fin de secteur ne se déclenche pas
+			update_boss(dt)
+
+func _nv_autopilot(dt: float, y := Data.FH - 170.0) -> void:
+	var i := 0
+	for p in players:
+		var px := Data.FW / 2.0 + (30.0 if i == 1 else -30.0) if players.size() > 1 else Data.FW / 2.0
+		p.x += (px - float(p.x)) * minf(1.0, dt * 1.6)
+		p.y += (y - float(p.y)) * minf(1.0, dt * 1.6)
+		p.inv = maxf(float(p.inv), 0.3)
+		i += 1
+
+func _ap_update(dt: float) -> void:
+	vorax.wave_t = float(vorax.wave_t) + dt
+	while vorax.wave_i < NV_APPROACH.size() and float(NV_APPROACH[int(vorax.wave_i)].t) <= float(vorax.wave_t):
+		_nv_spawns(NV_APPROACH[int(vorax.wave_i)])
+		vorax.wave_i = int(vorax.wave_i) + 1
+	var last: float = float(NV_APPROACH[NV_APPROACH.size() - 1].t)
+	if int(vorax.wave_i) >= NV_APPROACH.size() and enemies.is_empty() and float(vorax.wave_t) > last + 2.5:
+		vorax.stage = "arrive"
+		vorax.t = 0.0
+		vorax.no_fire = true
+		vorax.wave_t = 0.0
+		vorax.wave_i = 0
+		ebullets.clear()
+
+func _arrive_update(dt: float) -> void:
+	_nv_autopilot(dt)
+	var q := _v_eo(vorax.t / 3.2)
+	sas.y = -190.0 + 490.0 * q
+	vorax.off = 498.0 - 40.0 * q
+	if vorax.t > 3.4:
+		vorax.stage = "talk"
+		vorax.t = 0.0
+		nv24_radio("v1", "Vanguard, voici le sas de la base de VORAX.")
+		Audio2.sfx("alarm")
+
+func _talk_update(dt: float) -> void:
+	_nv_autopilot(dt)
+	if vorax.t > 5.6:
+		vorax.stage = "sas"
+		vorax.t = 0.0
+		vorax.no_fire = false
+		vorax.wave_t = 0.0
+		nv24_radio("v2", "Il faut détruire ce sas ! Je te rends tes canons. Feu !")
+		Audio2.sfx("alert")
+		for p in players:
+			p.inv = maxf(float(p.inv), 1.0)
+
+func _sas_fight(dt: float) -> void:
+	# défenses du sas : canons latéraux, cœur central, renforts (sasUpdate)
+	sas.flash = maxf(0.0, float(sas.flash) - dt * 4.0)
+	sas.shake = maxf(0.0, float(sas.shake) - dt * 18.0)
+	var frac: float = float(sas.hp) / float(sas.max)
+	sas.emit_t -= dt
+	sas.ring_t -= dt
+	sas.core = maxf(0.0, float(sas.core) - dt * 0.8)
+	var rate := 0.72 if frac < 0.5 else 1.0
+	if float(sas.emit_t) <= 0.0:
+		sas.emit_t = 1.5 * rate
+		sas.side = -int(sas.side)
+		var ex: float = float(sas.x) + float(sas.side) * float(sas.w) * 0.41
+		var ey: float = float(sas.y) - float(sas.h) * 0.18
+		var T := nearest_player(ex, ey)
+		var a := atan2(float(T.get("y", Data.FH)) - ey, float(T.get("x", Data.FW / 2.0)) - ex) if not T.is_empty() else PI / 2.0
+		for i in range(-1, 2):
+			_v_shot(ex, ey, a + i * 0.18, 170.0, "ball", 8.0)
+		if int(sas.side) < 0: sas.fl_l = 0.25
+		else: sas.fl_r = 0.25
+		Audio2.sfx("ehit")
+		Nv24Audio.sound("04_impact_blindage")
+	if float(sas.ring_t) <= 0.0:
+		sas.ring_t = 4.2 * rate
+		sas.core = 1.0
+	if float(sas.get("core_prev", 0.0)) > 0.35 and float(sas.core) <= 0.35:
+		for i in 14:
+			_v_shot(float(sas.x), float(sas.y) + 10.0, float(i) / 14.0 * TAU + float(vorax.t), 118.0, "orb", 9.0)
+		Audio2.sfx("ehit")
+		add_shake(3)
+	sas.core_prev = float(sas.core)
+	sas.fl_l = maxf(0.0, float(sas.fl_l) - dt)
+	sas.fl_r = maxf(0.0, float(sas.fl_r) - dt)
+	# renforts r1/r2/r3 (module 29)
+	vorax.wave_t = float(vorax.wave_t) + dt
+	if float(vorax.wave_t) > 5.0 and not nv24_said.has("r1"):
+		nv24_said["r1"] = true
+		nv_foe("lance", Data.FW * 0.25, -50.0, { "ty": 380.0 })
+		nv_foe("lance", Data.FW * 0.75, -80.0, { "ty": 380.0 })
+	if float(vorax.wave_t) > 13.0 and not nv24_said.has("r2"):
+		nv24_said["r2"] = true
+		nv_foe("dard", Data.FW * 0.2, -40.0, { "ty": 400.0 })
+		nv_foe("dard", Data.FW * 0.8, -60.0, { "ty": 420.0 })
+	if float(vorax.wave_t) > 21.0 and not nv24_said.has("r3"):
+		nv24_said["r3"] = true
+		nv_foe("orbe", Data.FW * 0.5, -60.0, { "ty": 420.0 })
+	if float(sas.hp) <= 0.0:
+		_start_boom24()
+
+func _start_boom24() -> void:
+	vorax.stage = "boom"
+	vorax.t = 0.0
+	vorax.no_fire = false
+	sas.hp = 0.0
+	sas.boom = true
+	ebullets.clear()
+	Audio2.sfx("explode")
+	add_shake(14)
+	add_flash(0.35, Color("#ffe2b8"))
+	for e in enemies:
+		if e.has("nv24f"): explode(e.x, e.y, 1.2, TH.e_boss, TH.e_boss_lite)
+	enemies.clear()
+	nv24_radio("v3", "Le sas a cédé. Le couloir est truffé de tourelles, reste mobile !")
+
+func _boom2_update(dt: float) -> void:
+	# battants arrachés du premier sas (boomUpdate)
+	if vorax.t < 1.4 and randf() < dt * 16.0:
+		explode(float(sas.x) + randf_range(-float(sas.w) * 0.45, float(sas.w) * 0.45),
+			float(sas.y) + randf_range(-float(sas.h) * 0.4, float(sas.h) * 0.4), randf_range(1.2, 2.2), TH.e_boss, TH.e_boss_lite)
+		Audio2.sfx("explode")
+		add_shake(5)
+	if vorax.t >= 1.3 and sas.get("halves") == null:
+		sas.halves = [
+			{ "x": float(sas.x) - float(sas.w) / 4.0, "y": float(sas.y), "vx": -330.0, "vy": -80.0, "r": 0.0, "vr": -2.4 },
+			{ "x": float(sas.x) + float(sas.w) / 4.0, "y": float(sas.y), "vx": 330.0, "vy": -60.0, "r": 0.0, "vr": 2.2 },
+		]
+		add_flash(0.8, Color.WHITE)
+		add_shake(26)
+		Audio2.sfx("explode")
+		Nv24Audio.sound("25_base_effondrement")
+		Nv24Audio.sound("24_debris_retombee")
+		for i in 70:
+			var an := randf() * TAU
+			var vv := randf_range(120.0, 520.0)
+			spawn_part(float(sas.x), float(sas.y), cos(an) * vv, sin(an) * vv, randf_range(0.4, 1.0),
+				[Color("#ffb070"), Color("#ffe6b0"), Color("#ffffff"), Color("#8a8494"), Color("#c27bff")].pick_random(), randf_range(3.0, 9.0), true)
+	if vorax.t > 3.0:
+		vorax.stage = "hall"
+		vorax.t = 0.0
+		vorax.wave_t = 0.0
+		vorax.wave_i = 0
+		vorax.off = 498.0
+		vorax.off_v = 0.0
+
+func _hall_update(dt: float) -> void:
+	vorax.wave_t = float(vorax.wave_t) + dt
+	while vorax.wave_i < NV_HALL.size() and float(NV_HALL[int(vorax.wave_i)].t) <= float(vorax.wave_t):
+		_nv_spawns(NV_HALL[int(vorax.wave_i)])
+		vorax.wave_i = int(vorax.wave_i) + 1
+	# le décor avance jusqu'au grand sas
+	var want := 498.0 / NV_HALL_END if float(vorax.off) > 0.0 else 0.0
+	vorax.off_v += (want - float(vorax.off_v)) * minf(1.0, dt * 1.5)
+	vorax.off = maxf(0.0, float(vorax.off) - float(vorax.off_v) * dt)
+	vorax.near_v = float(vorax.off_v) * 3.4
+	vorax.door2.y = maxf(-400.0, 205.0 - float(vorax.off) * 3.4)
+	var last: float = float(NV_HALL[NV_HALL.size() - 1].t)
+	if float(vorax.off) <= 0.0 and int(vorax.wave_i) >= NV_HALL.size() and enemies.is_empty() and float(vorax.wave_t) > last + 2.5:
+		vorax.stage = "alarm"
+		vorax.t = 0.0
+		vorax.no_fire = true
+		ebullets.clear()
+		nv24_radio("v4", "Attention… quelque chose frappe de l'autre côté du grand sas !")
+		Audio2.sfx("bossalarm")
+		Nv24Audio.sound("15_alerte_electricite")
+		_schedule(0.6, func(): Nv24Audio.sound("16_alerte_verre_brise"))
+
+func _alarm_update(dt: float) -> void:
+	_nv_autopilot(dt, Data.FH - 150.0)
+	vorax.alarm_hits[vorax.t] = true
+	for at in [0.9, 1.8, 2.5, 3.0, 3.4]:
+		if vorax.t - dt < at and vorax.t >= at:
+			add_shake(9.0 + at * 3.0)
+			Audio2.sfx("explode")
+			Nv24Audio.sound("09_sas_impact")
+			vorax.door2.shake = 10.0
+			vorax.door2.flash = 0.3
+			for i in 10:
+				var an := randf() * TAU
+				spawn_part(float(vorax.door2.x) + randf_range(-160, 160), float(vorax.door2.y) + randf_range(-100, 100),
+					cos(an) * randf_range(40.0, 200.0), sin(an) * randf_range(40.0, 200.0), randf_range(0.3, 0.7),
+					[Color("#8a8494"), Color("#5c5468"), Color("#ffb070")].pick_random(), randf_range(3.0, 6.0), true)
+	if vorax.t > 3.7:
+		vorax.stage = "voraxTalk"
+		vorax.t = 0.0
+		add_flash(0.4, Color("#ffe6d0"))
+		add_shake(20)
+		Audio2.sfx("explode")
+
+func _vtalk_update(dt: float) -> void:
+	_nv_autopilot(dt, Data.FH - 150.0)
+	if vorax.t > 1.2:
+		spawn_vorax()
