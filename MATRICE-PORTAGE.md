@@ -41,7 +41,7 @@ Les preuves « TESTn » sont les harnais `NV_TEST=n` (voir RAPPORT-TESTS.md) ; c
 | Save v3 (crédits, achats, sel, opts, cheats, tickets, unlocks, musicTracks, records, daily, pinball) | 02 (localStorage) | `save.gd` (user://neovanguard.save.v3.json) | CONFORME | TEST2/5 ; **transfert web→native : procédure manuelle** (voir rapport) |
 | Langues fr/en/es/pt/ja | 02 `tx()` | textes FR intégrés | PARTIEL | FR exact ; autres langues À PORTER |
 | Touches PC (flèches, ZQSD/WASD P2, Ctrl/F/L/G/K, Échap, M) | 02 l.158xx + 22 | `main.gd`/`game.gd` input | CONFORME | TEST2 (P2 ZQSD) |
-| Tactile (zones, coque, lance-bille) | 22/24/51 | shell + `_gui_input` flipper | PARTIEL | souris-tactile validé ; multitouch réel sur appareil non testé |
+| Tactile (zones, coque, lance-bille) | 22/24/51 | main.gd (capte racine) + game.gd + shell | CORRIGÉ | TEST12 7/7 : pilotage relatif 1:1, tir au doigt, bombe double-tap/2e doigt, barre KFM-01 câblée ; multitouch physique à confirmer sur appareil |
 | Manette | — (non liée dans le commit) | actions Godot par défaut | À PORTER | mapping dédié à ajouter |
 | Effets procéduraux (Canvas : explosions, greebles, dégradés, particules) | 02/07 | `game.gd`/`pocket_baker.gd` (ports des formules) | CONFORME | TEST7 (det/greeble hash `h2s`) |
 | Scanlines/halos/modes fusion | 07/10 | `ui/scanlines.gd`, blend `add` sur parts | CONFORME | captures |

@@ -21,6 +21,13 @@ var era_idx := 0
 var daily := false
 var daily_mods: Array = []
 var two_p := false
+# ---- tactile : pilote au doigt (réplique wirePointer() de l'original) ------
+var touch_down := false           # un doigt pilote est posé
+var touch_finger := Vector2.ZERO  # position courante du doigt
+var touch_base0 := Vector2.ZERO   # position du doigt à la pose
+var touch_grab := Vector2.ZERO    # position du vaisseau à la pose
+var touch_tap_t := -10.0          # chrono du double-tap (bombe)
+var touch_t := 0.0                # horloge tactile
 
 var phase: int = Phase.INTRO
 var phase_t := 0.0
@@ -241,6 +248,7 @@ func set_era(e: int) -> void:
 #  BOUCLE PRINCIPALE
 # =========================================================================
 func _process(delta: float) -> void:
+	touch_t += delta
 	if state != "play" or paused:
 		queue_redraw()
 		return
@@ -350,6 +358,8 @@ func update_stars(dt: float) -> void:
 #  ENTRÉES
 # =========================================================================
 func _axis(id: int) -> Vector2:
+	if id == 1 and touch_down:
+		return Vector2.ZERO   # pilotage direct au doigt (géré dans update_players)
 	var v := Vector2.ZERO
 	if id == 1:
 		if players.size() > 1:
@@ -368,7 +378,7 @@ func _axis(id: int) -> Vector2:
 	var jy := Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
 	if id == 1 and (absf(jx) > 0.24 or absf(jy) > 0.24):
 		v.x = clampf(v.x + jx, -1, 1); v.y = clampf(v.y + jy, -1, 1)
-	if id == 1 and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+	if id == 1 and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not touch_down:
 		# pilotage à la souris : le vaisseau suit le curseur (comme l'original)
 		var mp := get_tree().root.get_mouse_position()
 		var ddx: float = mp.x - players[0].x
@@ -381,7 +391,7 @@ func _axis(id: int) -> Vector2:
 func _firing(P: Dictionary) -> bool:
 	if Save.S.opts.autofire: return true
 	if P.id == 1:
-		return Input.is_action_pressed("fire")
+		return Input.is_action_pressed("fire") or touch_down   # le doigt tire (original)
 	return Input.is_action_pressed("fire2")
 
 func _bomb_pressed(P: Dictionary) -> bool:
@@ -405,10 +415,25 @@ func update_players(dt: float) -> void:
 			continue
 		var ax := _axis(P.id)
 		var sp: float = stats.speed
-		P.vx = lerpf(P.vx, ax.x * sp, clampf(dt * 12.0, 0.0, 1.0))
-		P.vy = lerpf(P.vy, ax.y * sp, clampf(dt * 12.0, 0.0, 1.0))
-		P.x = clampf(P.x + P.vx * dt, 32.0, Data.FW - 32.0)
-		P.y = clampf(P.y + P.vy * dt, 76.0, Data.FH - 42.0)
+		if P.id == 1 and touch_down:
+			# tactile RELATIF 1:1 (original) : un pixel de doigt = un pixel de
+			# vaisseau, sans plafond de vitesse ni inertie ; rebase aux bords
+			# pour que inverser le doigt réponde immédiatement.
+			var tgt := touch_grab + (touch_finger - touch_base0)
+			var nx := clampf(tgt.x, 32.0, Data.FW - 32.0)
+			var ny := clampf(tgt.y, 76.0, Data.FH - 42.0)
+			P.vx = (nx - P.x) / maxf(dt, 0.0001)
+			P.vy = (ny - P.y) / maxf(dt, 0.0001)
+			P.x = nx
+			P.y = ny
+			if nx != tgt.x or ny != tgt.y:
+				touch_grab = Vector2(nx, ny)
+				touch_base0 = touch_finger
+		else:
+			P.vx = lerpf(P.vx, ax.x * sp, clampf(dt * 12.0, 0.0, 1.0))
+			P.vy = lerpf(P.vy, ax.y * sp, clampf(dt * 12.0, 0.0, 1.0))
+			P.x = clampf(P.x + P.vx * dt, 32.0, Data.FW - 32.0)
+			P.y = clampf(P.y + P.vy * dt, 76.0, Data.FH - 42.0)
 		P.bank = lerpf(P.bank, clampf(P.vx / (stats.speed if stats.speed > 0 else 1.0), -1, 1), clampf(dt * 8.0, 0.0, 1.0))
 		# bouclier régénérant (toutes les 22 s)
 		P.sh_cd -= dt
@@ -550,7 +575,7 @@ func use_bomb(P: Dictionary) -> void:
 		spawn_part(P.x, P.y, cos(a) * v, sin(a) * v, randf_range(0.4, 0.9),
 			[TH.p_lite, TH.acc, TH.gold].pick_random(), randf_range(3, 7), true)
 
-func cycle_weapon() -> void:
+func cycle_weapon(dir: int = 1) -> void:
 	var list: Array = []
 	for w in Data.WEAPONS:
 		if w.price == 0 or (Save.S.owned.weapons as Array).has(w.id):
@@ -559,7 +584,7 @@ func cycle_weapon() -> void:
 	var i := 0
 	for j in list.size():
 		if list[j].id == Save.S.sel.weapon: i = j
-	i = (i + 1) % list.size()
+	i = wrapi(i + dir, 0, list.size())
 	Save.S.sel.weapon = list[i].id
 	stats = Save.compute_stats(level)
 	Audio2.sfx("power")
@@ -4081,3 +4106,44 @@ func _vtalk_update(dt: float) -> void:
 	_nv_autopilot(dt, Data.FH - 150.0)
 	if vorax.t > 1.2:
 		spawn_vorax()
+
+# =========================================================================
+#  TACTILE — retransmis par main.gd (le SubViewport ne voit pas la fenêtre)
+#  réplique de wirePointer() du jeu original : doigt pilote RELATIF (le doigt
+#  prend le vaisseau là où il est), tir au doigt, deuxième doigt ou double
+#  tap (<400 ms) = bombe, barre de commandes ignorée en secteur 1.
+# =========================================================================
+func touch_press(pos: Vector2) -> void:
+	touch_finger = pos
+	if state != "play" or paused or players.is_empty():
+		return
+	if era_idx == 0 and bool(Save.S.opts.get("frame", true)) and pos.y > 742.0:
+		return   # barre de commandes tactile de la coque KFM-01
+	if touch_down:
+		touch_bomb()      # deuxième doigt = bombe (comme l'original)
+		return
+	if touch_t - touch_tap_t < 0.4:
+		touch_tap_t = -10.0
+		touch_bomb()      # double tap = bombe (400 ms, comme l'original)
+	else:
+		touch_tap_t = touch_t
+	touch_down = true
+	touch_base0 = pos
+	touch_grab = Vector2(players[0].x, players[0].y)
+
+func touch_drag(pos: Vector2) -> void:
+	touch_finger = pos
+
+func touch_release() -> void:
+	touch_down = false
+
+func touch_bomb() -> void:
+	if players.is_empty():
+		return
+	var P: Dictionary = players[0]
+	if P.bomb_cd <= 0.0 and not nv24_no_fire():
+		P.bomb_cd = 0.4
+		use_bomb(P)
+
+func touch_weapon(dir: int) -> void:
+	cycle_weapon(dir)

@@ -11,6 +11,7 @@ const GuardianSprite := preload("res://scripts/sprites/guardian_sprite.gd")
 
 var game: NVGame
 var viewport: SubViewport
+var touch_pilot_id := -1   # index du doigt pilote (-1 = aucun)
 var screen_layer: CanvasLayer
 var tr: TextureRect
 var crt: Node2D
@@ -58,6 +59,10 @@ func _ready() -> void:
 		_run_module20_test()
 	if OS.get_environment("NV_TEST") == "8":
 		_run_bonus_test()
+	if OS.get_environment("NV_TEST") == "11":
+		_run_capture_test()
+	if OS.get_environment("NV_TEST") == "12":
+		_run_touch_test()
 	if OS.get_environment("NV_TEST") == "9":
 		_run_vorax_test()
 	if OS.get_environment("NV_TEST") == "10":
@@ -334,6 +339,59 @@ func _unhandled_input(event: InputEvent) -> void:
 	if game.state == "play" and current_screen == null and event.is_action_pressed("pause"):
 		_on_pause()
 		get_viewport().set_input_as_handled()
+		return
+	_touch_unhandled(event)
+
+# ---- tactile natif : main capte les doigts et les retransmet au jeu --------
+# (réplique de wirePointer() ; la barre de boutons de la coque est gérée ici)
+const TOUCH_BTNS: Array[Rect2] = [
+	Rect2(14, 756, 74, 90),    # BOMBE
+	Rect2(98, 756, 56, 90),    # arme − (PRÉC)
+	Rect2(164, 756, 152, 90),  # ARMEMENT (étiquette)
+	Rect2(326, 756, 56, 90),   # arme + (SUIV)
+	Rect2(392, 756, 74, 90),   # PAUSE
+]
+
+func _touch_button_at(pos: Vector2) -> int:
+	# la barre n'existe qu'en secteur 1 (coque KFM-01 affichée)
+	if game.era_idx != 0 or not bool(Save.S.opts.get("frame", true)):
+		return -1
+	for i in TOUCH_BTNS.size():
+		if TOUCH_BTNS[i].has_point(pos):
+			return i
+	return -1
+
+func _touch_button(i: int) -> void:
+	match i:
+		0: game.touch_bomb()
+		1: game.touch_weapon(-1)
+		3: game.touch_weapon(1)
+		4: _on_pause()
+
+func _touch_unhandled(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		var st: InputEventScreenTouch = event
+		if game.state == "play" and current_screen == null and not game.paused:
+			var btn := _touch_button_at(st.position)
+			if btn != -1:
+				if st.pressed:
+					_touch_button(btn)
+				return
+			if st.pressed:
+				if touch_pilot_id == -1:
+					touch_pilot_id = st.index
+				game.touch_press(st.position)
+			elif st.index == touch_pilot_id:
+				touch_pilot_id = -1
+				game.touch_release()
+		elif not st.pressed and st.index == touch_pilot_id:
+			touch_pilot_id = -1
+			game.touch_release()
+	elif event is InputEventScreenDrag:
+		var dg: InputEventScreenDrag = event
+		if game.state == "play" and current_screen == null and not game.paused \
+				and dg.index == touch_pilot_id:
+			game.touch_drag(dg.position)
 
 # test 2 : tous les écrans + fin de campagne (secteur 24 → ending)
 func _run_screen_test() -> void:
@@ -878,3 +936,169 @@ func _run_inputs_test() -> void:
 	get_viewport().get_texture().get_image().save_png(dir + "/3-hands-machine.png")
 	print("TEST10: OK")
 	get_tree().quit()
+
+# test 11 : captures de comparaison de rendu (Godot vs web original, mêmes jalons)
+func _tap(action: String) -> void:
+	Input.action_press(action)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	Input.action_release(action)
+	await get_tree().process_frame
+
+func _run_capture_test() -> void:
+	var dir := "/tmp/shots11"
+	DirAccess.make_dir_recursive_absolute(dir)
+	Save.S.opts.lang = "en"
+	show_title()
+	await get_tree().process_frame
+	await get_tree().create_timer(0.8).timeout
+	await _snap(dir + "/g_1_titre.png")
+	begin_campaign(1)
+	await get_tree().create_timer(0.8).timeout
+	await _snap(dir + "/g_2_story_p1.png")
+	# avancer le deck (9 pages) : fire
+	for i in range(12):
+		if game.state != "menu" or current_screen == null:
+			break
+		if not current_screen.get("page_i") == null:
+			current_screen._next()
+		else:
+			break
+		await get_tree().create_timer(0.25).timeout
+	# brief (6 s auto) puis jeu
+	await _snap(dir + "/g_3_brief.png")
+	var waited := 0
+	while game.state != "play" and waited < 15000:
+		await get_tree().create_timer(0.1).timeout
+		waited += 100
+	if game.state != "play":
+		await _tap("fire")
+		await get_tree().create_timer(0.5).timeout
+	print("CAPTURE: state=", game.state, " level=", game.level, " era=", game.era_idx)
+	await get_tree().create_timer(0.15).timeout
+	await _snap(dir + "/g_4_play_t0.png")
+	await get_tree().create_timer(2.0).timeout
+	await _snap(dir + "/g_5_play_t2.png")
+	await get_tree().create_timer(3.0).timeout
+	await _snap(dir + "/g_6_play_t5.png")
+	print("CAPTURE FIN: state=", game.state, " ennemis=", game.enemies.size(),
+		" score=", game.score, " phase=", game.phase)
+	print("=== CAPTURE TEST TERMINE ===")
+	get_tree().quit(0)
+
+# test 12 : tactile — événements ScreenTouch/ScreenDrag synthétiques injectés
+# dans le vrai pipeline d'entrée (mouvement relatif, tir au doigt, bombes,
+# boutons de la barre). Le test physique au doigt reste à confirmer sur appareil.
+func _touch_synthetic(pos: Vector2, pressed: bool, index: int, drag := false) -> void:
+	var ev: InputEvent
+	if drag:
+		var d := InputEventScreenDrag.new()
+		d.index = index
+		d.position = pos
+		ev = d
+	else:
+		var t := InputEventScreenTouch.new()
+		t.index = index
+		t.position = pos
+		t.pressed = pressed
+		ev = t
+	Input.parse_input_event(ev)
+
+func _run_touch_test() -> void:
+	var dir := "/tmp/shots12"
+	DirAccess.make_dir_recursive_absolute(dir)
+	# sauvegarde de test isolée (le cycle d'arme écrit dans user://)
+	var spath := ProjectSettings.globalize_path("user://neovanguard.save.v3.json")
+	DirAccess.remove_absolute(spath)
+	await get_tree().process_frame
+	begin_campaign(1)
+	await get_tree().create_timer(0.3).timeout
+	for i in range(14):
+		if current_screen == null or not ("page_i" in current_screen):
+			break
+		current_screen._next()
+		await get_tree().create_timer(0.1).timeout
+	var waited := 0
+	while game.state != "play" and waited < 12000:
+		await get_tree().create_timer(0.1).timeout
+		waited += 100
+	print("TOUCH: state=", game.state, " level=", game.level)
+	await get_tree().create_timer(1.6).timeout
+	var P: Dictionary = game.players[0]
+	# -- 1) le doigt déplace le vaisseau (relatif 1:1) -----------------------
+	var x0: float = P.x
+	var y0: float = P.y
+	_touch_synthetic(Vector2(240, 500), true, 0)
+	await get_tree().create_timer(0.05).timeout
+	_touch_synthetic(Vector2(300, 400), false, 0, true)
+	await get_tree().create_timer(0.15).timeout
+	var dx: float = P.x - x0
+	var dy: float = P.y - y0
+	var move_ok := absf(dx - 60.0) < 4.0 and absf(dy + 100.0) < 4.0
+	print("TOUCH: deplacement dx=%.1f dy=%.1f (attendu ~+60/-100)" % [dx, dy])
+	# -- 2) tir au doigt ------------------------------------------------------
+	var nb0 := game.bullets.size()
+	var seen_fire := false
+	var maxb := nb0
+	for i in range(12):
+		await get_tree().create_timer(0.05).timeout
+		maxb = maxi(maxb, game.bullets.size())
+		if P.fire_cd > 0.0:
+			seen_fire = true
+	var shoot_ok: bool = seen_fire and maxb > 0
+	print("TOUCH: tir au doigt fire_cd=%s bullets max=%d (avant %d)" % [seen_fire, maxb, nb0])
+	P.bombs = 9   # munitions suffisantes pour les 3 tests de bombe
+	# -- 3) bombe au double tap ----------------------------------------------
+	_touch_synthetic(Vector2(240, 500), false, 0)
+	await get_tree().create_timer(0.5).timeout
+	var b0: int = P.bombs
+	var sh0 := game.shocks.size()
+	_touch_synthetic(Vector2(240, 500), true, 0)
+	_touch_synthetic(Vector2(240, 500), false, 0)
+	await get_tree().create_timer(0.1).timeout
+	_touch_synthetic(Vector2(240, 500), true, 0)
+	await get_tree().create_timer(0.25).timeout
+	var bomb_ok: bool = P.bombs == b0 - 1 and game.shocks.size() > sh0
+	print("TOUCH: double-tap bombe %d -> %d shocks %d -> %d" % [b0, P.bombs, sh0, game.shocks.size()])
+	_touch_synthetic(Vector2(240, 500), false, 0)
+	await get_tree().create_timer(0.6).timeout
+	# -- 4) deuxième doigt = bombe -------------------------------------------
+	b0 = P.bombs
+	_touch_synthetic(Vector2(240, 500), true, 0)
+	await get_tree().create_timer(0.15).timeout
+	_touch_synthetic(Vector2(100, 300), true, 1)
+	await get_tree().create_timer(0.25).timeout
+	var bomb2_ok: bool = P.bombs == b0 - 1
+	print("TOUCH: 2e doigt bombe %d -> %d" % [b0, P.bombs])
+	_touch_synthetic(Vector2(100, 300), false, 1)
+	_touch_synthetic(Vector2(240, 500), false, 0)
+	await get_tree().create_timer(0.6).timeout
+	# -- 5) boutons SUIV / BOMBE de la barre ---------------------------------
+	for w in Data.WEAPONS:
+		if w.price > 0:
+			(Save.S.owned.weapons as Array).append(w.id)
+			break
+	var w0: String = str(Save.S.sel.weapon)
+	_touch_synthetic(Vector2(354, 801), true, 0)
+	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(Vector2(354, 801), false, 0)
+	var weap_ok := str(Save.S.sel.weapon) != w0
+	print("TOUCH: bouton SUIV arme %s -> %s" % [w0, Save.S.sel.weapon])
+	b0 = P.bombs
+	_touch_synthetic(Vector2(51, 801), true, 0)
+	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(Vector2(51, 801), false, 0)
+	var bombbtn_ok: bool = P.bombs == b0 - 1
+	print("TOUCH: bouton BOMBE %d -> %d" % [b0, P.bombs])
+	# -- 6) bouton PAUSE ------------------------------------------------------
+	_touch_synthetic(Vector2(429, 801), true, 0)
+	await get_tree().create_timer(0.3).timeout
+	_touch_synthetic(Vector2(429, 801), false, 0)
+	var pause_ok := current_screen != null and game.paused
+	print("TOUCH: bouton PAUSE screen=", current_screen != null, " paused=", game.paused)
+	print("TOUCH RESULT: move=", move_ok, " shoot=", shoot_ok, " bomb_tap=", bomb_ok,
+		" bomb_2doigt=", bomb2_ok, " arme=", weap_ok, " bomb_btn=", bombbtn_ok,
+		" pause=", pause_ok)
+	DirAccess.remove_absolute(spath)   # pas de pollution de la sauvegarde
+	print("=== TOUCH TEST TERMINE ===")
+	get_tree().quit(0)

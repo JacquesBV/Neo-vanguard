@@ -56,7 +56,15 @@ voir « Écarts ». Le jeu est jouable de bout en bout, séquence finale compris
    keystore absents — consigné).
 7. ~~Manette~~ **TESTÉE** : mapping JoypadMotion présent (axes 0/1) + **injection
    d'événements** (Input.parse_input_event) : le vaisseau se déplace (dx = −208 px,
-   TEST10). **Multitouch physique** : toujours non testé (pas d'écran tactile).
+   TEST10). ~~Tactile~~ **CORRIGÉ + TESTÉ (TEST12, 7/7 VERT)** : le tactile était
+   inopérant (le SubViewport du jeu ne reçoit pas les événements de la fenêtre
+   racine ; actions mappées clavier/manette uniquement). Réplique de wirePointer()
+   du jeu original dans main.gd (capte racine) + game.gd : doigt pilote RELATIF
+   1:1 (le doigt prend le vaisseau là où il est, rebase aux bords), tir au doigt,
+   deuxième doigt OU double tap <400 ms = bombe, barre KFM-01 câblée (BOMBE,
+   PRÉC/SUIV armes, PAUSE — boutons sans effet auparavant). **Multitouch
+   physique sur appareil réel** : à confirmer par l'utilisateur (pipeline
+   d'entrée validé par événements synthétiques).
 8. ~~Sauvegardes web → native~~ **CORRIGÉ** : import intégré à l'écran OPTIONS
    (collage du JSON localStorage → fusion des clés credits/max_level/records/
    unlocks/musicTracks/pinball/sel + opts) ; vérifié TEST10 (4 clés, valeurs exactes).
@@ -65,7 +73,7 @@ voir « Écarts ». Le jeu est jouable de bout en bout, séquence finale compris
 
 ## Reste (après corrections)
 - écoute audio humaine (pilote dummy en sandbox) ;
-- multitouch physique et exécution du .exe sur Windows réels ;
+- confirmation du multitouch sur appareil physique (pipeline validé TEST12) et exécution du .exe sur Windows réels ;
 - couverture i18n étendue aux écrans à contenu formaté.
 ## Prochaine action
 ouvrir la PR `port/godot-native` → `main` (branche poussée à l'instant).
