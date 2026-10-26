@@ -16,9 +16,15 @@ var screen_layer: CanvasLayer
 var tr: TextureRect
 var crt: Node2D
 var shell: CanvasItem = null
+const NVUi := preload("res://scripts/ui/hud_overlay.gd")   # (C11) zones console
 var current_screen: Control
 var pause_screen: Control = null   # (C10) menu pause ouvert (bouton START)
 var shell_press := {}              # (C10) gâchettes coque appuyées -> msec
+var power_state := "off"           # (C11) off | boot | on | shutdown
+var boot_t := 0.0                  # (C11) chrono des séquences on/off
+var power_knob := 0.0              # (C11) position du curseur I/O (0..1)
+var power_drag_id := -1            # (C11) doigt sur le curseur
+var shell_stick_id := -1           # (C11) doigt pilote du stick
 var banked := 0                 # crédits déjà versés pour la mission en cours
 var campaign_level := 1
 var daily_mode := false
@@ -73,6 +79,8 @@ func _ready() -> void:
 		_run_bar_test()
 	if OS.get_environment("NV_TEST") == "16":
 		_run_shell_test()
+	if OS.get_environment("NV_TEST") == "17":
+		_run_console_test()
 	if OS.get_environment("NV_TEST") == "9":
 		_run_vorax_test()
 	if OS.get_environment("NV_TEST") == "10":
@@ -345,6 +353,9 @@ func _snap(path: String) -> void:
 
 # la pause est interceptée ici : le jeu vit dans un SubViewport qui ne
 # reçoit pas les événements d'entrée de la fenêtre racine
+func _process(delta: float) -> void:
+	_power_tick(delta)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if game.state == "play" and current_screen == null and event.is_action_pressed("pause"):
 		_on_pause()
@@ -364,31 +375,102 @@ const TOUCH_BTNS: Array[Rect2] = [
 
 # (C10) gâchettes matérielles de la coque NV-01 (secteurs FanBoy, ère 0) :
 # SELECT gèle/reprend la partie, START ouvre le menu en pause.
-const SHELL_SELECT := Rect2(120, 634, 104, 48)
-const SHELL_START := Rect2(256, 634, 104, 48)
+const SHELL_SELECT := Rect2(60, 828, 85, 32)    # (C11) barre lumineuse
+const SHELL_START := Rect2(320, 828, 85, 32)
+const SHELL_POWER := Rect2(28, 792, 130, 32)     # curseur I/O (gauche)
+const POWER_TRACK_L := 48.0
+const POWER_TRACK_R := 138.0
 
+## (C11) la console NV-01 : stick, croix ARME, TIR, BOMBE, SELECT, START,
+## curseur POWER — tailles DualShock 4 (constantes dans hud_overlay.gd)
 func _shell_btn_at(pos: Vector2) -> String:
 	if game == null or game.state != "play":
 		return ""
 	if game.era_idx != 0 or not bool(Save.S.opts.get("frame", true)):
-		return ""   # les gâchettes n'existent que sur la coque NV-01
+		return ""
 	if SHELL_SELECT.has_point(pos):
 		return "select"
 	if SHELL_START.has_point(pos):
 		return "start"
+	if SHELL_POWER.has_point(pos):
+		return "power"
+	if pos.distance_to(NVUi.STICK_C) <= NVUi.STICK_R:
+		return "stick"
+	if pos.distance_to(NVUi.DPAD_C) <= NVUi.DPAD_R:
+		return "wup" if pos.y < NVUi.DPAD_C.y else "wdn"
+	if pos.distance_to(NVUi.FIRE_C) <= NVUi.FIRE_R + 6.0:
+		return "fire"
+	if pos.distance_to(NVUi.BOMB_C) <= NVUi.BOMB_R + 6.0:
+		return "bomb"
 	return ""
 
 func _shell_button(id: String) -> void:
 	shell_press[id] = Time.get_ticks_msec()   # feedback visuel (coque)
-	Audio2.sfx("uiclick")
 	if id == "select":
+		Audio2.sfx("uiclick")
 		if pause_screen != null:
 			_resume_game()                 # SELECT : reprendre depuis le menu
 		else:
 			game.paused = not game.paused  # SELECT : geler / dégeler
 	elif id == "start":
+		Audio2.sfx("uiclick")
 		if pause_screen == null:
 			_on_pause()                    # START : le menu, jeu en pause
+	elif id == "wup":
+		game.touch_weapon(-1)
+	elif id == "wdn":
+		game.touch_weapon(1)
+	elif id == "bomb":
+		game.touch_bomb()
+	# "fire" est maintenu : géré par press/release (ci-dessous)
+
+## (C11) POWER : glisser I/O — allume (boot) ou éteint (retour titre)
+func _power_slide_to(x: float) -> void:
+	power_knob = clampf((x - POWER_TRACK_L) / (POWER_TRACK_R - POWER_TRACK_L), 0.0, 1.0)
+	if power_state == "off" and power_knob >= 0.99:
+		_power_switch_on()
+	elif power_state == "on" and power_knob <= 0.01 and pause_screen == null:
+		_power_switch_off()
+
+func _power_switch_on() -> void:
+	power_state = "boot"
+	boot_t = 0.0
+	power_drag_id = -1
+	Audio2.sfx("power")
+	shell_press["power"] = Time.get_ticks_msec()
+
+func _power_switch_off() -> void:
+	power_state = "shutdown"
+	boot_t = 0.0
+	power_drag_id = -1
+	game.touch_release()
+	game.touch_fire_btn = false
+	Audio2.sfx("powerdown")
+	shell_press["power"] = Time.get_ticks_msec()
+
+## l'avancement des séquences boot / shutdown (appelé depuis _process)
+func _power_tick(delta: float) -> void:
+	# (C11) l'overlay de chargement est SUR L'ÉCRAN de la console : caché
+	# éteinte (verre noir) comme pendant boot/shutdown (l'écran dessine
+	# ses propres séquences)
+	if load_overlay != null and is_instance_valid(load_overlay):
+		var par: Node = load_overlay.get_parent()
+		if par != null:
+			par.visible = power_state == "on"
+	if power_state == "boot":
+		boot_t += delta
+		if boot_t >= 1.15:
+			power_state = "on"
+			game.paused = false
+	elif power_state == "shutdown":
+		boot_t += delta
+		if boot_t >= 0.55:
+			power_state = "off"
+			game.paused = false
+			power_knob = 0.0
+			banked = 0
+			daily_mode = false
+			show_title()
 
 func _touch_button_at(pos: Vector2) -> int:
 	# (correctif) la barre existe dans toutes les ères (#touchui du web)
@@ -409,33 +491,86 @@ func _touch_button(i: int) -> void:
 func _touch_unhandled(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var st: InputEventScreenTouch = event
-		# (C10) gâchettes SELECT/START de la coque, en priorité (ère 0)
+		# (C11) console NV-01 (ère 0) : stick / croix / TIR / BOMBE /
+		# SELECT / START / curseur POWER — priorité sur tout le reste
 		var sb: String = _shell_btn_at(st.position)
 		if sb != "":
 			if st.pressed:
-				_shell_button(sb)
+				match sb:
+					"stick":
+						if shell_stick_id == -1 and power_state == "on" \
+								and current_screen == null and not game.paused:
+							shell_stick_id = st.index
+							shell_press["stick"] = Time.get_ticks_msec()
+							game.touch_press(st.position, true)   # mouvement seul
+					"fire":
+						if power_state == "on" and current_screen == null and not game.paused:
+							shell_press["fire"] = Time.get_ticks_msec()
+							game.touch_fire_btn = true
+					"power":
+						# (C11) il faut saisir le BOUTON du curseur (pas la piste)
+						var kx: float = POWER_TRACK_R if power_state == "on" else POWER_TRACK_L
+						if power_drag_id == -1 and (power_state == "off" or power_state == "on") \
+								and absf(st.position.x - kx) <= 30.0:
+							power_drag_id = st.index
+							_power_slide_to(st.position.x)
+					_:
+						if power_state == "on" or sb == "select" or sb == "start":
+							_shell_button(sb)
+			else:
+				match sb:
+					"stick":
+						if st.index == shell_stick_id:
+							shell_stick_id = -1
+							game.touch_release()
+					"fire":
+						game.touch_fire_btn = false
+					"power":
+						if st.index == power_drag_id:
+							power_drag_id = -1
+							# magnétisme : le bouton revient sur sa position
+							power_knob = 1.0 if power_state == "on" else 0.0
 			return
 		if game.state == "play" and current_screen == null and not game.paused:
-			var btn := _touch_button_at(st.position)
-			if btn != -1:
+			# barre tactile des ères 1+ uniquement (l'ère 0 a ses touches)
+			if game.era_idx != 0:
+				var btn := _touch_button_at(st.position)
+				if btn != -1:
+					if st.pressed:
+						_touch_button(btn)
+					return
+			if game.era_idx != 0:
 				if st.pressed:
-					_touch_button(btn)
-				return
-			if st.pressed:
-				if touch_pilot_id == -1:
-					touch_pilot_id = st.index
+					if touch_pilot_id == -1:
+						touch_pilot_id = st.index
+					game.touch_press(st.position)
+				elif st.index == touch_pilot_id:
+					touch_pilot_id = -1
+					game.touch_release()
+			elif st.pressed and touch_pilot_id == -1 and shell_stick_id == -1 \
+					and Data.GLASS.has_point(st.position):
+				# ère 0 : le verre reste pilotable au doigt (mouvement + tir)
+				touch_pilot_id = st.index
 				game.touch_press(st.position)
-			elif st.index == touch_pilot_id:
+			elif not st.pressed and st.index == touch_pilot_id:
 				touch_pilot_id = -1
 				game.touch_release()
-		elif not st.pressed and st.index == touch_pilot_id:
-			touch_pilot_id = -1
+		elif not st.pressed and (st.index == touch_pilot_id or st.index == shell_stick_id):
+			if st.index == touch_pilot_id:
+				touch_pilot_id = -1
+			if st.index == shell_stick_id:
+				shell_stick_id = -1
 			game.touch_release()
+			game.touch_fire_btn = false
 	elif event is InputEventScreenDrag:
 		var dg: InputEventScreenDrag = event
-		if game.state == "play" and current_screen == null and not game.paused \
-				and dg.index == touch_pilot_id:
-			game.touch_drag(dg.position)
+		if game.state == "play" and current_screen == null and not game.paused:
+			if dg.index == power_drag_id:
+				_power_slide_to(dg.position.x)
+			elif dg.index == shell_stick_id:
+				game.touch_drag(dg.position)
+			elif dg.index == touch_pilot_id:
+				game.touch_drag(dg.position)
 
 # test 2 : tous les écrans + fin de campagne (secteur 24 → ending)
 func _run_screen_test() -> void:
@@ -740,6 +875,17 @@ func launch_level() -> void:
 	_show_load_overlay()
 	_apply_era_viewport(campaign_level)
 	game.begin_level(campaign_level, daily_mode, daily_mods)
+	# (C11) console NV-01 : un secteur FanBoy exige qu'elle soit allumée
+	# (curseur I/O) — éteinte, l'écran reste noir jusqu'au glissement.
+	if Data.era_of_level(campaign_level) == 0 and bool(Save.S.opts.get("frame", true)):
+		var nt := OS.get_environment("NV_TEST")
+		if nt != "" and nt != "16" and nt != "17":
+			power_state = "on"       # tests automatisés : console pré-allumée
+		if power_state != "on":
+			game.paused = true
+	else:
+		power_state = "on"           # ères 1+ : autre machine, toujours prête
+		game.paused = false
 
 func _on_sector_won(level: int, st: Dictionary) -> void:
 	bank_run(st)
@@ -1106,7 +1252,9 @@ func _run_touch_test() -> void:
 	var spath := ProjectSettings.globalize_path("user://neovanguard.save.v3.json")
 	DirAccess.remove_absolute(spath)
 	await get_tree().process_frame
-	begin_campaign(1)
+	# (C11) secteur 5 (ère 1) : la barre #touchui y est encore la référence —
+	# l'ère 0 utilise les touches matérielles de la coque (voir TEST17)
+	begin_campaign(5)
 	await get_tree().create_timer(0.3).timeout
 	for i in range(14):
 		if current_screen == null or not ("page_i" in current_screen):
@@ -1224,7 +1372,19 @@ func _show_load_overlay() -> void:
 	load_overlay.level = campaign_level
 	var era: Dictionary = Data.ERAS[Data.era_of_level(campaign_level)]
 	load_overlay.machine = str(era.get("sys", "KFM"))
-	screen_layer.add_child(load_overlay)
+	if Data.era_of_level(campaign_level) == 0:
+		# (C11) l'écran de la console = le verre : l'overlay de chargement
+		# est clippé dedans — rien ne déborde sur la coque
+		var clip := Control.new()
+		clip.position = Data.GLASS.position
+		clip.size = Data.GLASS.size
+		clip.clip_contents = true
+		clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		load_overlay.position = -Data.GLASS.position   # contenu en repère plein écran
+		clip.add_child(load_overlay)
+		screen_layer.add_child(clip)
+	else:
+		screen_layer.add_child(load_overlay)
 	# comme l'overlay web (nvLoad) : purement visuel, il ne bloque ni le
 	# pilotage ni les entrées
 	var stack: Array[Node] = [load_overlay]
@@ -1407,44 +1567,45 @@ func _run_shell_test() -> void:
 	if FileAccess.file_exists(spath):
 		DirAccess.remove_absolute(spath)
 	Save.S.max_level = 1
-	# -- 1) coque ère 0 : verre en place, gâchettes SELECT/START -------------
+	power_state = "on"   # (C11) TEST16 : console pré-allumée
+	# -- 1) coque ère 0 : verre en place, touches SELECT/START ---------------
 	begin_campaign(1)
 	await get_tree().create_timer(0.3).timeout
 	await _advance_to_play()
 	await get_tree().create_timer(1.4).timeout   # laisser l'intro se lever
 	await _snap(dir + "/1_coque_nv01_secteur1.png")
-	print("SHELL: verre tr=", tr.position, " x ", tr.size, " (attendu 32,196 / 416x312)")
-	var hit_sel: String = _shell_btn_at(Vector2(172, 655))
-	var hit_sta: String = _shell_btn_at(Vector2(308, 655))
+	print("SHELL: verre tr=", tr.position, " x ", tr.size, " (attendu 24,126 / 432x324)")
+	var hit_sel: String = _shell_btn_at(Vector2(102, 843))
+	var hit_sta: String = _shell_btn_at(Vector2(362, 843))
 	var hit_glass: String = _shell_btn_at(Vector2(240, 400))
-	print("SHELL: hit-test SELECT(172,655)=", hit_sel, " START(308,655)=", hit_sta,
+	print("SHELL: hit-test SELECT(102,843)=", hit_sel, " START(362,843)=", hit_sta,
 		" verre(240,400)=", hit_glass, " (attendu select/start/)")
 	# SELECT gèle la partie (sans menu)
-	_touch_synthetic(Vector2(172, 655), true, 0)
+	_touch_synthetic(Vector2(102, 843), true, 0)
 	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(172, 655), false, 0)
+	_touch_synthetic(Vector2(102, 843), false, 0)
 	await get_tree().create_timer(0.25).timeout
 	var frozen: bool = game.paused and current_screen == null and pause_screen == null
 	print("SHELL: SELECT fige paused=", game.paused, " menu=", pause_screen != null, " (attendu true/false)")
 	await _snap(dir + "/2_select_gele.png")
 	# SELECT dégèle
-	_touch_synthetic(Vector2(172, 655), true, 0)
+	_touch_synthetic(Vector2(102, 843), true, 0)
 	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(172, 655), false, 0)
+	_touch_synthetic(Vector2(102, 843), false, 0)
 	await get_tree().create_timer(0.25).timeout
 	print("SHELL: SELECT reprend paused=", game.paused, " (attendu false)")
 	# START ouvre le menu, jeu en pause
-	_touch_synthetic(Vector2(308, 655), true, 0)
+	_touch_synthetic(Vector2(362, 843), true, 0)
 	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(308, 655), false, 0)
+	_touch_synthetic(Vector2(362, 843), false, 0)
 	await get_tree().create_timer(0.3).timeout
 	var menu_ok: bool = pause_screen != null and game.paused
 	print("SHELL: START ouvre le menu menu=", pause_screen != null, " paused=", game.paused, " (attendu true/true)")
 	await _snap(dir + "/3_start_menu.png")
 	# SELECT depuis le menu = reprendre
-	_touch_synthetic(Vector2(172, 655), true, 0)
+	_touch_synthetic(Vector2(102, 843), true, 0)
 	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(172, 655), false, 0)
+	_touch_synthetic(Vector2(102, 843), false, 0)
 	await get_tree().create_timer(0.3).timeout
 	var resumed: bool = not game.paused and current_screen == null and pause_screen == null
 	print("SHELL: SELECT reprend depuis le menu paused=", game.paused, " screen=", current_screen != null, " (attendu false/false)")
@@ -1504,3 +1665,112 @@ func _advance_to_play() -> void:
 				_tap("fire")
 		await get_tree().create_timer(0.12).timeout
 		waited += 120
+
+# test 17 : console NV-01 (C11) — curseur POWER on/off, boot, stick, TIR,
+# croix ARME, BOMBE, bandeau HUD LED, retour titre à l'extinction
+func _run_console_test() -> void:
+	var dir := "/tmp/shots17"
+	DirAccess.make_dir_recursive_absolute(dir)
+	await get_tree().process_frame
+	var spath := ProjectSettings.globalize_path("user://neovanguard.save.v3.json")
+	if FileAccess.file_exists(spath):
+		DirAccess.remove_absolute(spath)
+	Save.S.max_level = 1
+	# -- 1) écran éteint : la console attend le curseur I/O ------------------
+	power_state = "off"
+	power_knob = 0.0
+	begin_campaign(1)
+	await get_tree().create_timer(0.3).timeout
+	await _advance_to_play()
+	await get_tree().create_timer(0.4).timeout
+	print("CONSOLE: état=", power_state, " paused=", game.paused, " (attendu off/true)")
+	await _snap(dir + "/1_etegal_extinct.png")
+	# -- 2) glisser I/O → boot → allumée --------------------------------------
+	power_drag_id = 0
+	_power_slide_to(POWER_TRACK_R)
+	power_drag_id = -1
+	print("CONSOLE: après glisser=", power_state, " (attendu boot)")
+	var waited := 0
+	while power_state == "boot" and waited < 4000:
+		await get_tree().create_timer(0.1).timeout
+		waited += 100
+	await _snap(dir + "/2_boot.png")
+	print("CONSOLE: allumée paused=", game.paused, " (attendu on/false)")
+	await get_tree().create_timer(1.0).timeout
+	await _snap(dir + "/3_console_allumee.png")
+	# -- 3) stick : déplacement ----------------------------------------------
+	var g := game
+	var P: Dictionary = g.first_player()
+	P.shield = 0
+	var x0: float = P.x
+	_touch_synthetic(Vector2(95, 660), true, 0)
+	await get_tree().create_timer(0.15).timeout
+	_touch_synthetic(Vector2(200, 660), true, 0, true)   # drag vers la droite
+	await get_tree().create_timer(0.5).timeout
+	_touch_synthetic(Vector2(200, 660), false, 0)
+	await get_tree().create_timer(0.2).timeout
+	var dx: float = P.x - x0
+	print("CONSOLE: stick dx=%.1f (attendu > 20)" % dx)
+	# -- 4) TIR maintenu : balles émises -------------------------------------
+	var b0: int = g.bullets.size()
+	_touch_synthetic(Vector2(406, 616), true, 1)
+	await get_tree().create_timer(0.5).timeout
+	var fired: bool = g.touch_fire_btn and g.bullets.size() >= b0
+	_touch_synthetic(Vector2(406, 616), false, 1)
+	print("CONSOLE: TIR maintenu=", fired, " balles ", b0, "->", g.bullets.size())
+	# -- 5) croix ARME bas : l'arme change ------------------------------------
+	if not (Save.S.owned.weapons as Array).has("spread"):
+		(Save.S.owned.weapons as Array).append("spread")   # 2e arme pour le cycle
+	var w0: String = String(g.stats.weapon.id)
+	_touch_synthetic(Vector2(270, 715), true, 1)
+	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(Vector2(270, 715), false, 1)
+	await get_tree().create_timer(0.25).timeout
+	var w1: String = String(g.stats.weapon.id)
+	print("CONSOLE: croix bas ", w0, " -> ", w1, " (attendu différent)")
+	# -- 6) BOMBE : compteur -1 ------------------------------------------------
+	P.bombs = 5
+	var nb0: int = int(P.bombs)
+	_touch_synthetic(Vector2(404, 706), true, 1)
+	await get_tree().create_timer(0.3).timeout
+	_touch_synthetic(Vector2(404, 706), false, 1)
+	await get_tree().create_timer(0.3).timeout
+	print("CONSOLE: bombe ", nb0, " -> ", int(P.bombs), " (attendu -1)")
+	await _snap(dir + "/4_controles_ps4.png")
+	# -- 7) SELECT gelé / START menu (recap C10, nouvelles positions) ---------
+	_touch_synthetic(Vector2(102, 843), true, 1)
+	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(Vector2(102, 843), false, 1)
+	await get_tree().create_timer(0.25).timeout
+	print("CONSOLE: SELECT fige paused=", game.paused, " menu=", pause_screen != null)
+	_touch_synthetic(Vector2(362, 843), true, 1)
+	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(Vector2(362, 843), false, 1)
+	await get_tree().create_timer(0.25).timeout
+	print("CONSOLE: START menu=", pause_screen != null, " paused=", game.paused)
+	_touch_synthetic(Vector2(102, 843), true, 1)
+	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(Vector2(102, 843), false, 1)
+	await get_tree().create_timer(0.25).timeout
+	print("CONSOLE: SELECT reprend paused=", game.paused)
+	# -- 8) extinction : saisir le bouton (à droite de la piste) et glisser ---
+	_touch_synthetic(Vector2(138, 808), true, 1)
+	await get_tree().create_timer(0.15).timeout
+	_touch_synthetic(Vector2(44, 808), true, 1, true)   # drag vers la gauche
+	await get_tree().create_timer(0.3).timeout
+	_touch_synthetic(Vector2(44, 808), false, 1)
+	await get_tree().create_timer(0.1).timeout
+	print("CONSOLE: après glisser O=", power_state, " (attendu shutdown)")
+	waited = 0
+	while power_state == "shutdown" and waited < 3000:
+		await get_tree().create_timer(0.1).timeout
+		waited += 100
+	await get_tree().create_timer(0.3).timeout
+	print("CONSOLE: éteinte=", power_state, " titre=", current_screen != null and game.state == "menu",
+		" (attendu off/true)")
+	await _snap(dir + "/5_etegal_extinct_titre.png")
+	if FileAccess.file_exists(spath):
+		DirAccess.remove_absolute(spath)
+	print("=== CONSOLE TEST TERMINE ===")
+	get_tree().quit(0)
+

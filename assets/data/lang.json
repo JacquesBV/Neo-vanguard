@@ -255,7 +255,7 @@
   "BOMB",
   "BOMBA",
   "BOMBA",
-  "ボム"
+  "爆弾"
  ],
  "BOMBES #": [
   "BOMBS #",
@@ -2890,5 +2890,53 @@
   "Repite un sector alcanzado",
   "Repete um setor alcançado",
   "到達済みセクターを再プレイ"
+ ],
+ "TIR": [
+  "FIRE",
+  "DISPARO",
+  "TIRO",
+  "発射"
+ ],
+ "COQUE": [
+  "HULL",
+  "CASCO",
+  "CASCO",
+  "機体"
+ ],
+ "BOMBES": [
+  "BOMBS",
+  "BOMBAS",
+  "BOMBAS",
+  "爆弾"
+ ],
+ "⏻ GLISSER POUR ALLUMER": [
+  "⏻ SLIDE TO POWER ON",
+  "⏻ DESLIZA PARA ENCENDER",
+  "⏻ DESLIZE PARA LIGAR",
+  "⏻ スライドして電源オン"
+ ],
+ "⏻ GLISSER POUR ÉTEINDRE": [
+  "⏻ SLIDE TO POWER OFF",
+  "⏻ DESLIZA PARA APAGAR",
+  "⏻ DESLIZE PARA DESLIGAR",
+  "⏻ スライドして電源オフ"
+ ],
+ "SELECT · PAUSE": [
+  "SELECT · PAUSE",
+  "SELECT · PAUSA",
+  "SELECT · PAUSA",
+  "SELECT · ポーズ"
+ ],
+ "START · MENU": [
+  "START · MENU",
+  "START · MENÚ",
+  "START · MENU",
+  "START · メニュー"
+ ],
+ "⇕ CHANGER D'ARME": [
+  "⇕ CHANGE WEAPON",
+  "⇕ CAMBIAR ARMA",
+  "⇕ TROCAR ARMA",
+  "⇕ 武器を切替"
  ]
 }

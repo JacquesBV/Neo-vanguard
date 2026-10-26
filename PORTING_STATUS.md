@@ -183,5 +183,39 @@ Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
 - écoute audio humaine (pilote dummy en sandbox) ;
 - confirmation du multitouch sur appareil physique (pipeline validé TEST12) et exécution du .exe sur Windows réels ;
 - couverture i18n étendue aux écrans à contenu formaté.
+## Coque photo V13 + console NV-01 complète (C11) — demandes utilisateur
+- **Coque = PHOTO** : `assets/coque/nv01-shell.png` (960×1720, pliée en 480×860) posée comme
+  texture statique (`shell_layer.gd`, ImageTexture décompressée au chargement — les
+  CompressedTexture2D lossless se rendent blanches sur certains drivers). Plaque deck carbone
+  étendue (16,910,944,1480 en 960×1720) couvrant les organes photo, sticker hexagonal FAN BOY
+  conservé au centre du cul de console, vignette photo bas-droite neutralisée (clone-stamp carbone).
+- **Verre 4:3 max** : `Data.GLASS = Rect2(24, 126, 432, 324)` — l'ère 0 rend 480×360 dedans ;
+  le néon du cadre entoure exactement la vitre et sa couleur = progression du secteur
+  (vert→jaune→orange→rouge, pulse >75 %), `Data.progress_color` partagée avec la LED coque.
+- **HUD 100 % hors écran** : bandeau LED `STRIP Rect2(16, 473, 448, 28)` (vies, COQUE segmentée
+  vert→rouge = %, BOMBES, arme or) ; le verre ne garde que score/vies/pieces, barre de l'amiral
+  et chaîne (`_draw_glass_lcd`).
+- **Contrôles taille DualShock 4** (480 px ≈ 68 mm ≈ 7,06 px/mm) : stick cap Ø19 mm → cap 100 px
+  (anneau 148), croix 24 mm → 168 px (bras 84), boutons face Ø10 mm → TIR Ø84 / BOMBE Ø80.
+  Stick = mouvement SEUL (`touch_press(pos, true)` → `touch_stick`, tir = bouton TIR maintenu
+  `game.touch_fire_btn`) ; croix = ARME haut/bas ; BOMBE ; SELECT pause / START menu.
+- **Libellés symbole + nom** dessinés moteur (fr/en/es/pt/ja via `lang.json`, +11 clés = 490
+  entrées), aucun texte gravé sur la photo ; sous-libellés PAUSE/MENU dans les pills.
+- **Curseur POWER à glisser** (piste gauche du cul, bouton saisi sur I ou O seulement) :
+  éteint → verre noir + « GLISSER POUR ALLUMER » (glyphe ⏻ vectoriel) ; ON → boot 1,15 s
+  (lignes LCD + logo + flash) puis dégel ; en jeu → « GLISSER POUR ÉTEINDRE », OFF → extinction
+  0,55 s (lignes retombent + son « powerdown ») + RETOUR AU TITRE. L'overlay de chargement est
+  clippé au verre en ère 0 et masqué hors état « on ».
+- Tests : **TEST16 7/7** (coque, gel, menu, reprise, pop figé, progression, sections),
+  **TEST17 12/12 (nouveau)** : éteint/paused → glisser → boot → on/dégel → stick dx=105 →
+  TIR maintenu → croix pulse→spread → bombe −1 → SELECT/START → glisser O → shutdown → off
+  + retour titre. Non-rég : **TEST12 7/7** (déplacé secteur 5, ère 1), **TEST14 3/3**,
+  **TEST15 3/3**. Captures : `apercu-godot/c11/` (11 fichiers).
+
+## Reste (après corrections)
+- écoute audio humaine (pilote dummy en sandbox) ;
+- confirmation du multitouch sur appareil physique (pipeline validé TEST12) et exécution du .exe sur Windows réels ;
+- couverture i18n étendue aux écrans à contenu formaté ;
+- fidélité web restante : P4 (chaînes EN natives), P5 (sprites pixel), P6 (re-mesure) — portage incomplet tant que non atteint.
 ## Prochaine action
 ouvrir la PR `port/godot-native` → `main` (branche poussée à l'instant).

@@ -23,6 +23,8 @@ var daily_mods: Array = []
 var two_p := false
 # ---- tactile : pilote au doigt (réplique wirePointer() de l'original) ------
 var touch_down := false           # un doigt pilote est posé
+var touch_stick := false          # (C11) stick coque NV-01 : mouvement SEUL, sans tir
+var touch_fire_btn := false       # (C11) bouton TIR de la coque NV-01 maintenu
 var touch_finger := Vector2.ZERO  # position courante du doigt
 var touch_base0 := Vector2.ZERO   # position du doigt à la pose
 var touch_grab := Vector2.ZERO    # position du vaisseau à la pose
@@ -412,6 +414,8 @@ func _axis(id: int) -> Vector2:
 
 func _firing(P: Dictionary) -> bool:
 	if Save.S.opts.autofire: return true
+	# (C11) bouton TIR de la coque NV-01 maintenu
+	if touch_fire_btn and P.id == 1: return true
 	if P.id == 1:
 		return Input.is_action_pressed("fire") or touch_down   # le doigt tire (original)
 	return Input.is_action_pressed("fire2")
@@ -437,7 +441,7 @@ func update_players(dt: float) -> void:
 			continue
 		var ax := _axis(P.id)
 		var sp: float = stats.speed
-		if P.id == 1 and touch_down:
+		if P.id == 1 and (touch_down or touch_stick):
 			# tactile RELATIF 1:1 (original) : un pixel de doigt = un pixel de
 			# vaisseau, sans plafond de vitesse ni inertie ; rebase aux bords
 			# pour que inverser le doigt réponde immédiatement.
@@ -4174,12 +4178,19 @@ func _vtalk_update(dt: float) -> void:
 #  prend le vaisseau là où il est), tir au doigt, deuxième doigt ou double
 #  tap (<400 ms) = bombe, barre de commandes ignorée en secteur 1.
 # =========================================================================
-func touch_press(pos: Vector2) -> void:
+func touch_press(pos: Vector2, move_only := false) -> void:
+	# (C11) move_only=true : le STICK de la coque NV-01 déplace le vaisseau
+	# SANS déclencher le tir ni la bombe — le tir est le bouton TIR maintenu.
 	touch_finger = pos
 	if state != "play" or paused or players.is_empty():
 		return
-	if era_idx == 0 and bool(Save.S.opts.get("frame", true)) and pos.y > 742.0:
-		return   # barre de commandes tactile de la coque KFM-01
+	if move_only:
+		touch_tap_t = -10.0
+		touch_down = false
+		touch_stick = true
+		touch_base0 = pos
+		touch_grab = Vector2(players[0].x, players[0].y)
+		return
 	if touch_down:
 		touch_bomb()      # deuxième doigt = bombe (comme l'original)
 		return
@@ -4188,6 +4199,7 @@ func touch_press(pos: Vector2) -> void:
 		touch_bomb()      # double tap = bombe (400 ms, comme l'original)
 	else:
 		touch_tap_t = touch_t
+	touch_stick = false
 	touch_down = true
 	touch_base0 = pos
 	touch_grab = Vector2(players[0].x, players[0].y)
@@ -4197,6 +4209,7 @@ func touch_drag(pos: Vector2) -> void:
 
 func touch_release() -> void:
 	touch_down = false
+	touch_stick = false
 
 func touch_bomb() -> void:
 	if players.is_empty():

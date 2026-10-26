@@ -10,9 +10,10 @@ const L_W := 480.0
 # Terrain de jeu (ère 0 : monde 4:3 paysage dans la coque ; sinon portrait)
 var FW := 480.0
 var FH := 860.0
-# Rect fenêtre du verre LCD FanBoy (ère 0) — (C10) INCHANGÉE : la coque NV-01
-# se dessine autour, la taille d'écran reste strictement identique.
-const GLASS := Rect2(32, 196, 416, 312)
+# Rect fenêtre du verre LCD FanBoy (ère 0) — (C11) écran XXL 432×324 (4:3
+# pile) dans la coque néon photo assets/coque/nv01-shell.png : +30 % de
+# surface vs l'ancien verre, le néon EST le cadre de l'écran.
+const GLASS := Rect2(24, 126, 432, 324)
 
 ## (C10) rampe d'alerte du cadre lumineux : vert → jaune → orange → rouge.
 ## p = progression du secteur (0..1, NVGame.sector_progress).

@@ -234,6 +234,10 @@ static func recipe(name: String, e: int, big := false) -> Array:
 		"uiclick":
 			out.append(_v(0.0, 1350.0, 620.0, 0.045, "square", 0.055))
 			out.append(_v(0.0, 2250.0, 1000.0, 0.028, "square", 0.03))
+		# (C11) mise hors tension de la console : balayage descendant
+		"powerdown":
+			out.append(_v(0.0, 1400.0, 90.0, 0.5, "square", 0.09))
+			out.append(_n(0.0, 0.22, 0.05, _flt("lowpass", 2200.0, 180.0)))
 		"ehit":
 			if e == 0:
 				out.append(_n(0.0, 0.04, 0.08, _flt("bandpass", 2600.0, 1600.0, 1.1)))
