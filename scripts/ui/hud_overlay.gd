@@ -34,6 +34,9 @@ func _draw() -> void:
 		_draw_hud_lcd()
 	else:
 		_draw_hud_std()
+		# barre tactile des ères 1+ (#touchui du web : AU-DESSUS du canvas)
+		if bool(Save.S.opts.get("frame", true)):
+			_draw_touch_bar(game)
 
 func _draw_hud_std() -> void:
 	var TH: Dictionary = game.TH
@@ -187,3 +190,56 @@ func fmt(n: int) -> String:
 		c += 1
 		if c % 3 == 0 and i > 0: out = " " + out
 	return out
+
+# ---- barre tactile des ères 1+ (#touchui du web : bande fixe en bas,
+# AU-DESSUS du canvas — dessinée ici car hud_overlay est au-dessus de la vue)
+func _draw_touch_bar(g: Node) -> void:
+	var acc: Color = g.TH.acc if g.TH.has("acc") else Color("#38e0ff")
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.043, 0.078, 0.16, 0.72)
+	bg.border_color = Color(acc.r, acc.g, acc.b, 0.4)
+	bg.border_width_top = 2
+	draw_style_box(bg, Rect2(0, 742, 480, 118))
+	var wob := Color(1, 1, 1, 0.85)
+	_bar_btn(Rect2(14, 756, 74, 90), "BOMBE", _bomb_txt(g), wob, acc)
+	_bar_btn(Rect2(98, 756, 56, 90), "", "−", wob, acc, "PRÉC")
+	_bar_btn(Rect2(164, 756, 152, 90), "ARMEMENT", _weapon_txt(), Color("#ffd166"), acc, "%d DISPONIBLES" % _weapon_count())
+	_bar_btn(Rect2(326, 756, 56, 90), "", "+", wob, acc, "SUIV")
+	_bar_btn(Rect2(392, 756, 74, 90), "", "II", wob, acc, "PAUSE")
+
+func _bar_btn(r: Rect2, title: String, value: String, vcol: Color, acc: Color, sub: String = "") -> void:
+	var b := StyleBoxFlat.new()
+	b.bg_color = Color(0.02, 0.045, 0.1, 0.9)
+	b.set_corner_radius_all(9)
+	b.border_color = Color(acc.r, acc.g, acc.b, 0.45)
+	b.set_border_width_all(2)
+	draw_style_box(b, r)
+	var f: Font = PixelUi.font()
+	if f == null:
+		f = ThemeDB.fallback_font
+	var cx: float = r.position.x + r.size.x / 2.0
+	if title != "":
+		draw_string(f, Vector2(cx - 200.0, r.position.y + 16), title, HORIZONTAL_ALIGNMENT_CENTER, 400.0, 8, Color("#9fb0cc"))
+		var vs := 16 if value.length() <= 4 else 12
+		draw_string(f, Vector2(cx - 200.0, r.position.y + (52 if sub != "" else 56)), value, HORIZONTAL_ALIGNMENT_CENTER, 400.0, vs, vcol)
+		if sub != "":
+			draw_string(f, Vector2(cx - 200.0, r.position.y + 76), sub, HORIZONTAL_ALIGNMENT_CENTER, 400.0, 8, Color("#8ea0c0"))
+	else:
+		draw_string(f, Vector2(cx - 200.0, r.position.y + (48 if sub != "" else 54)), value, HORIZONTAL_ALIGNMENT_CENTER, 400.0, 16, vcol)
+		if sub != "":
+			draw_string(f, Vector2(cx - 200.0, r.position.y + 76), sub, HORIZONTAL_ALIGNMENT_CENTER, 400.0, 8, Color("#9fb0cc"))
+
+func _bomb_txt(g: Node) -> String:
+	if g.players.is_empty():
+		return "0"
+	return str(int(g.players[0].bombs))
+
+func _weapon_txt() -> String:
+	return String(Save.S.sel.weapon).to_upper()
+
+func _weapon_count() -> int:
+	var n := 0
+	for w in Data.WEAPONS:
+		if w.price == 0 or (Save.S.owned.weapons as Array).has(w.id):
+			n += 1
+	return n

@@ -2860,5 +2860,35 @@
   "Consejo: cambia de set de disparo según el enemigo.",
   "Dica: troca de conjunto de tiro conforme o inimigo.",
   "ヒント：敵に合わせて武器セットを切り替えよう。"
+ ],
+ "CHOISIR UN SECTEUR": [
+  "PICK A SECTOR",
+  "ELIGE UN SECTOR",
+  "ESCOLHE UM SETOR",
+  "セクターを選ぶ"
+ ],
+ "Débloqué : secteur %d": [
+  "Unlocked: sector %d",
+  "Desbloqueado: sector %d",
+  "Desbloqueado: setor %d",
+  "解放：セクター%d"
+ ],
+ "secteur %d": [
+  "sector %d",
+  "sector %d",
+  "setor %d",
+  "セクター%d"
+ ],
+ "Choisir un secteur": [
+  "Pick a sector",
+  "Elige un sector",
+  "Escolhe um setor",
+  "セクターを選ぶ"
+ ],
+ "Rejouer un secteur déjà atteint": [
+  "Replay any reached sector",
+  "Repite un sector alcanzado",
+  "Repete um setor alcançado",
+  "到達済みセクターを再プレイ"
  ]
 }

@@ -12,16 +12,19 @@ func _ready() -> void:
 	z_index = -1
 
 func _process(_d: float) -> void:
-	if game() and game().era_idx == 0 and game().state == "play":
-		queue_redraw()
+	if game() and game().state == "play":
+		queue_redraw()   # toutes les ères : la barre tactile affiche compteurs/arme
 
 func game() -> Node:
 	return main.game if main else null
 
 func _draw() -> void:
 	var g: Node = game()
-	if g == null or g.era_idx != 0 or g.state != "play":
+	if g == null or g.state != "play":
 		return
+	if g.era_idx != 0:
+		return   # ères 1+ : la barre tactile est dessinée par hud_overlay
+		         # (AU-DESSUS de la vue plein écran, comme #touchui du web)
 	var glass: Rect2 = Data.GLASS
 	# --- la page claire qui porte la console ---------------------------------
 	draw_rect(Rect2(0, 0, 480, 860), Color("#efece4"))
@@ -81,9 +84,9 @@ func _draw() -> void:
 	var bar := Rect2(0, 742, 480, 118)
 	draw_rect(bar, Color("#0d1526"))
 	draw_rect(Rect2(0, 742, 480, 2), Color(1, 1, 1, 0.06))
-	_btn(Rect2(14, 756, 74, 90), "BOMBE", "0", Color.WHITE, "")
+	_btn(Rect2(14, 756, 74, 90), "BOMBE", _bomb_txt(g), Color.WHITE, "")
 	_btn(Rect2(98, 756, 56, 90), "", "−", Color.WHITE, "PRÉC")
-	_btn(Rect2(164, 756, 152, 90), "ARMEMENT", "PULSE", Color("#ffd166"), "1 DISPONIBLES")
+	_btn(Rect2(164, 756, 152, 90), "ARMEMENT", _weapon_txt(), Color("#ffd166"), "%d DISPONIBLES" % _weapon_count())
 	_btn(Rect2(326, 756, 56, 90), "", "+", Color.WHITE, "SUIV")
 	_btn(Rect2(392, 756, 74, 90), "", "II", Color.WHITE, "PAUSE")
 
@@ -143,3 +146,18 @@ func _txtp(pos: Vector2, text: String, size: int, col: Color, align := HORIZONTA
 
 func _font() -> Font:
 	return ThemeDB.fallback_font
+
+func _bomb_txt(g: Node) -> String:
+	if g.players.is_empty():
+		return "0"
+	return str(int(g.players[0].bombs))
+
+func _weapon_txt() -> String:
+	return String(Save.S.sel.weapon).to_upper()
+
+func _weapon_count() -> int:
+	var n := 0
+	for w in Data.WEAPONS:
+		if w.price == 0 or (Save.S.owned.weapons as Array).has(w.id):
+			n += 1
+	return n

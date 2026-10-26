@@ -118,6 +118,22 @@ Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
    rétroéclairage — teintes INKS inchangées.
 9. **Titre** : ancrage de l'affiche (cadre -140 px + couverture centrée).
 
+## Bombes toutes ères + accès aux secteurs 2-4 (C9) — demandes utilisateur
+1. **Bombes inutilisables (ères 2+) corrigé** : la barre tactile n'existait
+   qu'en secteurs 1-4 (coque) — le web affiche #touchui dans TOUTES les ères
+   (body.touch.playing). La barre (BOMBE/PRÉC/ARMEMENT/SUIV/PAUSE, avec
+   compteurs réels : bombes restantes, arme courante, nb d'armes possédées)
+   est désormais dessinée par hud_overlay AU-DESSUS de la vue plein écran
+   dans toutes les ères ; valeurs dynamiques aussi en ère 0.
+   TEST15 : bombe déclenchée via le bouton en ère 1 (9→8), hit-test OK.
+2. **« Je passe du secteur 1 au secteur 5 » — éclaircissement + accès** :
+   les secteurs 2-4 SONT bien GameBoy (era_of_level(2..4)=0). « Continuer »
+   reprend au max_level de la sauvegarde (comportement d'origine) — si elle
+   pointe ≥5, les 2-4 n'étaient plus accessibles. Ajout d'un **sélecteur de
+   secteur** (bouton « Choisir un secteur » au titre : grille 1-24 verrouillée
+   au record, éclairci position courante) : rejouer 2-4 GameBoy ou n'importe
+   quel secteur atteint. TEST15 : 24 boutons, verrou au-delà de max_level.
+
 ## Reste (après corrections)
 - écoute audio humaine (pilote dummy en sandbox) ;
 - confirmation du multitouch sur appareil physique (pipeline validé TEST12) et exécution du .exe sur Windows réels ;

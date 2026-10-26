@@ -53,8 +53,10 @@ func _ready() -> void:
 	# PLAY
 	_head(v, NVLang.t("JOUER"))
 	if int(Save.S.max_level) > 1:
-		ui.button(v, "▶ " + NVLang.t("Continuer la campagne") + "\n     " + NVLang.t("Reprendre là où tu t'es arrêté"),
+		ui.button(v, "▶ " + NVLang.t("Continuer la campagne") + " — " + NVLang.t("secteur %d") % int(Save.S.max_level) + "\n     " + NVLang.t("Reprendre là où tu t'es arrêté"),
 			func(): main.begin_campaign(int(Save.S.max_level)), true)
+		ui.button(v, "▤ " + NVLang.t("Choisir un secteur") + "\n     " + NVLang.t("Rejouer un secteur déjà atteint"),
+			func(): main.show_sector_select())
 	ui.button(v, "▶  " + NVLang.t("Commencer la campagne") + "\n     " + NVLang.t("24 secteurs, six générations de consoles · l'histoire d'abord"),
 		func(): main.begin_campaign(1), true)
 	ui.button(v, "◈  " + NVLang.t("Défi du jour") + "\n     " + NVLang.t("Une seule tentative comptée par jour"), func():

@@ -67,6 +67,8 @@ func _ready() -> void:
 		_run_flow_test()
 	if OS.get_environment("NV_TEST") == "14":
 		_run_fix_test()
+	if OS.get_environment("NV_TEST") == "15":
+		_run_bar_test()
 	if OS.get_environment("NV_TEST") == "9":
 		_run_vorax_test()
 	if OS.get_environment("NV_TEST") == "10":
@@ -357,8 +359,8 @@ const TOUCH_BTNS: Array[Rect2] = [
 ]
 
 func _touch_button_at(pos: Vector2) -> int:
-	# la barre n'existe qu'en secteur 1 (coque KFM-01 affichée)
-	if game.era_idx != 0 or not bool(Save.S.opts.get("frame", true)):
+	# (correctif) la barre existe dans toutes les ères (#touchui du web)
+	if not bool(Save.S.opts.get("frame", true)):
 		return -1
 	for i in TOUCH_BTNS.size():
 		if TOUCH_BTNS[i].has_point(pos):
@@ -627,6 +629,12 @@ func show_online() -> void:
 ## crédits : « comment tout est fabriqué »
 func show_credits() -> void:
 	var scr := preload("res://scripts/ui/credits_screen.gd").new()
+	scr.main = self
+	_set_screen(scr)
+
+## sélection de secteur (rejouer un secteur déjà atteint, p.ex. 2-4 GameBoy)
+func show_sector_select() -> void:
+	var scr := preload("res://scripts/ui/sector_select.gd").new()
 	scr.main = self
 	_set_screen(scr)
 
@@ -1269,4 +1277,60 @@ func _run_fix_test() -> void:
 	await _snap(dir + "/2_jeu_lcd.png")
 	print("FIX RESULT: collisions=", hit_ok, " boss_pos=", boss_ok, " bombe_tactile=", bomb_ok)
 	print("=== FIX TEST TERMINE ===")
+	get_tree().quit(0)
+
+# test 15 : bombes dans toutes les ères (barre tactile #touchui) + sélecteur
+# de secteur (rejouer 2-4 GameBoy)
+func _run_bar_test() -> void:
+	var dir := "/tmp/shots15"
+	DirAccess.make_dir_recursive_absolute(dir)
+	await get_tree().process_frame
+	print("BAR: ères 2/3/4 = ", Data.era_of_level(2), Data.era_of_level(3), Data.era_of_level(4), " (000 = GameBoy)")
+	# -- 1) barre tactile en ère 1 (secteur 5) : bouton BOMBE fonctionnel ------
+	var spath := ProjectSettings.globalize_path("user://neovanguard.save.v3.json")
+	DirAccess.remove_absolute(spath)
+	Save.S.max_level = 5
+	begin_campaign(5)
+	await get_tree().create_timer(0.3).timeout
+	for i in range(30):
+		if game.state == "play":
+			break
+		if current_screen != null and game.state != "play":
+			_tap("fire")
+		await get_tree().create_timer(0.2).timeout
+	var waited := 0
+	while game.state != "play" and waited < 15000:
+		await get_tree().create_timer(0.1).timeout
+		waited += 100
+	var g := game
+	var P: Dictionary = g.players[0]
+	P.bombs = 9
+	await get_tree().create_timer(1.0).timeout
+	var hit := _touch_button_at(Vector2(51, 801))
+	print("BAR: ère 1 hit-test BOMBE (51,801) = ", hit, " (attendu 0)")
+	var b0: int = P.bombs
+	_touch_synthetic(Vector2(51, 801), true, 0)
+	await get_tree().create_timer(0.3).timeout
+	_touch_synthetic(Vector2(51, 801), false, 0)
+	await get_tree().create_timer(0.3).timeout
+	var bomb_ok: bool = P.bombs == b0 - 1
+	print("BAR: ère 1 bombe via barre %d -> %d ok=" % [b0, P.bombs], bomb_ok)
+	await _snap(dir + "/1_secteur5_barre.png")
+	# -- 2) sélecteur de secteur ------------------------------------------------
+	show_sector_select()
+	await get_tree().create_timer(0.4).timeout
+	await _snap(dir + "/2_selecteur.png")
+	var btns := 0
+	var stack: Array[Node] = [current_screen]
+	while not stack.is_empty():
+		var nd: Node = stack.pop_back()
+		if nd is GridContainer:
+			btns = (nd as GridContainer).get_child_count()
+			break
+		for cc in nd.get_children():
+			stack.append(cc)
+	print("BAR: sélecteur boutons = ", btns, " (attendu 24)")
+	DirAccess.remove_absolute(spath)
+	print("BAR RESULT: bombe_ere1=", bomb_ok, " hit=", hit, " selecteur=", btns == 24)
+	print("=== BAR TEST TERMINE ===")
 	get_tree().quit(0)
