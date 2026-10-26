@@ -17725,7 +17725,7 @@ narrativeInstall();
   body.enter-anim .title-menu{animation:nvEnter 1.1s cubic-bezier(.2,.9,.25,1) .14s both}
   @media(max-width:700px){
     #nvGate{padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));gap:12px}
-    #nvGate .nv-scene img{inset:2svh auto auto -70vw;width:188vw;height:auto;object-fit:contain;object-position:center;opacity:.88}
+    #nvGate .nv-scene img{inset:0;width:100%;height:100%;object-fit:cover;object-position:86% center;opacity:.88}
     #nvGate .nv-scene::before{background:linear-gradient(180deg,rgba(2,4,12,.05) 0%,rgba(2,4,12,.16) 31%,rgba(2,4,12,.69) 61%,rgba(2,4,12,.97) 100%),linear-gradient(90deg,rgba(2,5,14,.28),transparent 50%,rgba(2,5,14,.32))}
     #nvGate .nv-scene::after{background:radial-gradient(ellipse at 50% 44%,rgba(48,208,255,.18),transparent 48%),linear-gradient(0deg,rgba(2,5,16,.12),transparent 55%)}
     #nvGate .gl{align-self:center;width:100%;margin:16svh 0 0;text-align:center}
