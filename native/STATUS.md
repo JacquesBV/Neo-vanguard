@@ -7,7 +7,32 @@ Les 23 autres secteurs, les menus définitifs et les systèmes de campagne reste
 à recréer. La parité visuelle, sonore et ludique intégrale n'est pas validée.
 Ce n'est pas une version commercialisable, un APK ou un candidat Meta Store.
 
-## Pack visuel S01 (provisoire) intégré — 26 octobre 2026
+## Pack visuel S01 DÉFINITIF (FanBoy V2) intégré — 26 octobre 2026
+
+- `native/sector1/artpack_s01_v2/` remplace le pack provisoire comme pack
+  actif (`PACK_ID` = `artpack_s01_v2` dans field.gd et app.gd ; l'ancien pack
+  reste en place jusqu'à validation complète, contrat
+  `native/sector1/ARTPACK_CONTRACT.md` §4).
+- Contenu : décors V2 (3 bandes 160×480 → 15 modules × 3 couches ;
+  silo-composite → modules 12 approche / 13 silo / 14 après-combat), 28
+  séries d'ennemis natives dessinées 1:1 au manifest (cell/pivot/fps, repli
+  baker cuit), Gardien du Silo articulé (7 pièces pleine-carte × 6 états,
+  reconstruction au repos identique au master pixel près, sockets
+  eye/muzzle_l/muzzle_r/core, API provisoire conservée), 8 séries d'effets
+  séparés, cadres de dialogue vides (texte Godot localisable).
+- Décisions déclarées (`artpack_s01_v2/docs/INTEGRATION.md`) : joueur = ère 0
+  native (roulis = projet Godot V13) ; pas d'art de fissures dans la V2 →
+  niveaux exposés pour tests, expression visuelle = états damage/defeat ;
+  forme mineure du Gardien restée cuite (identité) ; projectiles du champ
+  toujours dessinés voie V13 (16 angles).
+- Palette : audit PIL + test moteur = 4 encres exactes + alpha binaire sur
+  tous les PNG du pack natif (copiés pixel-identiques aux originaux V2).
+- Validation : raccordement `native/tests/artpack_s01_v2.gd`
+  **32 contrôles / 0 échec** ; régression ancien pack 22/0 ; suites projet
+  inchangées 145/0 (core 40, sector1 39, presentation 37, rewards 29).
+  Captures in-game xvfb (llvmpipe) : titre, dialogue V2, boss (en cours).
+
+## Pack visuel S01 (provisoire) — 26 octobre 2026 (conservé, archivé)
 
 - `native/sector1/artpack_s01/` installé par l'outil officiel du pack, puis
   **raccordé** : décors 3 couches suivant `route.json` (17 slots, arène 12/13,

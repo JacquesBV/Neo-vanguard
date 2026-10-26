@@ -1,0 +1,12 @@
+{
+ "pack": "artpack_s01_v2",
+ "source": "NEO_VANGUARD_S01_FANBOY_V2 (Drive), tailles corrigées",
+ "adaptation": {
+  "backgrounds": "3 bandes 160x480 -> 15 modules ×3 couches ; silo-composite -> modules 12/13/14",
+  "enemies": "28 séries natives 1:1 (cell/pivot/fps du manifest) ; mGuardian mineur reste cuit",
+  "boss": "Gardien du Silo 7 pièces 96×128 ×6 états ; API provisoire conservée ; sockets eye/muzzle_l/muzzle_r/core ; contenu master 70×89 ≈ boss cuit 70×90",
+  "fx": "8 séries 32×32 ×8 frames ; beam<-enemy_orb, muzzle<-muzzle_flash, flame<-debris, telegraph<-shield_hit",
+  "ui": "cadres vides repris du pack provisoire (V2 n'en fournit pas)",
+  "player": "ère 0 natif conservé"
+ }
+}

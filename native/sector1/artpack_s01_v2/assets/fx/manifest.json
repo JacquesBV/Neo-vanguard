@@ -1,0 +1,111 @@
+{
+ "source": "V2 effects",
+ "mapping_native": {
+  "charge": "charge",
+  "beam": "enemy_orb",
+  "muzzle": "muzzle_flash",
+  "flame": "debris",
+  "impact": "impact",
+  "bullet": "player_shot",
+  "aimed_bullet": "player_shot",
+  "telegraph": "shield_hit"
+ },
+ "sheets": {
+  "player_shot": {
+   "cell": [
+    32,
+    32
+   ],
+   "frames": 8,
+   "fps": 12,
+   "pivot": [
+    16,
+    16
+   ]
+  },
+  "enemy_orb": {
+   "cell": [
+    32,
+    32
+   ],
+   "frames": 8,
+   "fps": 12,
+   "pivot": [
+    16,
+    16
+   ]
+  },
+  "muzzle_flash": {
+   "cell": [
+    32,
+    32
+   ],
+   "frames": 8,
+   "fps": 12,
+   "pivot": [
+    16,
+    16
+   ]
+  },
+  "charge": {
+   "cell": [
+    32,
+    32
+   ],
+   "frames": 8,
+   "fps": 12,
+   "pivot": [
+    16,
+    16
+   ]
+  },
+  "impact": {
+   "cell": [
+    32,
+    32
+   ],
+   "frames": 8,
+   "fps": 12,
+   "pivot": [
+    16,
+    16
+   ]
+  },
+  "explosion": {
+   "cell": [
+    32,
+    32
+   ],
+   "frames": 8,
+   "fps": 12,
+   "pivot": [
+    16,
+    16
+   ]
+  },
+  "shield_hit": {
+   "cell": [
+    32,
+    32
+   ],
+   "frames": 8,
+   "fps": 12,
+   "pivot": [
+    16,
+    16
+   ]
+  },
+  "debris": {
+   "cell": [
+    32,
+    32
+   ],
+   "frames": 8,
+   "fps": 12,
+   "pivot": [
+    16,
+    16
+   ]
+  }
+ }
+}

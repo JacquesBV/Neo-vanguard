@@ -41,7 +41,7 @@ var capture_frames := -1
 # ---- (artpack S01) dialogue : cadres VIDES du pack, texte Godot localisable --
 ## (C2-arch) même commutation que field.gd : le pack est remplaçable sans
 ## toucher à la présentation — voir native/sector1/ARTPACK_CONTRACT.md
-const PACK_ID := "artpack_s01"
+const PACK_ID := "artpack_s01_v2"
 var artpack: String = "res://native/sector1/%s/" % PACK_ID
 var DialoguePanel: GDScript = load("res://native/sector1/%s/godot/dialogue_panel.gd" % PACK_ID)
 var dialog: Control = null
@@ -101,6 +101,8 @@ func _ready() -> void:
 		for i in 8:mission._drop(Vector2(75+(i%4)*105,500+(i/4)*85),["credit","power","shield","hull","bomb","scrap","crystal","circuit"][i])
 	if "--capture-boss" in OS.get_cmdline_user_args():
 		mission.start_boss();mission.boss.pos=Vector2(240,265);mission.boss.enter=false;mission.player.inv=999
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--capture-frames="):capture_frames=int(arg.get_slice("=",1))  # (outillage) rendu logiciel lent
 	# (artpack) avancée rapide pour prouver la progression des décors
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--seek="):seek_time=float(arg.get_slice("=",1))

@@ -9,7 +9,7 @@ extends Node2D
 ## (C2-arch) Le pack visuel est COMMUTABLE : changer PACK_ID (ou livrer le
 ## prochain pack au même contrat) suffit — aucun code de rendu à toucher.
 ## Contrat complet : native/sector1/ARTPACK_CONTRACT.md
-const PACK_ID := "artpack_s01"
+const PACK_ID := "artpack_s01_v2"
 var artpack_root: String = "res://native/sector1/%s/" % PACK_ID
 var mission
 var textures: Dictionary = {}
@@ -21,6 +21,7 @@ var rig_recoil := 0.0                 # recoil body window after fire_t ends
 var rig_was_firing := false
 var pack_textures: Dictionary = {}
 var route: Dictionary = {}
+var enemy_kinds: Dictionary = {}
 var boss_enter_time := -1.0
 
 func _ready() -> void:
@@ -33,6 +34,9 @@ func _ready() -> void:
 		rig.weapon_fired.connect(_socket_effect)
 	if route.is_empty() and FileAccess.file_exists(artpack_root+"assets/environment/route.json"):
 		route=JSON.parse_string(FileAccess.get_file_as_string(artpack_root+"assets/environment/route.json"))
+	if enemy_kinds.is_empty() and FileAccess.file_exists(artpack_root+"assets/enemies/manifest.json"):
+		for k: Dictionary in JSON.parse_string(FileAccess.get_file_as_string(artpack_root+"assets/enemies/manifest.json")):
+			enemy_kinds[String(k.id)]=k
 
 func _pack(path: String) -> Texture2D:
 	if not pack_textures.has(path):
@@ -87,30 +91,22 @@ func _draw_module_background(p: float) -> void:
 			var tex := _pack("assets/environment/layers/%02d_%s.png"%[id,layer])
 			draw_texture(tex,Vector2(0,roundf(y)))
 
-## (artpack) explicit mapping family -> existing simulation kind, phased so the
-## variety grows along the mission (recon, then patrols, then heavy security).
-## Only visuals change: trajectories, HP, drops and timings stay the simulation's.
-func _family(e: Dictionary) -> String:
-	if e.kind=="mGuardian":return ""             # identity kept from the baked atlas
-	var t: float=mission.time
-	if e.kind=="drone":
-		return "radar_drone" if t<20.0 else "armored_transport"
-	if t<20.0:return "stinger_original"
-	return "patrol_interceptor" if t<40.0 else "mine_layer"
-
+## (artpack v2) chaque kind V13 possède sa série native dans le pack
+## (28 séries, manifest cell/pivot/fps) ; dessin 1:1 au pivot du manifest ;
+## repli = sprites cuits. Seuls les visuels changent : trajectoires, PV,
+## butin et timings restent ceux de la simulation (mission.gd).
 func _pack_enemy(e: Dictionary) -> void:
-	var family := _family(e)
-	var frame := int(e.t*8)%4
-	if family=="stinger_original":
-		var tex := _pack("assets/enemies/stinger_original_sheet.png")
-		draw_texture_rect_region(tex,Rect2((e.pos/3).round()-Vector2(24,24),Vector2(48,48)),
-			Rect2(frame*48,0,48,48))
+	if e.kind=="mGuardian":return              # boss : rig V2, forme mineure restée cuite
+	var meta: Dictionary=enemy_kinds.get(e.kind,{})
+	if meta.is_empty():
+		sprite(e.kind+"_"+str(int(e.t*8)%8),e.pos)
 		return
-	_pack_enemy_frame(family,frame,(e.pos/3).round())
-
-func _pack_enemy_frame(family: String, frame: int, at: Vector2) -> void:
-	var tex := _pack("assets/enemies/%s_%02d.png"%[family,frame])
-	draw_texture(tex,at-Vector2(24,24))
+	var frames: int=int(meta.frames)
+	var cw: float=float(meta.cell[0]);var ch: float=float(meta.cell[1])
+	var frame := int(e.t*float(meta.fps))%frames
+	var tex := _pack("assets/enemies/%s.png"%e.kind)
+	draw_texture_rect_region(tex,Rect2((e.pos/3).round()-Vector2(float(meta.pivot[0]),float(meta.pivot[1])),Vector2(cw,ch)),
+		Rect2(frame*cw,0,cw,ch))
 
 func _draw() -> void:
 	if mission==null:return

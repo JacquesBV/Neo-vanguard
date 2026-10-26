@@ -1,0 +1,30 @@
+{
+ "modules": [
+  0,
+  1,
+  2,
+  3,
+  1,
+  4,
+  5,
+  6,
+  5,
+  7,
+  8,
+  9,
+  10,
+  9,
+  11,
+  10,
+  11
+ ],
+ "height": 2720,
+ "scroll_native_pixels_s": 22,
+ "arena_modules": [
+  12,
+  13
+ ],
+ "aftermath_module": 14,
+ "entry_to_boss": "maintenance > archives > security > antechamber > silo",
+ "note": "Pack V2 : bandes 160x480 decoupees en 15 modules ; ids 12/13/14 = bandes silo-composite (approche/silo/apres-combat). Timing gameplay = mission.gd intouch\u00e9."
+}

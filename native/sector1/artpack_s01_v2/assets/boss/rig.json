@@ -1,0 +1,288 @@
+{
+ "name": "Gardien du Silo",
+ "source": "NEO_VANGUARD_S01_FANBOY_V2 boss rig sheets (6 états, pièces pleine-carte 96×128)",
+ "canvas": [
+  96,
+  128
+ ],
+ "pivot": [
+  48,
+  64
+ ],
+ "states": [
+  "idle",
+  "charge",
+  "attack",
+  "recoil",
+  "damage",
+  "defeat"
+ ],
+ "order": [
+  "left_arm",
+  "right_arm",
+  "left_shoulder",
+  "right_shoulder",
+  "central_cannon",
+  "body",
+  "core"
+ ],
+ "parts": {
+  "left_arm": {
+   "sheet": "left_arm.png",
+   "pivot": [
+    48,
+    64
+   ],
+   "offsets": {
+    "idle": [
+     0,
+     0
+    ],
+    "charge": [
+     -1,
+     -1
+    ],
+    "attack": [
+     -1,
+     1
+    ],
+    "recoil": [
+     0,
+     -1
+    ],
+    "damage": [
+     0,
+     0
+    ],
+    "defeat": [
+     -2,
+     2
+    ]
+   }
+  },
+  "right_arm": {
+   "sheet": "right_arm.png",
+   "pivot": [
+    48,
+    64
+   ],
+   "offsets": {
+    "idle": [
+     0,
+     0
+    ],
+    "charge": [
+     1,
+     -1
+    ],
+    "attack": [
+     1,
+     1
+    ],
+    "recoil": [
+     0,
+     -1
+    ],
+    "damage": [
+     0,
+     0
+    ],
+    "defeat": [
+     2,
+     2
+    ]
+   }
+  },
+  "left_shoulder": {
+   "sheet": "left_shoulder.png",
+   "pivot": [
+    48,
+    64
+   ],
+   "offsets": {
+    "idle": [
+     0,
+     0
+    ],
+    "charge": [
+     0,
+     0
+    ],
+    "attack": [
+     0,
+     0
+    ],
+    "recoil": [
+     0,
+     0
+    ],
+    "damage": [
+     0,
+     0
+    ],
+    "defeat": [
+     -1,
+     1
+    ]
+   }
+  },
+  "right_shoulder": {
+   "sheet": "right_shoulder.png",
+   "pivot": [
+    48,
+    64
+   ],
+   "offsets": {
+    "idle": [
+     0,
+     0
+    ],
+    "charge": [
+     0,
+     0
+    ],
+    "attack": [
+     0,
+     0
+    ],
+    "recoil": [
+     0,
+     0
+    ],
+    "damage": [
+     0,
+     0
+    ],
+    "defeat": [
+     1,
+     1
+    ]
+   }
+  },
+  "central_cannon": {
+   "sheet": "central_cannon.png",
+   "pivot": [
+    48,
+    64
+   ],
+   "offsets": {
+    "idle": [
+     0,
+     0
+    ],
+    "charge": [
+     0,
+     0
+    ],
+    "attack": [
+     0,
+     1
+    ],
+    "recoil": [
+     0,
+     -1
+    ],
+    "damage": [
+     0,
+     0
+    ],
+    "defeat": [
+     0,
+     0
+    ]
+   }
+  },
+  "body": {
+   "sheet": "body.png",
+   "pivot": [
+    48,
+    64
+   ],
+   "offsets": {
+    "idle": [
+     0,
+     0
+    ],
+    "charge": [
+     0,
+     0
+    ],
+    "attack": [
+     0,
+     0
+    ],
+    "recoil": [
+     0,
+     0
+    ],
+    "damage": [
+     0,
+     0
+    ],
+    "defeat": [
+     0,
+     0
+    ]
+   }
+  },
+  "core": {
+   "sheet": "core.png",
+   "pivot": [
+    48,
+    64
+   ],
+   "offsets": {
+    "idle": [
+     0,
+     0
+    ],
+    "charge": [
+     0,
+     0
+    ],
+    "attack": [
+     0,
+     0
+    ],
+    "recoil": [
+     0,
+     0
+    ],
+    "damage": [
+     0,
+     0
+    ],
+    "defeat": [
+     0,
+     0
+    ]
+   }
+  }
+ },
+ "sockets": {
+  "eye": [
+   48,
+   56
+  ],
+  "muzzle_l": [
+   24,
+   99
+  ],
+  "muzzle_r": [
+   74,
+   99
+  ],
+  "core": [
+   49,
+   89
+  ]
+ },
+ "socket_owner": {
+  "eye": "core",
+  "muzzle_l": "left_arm",
+  "muzzle_r": "right_arm",
+  "core": "central_cannon"
+ },
+ "damage_visual": "état 'damage' (offsets V2) piloté par hurt_t ; pas d'art de fissures dans la V2 (documenté)",
+ "rest_reconstruction_exact": true
+}
