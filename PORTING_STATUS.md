@@ -217,5 +217,17 @@ Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
 - confirmation du multitouch sur appareil physique (pipeline validé TEST12) et exécution du .exe sur Windows réels ;
 - couverture i18n étendue aux écrans à contenu formaté ;
 - fidélité web restante : P4 (chaînes EN natives), P5 (sprites pixel), P6 (re-mesure) — portage incomplet tant que non atteint.
+## LED progressistes façon console portable (C12) — demande utilisateur
+- **OFF = AUCUNE LED allumée** : néon du cadre éteint, bandeau HUD réduit à la légende
+  imprimée (segments invisibles), stick sans anneau, TIR/BOMBE/croix en plastique sombre
+  (`_mix_led` plastique→couleur vive), bouton I/O noir. Seul le hint gravé « GLISSER POUR
+  ALLUMER » + glyphe ⏻ vectoriel restent visibles dans le verre noir.
+- **ON = montée PROGRESSIVE** (`_led_levels` : fenêtres lissées hermite sur `boot_t`) :
+  néon du cadre (0,05→0,55 s) → bandeau HUD LED (0,25→0,80 s) → anneau stick + boutons
+  TIR/BOMBE/croix (0,45→1,05 s) → rétroéclairage du bouton I/O (0,85→1,15 s, cyan) ;
+  extinction : tout retombe ensemble en 0,55 s (décharge).
+- Tests : **TEST17 12/12** (+ captures de la montée à 35 % et 75 % dans `apercu-godot/c11/`,
+  planche `planche-montee-led.png`) ; non-rég **TEST16 7/7, TEST12 7/7, TEST14 3/3, TEST15 3/3**.
+
 ## Prochaine action
 ouvrir la PR `port/godot-native` → `main` (branche poussée à l'instant).

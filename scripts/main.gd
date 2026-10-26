@@ -1690,11 +1690,16 @@ func _run_console_test() -> void:
 	_power_slide_to(POWER_TRACK_R)
 	power_drag_id = -1
 	print("CONSOLE: après glisser=", power_state, " (attendu boot)")
+	# (C12) preuve de la montée PROGRESSIVE des LED : capture à 35 % puis 75 %
+	await get_tree().create_timer(0.40).timeout
+	await _snap(dir + "/2a_boot_led_35pct.png")
+	await get_tree().create_timer(0.45).timeout
+	await _snap(dir + "/2b_boot_led_75pct.png")
 	var waited := 0
 	while power_state == "boot" and waited < 4000:
 		await get_tree().create_timer(0.1).timeout
 		waited += 100
-	await _snap(dir + "/2_boot.png")
+	await _snap(dir + "/2c_boot_fini.png")
 	print("CONSOLE: allumée paused=", game.paused, " (attendu on/false)")
 	await get_tree().create_timer(1.0).timeout
 	await _snap(dir + "/3_console_allumee.png")

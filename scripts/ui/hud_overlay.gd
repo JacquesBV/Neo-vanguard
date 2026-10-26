@@ -299,28 +299,61 @@ func _draw_era0() -> void:
 	var ps: String = "on"
 	if main != null:
 		ps = str(main.get("power_state"))
-	_draw_neon_frame(ms, ps)
-	_draw_hud_strip()
+	var led: Dictionary = _led_levels(ps)
+	_draw_neon_frame(ms, ps, led.frame)
+	_draw_hud_strip(led.strip)
 	if ps == "on":
 		_draw_glass_lcd()
-	_draw_controls(ms)
+	_draw_controls(ms, led)
 	if ps == "off":
 		_draw_screen_off()
-		_draw_power_slider(ms)
+		_draw_power_slider(ms, led.knob)
 	elif ps == "boot":
 		_draw_boot(ms)
 	elif ps == "shutdown":
 		_draw_shutdown(ms)
-		_draw_power_slider(ms)
+		_draw_power_slider(ms, led.knob)
 	else:
-		_draw_power_slider(ms)
+		_draw_power_slider(ms, led.knob)
+
+## (C12) montée PROGRESSIVE des LED, comme une vraie console portable :
+## éteinte → tout est éteint (plastique nu) ; curseur sur ON → le néon du
+## cadre s'attaque d'abord, puis le bandeau HUD, puis l'anneau du stick et
+## les boutons, le bouton I/O s'illumine en fin de boot. Extinction : tout
+## retombe ensemble, très vite (décharge).
+func _led_levels(ps: String) -> Dictionary:
+	var t: float = 0.0
+	if main != null:
+		t = float(main.get("boot_t"))
+	var r := { "frame": 0.0, "strip": 0.0, "ring": 0.0, "btn": 0.0, "knob": 0.0 }
+	match ps:
+		"boot":
+			r.frame = _sstep(clampf((t - 0.05) / 0.50, 0.0, 1.0))
+			r.strip = _sstep(clampf((t - 0.25) / 0.55, 0.0, 1.0))
+			r.ring = _sstep(clampf((t - 0.45) / 0.60, 0.0, 1.0))
+			r.btn = _sstep(clampf((t - 0.45) / 0.60, 0.0, 1.0))
+			r.knob = _sstep(clampf((t - 0.85) / 0.30, 0.0, 1.0))
+		"on":
+			r = { "frame": 1.0, "strip": 1.0, "ring": 1.0, "btn": 1.0, "knob": 1.0 }
+		"shutdown":
+			var k: float = 1.0 - _sstep(clampf(t / 0.55, 0.0, 1.0))
+			r = { "frame": k, "strip": k, "ring": k, "btn": k, "knob": k }
+	return r
+
+## interpolateur lisse 0..1 (hermite)
+func _sstep(x: float) -> float:
+	return x * x * (3.0 - 2.0 * x)
+
+func _mix_led(unlit: Color, lit: Color, k: float) -> Color:
+	return Color(lerpf(unlit.r, lit.r, k), lerpf(unlit.g, lit.g, k),
+		lerpf(unlit.b, lit.b, k), lerpf(unlit.a, lit.a, k))
 
 ## le néon EST le cadre de l'écran : couleur = progression du secteur
-func _draw_neon_frame(ms: int, ps: String) -> void:
+func _draw_neon_frame(ms: int, ps: String, led: float) -> void:
+	if led <= 0.01:
+		return   # (C12) console éteinte : AUCUNE LED allumée
 	var col: Color
 	match ps:
-		"off":
-			col = Color(0.25, 0.30, 0.36)
 		"boot":
 			col = Color(0.3, 0.9, 1.0)
 		_:
@@ -330,11 +363,11 @@ func _draw_neon_frame(ms: int, ps: String) -> void:
 		pulse = 0.72 + 0.28 * sin(ms / 110.0)
 	var g: Rect2 = Data.GLASS
 	draw_rect(Rect2(g.position.x - 12, g.position.y - 12, g.size.x + 24, g.size.y + 24),
-		Color(col.r, col.g, col.b, 0.16 * pulse), false, 26.0)   # bloom
+		Color(col.r, col.g, col.b, 0.16 * pulse * led), false, 26.0)   # bloom
 	draw_rect(Rect2(g.position.x - 5, g.position.y - 5, g.size.x + 10, g.size.y + 10),
-		Color(col.r, col.g, col.b, 0.55 + 0.45 * pulse), false, 7.0)
+		Color(col.r, col.g, col.b, (0.55 + 0.45 * pulse) * led), false, 7.0)
 	draw_rect(Rect2(g.position.x - 2, g.position.y - 2, g.size.x + 4, g.size.y + 4),
-		Color(minf(1.0, col.r + 0.25), minf(1.0, col.g + 0.25), minf(1.0, col.b + 0.25), 0.95), false, 2.0)
+		Color(minf(1.0, col.r + 0.25), minf(1.0, col.g + 0.25), minf(1.0, col.b + 0.25), 0.95 * led), false, 2.0)
 	if ps == "on":
 		var p: int = int(round(game.sector_progress() * 100.0))
 		_txtp(Vector2(STRIP.end.x - 2, STRIP.position.y + 19), "%d %%" % p, 8,
@@ -397,7 +430,7 @@ func _draw_shutdown(ms: int) -> void:
 		NVLang.t("⏻ GLISSER POUR ALLUMER"), 9, Color(0.4, 0.55, 0.62, 0.7), HORIZONTAL_ALIGNMENT_CENTER)
 
 ## le curseur POWER (bas de coque) : I/O magnétique
-func _draw_power_slider(ms: int) -> void:
+func _draw_power_slider(ms: int, led_knob: float) -> void:
 	# (C11) la piste vit à GAUCHE du cul de console : le centre accueille le
 	# sticker logo (photo, intouchable). Symbole ⏻ vectoriel (jamais en tofu).
 	var track := Rect2(28, 792, 130, 32)
@@ -417,12 +450,15 @@ func _draw_power_slider(ms: int) -> void:
 	_txtp(Vector2(track.position.x + 18, cy + 5), "I", 11, Color(0.45, 0.55, 0.65), HORIZONTAL_ALIGNMENT_CENTER)
 	_txtp(Vector2(track.end.x - 18, cy + 5), "O", 11, Color(0.45, 0.55, 0.65), HORIZONTAL_ALIGNMENT_CENTER)
 	var kx: float = lerp(track.position.x + 20, track.end.x - 20, knob)
-	var on: bool = ps != "off" and ps != "shutdown"
-	var kc: Color = Color(0.3, 0.9, 1.0) if on else Color(0.85, 0.3, 0.32)
-	draw_circle(Vector2(kx, cy), 15, Color(kc.r, kc.g, kc.b, 0.20))
+	var on: bool = ps == "on" or ps == "boot"
+	# (C12) le bouton I/O n'est rétroéclairé QUE console allumée : éteinte,
+	# c'est du plastique sombre — l'éclairage cyan monte en fin de boot
+	var kc: Color = _mix_led(Color(0.17, 0.18, 0.21),
+		Color(0.3, 0.9, 1.0) if on else Color(0.85, 0.3, 0.32), led_knob)
+	draw_circle(Vector2(kx, cy), 15, Color(kc.r, kc.g, kc.b, 0.20 * led_knob))
 	draw_circle(Vector2(kx, cy), 12, kc.darkened(0.25))
 	draw_circle(Vector2(kx, cy), 11, kc)
-	draw_circle(Vector2(kx - 3, cy - 3), 3.4, Color(1, 1, 1, 0.5))
+	draw_circle(Vector2(kx - 3, cy - 3), 3.4, Color(1, 1, 1, 0.5 * led_knob + 0.08))
 	# ⏻ vectoriel sur le bouton : cercle ouvert + trait vertical
 	draw_arc(Vector2(kx, cy + 1.5), 5.0, -PI * 0.28, PI * 1.28, 14, Color(0.05, 0.08, 0.12), 1.7)
 	draw_line(Vector2(kx, cy - 6.5), Vector2(kx, cy + 1.0), Color(0.05, 0.08, 0.12), 1.7)
@@ -438,9 +474,10 @@ func _power_glyph(c: Vector2, col: Color, w := 1.5, r := 4.5) -> void:
 	draw_line(Vector2(c.x, c.y - r - 1.5), Vector2(c.x, c.y + 0.5), col, w)
 
 ## bandeau HUD LED hors écran (la « LED HUD STRIP » de la coque)
-func _draw_hud_strip() -> void:
-	var ink: Color = Color(Data.INKS[3])
-	var mid: Color = Color(Data.INKS[2])
+func _draw_hud_strip(led: float) -> void:
+	# (C12) LED éteintes = segments invisibles, légende à peine imprimée
+	var ink := _mix_led(Color(0.30, 0.31, 0.27, 0.16), Color(Data.INKS[3]), led)
+	var mid := _mix_led(Color(0.28, 0.29, 0.25, 0.12), Color(Data.INKS[2]), led)
 	draw_rect(STRIP, Color(0.045, 0.06, 0.04))
 	draw_rect(Rect2(STRIP.position.x, STRIP.position.y, STRIP.size.x, 2), Color(0.62, 0.64, 0.55, 0.12))
 	var P: Dictionary = game.first_player()
@@ -458,9 +495,11 @@ func _draw_hud_strip() -> void:
 	var frac: float = clampf(float(P.hp) / float(P.max_hp), 0, 1)
 	var bx: float = STRIP.position.x + 152
 	var bw: float = 100.0
-	draw_rect(Rect2(bx, y - 6, bw, 11), Color(mid.r, mid.g, mid.b, 0.20))
-	draw_rect(Rect2(bx, y - 6, bw * frac, 11), ink if frac > 0.35 else Color(Data.INKS[3]))
-	draw_rect(Rect2(bx, y - 6, bw, 11), ink, false, 1.0)
+	draw_rect(Rect2(bx, y - 6, bw, 11), Color(mid.r, mid.g, mid.b, 0.20 * led + 0.04))
+	if led > 0.02:
+		draw_rect(Rect2(bx, y - 6, bw * frac, 11), ink if frac > 0.35 else Color(Data.INKS[3]))
+	var inkk: Color = ink
+	draw_rect(Rect2(bx, y - 6, bw, 11), Color(inkk.r, inkk.g, inkk.b, inkk.a * (0.3 + 0.7 * led)), false, 1.0)
 	var seg := bx + 6.0
 	while seg < bx + bw - 2.0:
 		draw_line(Vector2(seg, y - 5), Vector2(seg, y + 4), Color(0.09, 0.11, 0.07, 0.8), 1.0)
@@ -472,20 +511,22 @@ func _draw_hud_strip() -> void:
 	if wname.length() > 12:
 		wname = wname.substr(0, 11) + "·"
 	var glow: float = 0.75 + 0.25 * sin(Time.get_ticks_msec() / 400.0)
-	_txtp(Vector2(STRIP.end.x - 36, y + 3), wname, 9, Color(1.0, 0.82, 0.42, glow), HORIZONTAL_ALIGNMENT_RIGHT)
+	_txtp(Vector2(STRIP.end.x - 36, y + 3), wname, 9, Color(1.0, 0.82, 0.42, glow * led), HORIZONTAL_ALIGNMENT_RIGHT)
 
 ## contrôles dessinés — tailles DualShock 4 réelles
-func _draw_controls(ms: int) -> void:
+func _draw_controls(ms: int, led: Dictionary) -> void:
 	var ps: String = "on"
 	if main != null:
 		ps = str(main.get("power_state"))
 	var flash: Dictionary = main.shell_press if main != null else {}
 	var ink: Color = Color(Data.INKS[3])
-	# ---- stick (Ø134 cap, anneau Ø160) ------------------------------------
+	# ---- stick (Ø134 cap, anneau Ø160) — anneau = LED (C12) ----------------
 	var s: Vector2 = STICK_C
-	var ring: Color = Data.progress_color(game.sector_progress()) if ps == "on" else Color(0.3, 0.35, 0.4)
-	draw_circle(s, STICK_R, Color(ring.r, ring.g, ring.b, 0.08))
-	draw_arc(s, 74, 0, TAU, 40, Color(ring.r, ring.g, ring.b, 0.5), 4.0)
+	var ring: Color = Data.progress_color(game.sector_progress()) if ps != "off" else Color(0.3, 0.35, 0.4)
+	var rk: float = float(led.ring)
+	if rk > 0.01:
+		draw_circle(s, STICK_R, Color(ring.r, ring.g, ring.b, 0.08 * rk))
+		draw_arc(s, 74, 0, TAU, 40, Color(ring.r, ring.g, ring.b, 0.5 * rk), 4.0)
 	var pressed_s: bool = flash.has("stick") and ms - int(flash["stick"]) < 150
 	var cap_y: float = s.y + (2.0 if pressed_s else 0.0)
 	draw_circle(Vector2(s.x, cap_y), 67, Color(0.05, 0.06, 0.08))
@@ -501,7 +542,7 @@ func _draw_controls(ms: int) -> void:
 	var dp_base := StyleBoxFlat.new()
 	dp_base.bg_color = Color(0.10, 0.11, 0.14)
 	dp_base.set_corner_radius_all(10)
-	dp_base.border_color = Color(0.85, 0.45, 0.10)
+	dp_base.border_color = _mix_led(Color(0.30, 0.22, 0.14), Color(0.85, 0.45, 0.10), float(led.btn))
 	dp_base.set_border_width_all(3)
 	draw_style_box(dp_base, Rect2(dp.x - arm, dp.y - ln, arm * 2, ln * 2))
 	var up: bool = flash.has("wup") and ms - int(flash["wup"]) < 150
@@ -518,15 +559,19 @@ func _draw_controls(ms: int) -> void:
 			tri = [Vector2(dp.x, cy2 - 8), Vector2(dp.x - 9, cy2 + 6), Vector2(dp.x + 9, cy2 + 6)]
 		else:
 			tri = [Vector2(dp.x, cy2 + 8), Vector2(dp.x - 9, cy2 - 6), Vector2(dp.x + 9, cy2 - 6)]
-		draw_colored_polygon(PackedVector2Array(tri), Color(0.9, 0.55, 0.16) if lit else Color(0.32, 0.34, 0.38))
-	_txtp(Vector2(dp.x, dp.y - ln - 8), NVLang.t("ARME") + " ⇕", 8, Color(ink.r, ink.g, ink.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER)
+		draw_colored_polygon(PackedVector2Array(tri), _mix_led(Color(0.16, 0.15, 0.13),
+			Color(0.9, 0.55, 0.16) if lit else Color(0.32, 0.34, 0.38), float(led.btn)))
+	_txtp(Vector2(dp.x, dp.y - ln - 8), NVLang.t("ARME") + " ⇕", 8,
+		Color(ink.r, ink.g, ink.b, (0.18 + 0.52 * float(led.btn))), HORIZONTAL_ALIGNMENT_CENTER)
 	# ---- TIR (Ø74, rouge) ---------------------------------------------------
 	var f: Vector2 = FIRE_C
 	var pf: bool = flash.has("fire") and ms - int(flash["fire"]) < 150
-	draw_circle(f, FIRE_R + 8, Color(1.0, 0.18, 0.22, 0.10 + (0.15 if pf else 0.0)))
+	var bk: float = float(led.btn)
+	draw_circle(f, FIRE_R + 8, Color(1.0, 0.18, 0.22, (0.10 + (0.15 if pf else 0.0)) * bk))
 	var fy: float = f.y + (2 if pf else 0)
 	var fr := StyleBoxFlat.new()
-	fr.bg_color = Color(0.86, 0.12, 0.16) if not pf else Color(1.0, 0.25, 0.28)
+	fr.bg_color = _mix_led(Color(0.26, 0.12, 0.12),
+		Color(1.0, 0.25, 0.28) if pf else Color(0.86, 0.12, 0.16), bk)
 	fr.set_corner_radius_all(int(FIRE_R))
 	fr.border_color = Color(1.0, 0.45, 0.45, 0.5)
 	fr.set_border_width_all(2)
@@ -538,12 +583,13 @@ func _draw_controls(ms: int) -> void:
 	var pb: bool = flash.has("bomb") and ms - int(flash["bomb"]) < 150
 	var by: float = b.y + (2 if pb else 0)
 	var bb := StyleBoxFlat.new()
-	bb.bg_color = Color(0.94, 0.52, 0.10) if not pb else Color(1.0, 0.68, 0.25)
+	bb.bg_color = _mix_led(Color(0.28, 0.20, 0.11),
+		Color(1.0, 0.68, 0.25) if pb else Color(0.94, 0.52, 0.10), bk)
 	bb.set_corner_radius_all(int(BOMB_R))
 	bb.border_color = Color(1.0, 0.75, 0.4, 0.45)
 	bb.set_border_width_all(2)
 	draw_style_box(bb, Rect2(b.x - BOMB_R, by - BOMB_R, BOMB_R * 2, BOMB_R * 2))
-	draw_arc(Vector2(b.x, by - BOMB_R + 9), 20, PI * 1.1, PI * 1.9, 20, Color(1, 1, 1, 0.3), 4.0)
+	draw_arc(Vector2(b.x, by - BOMB_R + 9), 20, PI * 1.1, PI * 1.9, 20, Color(1, 1, 1, 0.3 * bk), 4.0)
 	_txtp(Vector2(b.x, by + 6), "✹", 16, Color(0.25, 0.12, 0.02), HORIZONTAL_ALIGNMENT_CENTER)
 	_txtp(Vector2(b.x, b.y + BOMB_R + 14), NVLang.t("BOMBE"), 8, Color(0.95, 0.7, 0.35, 0.9), HORIZONTAL_ALIGNMENT_CENTER)
 	# ---- SELECT / START (85×35, cul de la console) --------------------------
