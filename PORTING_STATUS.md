@@ -229,5 +229,27 @@ Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
 - Tests : **TEST17 12/12** (+ captures de la montée à 35 % et 75 % dans `apercu-godot/c11/`,
   planche `planche-montee-led.png`) ; non-rég **TEST16 7/7, TEST12 7/7, TEST14 3/3, TEST15 3/3**.
 
+## Retours joueur V13 (C13) — 7 corrections
+1. **Curseur I/O « galère »** : les DRAGS étaient filtrés par la pause (console éteinte =
+   pause) — le curseur se glisse désormais MÊME éteint, se saisit PARTOUT sur la piste
+   (plus besoin de viser le bouton) et se relâche n'importe où.
+2. **Cadre néon mal aligné** : fenêtre de la photo mesurée au pixel = 440×330 @(20,122)
+   (4:3 pile) — `Data.GLASS` corrigé, le néon épouse exactement la vitre (prouvé pixel).
+3. **Stick non réactif** : pilotage ABSOLU 1:1 remplacé par un vrai STICK ANALOGIQUE —
+   incliner = vitesse proportionnelle immédiate (dérive continue doigt immobile, testée
+   38→208 px en 0,9 s, arrêt net au relâchement) ; le cap s'incline visuellement (±12 px).
+4. **Boutons moches/mal placés/demi-cercles** : TIR et BOMBE redessinés en boutons
+   « vrais » (ombre portée, cuvette, dôme bombé, spéculaire) en paire diagonale manette
+   (TIR 402,588 · BOMBE 354,672), demi-cercles parasites supprimés, zone croix resserrée.
+5. **Réalisme appui** : TIR reste ENFONCÉ tant que maintenu, BOMBE s'enfonce pendant la
+   bouffée, croix et pills s'enfoncent (2–4 px) — flashs d'appui partout.
+6. **Vaisseau qui bouge sur TIR/BOMBE** : cause racine = pilotage SOURIS (chaque appui
+   émule la souris sur mobile, le vaisseau « courait » vers le bouton) — désactivé sur la
+   console NV-01 (mesuré : dérive 0,0 px sur TIR) + secousses d'écran réduites ×0,3 en ère 0.
+7. **Écriture rouge aux dégâts** : `pop_text(..., Color("#ff7a86"))` codé en dur hors remap
+   ère 0 → `TH.danger` (encre console) ; rémanence LCD masquée console éteinte.
+- Tests : **TEST17 12/12** (nouvelles assertions dérive), **TEST16 7/7**, non-rég
+  **TEST12 7/7 · TEST14 3/3 · TEST15 3/3**. Captures à jour dans `apercu-godot/c11/`.
+
 ## Prochaine action
 ouvrir la PR `port/godot-native` → `main` (branche poussée à l'instant).

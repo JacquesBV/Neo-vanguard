@@ -13,7 +13,7 @@ var FH := 860.0
 # Rect fenêtre du verre LCD FanBoy (ère 0) — (C11) écran XXL 432×324 (4:3
 # pile) dans la coque néon photo assets/coque/nv01-shell.png : +30 % de
 # surface vs l'ancien verre, le néon EST le cadre de l'écran.
-const GLASS := Rect2(24, 126, 432, 324)
+const GLASS := Rect2(20, 122, 440, 330)   # (C13) fenêtre réelle de la photo (440×330 = 4:3 pile)
 
 ## (C10) rampe d'alerte du cadre lumineux : vert → jaune → orange → rouge.
 ## p = progression du secteur (0..1, NVGame.sector_progress).

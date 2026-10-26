@@ -24,6 +24,7 @@ var two_p := false
 # ---- tactile : pilote au doigt (réplique wirePointer() de l'original) ------
 var touch_down := false           # un doigt pilote est posé
 var touch_stick := false          # (C11) stick coque NV-01 : mouvement SEUL, sans tir
+var touch_axis := Vector2.ZERO    # (C13) inclinaison du stick (-1..1) : vitesse analogique
 var touch_fire_btn := false       # (C11) bouton TIR de la coque NV-01 maintenu
 var touch_finger := Vector2.ZERO  # position courante du doigt
 var touch_base0 := Vector2.ZERO   # position du doigt à la pose
@@ -402,7 +403,11 @@ func _axis(id: int) -> Vector2:
 	var jy := Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
 	if id == 1 and (absf(jx) > 0.24 or absf(jy) > 0.24):
 		v.x = clampf(v.x + jx, -1, 1); v.y = clampf(v.y + jy, -1, 1)
-	if id == 1 and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not touch_down:
+	# (C13) PAS de pilotage souris sur la console NV-01 : sur mobile, chaque
+	# appui sur TIR/BOMBE émule la souris et le vaisseau « courait » vers le
+	# bouton (déplacement horizontal parasite signalé par le joueur).
+	if id == 1 and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not touch_down \
+			and not (era_idx == 0 and bool(Save.S.opts.get("frame", true))):
 		# pilotage à la souris : le vaisseau suit le curseur (comme l'original)
 		var mp := get_tree().root.get_mouse_position()
 		var ddx: float = mp.x - players[0].x
@@ -441,7 +446,15 @@ func update_players(dt: float) -> void:
 			continue
 		var ax := _axis(P.id)
 		var sp: float = stats.speed
-		if P.id == 1 and (touch_down or touch_stick):
+		if P.id == 1 and touch_stick:
+			# (C13) STICK ANALOGIQUE : incliner = vitesse proportionnelle et
+			# IMMÉDIATE (le vaisseau avance tant que le stick est penché,
+			# même doigt immobile) — comme une vraie manette.
+			P.vx = lerpf(P.vx, touch_axis.x * stats.speed, clampf(dt * 16.0, 0.0, 1.0))
+			P.vy = lerpf(P.vy, touch_axis.y * stats.speed, clampf(dt * 16.0, 0.0, 1.0))
+			P.x = clampf(P.x + P.vx * dt, 32.0, Data.FW - 32.0)
+			P.y = clampf(P.y + P.vy * dt, 76.0, Data.FH - 42.0)
+		elif P.id == 1 and (touch_down or touch_stick):
 			# tactile RELATIF 1:1 (original) : un pixel de doigt = un pixel de
 			# vaisseau, sans plafond de vitesse ni inertie ; rebase aux bords
 			# pour que inverser le doigt réponde immédiatement.
@@ -560,7 +573,7 @@ func hit_player(P: Dictionary, dmg: float, contact: bool) -> void:
 	if P.hp <= 0:
 		player_die(P)
 	else:
-		pop_text(P.x, P.y - 26, "COQUE %d/%d" % [P.hp, P.max_hp], Color("#ff7a86"), 9)
+		pop_text(P.x, P.y - 26, "COQUE %d/%d" % [P.hp, P.max_hp], TH.danger, 9)
 
 func player_die(P: Dictionary) -> void:
 	P.alive = false; P.dead = 0.0
@@ -1985,6 +1998,8 @@ func sector_progress() -> float:
 			return 1.0   # HARVEST / CLEAR : secteur bouclé
 
 func add_shake(v: float) -> void:
+	if era_idx == 0:
+		v *= 0.3   # (C13) le verre 4:3 amplifie le tremblement : on le calme
 	shake = minf(30.0, shake + v * float(Save.S.opts.shake) / 100.0)
 
 func add_flash(v: float, col: Color) -> void:
@@ -4207,9 +4222,13 @@ func touch_press(pos: Vector2, move_only := false) -> void:
 func touch_drag(pos: Vector2) -> void:
 	touch_finger = pos
 
+func touch_axis_set(a: Vector2) -> void:
+	touch_axis = a.limit_length(1.0)
+
 func touch_release() -> void:
 	touch_down = false
 	touch_stick = false
+	touch_axis = Vector2.ZERO
 
 func touch_bomb() -> void:
 	if players.is_empty():

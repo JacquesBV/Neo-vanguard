@@ -491,6 +491,11 @@ func _touch_button(i: int) -> void:
 func _touch_unhandled(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var st: InputEventScreenTouch = event
+		# (C13) fin du glisser du curseur I/O, même relâché hors de la piste
+		if not st.pressed and st.index == power_drag_id:
+			power_drag_id = -1
+			power_knob = 1.0 if power_state == "on" else 0.0
+			return
 		# (C11) console NV-01 (ère 0) : stick / croix / TIR / BOMBE /
 		# SELECT / START / curseur POWER — priorité sur tout le reste
 		var sb: String = _shell_btn_at(st.position)
@@ -503,15 +508,16 @@ func _touch_unhandled(event: InputEvent) -> void:
 							shell_stick_id = st.index
 							shell_press["stick"] = Time.get_ticks_msec()
 							game.touch_press(st.position, true)   # mouvement seul
+							# (C13) inclinaison initiale = position du doigt
+							game.touch_axis_set((st.position - NVUi.STICK_C) / NVUi.STICK_R)
 					"fire":
 						if power_state == "on" and current_screen == null and not game.paused:
 							shell_press["fire"] = Time.get_ticks_msec()
 							game.touch_fire_btn = true
 					"power":
-						# (C11) il faut saisir le BOUTON du curseur (pas la piste)
-						var kx: float = POWER_TRACK_R if power_state == "on" else POWER_TRACK_L
-						if power_drag_id == -1 and (power_state == "off" or power_state == "on") \
-								and absf(st.position.x - kx) <= 30.0:
+						# (C13) toute la piste est saisissable (plus besoin de
+						# viser le bouton au pixel près)
+						if power_drag_id == -1 and (power_state == "off" or power_state == "on"):
 							power_drag_id = st.index
 							_power_slide_to(st.position.x)
 					_:
@@ -564,11 +570,13 @@ func _touch_unhandled(event: InputEvent) -> void:
 			game.touch_fire_btn = false
 	elif event is InputEventScreenDrag:
 		var dg: InputEventScreenDrag = event
-		if game.state == "play" and current_screen == null and not game.paused:
-			if dg.index == power_drag_id:
-				_power_slide_to(dg.position.x)
-			elif dg.index == shell_stick_id:
-				game.touch_drag(dg.position)
+		# (C13) le curseur I/O se glisse MÊME console éteinte (jeu en pause) :
+		# c'était la cause du « on galère pour le glisser »
+		if dg.index == power_drag_id:
+			_power_slide_to(dg.position.x)
+		elif game.state == "play" and current_screen == null and not game.paused:
+			if dg.index == shell_stick_id:
+				game.touch_axis_set((dg.position - NVUi.STICK_C) / NVUi.STICK_R)
 			elif dg.index == touch_pilot_id:
 				game.touch_drag(dg.position)
 
@@ -1574,7 +1582,7 @@ func _run_shell_test() -> void:
 	await _advance_to_play()
 	await get_tree().create_timer(1.4).timeout   # laisser l'intro se lever
 	await _snap(dir + "/1_coque_nv01_secteur1.png")
-	print("SHELL: verre tr=", tr.position, " x ", tr.size, " (attendu 24,126 / 432x324)")
+	print("SHELL: verre tr=", tr.position, " x ", tr.size, " (attendu 20,122 / 440x330)")
 	var hit_sel: String = _shell_btn_at(Vector2(102, 843))
 	var hit_sta: String = _shell_btn_at(Vector2(362, 843))
 	var hit_glass: String = _shell_btn_at(Vector2(240, 400))
@@ -1685,10 +1693,14 @@ func _run_console_test() -> void:
 	await get_tree().create_timer(0.4).timeout
 	print("CONSOLE: état=", power_state, " paused=", game.paused, " (attendu off/true)")
 	await _snap(dir + "/1_etegal_extinct.png")
-	# -- 2) glisser I/O → boot → allumée --------------------------------------
-	power_drag_id = 0
-	_power_slide_to(POWER_TRACK_R)
-	power_drag_id = -1
+	# -- 2) glisser I/O → boot : saisi N'IMPORTE OÙ sur la piste -------------
+	_touch_synthetic(Vector2(60, 808), true, 0)     # piste gauche (pas le bouton)
+	await get_tree().create_timer(0.1).timeout
+	_touch_synthetic(Vector2(60, 808), true, 0, true)
+	await get_tree().create_timer(0.15).timeout
+	_touch_synthetic(Vector2(292, 808), true, 0, true)   # drag vers la droite
+	_touch_synthetic(Vector2(140, 808), true, 0, true)   # relâche dans la piste
+	await get_tree().create_timer(0.1).timeout
 	print("CONSOLE: après glisser=", power_state, " (attendu boot)")
 	# (C12) preuve de la montée PROGRESSIVE des LED : capture à 35 % puis 75 %
 	await get_tree().create_timer(0.40).timeout
@@ -1703,25 +1715,34 @@ func _run_console_test() -> void:
 	print("CONSOLE: allumée paused=", game.paused, " (attendu on/false)")
 	await get_tree().create_timer(1.0).timeout
 	await _snap(dir + "/3_console_allumee.png")
-	# -- 3) stick : déplacement ----------------------------------------------
+	# -- 3) stick ANALOGIQUE : incliné à droite SANS bouger le doigt, le
+	#      vaisseau continue d'avancer ; au relâchement il s'arrête ----------
 	var g := game
 	var P: Dictionary = g.first_player()
 	P.shield = 0
 	var x0: float = P.x
-	_touch_synthetic(Vector2(95, 660), true, 0)
+	_touch_synthetic(Vector2(135, 660), true, 0)   # doigt à droite du centre
 	await get_tree().create_timer(0.15).timeout
-	_touch_synthetic(Vector2(200, 660), true, 0, true)   # drag vers la droite
+	var dx_mid: float = P.x - x0
+	await get_tree().create_timer(0.75).timeout
+	var dx_full: float = P.x - x0
+	_touch_synthetic(Vector2(135, 660), false, 0)
 	await get_tree().create_timer(0.5).timeout
-	_touch_synthetic(Vector2(200, 660), false, 0)
-	await get_tree().create_timer(0.2).timeout
-	var dx: float = P.x - x0
-	print("CONSOLE: stick dx=%.1f (attendu > 20)" % dx)
+	var dx_after: float = P.x - x0
+	print("CONSOLE: stick dérive 0,15s=%.1f 0,9s=%.1f (attendu croissant > 40) après=%.1f (stable)" % [dx_mid, dx_full, dx_after])
+	# -- 3b) TIR seul : le vaisseau ne bouge PAS (plus de secousse perçue) ----
+	var fx0: float = P.x
+	_touch_synthetic(Vector2(402, 588), true, 1)
+	await get_tree().create_timer(0.5).timeout
+	var fdx: float = absf(P.x - fx0)
+	_touch_synthetic(Vector2(402, 588), false, 1)
+	print("CONSOLE: dérive sur TIR =%.1f px (attendu < 4)" % fdx)
 	# -- 4) TIR maintenu : balles émises -------------------------------------
 	var b0: int = g.bullets.size()
-	_touch_synthetic(Vector2(406, 616), true, 1)
+	_touch_synthetic(Vector2(402, 588), true, 1)
 	await get_tree().create_timer(0.5).timeout
 	var fired: bool = g.touch_fire_btn and g.bullets.size() >= b0
-	_touch_synthetic(Vector2(406, 616), false, 1)
+	_touch_synthetic(Vector2(402, 588), false, 1)
 	print("CONSOLE: TIR maintenu=", fired, " balles ", b0, "->", g.bullets.size())
 	# -- 5) croix ARME bas : l'arme change ------------------------------------
 	if not (Save.S.owned.weapons as Array).has("spread"):
@@ -1736,9 +1757,9 @@ func _run_console_test() -> void:
 	# -- 6) BOMBE : compteur -1 ------------------------------------------------
 	P.bombs = 5
 	var nb0: int = int(P.bombs)
-	_touch_synthetic(Vector2(404, 706), true, 1)
+	_touch_synthetic(Vector2(354, 672), true, 1)
 	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(404, 706), false, 1)
+	_touch_synthetic(Vector2(354, 672), false, 1)
 	await get_tree().create_timer(0.3).timeout
 	print("CONSOLE: bombe ", nb0, " -> ", int(P.bombs), " (attendu -1)")
 	await _snap(dir + "/4_controles_ps4.png")

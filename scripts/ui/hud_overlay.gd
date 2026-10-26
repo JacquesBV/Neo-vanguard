@@ -287,10 +287,10 @@ func _weapon_count() -> int:
 const STICK_C := Vector2(95, 660)
 const STICK_R := 80.0            # zone doigt (cap dessiné Ø134, anneau Ø160)
 const DPAD_C := Vector2(270, 658)
-const DPAD_R := 88.0
-const FIRE_C := Vector2(406, 600)
+const DPAD_R := 76.0                # (C13) n'empiète plus sur BOMBE
+const FIRE_C := Vector2(402, 588)     # (C13) paire diagonale comme une manette
 const FIRE_R := 42.0
-const BOMB_C := Vector2(404, 716)
+const BOMB_C := Vector2(354, 672)
 const BOMB_R := 40.0
 const STRIP := Rect2(16, 473, 448, 28)   # bandeau HUD LED (sur la photo verte)
 
@@ -376,6 +376,13 @@ func _draw_neon_frame(ms: int, ps: String, led: float) -> void:
 ## écran éteint : verre noir + reflet + matrice LCD fantôme + consigne
 func _draw_screen_off() -> void:
 	var g: Rect2 = Data.GLASS
+	# (C13) la console éteinte n'a AUCUNE led : le néon IMPRIMÉ sur la photo
+	# est masqué par une bande de plastique éteint autour de la vitre
+	var band := 16.0
+	draw_rect(Rect2(g.position.x - band, g.position.y - band,
+		g.size.x + 2.0 * band, g.size.y + 2.0 * band), Color(0.048, 0.052, 0.062))
+	draw_rect(Rect2(g.position.x - band, g.position.y - band,
+		g.size.x + 2.0 * band, 3.0), Color(0.10, 0.11, 0.13))
 	draw_rect(g, Color(0.012, 0.016, 0.022))
 	draw_polygon(PackedVector2Array([g.position, Vector2(g.position.x + 190, g.position.y),
 		g.position, Vector2(g.position.x, g.position.y + 140)]),
@@ -513,28 +520,32 @@ func _draw_hud_strip(led: float) -> void:
 	var glow: float = 0.75 + 0.25 * sin(Time.get_ticks_msec() / 400.0)
 	_txtp(Vector2(STRIP.end.x - 36, y + 3), wname, 9, Color(1.0, 0.82, 0.42, glow * led), HORIZONTAL_ALIGNMENT_RIGHT)
 
-## contrôles dessinés — tailles DualShock 4 réelles
+## contrôles dessinés — tailles DualShock 4 réelles ; (C13) boutons « vrais »
+## (cuvette, dôme bombé, spéculaire, ombre portée) qui S'ENFONCENT à l'appui
 func _draw_controls(ms: int, led: Dictionary) -> void:
 	var ps: String = "on"
 	if main != null:
 		ps = str(main.get("power_state"))
 	var flash: Dictionary = main.shell_press if main != null else {}
 	var ink: Color = Color(Data.INKS[3])
-	# ---- stick (Ø134 cap, anneau Ø160) — anneau = LED (C12) ----------------
+	var bk: float = float(led.btn)
+	# ---- stick analogique (cap Ø134) : le cap S'INCLINE selon l'axe --------
 	var s: Vector2 = STICK_C
-	var ring: Color = Data.progress_color(game.sector_progress()) if ps != "off" else Color(0.3, 0.35, 0.4)
+	var axis: Vector2 = game.touch_axis if "touch_axis" in game else Vector2.ZERO
 	var rk: float = float(led.ring)
 	if rk > 0.01:
+		var ring: Color = Data.progress_color(game.sector_progress()) if ps != "off" else Color(0.3, 0.35, 0.4)
 		draw_circle(s, STICK_R, Color(ring.r, ring.g, ring.b, 0.08 * rk))
 		draw_arc(s, 74, 0, TAU, 40, Color(ring.r, ring.g, ring.b, 0.5 * rk), 4.0)
 	var pressed_s: bool = flash.has("stick") and ms - int(flash["stick"]) < 150
-	var cap_y: float = s.y + (2.0 if pressed_s else 0.0)
-	draw_circle(Vector2(s.x, cap_y), 67, Color(0.05, 0.06, 0.08))
-	draw_circle(Vector2(s.x, cap_y), 61, Color(0.14, 0.16, 0.20))
-	draw_arc(Vector2(s.x, cap_y), 61, 0, TAU, 40, Color(0.45, 0.52, 0.60), 2.0)
-	draw_circle(Vector2(s.x, cap_y), 50, Color(0.08, 0.09, 0.12))
-	draw_arc(Vector2(s.x, cap_y), 50, 0, TAU, 40, Color(0.16, 0.18, 0.22), 2.0)
-	draw_arc(Vector2(s.x, cap_y - 3), 38, PI, TAU, 30, Color(1, 1, 1, 0.10), 6.0)
+	var cap: Vector2 = s + Vector2(axis.x, axis.y) * 12.0 + Vector2(0.0, 2.0 if (pressed_s or axis.length() > 0.6) else 0.0)
+	draw_circle(Vector2(s.x, s.y + 3), 68, Color(0, 0, 0, 0.30))      # puits ombré
+	draw_circle(Vector2(s.x, s.y), 67, Color(0.05, 0.06, 0.08))
+	draw_circle(cap, 61, Color(0.13, 0.15, 0.19))
+	draw_arc(cap, 61, 0, TAU, 40, Color(0.45, 0.52, 0.60), 2.0)
+	draw_circle(cap, 50, Color(0.07, 0.08, 0.11))
+	draw_arc(cap, 50, 0, TAU, 40, Color(0.17, 0.19, 0.23), 2.0)
+	draw_arc(cap + Vector2(0, -3), 38, PI, TAU, 30, Color(1, 1, 1, 0.10), 6.0)
 	# ---- croix directionnelle (169, bras 57) — ARME haut/bas ---------------
 	var dp: Vector2 = DPAD_C
 	var arm: float = 28.5
@@ -548,9 +559,9 @@ func _draw_controls(ms: int, led: Dictionary) -> void:
 	var up: bool = flash.has("wup") and ms - int(flash["wup"]) < 150
 	var dn: bool = flash.has("wdn") and ms - int(flash["wdn"]) < 150
 	for half in 2:
-		var yy: float = dp.y - ln + (0 if half == 0 else ln)
-		var hh2: float = ln
 		var lit: bool = (half == 0 and up) or (half == 1 and dn)
+		var yy: float = dp.y - ln + (0 if half == 0 else ln) + (2.0 if lit else 0.0)
+		var hh2: float = ln - (2.0 if lit else 0.0)
 		if lit:
 			draw_rect(Rect2(dp.x - arm + 3, yy + 3, arm * 2 - 6, hh2 - 6), Color(1.0, 0.62, 0.2, 0.30))
 		var cy2: float = yy + hh2 / 2.0
@@ -562,37 +573,21 @@ func _draw_controls(ms: int, led: Dictionary) -> void:
 		draw_colored_polygon(PackedVector2Array(tri), _mix_led(Color(0.16, 0.15, 0.13),
 			Color(0.9, 0.55, 0.16) if lit else Color(0.32, 0.34, 0.38), float(led.btn)))
 	_txtp(Vector2(dp.x, dp.y - ln - 8), NVLang.t("ARME") + " ⇕", 8,
-		Color(ink.r, ink.g, ink.b, (0.18 + 0.52 * float(led.btn))), HORIZONTAL_ALIGNMENT_CENTER)
-	# ---- TIR (Ø74, rouge) ---------------------------------------------------
-	var f: Vector2 = FIRE_C
-	var pf: bool = flash.has("fire") and ms - int(flash["fire"]) < 150
-	var bk: float = float(led.btn)
-	draw_circle(f, FIRE_R + 8, Color(1.0, 0.18, 0.22, (0.10 + (0.15 if pf else 0.0)) * bk))
-	var fy: float = f.y + (2 if pf else 0)
-	var fr := StyleBoxFlat.new()
-	fr.bg_color = _mix_led(Color(0.26, 0.12, 0.12),
-		Color(1.0, 0.25, 0.28) if pf else Color(0.86, 0.12, 0.16), bk)
-	fr.set_corner_radius_all(int(FIRE_R))
-	fr.border_color = Color(1.0, 0.45, 0.45, 0.5)
-	fr.set_border_width_all(2)
-	draw_style_box(fr, Rect2(f.x - FIRE_R, fy - FIRE_R, FIRE_R * 2, FIRE_R * 2))
-	draw_arc(Vector2(f.x, fy - FIRE_R + 10), 26, PI * 1.1, PI * 1.9, 20, Color(1, 1, 1, 0.25), 5.0)
-	_txtp(Vector2(f.x, f.y + FIRE_R + 14), NVLang.t("TIR"), 9, Color(0.95, 0.5, 0.5, 0.9), HORIZONTAL_ALIGNMENT_CENTER)
-	# ---- BOMBE (Ø64, orange) ------------------------------------------------
-	var b: Vector2 = BOMB_C
-	var pb: bool = flash.has("bomb") and ms - int(flash["bomb"]) < 150
-	var by: float = b.y + (2 if pb else 0)
-	var bb := StyleBoxFlat.new()
-	bb.bg_color = _mix_led(Color(0.28, 0.20, 0.11),
-		Color(1.0, 0.68, 0.25) if pb else Color(0.94, 0.52, 0.10), bk)
-	bb.set_corner_radius_all(int(BOMB_R))
-	bb.border_color = Color(1.0, 0.75, 0.4, 0.45)
-	bb.set_border_width_all(2)
-	draw_style_box(bb, Rect2(b.x - BOMB_R, by - BOMB_R, BOMB_R * 2, BOMB_R * 2))
-	draw_arc(Vector2(b.x, by - BOMB_R + 9), 20, PI * 1.1, PI * 1.9, 20, Color(1, 1, 1, 0.3 * bk), 4.0)
-	_txtp(Vector2(b.x, by + 6), "✹", 16, Color(0.25, 0.12, 0.02), HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(b.x, b.y + BOMB_R + 14), NVLang.t("BOMBE"), 8, Color(0.95, 0.7, 0.35, 0.9), HORIZONTAL_ALIGNMENT_CENTER)
-	# ---- SELECT / START (85×35, cul de la console) --------------------------
+		Color(ink.r, ink.g, ink.b, 0.18 + 0.52 * float(led.btn)), HORIZONTAL_ALIGNMENT_CENTER)
+	# ---- TIR / BOMBE : boutons bombés (paire diagonale manette) -------------
+	_face_button(FIRE_C, FIRE_R, flash, "fire", bk,
+		Color(0.30, 0.15, 0.14), Color(0.80, 0.10, 0.14), Color(0.93, 0.17, 0.21),
+		bool(game.touch_fire_btn))   # (C13) reste enfoncé tant que maintenu
+	_txtp(Vector2(FIRE_C.x, FIRE_C.y - FIRE_R - 14), NVLang.t("TIR"), 9,
+		Color(0.95, 0.5, 0.5, 0.35 + 0.55 * bk), HORIZONTAL_ALIGNMENT_CENTER)
+	_face_button(BOMB_C, BOMB_R, flash, "bomb", bk,
+		Color(0.33, 0.24, 0.13), Color(0.86, 0.44, 0.06), Color(0.98, 0.56, 0.13),
+		not game.first_player().is_empty() and float(game.first_player().get("bomb_cd", 0.0)) > 0.2)
+	_txtp(Vector2(BOMB_C.x, BOMB_C.y + 4), "✹", 15,
+		Color(0.30, 0.14, 0.02, 0.25 + 0.75 * bk), HORIZONTAL_ALIGNMENT_CENTER)
+	_txtp(Vector2(BOMB_C.x, BOMB_C.y + BOMB_R + 16), NVLang.t("BOMBE"), 8,
+		Color(0.95, 0.7, 0.35, 0.25 + 0.65 * bk), HORIZONTAL_ALIGNMENT_CENTER)
+	# ---- SELECT / START : pills sur la barre lumineuse ----------------------
 	var sub_sel: PackedStringArray = NVLang.t("SELECT · PAUSE").split(" · ", false)
 	var sub_sta: PackedStringArray = NVLang.t("START · MENU").split(" · ", false)
 	_pill(Rect2(60, 828, 85, 32), "SELECT",
@@ -600,10 +595,30 @@ func _draw_controls(ms: int, led: Dictionary) -> void:
 	_pill(Rect2(320, 828, 85, 32), "START",
 		sub_sta[sub_sta.size() - 1] if sub_sta.size() > 1 else "MENU", "start", flash, ms)
 
+## bouton de face réaliste : ombre, cuvette plastique, dôme bombé qui
+## s'enfonce de 4 px à l'appui, spéculaire qui se resserre
+func _face_button(c: Vector2, r: float, flash: Dictionary, id: String, bk: float,
+		unlit: Color, base: Color, dome: Color, held := false) -> void:
+	var pressed: bool = held or (flash.has(id) and Time.get_ticks_msec() - int(flash[id]) < 200)
+	var dy: float = 4.0 if pressed else 0.0
+	draw_circle(c + Vector2(0, 5), r + 2, Color(0, 0, 0, 0.30))          # ombre portée
+	draw_circle(c, r + 5, _mix_led(Color(0.055, 0.06, 0.075), Color(0.07, 0.075, 0.09), 1.0))
+	draw_circle(c, r + 2, Color(0.15, 0.15, 0.18))                        # charmette
+	var cc: Vector2 = c + Vector2(0, dy)
+	var b1: Color = _mix_led(unlit, base.darkened(0.35), bk)
+	var b2: Color = _mix_led(unlit, base, bk)
+	var b3: Color = _mix_led(unlit.lightened(0.05), dome, bk)
+	draw_circle(cc, r - 1, b1)
+	draw_circle(cc + Vector2(0, -1.5), r - 2, b2)
+	draw_circle(cc + Vector2(0, -3), r - 4, b3)
+	draw_circle(cc + Vector2(-r * 0.30, -r * 0.34), r * (0.22 if pressed else 0.27),
+		Color(1, 1, 1, (0.36 if not pressed else 0.22) * (0.25 + 0.75 * bk)))
+	draw_arc(cc, r - 4, PI * 0.2, PI * 0.8, 16, Color(1, 1, 1, 0.10 * bk), 3.0)
+
 func _pill(r: Rect2, label: String, sub: String, id: String, flash: Dictionary, ms: int) -> void:
 	var pressed: bool = flash.has(id) and ms - int(flash[id]) < 170
-	var y: float = r.position.y + (2.0 if pressed else 0.0)
-	draw_rect(Rect2(r.position.x + 2, r.end.y - 1, r.size.x, 4), Color(0, 0, 0, 0.5))
+	var y: float = r.position.y + (3.0 if pressed else 0.0)   # (C13) ça s'enfonce
+	draw_rect(Rect2(r.position.x + 2, r.end.y + 1, r.size.x, 5), Color(0, 0, 0, 0.5))
 	var pb := StyleBoxFlat.new()
 	pb.bg_color = Color(0.32, 0.38, 0.45) if pressed else Color(0.55, 0.64, 0.72)
 	pb.set_corner_radius_all(r.size.y / 2.0)

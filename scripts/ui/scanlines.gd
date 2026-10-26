@@ -42,8 +42,12 @@ func _draw_lcd_effect() -> void:
 	var ink := Color(Data.INKS[0])
 	# 1) rémanence : la frame courante, redessinée 1,5 px plus bas, en fondu —
 	#    imite la persistance des cristaux liquides (le pixel « traîne »).
+	# (C13) la rémanence ne vit QUE console allumée (éteinte : dalle morte)
+	var psx := "on"
+	if main_node != null:
+		psx = str(main_node.get("power_state"))
 	var tex: Texture2D = main_frame_tex()
-	if tex != null:
+	if tex != null and psx == "on":
 		draw_texture_rect(tex, Rect2(glass.position + Vector2(0.0, 1.5), glass.size),
 			false, Color(1, 1, 1, 0.16))
 	# 2) grille de la matrice LCD : traits fins entre cellules
