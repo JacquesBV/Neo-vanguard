@@ -1,14 +1,17 @@
-; Native recreation workspace. No main scene until a playable sector is validated.
+; Native sector-one work in progress. See native/STATUS.md.
 config_version=5
 
 [application]
 config/name="Neo-Vanguard Native"
+run/main_scene="res://native/scenes/sector1.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 
 [display]
 window/size/viewport_width=480
 window/size/viewport_height=860
-window/stretch/mode="canvas_items"
+window/stretch/mode="disabled"
+window/size/window_width_override=480
+window/size/window_height_override=860
 
 [rendering]
 renderer/rendering_method="gl_compatibility"

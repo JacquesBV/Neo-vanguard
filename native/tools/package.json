@@ -1,0 +1,6 @@
+{
+  "name": "neo-vanguard-native-development-tools",
+  "private": true,
+  "scripts": {"bake-sector1": "node extract_sector1.cjs"},
+  "dependencies": {"@napi-rs/canvas": "0.1.100"}
+}

@@ -1,9 +1,40 @@
 # Recréation native Godot — état réel
 
-La recréation complète n'est PAS terminée. Ce commit apporte une référence
-reproductible et des composants natifs testés. Ce n'est pas un jeu jouable,
-une version finale, un APK, un exécutable PC ou un candidat Meta Store.
-Aucune scène principale n'est volontairement configurée.
+La recréation complète n'est PAS terminée. La branche contient désormais une
+**première tranche du secteur 1 jouable nativement**, lancée par la scène
+`native/scenes/sector1.tscn`. Le combat va des vagues à la victoire après le boss.
+Les 23 autres secteurs, les menus définitifs et les systèmes de campagne restent
+à recréer. La parité visuelle, sonore et ludique intégrale n'est pas validée.
+Ce n'est pas une version commercialisable, un APK ou un candidat Meta Store.
+
+## Reprise après b202d02 — 26 octobre 2026
+
+- Simulation native : déplacement, tir, 12 vagues, mini-gardien, boss à trois
+  phases, collisions, invulnérabilité, vies, bombes, objets et récolte.
+- Affichage natif : champ logique 480 × 860, raster 160 × 287, coque FanBoy FX
+  et HUD extérieur, poses Falcon et variantes mobiles à facteur 1,22.
+- Atlas : 190 poses issues de la source ; ancrages explicites, interpolation nearest.
+- Entrées raccordées : clavier, souris, stick manette, glissement relatif et
+  boutons tactiles ; pause et annulation des entrées à la perte de focus.
+- Audio : notes originales de la puce du secteur et du boss, rendues en PCM ;
+  bruit/enveloppes/filtrage à comparer à l'écoute, pas de parité audio annoncée.
+- Vérification : 40 contrôles du socle + 39 du secteur + 34 de présentation,
+  soit **113 contrôles réussis** sous Godot 4.6 stable Linux.
+- Un pilote de test invulnérable termine toutes les vagues et le boss en utilisant
+  les vrais tirs de départ. Ce test prouve le parcours, pas la difficulté humaine.
+- Captures OpenGL logiciel (Mesa) dans `native/tests/captures/` ; rendu natif
+  inspecté visuellement. Aucune comparaison au pixel près avec le navigateur.
+
+**Écarts connus du secteur 1 :** décors de tailles fixes et animations partielles,
+choix des formations dans un RNG natif, effets de tir/impact et pickups simplifiés,
+rémanence LCD non reproduite, dialogues et mise en scène incomplets, menus provisoires,
+économie et récompenses partielles. Le graze, la surcharge et certaines statistiques
+ne sont pas encore raccordés. Le rendu du shader verre est une approximation du
+module 51, pas une mesure d'équivalence de sortie.
+
+L'étape suivante consiste à fermer ces écarts et comparer des captures/mesures
+synchronisées PC et mobile à la référence web avant d'étendre au secteur 2.
+Détails : `native/sector1/README.md`, `native/tests/SECTOR1_VALIDATION.md`.
 
 ## Source imposée
 
@@ -85,8 +116,10 @@ Le contrôle d'intégration des médias charge les 817 textures et 146 flux audi
 vérifie leurs dimensions ou leur durée et relève zéro échec. Il ne vérifie ni
 leur composition à l'écran, ni leur lecture en situation de jeu.
 
-Ni test de combat, ni comparaison de captures, ni écoute comparative, ni
-session réseau à deux, ni export PC/Android/Quest n'a été effectué.
+Cette section décrit la validation du commit initial b202d02. Depuis, des tests
+de combat et de scène ainsi que des captures natives ont été ajoutés (voir la
+section de reprise ci-dessus). Toujours aucune comparaison navigateur/native
+synchronisée, écoute comparative, session réseau à deux ou export PC/Android/Quest.
 
 ## Critères pour annoncer une version complète
 
