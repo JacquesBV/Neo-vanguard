@@ -44,7 +44,7 @@ func _ready() -> void:
 	screen_layer = CanvasLayer.new()
 	add_child(screen_layer)
 	Audio2.start_title_music()
-	show_title()
+	_boot_flow()
 	if OS.get_environment("NV_TEST") == "1":
 		_run_smoke_test()
 	if OS.get_environment("NV_TEST") == "2":
@@ -63,6 +63,8 @@ func _ready() -> void:
 		_run_capture_test()
 	if OS.get_environment("NV_TEST") == "12":
 		_run_touch_test()
+	if OS.get_environment("NV_TEST") == "13":
+		_run_flow_test()
 	if OS.get_environment("NV_TEST") == "9":
 		_run_vorax_test()
 	if OS.get_environment("NV_TEST") == "10":
@@ -613,6 +615,26 @@ func show_fm() -> void:
 	scr.main = self
 	_set_screen(scr)
 
+## coop en ligne : panneau hors ligne (réplique scr-online, état sans réseau)
+func show_online() -> void:
+	var scr := preload("res://scripts/ui/online_screen.gd").new()
+	scr.main = self
+	_set_screen(scr)
+
+## crédits : « comment tout est fabriqué »
+func show_credits() -> void:
+	var scr := preload("res://scripts/ui/credits_screen.gd").new()
+	scr.main = self
+	_set_screen(scr)
+
+## plein écran (tuile du titre, comme l'original)
+func toggle_fullscreen() -> void:
+	var cur := DisplayServer.window_get_mode()
+	if cur == DisplayServer.WINDOW_MODE_FULLSCREEN:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
 ## pinball.js : le menu de la table bonus (05_menu_deblocage)
 func show_pinball_menu() -> void:
 	_clear_screen()
@@ -663,6 +685,7 @@ func _show_brief() -> void:
 
 func launch_level() -> void:
 	_clear_screen()
+	_show_load_overlay()
 	_apply_era_viewport(campaign_level)
 	game.begin_level(campaign_level, daily_mode, daily_mods)
 
@@ -1101,4 +1124,72 @@ func _run_touch_test() -> void:
 		" pause=", pause_ok)
 	DirAccess.remove_absolute(spath)   # pas de pollution de la sauvegarde
 	print("=== TOUCH TEST TERMINE ===")
+	get_tree().quit(0)
+
+# ---- démarrage : avertissements (chaque lancement) → entrée → titre --------
+func _boot_flow() -> void:
+	if OS.get_environment("NV_TEST") != "":
+		show_title()   # les tests automatisés gardent le chemin direct
+		return
+	var w := preload("res://scripts/ui/warning_screen.gd").new()
+	w.main = self
+	w.on_done = func(): _show_splash()
+	_set_screen(w)
+
+func _show_splash() -> void:
+	var sp := preload("res://scripts/ui/splash_screen.gd").new()
+	sp.main = self
+	sp.on_done = func(): show_title()
+	_set_screen(sp)
+
+# ---- overlay de chargement de secteur (calibrage, réplique nvLoad) ---------
+var load_overlay: Control = null
+
+func _show_load_overlay() -> void:
+	if load_overlay != null and is_instance_valid(load_overlay):
+		return
+	load_overlay = preload("res://scripts/ui/load_sector_screen.gd").new()
+	load_overlay.level = campaign_level
+	var era: Dictionary = Data.ERAS[Data.era_of_level(campaign_level)]
+	load_overlay.machine = str(era.get("sys", "KFM"))
+	screen_layer.add_child(load_overlay)
+	# comme l'overlay web (nvLoad) : purement visuel, il ne bloque ni le
+	# pilotage ni les entrées
+	var stack: Array[Node] = [load_overlay]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is Control:
+			(n as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		for c in n.get_children():
+			stack.append(c)
+
+# test 13 : flux de boot (warning → splash → titre) + overlay de chargement
+func _run_flow_test() -> void:
+	var dir := "/tmp/shots13"
+	DirAccess.make_dir_recursive_absolute(dir)
+	await get_tree().process_frame
+	var w := preload("res://scripts/ui/warning_screen.gd").new()
+	w.main = self
+	_set_screen(w)
+	await get_tree().create_timer(0.4).timeout
+	await _snap(dir + "/1_warning.png")
+	var sp := preload("res://scripts/ui/splash_screen.gd").new()
+	sp.main = self
+	_set_screen(sp)
+	await get_tree().create_timer(0.6).timeout
+	await _snap(dir + "/2_splash.png")
+	show_title()
+	await get_tree().create_timer(0.5).timeout
+	await _snap(dir + "/3_titre.png")
+	Save.S.opts.lang = "fr"
+	show_title()
+	await get_tree().create_timer(0.5).timeout
+	await _snap(dir + "/4_titre_fr.png")
+	_show_load_overlay()
+	await get_tree().create_timer(1.2).timeout
+	await _snap(dir + "/5_load.png")
+	await get_tree().create_timer(3.0).timeout
+	await _snap(dir + "/6_load_fade.png")
+	print("FLOW: overlay libéré = ", load_overlay == null or not is_instance_valid(load_overlay))
+	print("=== FLOW TEST TERMINE ===")
 	get_tree().quit(0)

@@ -71,6 +71,25 @@ voir « Écarts ». Le jeu est jouable de bout en bout, séquence finale compris
 9. **Écoute audio humaine** : validations techniques (rendu, stéréo, boucle) sans
    écoute critique des 40 morceaux / 16 échantillons.
 
+## Écrans de parcours manquants → AJOUTÉS (C6)
+Le comparatif Godot↔web avait relevé 4 écrans web absents du port + un titre
+redessiné : **corrigés** (répliques, réutilisation des assets d'origine) :
+- **avertissements santé/fiction** (01-nv-warnings.js) : écran pleine page
+  5 langues affiché à CHAQUE lancement, fermé d'un geste (fire/pause/Échap/clic) ;
+- **écran d'entrée « APPUYEZ POUR ENTRER »** : affiche media-033 + logo
+  hexagonal SVG redessiné (géométrie exacte), SYSTÈME EN LIGNE, crédit musical ;
+- **titre refait** : fond = affiche officielle media-033 (asset d'origine
+  réutilisé), kicker ÉDITION COLLECTOR, logo géant, sections JOUER /
+  MULTIJOUEUR / HANGAR & PROGRESSION / RÉGLAGES, tuiles 2 colonnes, chips
+  RECORD/COINS/SECTEUR MAX/KILLS + sélecteur de langue + étiquette d'ère ;
+  nouvelles entrées **Coop en ligne** (panneau hors ligne, comme le web sans
+  signalisation), **Crédits**, **Plein écran** (opérationnel), FM/Flipper avec
+  état 🔒 réel, bouton Continuer conditionnel ;
+- **écran de chargement de secteur** (43-nv-fluid-js.js) : logo, « SECTEUR ##
+  · machine », barre dégradée, séquence Analyse→Mesure du rendu·Balanced→Prêt
+  + astuce de tir ; purement visuel (ne bloque pas les entrées), se libère seul.
+Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
+
 ## Reste (après corrections)
 - écoute audio humaine (pilote dummy en sandbox) ;
 - confirmation du multitouch sur appareil physique (pipeline validé TEST12) et exécution du .exe sur Windows réels ;

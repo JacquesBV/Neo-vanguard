@@ -7,7 +7,7 @@ Les preuves « TESTn » sont les harnais `NV_TEST=n` (voir RAPPORT-TESTS.md) ; c
 
 | # | Module source | Équivalent Godot | État | Preuve / Écart |
 |---|---|---|---|---|
-| 01 | nv-warnings.js (avis hôte) | — | N/A | texte d'hébergement, pas du jeu |
+| 01 | nv-warnings.js (avertissements santé/fiction) | `warning_screen.gd` (C6) | PORTÉ | 5 langues, affiché à chaque lancement, fermeture d'un geste ; + splash « APPUYEZ POUR ENTRER » (`splash_screen.gd`) et écran de chargement de secteur (`load_sector_screen.gd`, module 43) |
 | 02 | moteur-jeu.js (cœur : boucle, ennemis, boss, économie, HUD, story deck, briefings, save, i18n, narration procédurale) | `game.gd`, `data.gd`, `save.gd`, `main.gd`, `sheets.gd` | PARTIEL | CONFORME pour gameplay/vagues/boss/HUD/économie/save v3/deck FR ; **écart** : i18n (FR seul), narration procédurale temps réel (`srand`/`spMotes`) remplacée par les images officielles prévues par le jeu (STORY_IMG), TTS FR système |
 | 03/04/05/50 | cloudflare-1..4 (anti-bot) | — | N/A | infrastructure d'hébergement |
 | 06 | cinematic-game-pass | `ui/story_deck.gd` | CONFORME | cadrage cover, travelling 1,04→1,10, vignette, scanlines, cadre à coins ; TEST8 |
@@ -27,7 +27,7 @@ Les preuves « TESTn » sont les harnais `NV_TEST=n` (voir RAPPORT-TESTS.md) ; c
 | 22 | sector-phone-profiles | `shell_layer.gd` (coque mobile, tactile) | PARTIEL | coque FanBoy conforme (T11/T13) ; profils par modèle de téléphone non reproduits |
 | 23 | no-horizontal-drift | `game.gd` (mouvement) | CONFORME | TEST1 |
 | 24 | fanboy-authentic | `ui/shell_layer.gd` + `assets/fanboy*` + options (contraste LCD, cadre PC) | CONFORME — FX controls du commit 51 portés | capture 9-comparaison, options traduites |
-| 25/26/27 | options/title/shop reorg | `options_screen.gd`, `title_screen.gd`, `shop_screen.gd` | CONFORME | ordre des menus conforme, TEST2 |
+| 25/26/27 | options/title/shop reorg | `options_screen.gd`, `title_screen.gd`, `shop_screen.gd` | CONFORME (titre refait C6) | titre : affiche media-033, logo géant, sections JOUER/MULTIJOUEUR/HANGAR/RÉGLAGES, tuiles, chips+langue+ère, Coop/Crédits/Plein écran ; TEST2/13 |
 | 28 | insert-coin-and-bonus | `game.gd` (crédits, bonus) + `main.gd` | CONFORME | TEST1/2 |
 | 29 | **nv24-final-rework (secteur 24)** | `game.gd` (sas, couloir, radio, **vorax_update + rendu**), `nv24_audio.gd` | **PORTÉ (TEST9 vert)** | séquence complète : sas (60 PV×diff, ×1,5 en 2J, 9 fissures), boom→hall→alarme→**hands** (poings atlas `vorax-hands-atlas`, PV séparés, renforts, contact) → **tear** (battants arrachés animés `doors/airlock`) → **reveal** (marionnette `vorax-intro`, zoom .45→1) → **vorax** 3 formes (réserve unique ×.72, seuils 2/3 et 1/3, 7 attaques laser/laser2/sweep/palms/orbs/spiral/rain, tête ×1.7 / bras ×.55, radios v5/palm/morph en 5 langues) → mort. 8 défenseurs **FOE portés** (IA exacte, planche `defense-atlas.webp`, vagues APPROACH 18/HALL 10 aux timings exacts) — TEST10 vert |es` | `boss_atlas.gd` | CONFORME | captures boss |
 | Musiques de jeu (mp3 ères/boss/fin) | `assets/music` (40) | `audio2.gd` | CONFORME | fichiers, boucles, transitions |
