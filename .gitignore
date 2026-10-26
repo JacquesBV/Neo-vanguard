@@ -1,0 +1,5 @@
+.godot/
+native/test-results/
+native/exports/
+*.tmp
+

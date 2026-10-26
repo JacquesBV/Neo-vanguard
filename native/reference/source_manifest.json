@@ -1,0 +1,5440 @@
+{
+  "source_commit": "ccd7e82087afc8a993fbb5e3a5dcf2d3f6dbf057",
+  "files": [
+    {
+      "path": "A-FAIRE.txt",
+      "size": 1128,
+      "sha256": "47ba47d99ae3348957353a09b979d067754714a07f79cdce4609496632303fa6"
+    },
+    {
+      "path": "ASSETS.txt",
+      "size": 15641,
+      "sha256": "858179111a77b7476f5c09a0be8e46528a49a42de647dab85bedba9d3d062a36"
+    },
+    {
+      "path": "FICHE-DEPOT.md",
+      "size": 5622,
+      "sha256": "a190eb3ec8aeb3737bb683dd28fe7ac895029502fe6f4532eca7f7373109014e"
+    },
+    {
+      "path": "LICENSE",
+      "size": 1149,
+      "sha256": "c88a82b94c8cecfdaaf93b465212b037b898f4f683c2333f7f0ae617b5f495f6"
+    },
+    {
+      "path": "LIRE-MOI.txt",
+      "size": 1390,
+      "sha256": "8ef981a1fb798cc6c299db37dec0f18a1bd6bc3ea7db94c87472dff92211bf0f"
+    },
+    {
+      "path": "LISEZ-MOI_SECTEUR24_ANIME.txt",
+      "size": 2766,
+      "sha256": "ac5dae6e77473b8c4e93543861b7a9956b9d605362a96011f583befd01056ec2"
+    },
+    {
+      "path": "PUBLIER.md",
+      "size": 4252,
+      "sha256": "22089efdd8f6b596533b1fac6f5c9cc40b0409213eae9da963678a7090d1015a"
+    },
+    {
+      "path": "README.md",
+      "size": 5290,
+      "sha256": "df50a34fac5711495883202fc67189e532a0ed451d96dfce37e5f543b7c59dd4"
+    },
+    {
+      "path": "README.txt",
+      "size": 950,
+      "sha256": "3ea996299f5824f3b45695522232d359e1885085d2fb7269d9ca2462bf815169"
+    },
+    {
+      "path": "REFACTORISATION-MODULES.md",
+      "size": 6050,
+      "sha256": "2cd4c57f18a7586ad7c861a9037a96f5f31f19b6f0e90f388dc6678078761b72"
+    },
+    {
+      "path": "UPDATE.md",
+      "size": 2019,
+      "sha256": "bdd6bb074119a843ca427bb4142fa020d8e2fabd37a1514d0d52b812e9c554bb"
+    },
+    {
+      "path": "UPLOAD-GITHUB-FR.txt",
+      "size": 1130,
+      "sha256": "7887b4a5ab3e160bd8b129b226a5e5db82ac2a4bb612cfaafa9588c09ba46b39"
+    },
+    {
+      "path": "assets/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/asset-001.webm",
+      "size": 515,
+      "sha256": "e02a2f773c52a1989fa9e6f3113151637a822131c0847de5d456131d082c4806"
+    },
+    {
+      "path": "assets/asset-002.jpg",
+      "size": 92739,
+      "sha256": "058a156a9727e488bb15bfc2a885e9dd4f0e80d4846f54a4f4a7e5fa1c693d5b"
+    },
+    {
+      "path": "assets/asset-003.jpg",
+      "size": 105070,
+      "sha256": "92dc0ef6594f9336ac6bdbbd44ac018050da37c2a21ed037819d423f954f872f"
+    },
+    {
+      "path": "assets/asset-004.jpg",
+      "size": 90530,
+      "sha256": "a4bf49f48bcbfe03e10335607200694be854c519600923f38047ef4161d8bd6a"
+    },
+    {
+      "path": "assets/asset-005.jpg",
+      "size": 56728,
+      "sha256": "f6facfa7ea64461ea288c097f76582f77a72784e0729653b49038b5a0c7291fa"
+    },
+    {
+      "path": "assets/asset-006.jpg",
+      "size": 89290,
+      "sha256": "b1230f7b808640ebc1511e443695f7cb8571c01cea272166ce6ec162ec1d036d"
+    },
+    {
+      "path": "assets/asset-007.jpg",
+      "size": 59608,
+      "sha256": "f45470132c3d771387625bab406c1da01730a94a9222f4c4c6d1c71f6b65ed26"
+    },
+    {
+      "path": "assets/asset-008.jpg",
+      "size": 86257,
+      "sha256": "664cbbaa76a641bc0c5c762a1f0de13f6ca684716a1e7cb3e48b6ae1a188740e"
+    },
+    {
+      "path": "assets/asset-009.jpg",
+      "size": 109377,
+      "sha256": "82e9798623f876a7d9041ede01448c14de8c8f93832e17e5bee77d90546ba9c1"
+    },
+    {
+      "path": "assets/asset-010.jpg",
+      "size": 112862,
+      "sha256": "d66c71d3b6c54a52aae42a8ca7fa1583ef93064dd45912a6c0df127d14c916b1"
+    },
+    {
+      "path": "assets/asset-011.jpg",
+      "size": 115052,
+      "sha256": "dd1d02e3aa805f5b9e155f2bd79376fec8bf7167e5dc02f23690c5d4a92e9dfb"
+    },
+    {
+      "path": "assets/asset-012.jpg",
+      "size": 142505,
+      "sha256": "1a66d67f1164f808c8c34c807c713c7b6df6ce69f79072db42397e5e2dc480a5"
+    },
+    {
+      "path": "assets/asset-013.jpg",
+      "size": 116763,
+      "sha256": "8dabc85b384ddabc1f54b0a3f46ff93965e63ff921af7d2df3984dc47ef6b1cb"
+    },
+    {
+      "path": "assets/asset-014.jpg",
+      "size": 148099,
+      "sha256": "b614aa1ccef0ff8794324334575d9e3d02e0fe0cb6170523bc0df12787458255"
+    },
+    {
+      "path": "assets/asset-015.jpg",
+      "size": 95871,
+      "sha256": "d292dad7047e39ae91502dff3f575c478cd41488736ab97ec3bfdd53d113daa5"
+    },
+    {
+      "path": "assets/asset-016.jpg",
+      "size": 137486,
+      "sha256": "38c0faefbedcfdb02b525696d5abec5f8e4e98de6e4b7cae961a95f55074654b"
+    },
+    {
+      "path": "assets/asset-017.jpg",
+      "size": 70006,
+      "sha256": "69ce12a1695124f6790ecc3840c1bbf8ed85dc9562249d7bef6b1cc18314c57b"
+    },
+    {
+      "path": "assets/asset-018.jpg",
+      "size": 94932,
+      "sha256": "e48543a99818bbfc448aac2bdcdce1e29929ffbd6edd7f5fcb1976961ffd465c"
+    },
+    {
+      "path": "assets/asset-019.jpg",
+      "size": 146687,
+      "sha256": "8291321230bf0f688d9efd94c7e4d41de21beb338f03cb74ec61a699ed172cc4"
+    },
+    {
+      "path": "assets/asset-020.jpg",
+      "size": 125961,
+      "sha256": "00e146da979d2479efc432b43f0794c14ca921f4e3f504046c951fe6bb9124ac"
+    },
+    {
+      "path": "assets/asset-021.jpg",
+      "size": 134948,
+      "sha256": "a1ad4137a7d87cac5f4a15361d6f64479c8beabb9398aa6b6788a763f8829450"
+    },
+    {
+      "path": "assets/asset-022.jpg",
+      "size": 18212,
+      "sha256": "4e45eb81485b20f14cccc1be2f5269dce9ad077c03c7688217f895526d6d4bac"
+    },
+    {
+      "path": "assets/asset-023.jpg",
+      "size": 10757,
+      "sha256": "feb2a5baf6d7de7fe493786a9d31cc9f1ed96951370f1dbba1e3a5f22b4deb75"
+    },
+    {
+      "path": "assets/asset-024.jpg",
+      "size": 18980,
+      "sha256": "70c30e8b0feb70ab9709d68a64f64bf64a04c89c434f0747f3e6405731a563d9"
+    },
+    {
+      "path": "assets/asset-025.jpg",
+      "size": 18136,
+      "sha256": "c97e609088bc84e6dc9f4f8ce0edc51706052cb702d81dc26863440f761632f7"
+    },
+    {
+      "path": "assets/asset-026.mp3",
+      "size": 820224,
+      "sha256": "657289440aeef628ad2bae0dbbf07f8c470a0b59b5a85f751b8b30abbdb9a711"
+    },
+    {
+      "path": "assets/asset-027.webp",
+      "size": 28230,
+      "sha256": "f38280a0b9e580762a6443c81d9bc5db5f7c511a3f4e252821c2952fc109af10"
+    },
+    {
+      "path": "assets/asset-028.webp",
+      "size": 37750,
+      "sha256": "2e2ba30baedd8a13dfd0cc577550e75fcc93d581bb680189f56b14af06682541"
+    },
+    {
+      "path": "assets/asset-029.webp",
+      "size": 17892,
+      "sha256": "060c402d3935eec5ea115062051fc857ffe173ec60f1233ef529192ee81cf5b3"
+    },
+    {
+      "path": "assets/asset-030.webp",
+      "size": 42272,
+      "sha256": "9e3636ed0d1cb32e728ed4285d7d4fc056e2c48d05dc2b9829367b9ef392df60"
+    },
+    {
+      "path": "assets/asset-031.webp",
+      "size": 21546,
+      "sha256": "33d6c6c1c9e4b7b190c456b85612c72d49b6ca1b02dd0cba1304ae742eeb7d55"
+    },
+    {
+      "path": "assets/asset-032.webp",
+      "size": 48944,
+      "sha256": "1621ad526dc2aeacf502032421476bfa16ef26640f4cb0bc64d2ae4c12707dc8"
+    },
+    {
+      "path": "assets/asset-033.webp",
+      "size": 32648,
+      "sha256": "461152853088d34f25e457465afbd10dafba8b8dc8e59a917d56335329b1dc56"
+    },
+    {
+      "path": "assets/asset-034.webp",
+      "size": 160028,
+      "sha256": "8d79e04c4bc1cf6150b4d99e4599c77e2ba06973a01a0cb3933e847f920e271a"
+    },
+    {
+      "path": "assets/asset-035.webp",
+      "size": 153956,
+      "sha256": "ac6c1b84576070aed18f68c976df92ca60bd84cd0605d0f33854bbbff6729c47"
+    },
+    {
+      "path": "assets/asset-036.webp",
+      "size": 211254,
+      "sha256": "260eae6a22aa9ac0c0501c2a5b1096268d6ae0dc037e3c25fe44c03c71448e02"
+    },
+    {
+      "path": "assets/asset-037.webp",
+      "size": 122954,
+      "sha256": "75db3eb6d6311d6d132c1034d4056cb74ca7474a56c2a069e36e26008d0a1862"
+    },
+    {
+      "path": "assets/asset-038.webp",
+      "size": 264008,
+      "sha256": "25f448240cdd4004887146eafc576cacdc8d0d4b8b9cb66f308a23a98a7f9a7e"
+    },
+    {
+      "path": "assets/asset-039.webp",
+      "size": 184906,
+      "sha256": "5283cc0fd64f345004eb044c2379f132fb7e9d435e877442e2a6659cbac5f1b3"
+    },
+    {
+      "path": "assets/asset-040.webp",
+      "size": 239022,
+      "sha256": "f4ea012476d485c8e11ee27c107b021a259f00c0a81dfc3873803385b270c28c"
+    },
+    {
+      "path": "assets/asset-041.webp",
+      "size": 283476,
+      "sha256": "188f4ed1cd89cf1ffe7356c7a0d4b9803642bf55ae175c4cb1edd11967ae783a"
+    },
+    {
+      "path": "assets/asset-042.webp",
+      "size": 100598,
+      "sha256": "4d7515a6d2de0f1bb9d8d1bfeb7e5313636db5d6544d32704a984bc7d082c590"
+    },
+    {
+      "path": "assets/asset-043.webp",
+      "size": 298732,
+      "sha256": "74de873c570a0062d1da25cbab3c0747aa954f0557eabd0d35fc81c448c8de84"
+    },
+    {
+      "path": "assets/asset-044.png",
+      "size": 27396,
+      "sha256": "eefad1830950de3fb2b18b747ace021bada5a3d63a44fffcb9973569004a9a73"
+    },
+    {
+      "path": "assets/asset-045.png",
+      "size": 53468,
+      "sha256": "631e12c017125265ce3213eb5b54b100c9283df65f18fbedb82c8d306ad6540a"
+    },
+    {
+      "path": "assets/asset-046.png",
+      "size": 74211,
+      "sha256": "434327de7bb39b52dc1a384addcf7033c4a39bb5552c366cb6062fe5a8dba4fd"
+    },
+    {
+      "path": "assets/asset-047.png",
+      "size": 12989,
+      "sha256": "d08357a8dee6d7da1f60760523b5402fea05bacc0a7ef6fa9319ae8d3cf74e01"
+    },
+    {
+      "path": "assets/asset-048.png",
+      "size": 30941,
+      "sha256": "ef2d7be7f11d51b6e9684b29fa5eb9d67a22069790ebcaca1e2471ae58fbd87b"
+    },
+    {
+      "path": "assets/asset-049.png",
+      "size": 38131,
+      "sha256": "33c99d92b4e03f9226966e268cdf7c96eca8d5fd32321231933476f087d93f80"
+    },
+    {
+      "path": "assets/asset-050.png",
+      "size": 14174,
+      "sha256": "84208d3b6120f6262310bf02c4485fa4bf45bf8ec4b3f1e5f8b9ac7b7ce23348"
+    },
+    {
+      "path": "assets/asset-051.png",
+      "size": 22554,
+      "sha256": "2150f2ae967d49e6743a3cf278465c0fc84125b0e2388980ce304366797c433c"
+    },
+    {
+      "path": "assets/asset-052.png",
+      "size": 27988,
+      "sha256": "d32856bbc62cbe4621fe1d0d39d745c60fa26e57ebef69d8e343266e95a594da"
+    },
+    {
+      "path": "assets/asset-053.png",
+      "size": 6312,
+      "sha256": "d5a04b9336642b115036f6281c245154c20a44c39ccf216754e520dc63b6848d"
+    },
+    {
+      "path": "assets/asset-054.png",
+      "size": 12689,
+      "sha256": "0894cc98b7cb02c8620e8b141e4a00ac7cdeac225a1bf059fa9da6b635b34547"
+    },
+    {
+      "path": "assets/asset-055.png",
+      "size": 20689,
+      "sha256": "aca76134620a484c493342dffed31b17ed53bef3a3065b81eabea012d0767f69"
+    },
+    {
+      "path": "assets/asset-056.png",
+      "size": 9721,
+      "sha256": "43b3505b7866ae3fd496085dddcda22b2f1a087d52e95de13d736bbb9ff9a42f"
+    },
+    {
+      "path": "assets/asset-057.png",
+      "size": 20005,
+      "sha256": "54cfeb704bab573ba742618a247c5211f52f4b27256a4923678fe5e645b2b0aa"
+    },
+    {
+      "path": "assets/asset-058.png",
+      "size": 27651,
+      "sha256": "2353a5da993349666d08ca5f607048d3336049251dbe695802b8447f76d43571"
+    },
+    {
+      "path": "assets/asset-059.png",
+      "size": 13054,
+      "sha256": "0b7c9303be83382df15cf29648f985f5e42207a8dbc8640d7c6468a8f9aeba7c"
+    },
+    {
+      "path": "assets/asset-060.png",
+      "size": 24345,
+      "sha256": "31a8c782a5ca450a8a771d9228d6bd8357ada88527bb006cd67072bc8aea4d5d"
+    },
+    {
+      "path": "assets/asset-061.webp",
+      "size": 742848,
+      "sha256": "6691f15329167d77f8ac900eaad7ebbeb5f5c5e82db9704991f4b2d515bc2b0b"
+    },
+    {
+      "path": "assets/asset-062.png",
+      "size": 5651,
+      "sha256": "22d1ae69d3ea8139f414767267d2e4fec5982d00b936aab03084b9935cdb5b42"
+    },
+    {
+      "path": "assets/asset-063.png",
+      "size": 12850,
+      "sha256": "2b94e47fd3d984ebe8b71feae407f8aef1602aaebbcc5db2c176767f75f3b315"
+    },
+    {
+      "path": "assets/asset-064.webp",
+      "size": 391158,
+      "sha256": "af638f44c8814cfe1d80f6d3d6a8b80f7caa98e830acfb953affc58ee83370e3"
+    },
+    {
+      "path": "assets/asset-065.png",
+      "size": 9892,
+      "sha256": "0c227bea61cbd605bf4e9d5701fb21e08caf596bf59104d3494e5418b3350209"
+    },
+    {
+      "path": "assets/asset-066.png",
+      "size": 20693,
+      "sha256": "4fe0f6aba9c1c1de5017148a4ecba5a2847d6c22199fbf93bf4d568d7e01f1e3"
+    },
+    {
+      "path": "assets/asset-067.webp",
+      "size": 606774,
+      "sha256": "45067f31d7a5bfbe9ca332220ed8cdb41bcc31392788231c1ade8e36eb3c4fb1"
+    },
+    {
+      "path": "assets/asset-068.png",
+      "size": 4939,
+      "sha256": "74a0819da595e0fbdc3183e1948a069ab1f6b7225b6729a8dd3da2e69001abbb"
+    },
+    {
+      "path": "assets/asset-069.png",
+      "size": 9274,
+      "sha256": "40fa5232eac19a72b9827fb8266556ac80974d7b1ca6dec031d59cc8a1c95e75"
+    },
+    {
+      "path": "assets/asset-070.webp",
+      "size": 401120,
+      "sha256": "740b8f7907035452c0f26e49611b24d6b2db084bb401229b7c853046cbdc490c"
+    },
+    {
+      "path": "assets/asset-071.png",
+      "size": 8874,
+      "sha256": "f16af09379119b6d3a512c1fafb067c35a1eb5d4bd97bc319d16c4e0dc83e43b"
+    },
+    {
+      "path": "assets/asset-072.png",
+      "size": 34348,
+      "sha256": "4aa095ef526888af39756b079606dff282f9b0a3e0f329391f94c74b33cf1961"
+    },
+    {
+      "path": "assets/asset-073.png",
+      "size": 53167,
+      "sha256": "6c6c49e4e62b0cd03f4192184434cc535ac12acc3d7094294ea8c134ce730849"
+    },
+    {
+      "path": "assets/asset-074.png",
+      "size": 5715,
+      "sha256": "c6d5610d8ccfc84b2b993f77902bdc2547ec6b5f34a47cc50868d05605533767"
+    },
+    {
+      "path": "assets/asset-075.png",
+      "size": 11121,
+      "sha256": "9f4a7c7a1c3baee23bac123d8bd6ddfedab8d26a421888e3e295c126be711b37"
+    },
+    {
+      "path": "assets/asset-076.png",
+      "size": 14320,
+      "sha256": "fb53278998ebe87dbcdee3e07bec4c054e77d8f8e0f91231e0497eb10877798a"
+    },
+    {
+      "path": "assets/asset-077.png",
+      "size": 8087,
+      "sha256": "9dd3081954517139b783094a67ab275ef019f6f3b48749d4482958bf6da38715"
+    },
+    {
+      "path": "assets/asset-078.png",
+      "size": 25218,
+      "sha256": "884c54669dab20325f4035bb9b342ca84216d87ea4b081339decfebc9e288feb"
+    },
+    {
+      "path": "assets/asset-079.png",
+      "size": 36312,
+      "sha256": "4ac70fb0449f22c38910ebf1278d4f484d9be30581e3b18a852d1691d06e5c28"
+    },
+    {
+      "path": "assets/asset-080.png",
+      "size": 21189,
+      "sha256": "6411d63e74e408b180c60d37381a8994f00e34fdc1202ce8f691df0153e8f246"
+    },
+    {
+      "path": "assets/asset-081.png",
+      "size": 38037,
+      "sha256": "215981f910d7660c96f984d303e9a0063abcfd2489f0ae67a8e04afcb661b776"
+    },
+    {
+      "path": "assets/asset-082.png",
+      "size": 49902,
+      "sha256": "942c29813562ca5f5078232d0e5c82f37e92d9de716ac659b5fa549170c9a9b8"
+    },
+    {
+      "path": "assets/asset-083.png",
+      "size": 2000,
+      "sha256": "9f98ab0ac4434ca6caaeacf2a326b645d484f6327a9fedc5f32a331f02c98743"
+    },
+    {
+      "path": "assets/asset-084.png",
+      "size": 4067,
+      "sha256": "63c8d3f7944833a97d37efeda5a6ba4ba4aace34534652f9705e125a4f085326"
+    },
+    {
+      "path": "assets/asset-085.png",
+      "size": 5590,
+      "sha256": "a0dd6540f2598878fa42b58ba34826163e2c6ad7a4de15b2ecbd4d2eed3e4506"
+    },
+    {
+      "path": "assets/asset-086.png",
+      "size": 28257,
+      "sha256": "0217b25e3f3b82808f186ace30802da2ab11fcbdf6d07c294f56faebebcf794a"
+    },
+    {
+      "path": "assets/asset-087.png",
+      "size": 86429,
+      "sha256": "7979bb80f6ee31549661e5c7e0e2608aa4ef99139748ed1f96552d93b35f9beb"
+    },
+    {
+      "path": "assets/asset-088.webp",
+      "size": 1558408,
+      "sha256": "20ce1c98e165991034540f4875c04697d1bef5cc1d69649388fe420bd16e2e81"
+    },
+    {
+      "path": "assets/asset-089.png",
+      "size": 27392,
+      "sha256": "9281f7acab4327fce856fcda0bf9ce71a0050f84e436738514895d61bb5f3ca8"
+    },
+    {
+      "path": "assets/asset-090.png",
+      "size": 46620,
+      "sha256": "a45f14787b928ab1714577418bd6d8a6fbea3e8ee9e8493aa0e9f78e51004f4e"
+    },
+    {
+      "path": "assets/asset-091.webp",
+      "size": 1303190,
+      "sha256": "7da16b466dea0b9ef4959d2d120e4b7e0b9bdaa0f5210b79feef9c814d8d0eb2"
+    },
+    {
+      "path": "assets/asset-092.webp",
+      "size": 345408,
+      "sha256": "d950b6a0f2933cba586851a6f9128476b76e301976c50398ac04c3d4e5c22810"
+    },
+    {
+      "path": "assets/asset-093.webp",
+      "size": 306882,
+      "sha256": "42090d3db6e8f3592bbb4aec4c0655409189ec37f6f18a1936cf333a6a86a081"
+    },
+    {
+      "path": "assets/asset-094.webp",
+      "size": 327350,
+      "sha256": "fa2e2ca46c5cf673d4ac6e118d9991a678d8456376a423bab06ce0fe3694f7b6"
+    },
+    {
+      "path": "assets/asset-095.webp",
+      "size": 394734,
+      "sha256": "0346edb6e43315a8864eb1a9583093c92ace1366dc046f06927971a2ae7d97c7"
+    },
+    {
+      "path": "assets/asset-096.png",
+      "size": 33698,
+      "sha256": "df2924b305b7c1f03708eae4b07eebdc7498fa25eb97e1626f83350cd252a89e"
+    },
+    {
+      "path": "assets/asset-097.png",
+      "size": 111122,
+      "sha256": "28d7b6696c23eef27f949c3cd5ec2c541914bd9b94ae46e5e49b693c9a38ea5a"
+    },
+    {
+      "path": "assets/asset-098.png",
+      "size": 245041,
+      "sha256": "ce30cdb246ae21871f8c148dce57abaa631316a4b4b9d33bcc6fc9e1495e04f8"
+    },
+    {
+      "path": "assets/asset-099.png",
+      "size": 3051,
+      "sha256": "1d1e968722fae4a688d4f6266da287349718eda7e299815e69bf777f1d6b2819"
+    },
+    {
+      "path": "assets/asset-100.png",
+      "size": 15921,
+      "sha256": "ca528f4b971962c05e9134a183d6dc914cd8f71bdd112067a3156973a1d313c8"
+    },
+    {
+      "path": "assets/bonus/barrel.webp",
+      "size": 47626,
+      "sha256": "2707c6d153bd4b6e79ca976c465faf4f00d454f6d2514c4601ff6b892387a9de"
+    },
+    {
+      "path": "assets/bonus/brick.webp",
+      "size": 75020,
+      "sha256": "94da673f473e4be0290b6ad3465a3d195355876deaeb0ed2b8482b0adab674a1"
+    },
+    {
+      "path": "assets/bonus/coin-door.webp",
+      "size": 162258,
+      "sha256": "54371f99e79aefaae166f9d35a62cc32dbebb3b7d1e35f169004250bc3227ac2"
+    },
+    {
+      "path": "assets/bonus/coin-spin.webp",
+      "size": 64706,
+      "sha256": "5602b70c50ccbac3a0f872bd9c4f70a7375375ba2540a3dd6e15fde410650717"
+    },
+    {
+      "path": "assets/bonus/conveyor.webp",
+      "size": 93600,
+      "sha256": "77ef84cd4089ef4bd37afa839b1c946932bce68abdc9f35fd6ef88d1e028bb71"
+    },
+    {
+      "path": "assets/bonus/debris.webp",
+      "size": 84840,
+      "sha256": "67d6386f4c4a520c07e66ba48dff2608468e9655a808a0f935007aba79a3c982"
+    },
+    {
+      "path": "assets/bonus/owner.webp",
+      "size": 114140,
+      "sha256": "52ef77a81713292ae79283c05b82da854ff6a456db1921b3051f9b1579c6ce3b"
+    },
+    {
+      "path": "assets/bonus/pad-bg.webp",
+      "size": 121768,
+      "sha256": "240e768bc694d8b3360c37ab1c1252ea41b6a004a8d2d821b14e95176fee2061"
+    },
+    {
+      "path": "assets/bonus/shuttle.webp",
+      "size": 189726,
+      "sha256": "bb1290f96988462ed3f43fd1c883de48b300db3044921ac06070c072f9790044"
+    },
+    {
+      "path": "assets/bosses/boss-01.webp",
+      "size": 892780,
+      "sha256": "57ad9f34881632e83b1ad54412e7d34eb2f9729fe6e7b471d703165dca85d304"
+    },
+    {
+      "path": "assets/bosses/boss-02.webp",
+      "size": 859604,
+      "sha256": "acb80f32da465d53a3ea448f53062f69197aaf6553cd96095e8c072ddd242460"
+    },
+    {
+      "path": "assets/bosses/boss-03.webp",
+      "size": 713026,
+      "sha256": "8d927d9bc9f98b0d98de4f26014e464af418cec8b202e3dc6ef59a90257bcd4c"
+    },
+    {
+      "path": "assets/bosses/boss-04.webp",
+      "size": 797520,
+      "sha256": "631590de5dfd143b0e65d0decdd26d7146e17736b7ce26759b73907226b28ac4"
+    },
+    {
+      "path": "assets/bosses/boss-05.webp",
+      "size": 1012348,
+      "sha256": "056abc2d1c6aa2e1807357983b4b8081004a3729e37e7c3ea9d445e8ba29d7c4"
+    },
+    {
+      "path": "assets/bosses/boss-06.webp",
+      "size": 755418,
+      "sha256": "75b0ec6d20325672e3ed6019725ae87638220ebd07b959a48d911f4d110d3fcf"
+    },
+    {
+      "path": "assets/bosses/boss-07.webp",
+      "size": 1024908,
+      "sha256": "d7f16293469f8d6bca3c30f9952a9cf6c438cf2f53d26bbaadba32f51c3eb418"
+    },
+    {
+      "path": "assets/bosses/boss-08.webp",
+      "size": 841668,
+      "sha256": "f29d8036e5e9e9a68d635255d2852024f38a39800db2d2a62f878f030c67b595"
+    },
+    {
+      "path": "assets/bosses/boss-09.webp",
+      "size": 1108916,
+      "sha256": "614213195185ef673f7223977695869f09bd897800e26d32cb67e5d57b50a5f6"
+    },
+    {
+      "path": "assets/bosses/boss-10.webp",
+      "size": 1151436,
+      "sha256": "2fb4df5d56e091ae9cf3488e8520688f18ab8eec6f123b2573e98781a39dec87"
+    },
+    {
+      "path": "assets/bosses/boss-11.webp",
+      "size": 1206108,
+      "sha256": "9ee50e05cf338da6cd55bee29976275e925c5b44c6c648fa263cbc91085b9180"
+    },
+    {
+      "path": "assets/bosses/boss-12.webp",
+      "size": 1143710,
+      "sha256": "166b638c0834646c810d30dd7f6891c665564d2b4228499c44bd6af483d7871e"
+    },
+    {
+      "path": "assets/bosses/boss-13.webp",
+      "size": 1225630,
+      "sha256": "129aead458e93ae4a057ee98fff4cdef403694e133b10ca54e24a89e7825a779"
+    },
+    {
+      "path": "assets/bosses/boss-14.webp",
+      "size": 1256068,
+      "sha256": "4e02f1e8e3572ae6676bb6be1429b2b012b5cf65d3e004709bfd69380a15efff"
+    },
+    {
+      "path": "assets/bosses/boss-15.webp",
+      "size": 1081438,
+      "sha256": "43ea657a31ff27c430ab8af92b701afbf259653ee66e99884c1c4eef148c2e06"
+    },
+    {
+      "path": "assets/bosses/boss-16.webp",
+      "size": 1143134,
+      "sha256": "6aa1539f37376c6cd906aa31e363c947aae3cdd89d4dc1d26b226703c1c3c610"
+    },
+    {
+      "path": "assets/bosses/boss-17.webp",
+      "size": 1123124,
+      "sha256": "3dbd1abddb14c2a954711f4b4d7e188be6f8795cd218f1e6cd1663cfae3b016e"
+    },
+    {
+      "path": "assets/bosses/boss-18.webp",
+      "size": 1102072,
+      "sha256": "1407a1f2f8adf5c27464488362770d68174988b3e53c9fc3dc875a566a12b22b"
+    },
+    {
+      "path": "assets/bosses/boss-19.webp",
+      "size": 1244912,
+      "sha256": "a5c89980c12252daa69fad7e0b9a5ba3399cf9ea8807368de9d96b5cc6ac2ba2"
+    },
+    {
+      "path": "assets/bosses/boss-20.webp",
+      "size": 758160,
+      "sha256": "35a0af4072353f490954e34f89784ca690efec49dade65f152043645732da9c6"
+    },
+    {
+      "path": "assets/bosses/boss-21.webp",
+      "size": 1317766,
+      "sha256": "8a576f305b8b9e92149a075d4ab603909b4975a9b50d6945c43c2911d17ebba0"
+    },
+    {
+      "path": "assets/bosses/boss-22.webp",
+      "size": 1108760,
+      "sha256": "00408646f45208bb208f5d2fb02e8ee77e6e22c1b119c7cfb86c4d337cd8a761"
+    },
+    {
+      "path": "assets/bosses/boss-23.webp",
+      "size": 1120602,
+      "sha256": "d103f9acc130cf3862124ff61a6f495f597bbe291eaf194aa9f8d5144b09a3c7"
+    },
+    {
+      "path": "assets/bosses/boss-24.webp",
+      "size": 1105968,
+      "sha256": "5cc3a68edb20fdb343b13f46d730a5da5e4884fcef909b1815ea18a546d6173b"
+    },
+    {
+      "path": "assets/embedded/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/embedded/00e146da979d2479.jpg",
+      "size": 125961,
+      "sha256": "00e146da979d2479efc432b43f0794c14ca921f4e3f504046c951fe6bb9124ac"
+    },
+    {
+      "path": "assets/embedded/0217b25e3f3b8280.png",
+      "size": 28257,
+      "sha256": "0217b25e3f3b82808f186ace30802da2ab11fcbdf6d07c294f56faebebcf794a"
+    },
+    {
+      "path": "assets/embedded/0346edb6e43315a8.webp",
+      "size": 394734,
+      "sha256": "0346edb6e43315a8864eb1a9583093c92ace1366dc046f06927971a2ae7d97c7"
+    },
+    {
+      "path": "assets/embedded/058a156a9727e488.jpg",
+      "size": 92739,
+      "sha256": "058a156a9727e488bb15bfc2a885e9dd4f0e80d4846f54a4f4a7e5fa1c693d5b"
+    },
+    {
+      "path": "assets/embedded/060c402d3935eec5.webp",
+      "size": 17892,
+      "sha256": "060c402d3935eec5ea115062051fc857ffe173ec60f1233ef529192ee81cf5b3"
+    },
+    {
+      "path": "assets/embedded/0894cc98b7cb02c8.png",
+      "size": 12689,
+      "sha256": "0894cc98b7cb02c8620e8b141e4a00ac7cdeac225a1bf059fa9da6b635b34547"
+    },
+    {
+      "path": "assets/embedded/0b7c9303be83382d.png",
+      "size": 13054,
+      "sha256": "0b7c9303be83382df15cf29648f985f5e42207a8dbc8640d7c6468a8f9aeba7c"
+    },
+    {
+      "path": "assets/embedded/0c227bea61cbd605.png",
+      "size": 9892,
+      "sha256": "0c227bea61cbd605bf4e9d5701fb21e08caf596bf59104d3494e5418b3350209"
+    },
+    {
+      "path": "assets/embedded/0da4170338ba1521.webp",
+      "size": 16146,
+      "sha256": "0da4170338ba1521d506b64d12ddb84707c711ff9b3f3dc08c7b573892cbd421"
+    },
+    {
+      "path": "assets/embedded/11291466a2688d90.webp",
+      "size": 10514,
+      "sha256": "11291466a2688d90a9b2b01b17af49fbf4feb9ce0cca6c896ee4423fb18855f5"
+    },
+    {
+      "path": "assets/embedded/1621ad526dc2aeac.webp",
+      "size": 48944,
+      "sha256": "1621ad526dc2aeacf502032421476bfa16ef26640f4cb0bc64d2ae4c12707dc8"
+    },
+    {
+      "path": "assets/embedded/188f4ed1cd89cf1f.webp",
+      "size": 283476,
+      "sha256": "188f4ed1cd89cf1ffe7356c7a0d4b9803642bf55ae175c4cb1edd11967ae783a"
+    },
+    {
+      "path": "assets/embedded/1a66d67f1164f808.jpg",
+      "size": 142505,
+      "sha256": "1a66d67f1164f808c8c34c807c713c7b6df6ce69f79072db42397e5e2dc480a5"
+    },
+    {
+      "path": "assets/embedded/1d1e968722fae4a6.png",
+      "size": 3051,
+      "sha256": "1d1e968722fae4a688d4f6266da287349718eda7e299815e69bf777f1d6b2819"
+    },
+    {
+      "path": "assets/embedded/1dde3df1aa0564a5.webp",
+      "size": 340824,
+      "sha256": "1dde3df1aa0564a53e8ed93eeb029c2e89423c8917bea0627dba3da96232fd49"
+    },
+    {
+      "path": "assets/embedded/20ce1c98e1659910.webp",
+      "size": 1558408,
+      "sha256": "20ce1c98e165991034540f4875c04697d1bef5cc1d69649388fe420bd16e2e81"
+    },
+    {
+      "path": "assets/embedded/2150f2ae967d49e6.png",
+      "size": 22554,
+      "sha256": "2150f2ae967d49e6743a3cf278465c0fc84125b0e2388980ce304366797c433c"
+    },
+    {
+      "path": "assets/embedded/215981f910d7660c.png",
+      "size": 38037,
+      "sha256": "215981f910d7660c96f984d303e9a0063abcfd2489f0ae67a8e04afcb661b776"
+    },
+    {
+      "path": "assets/embedded/22d1ae69d3ea8139.png",
+      "size": 5651,
+      "sha256": "22d1ae69d3ea8139f414767267d2e4fec5982d00b936aab03084b9935cdb5b42"
+    },
+    {
+      "path": "assets/embedded/2353a5da99334966.png",
+      "size": 27651,
+      "sha256": "2353a5da993349666d08ca5f607048d3336049251dbe695802b8447f76d43571"
+    },
+    {
+      "path": "assets/embedded/25f448240cdd4004.webp",
+      "size": 264008,
+      "sha256": "25f448240cdd4004887146eafc576cacdc8d0d4b8b9cb66f308a23a98a7f9a7e"
+    },
+    {
+      "path": "assets/embedded/260eae6a22aa9ac0.webp",
+      "size": 211254,
+      "sha256": "260eae6a22aa9ac0c0501c2a5b1096268d6ae0dc037e3c25fe44c03c71448e02"
+    },
+    {
+      "path": "assets/embedded/28d7b6696c23eef2.png",
+      "size": 111122,
+      "sha256": "28d7b6696c23eef27f949c3cd5ec2c541914bd9b94ae46e5e49b693c9a38ea5a"
+    },
+    {
+      "path": "assets/embedded/2b762abd4da96c26.webp",
+      "size": 24562,
+      "sha256": "2b762abd4da96c2613db0b8e684213b73dc9e634028c50916bcd2063f14b8e8d"
+    },
+    {
+      "path": "assets/embedded/2b94e47fd3d984eb.png",
+      "size": 12850,
+      "sha256": "2b94e47fd3d984ebe8b71feae407f8aef1602aaebbcc5db2c176767f75f3b315"
+    },
+    {
+      "path": "assets/embedded/2e2ba30baedd8a13.webp",
+      "size": 37750,
+      "sha256": "2e2ba30baedd8a13dfd0cc577550e75fcc93d581bb680189f56b14af06682541"
+    },
+    {
+      "path": "assets/embedded/31a8c782a5ca450a.png",
+      "size": 24345,
+      "sha256": "31a8c782a5ca450a8a771d9228d6bd8357ada88527bb006cd67072bc8aea4d5d"
+    },
+    {
+      "path": "assets/embedded/32401c1d72541c7e.webp",
+      "size": 14654,
+      "sha256": "32401c1d72541c7ef9bca5ede255ec2f69f2c366656d4d8d31ac643ad66c785e"
+    },
+    {
+      "path": "assets/embedded/33c99d92b4e03f92.png",
+      "size": 38131,
+      "sha256": "33c99d92b4e03f9226966e268cdf7c96eca8d5fd32321231933476f087d93f80"
+    },
+    {
+      "path": "assets/embedded/33d6c6c1c9e4b7b1.webp",
+      "size": 21546,
+      "sha256": "33d6c6c1c9e4b7b190c456b85612c72d49b6ca1b02dd0cba1304ae742eeb7d55"
+    },
+    {
+      "path": "assets/embedded/38c0faefbedcfdb0.jpg",
+      "size": 137486,
+      "sha256": "38c0faefbedcfdb02b525696d5abec5f8e4e98de6e4b7cae961a95f55074654b"
+    },
+    {
+      "path": "assets/embedded/39673adce91f8f33.webp",
+      "size": 320814,
+      "sha256": "39673adce91f8f33c1abecfcf9a90cd20a3aa747e96cc6c2cfe2cb1ec3415b81"
+    },
+    {
+      "path": "assets/embedded/3dab9dfb08f88656.webp",
+      "size": 259292,
+      "sha256": "3dab9dfb08f88656569f753d396bb5498f262746dc5d9a87c1ac9e4548ab0116"
+    },
+    {
+      "path": "assets/embedded/40fa5232eac19a72.png",
+      "size": 9274,
+      "sha256": "40fa5232eac19a72b9827fb8266556ac80974d7b1ca6dec031d59cc8a1c95e75"
+    },
+    {
+      "path": "assets/embedded/42090d3db6e8f359.webp",
+      "size": 306882,
+      "sha256": "42090d3db6e8f3592bbb4aec4c0655409189ec37f6f18a1936cf333a6a86a081"
+    },
+    {
+      "path": "assets/embedded/429ba55ea36cd2c0.webp",
+      "size": 96552,
+      "sha256": "429ba55ea36cd2c012f5625152731f975256c396790289f4aff9c29c3f3bbcee"
+    },
+    {
+      "path": "assets/embedded/434327de7bb39b52.png",
+      "size": 74211,
+      "sha256": "434327de7bb39b52dc1a384addcf7033c4a39bb5552c366cb6062fe5a8dba4fd"
+    },
+    {
+      "path": "assets/embedded/43b3505b7866ae3f.png",
+      "size": 9721,
+      "sha256": "43b3505b7866ae3fd496085dddcda22b2f1a087d52e95de13d736bbb9ff9a42f"
+    },
+    {
+      "path": "assets/embedded/45067f31d7a5bfbe.webp",
+      "size": 606774,
+      "sha256": "45067f31d7a5bfbe9ca332220ed8cdb41bcc31392788231c1ade8e36eb3c4fb1"
+    },
+    {
+      "path": "assets/embedded/461152853088d34f.webp",
+      "size": 32648,
+      "sha256": "461152853088d34f25e457465afbd10dafba8b8dc8e59a917d56335329b1dc56"
+    },
+    {
+      "path": "assets/embedded/46c64f5e1fd178ff.webp",
+      "size": 336130,
+      "sha256": "46c64f5e1fd178fffe73160b255777a3c550075a6b72dbf7b7e2a5a2d2fa62db"
+    },
+    {
+      "path": "assets/embedded/4aa095ef526888af.png",
+      "size": 34348,
+      "sha256": "4aa095ef526888af39756b079606dff282f9b0a3e0f329391f94c74b33cf1961"
+    },
+    {
+      "path": "assets/embedded/4ac70fb0449f22c3.png",
+      "size": 36312,
+      "sha256": "4ac70fb0449f22c38910ebf1278d4f484d9be30581e3b18a852d1691d06e5c28"
+    },
+    {
+      "path": "assets/embedded/4d7515a6d2de0f1b.webp",
+      "size": 100598,
+      "sha256": "4d7515a6d2de0f1bb9d8d1bfeb7e5313636db5d6544d32704a984bc7d082c590"
+    },
+    {
+      "path": "assets/embedded/4e45eb81485b20f1.jpg",
+      "size": 18212,
+      "sha256": "4e45eb81485b20f14cccc1be2f5269dce9ad077c03c7688217f895526d6d4bac"
+    },
+    {
+      "path": "assets/embedded/4fe0f6aba9c1c1de.png",
+      "size": 20693,
+      "sha256": "4fe0f6aba9c1c1de5017148a4ecba5a2847d6c22199fbf93bf4d568d7e01f1e3"
+    },
+    {
+      "path": "assets/embedded/521146a1fe0c81a1.webp",
+      "size": 16840,
+      "sha256": "521146a1fe0c81a1d7762f0f00d3e56e965d7b7cc5bd0472e34e688be41492e4"
+    },
+    {
+      "path": "assets/embedded/5283cc0fd64f3450.webp",
+      "size": 184906,
+      "sha256": "5283cc0fd64f345004eb044c2379f132fb7e9d435e877442e2a6659cbac5f1b3"
+    },
+    {
+      "path": "assets/embedded/5488de35675a750d.webp",
+      "size": 112894,
+      "sha256": "5488de35675a750d02427e62acd72c8dce6481d2985a2e756255ea50b9fe5406"
+    },
+    {
+      "path": "assets/embedded/549c661c77fda2fc.webp",
+      "size": 266124,
+      "sha256": "549c661c77fda2fcd7f8c2921dd001df9d01149867742e513a8dfb6ee4e76b4e"
+    },
+    {
+      "path": "assets/embedded/54cfeb704bab573b.png",
+      "size": 20005,
+      "sha256": "54cfeb704bab573ba742618a247c5211f52f4b27256a4923678fe5e645b2b0aa"
+    },
+    {
+      "path": "assets/embedded/5d4545b7b5caa555.webp",
+      "size": 76984,
+      "sha256": "5d4545b7b5caa555019e5efc3afb3c0ae72aaa6ae507ce33e164cc6f11da9731"
+    },
+    {
+      "path": "assets/embedded/631e12c017125265.png",
+      "size": 53468,
+      "sha256": "631e12c017125265ce3213eb5b54b100c9283df65f18fbedb82c8d306ad6540a"
+    },
+    {
+      "path": "assets/embedded/63c8d3f7944833a9.png",
+      "size": 4067,
+      "sha256": "63c8d3f7944833a97d37efeda5a6ba4ba4aace34534652f9705e125a4f085326"
+    },
+    {
+      "path": "assets/embedded/6411d63e74e408b1.png",
+      "size": 21189,
+      "sha256": "6411d63e74e408b180c60d37381a8994f00e34fdc1202ce8f691df0153e8f246"
+    },
+    {
+      "path": "assets/embedded/657289440aeef628.mp3",
+      "size": 820224,
+      "sha256": "657289440aeef628ad2bae0dbbf07f8c470a0b59b5a85f751b8b30abbdb9a711"
+    },
+    {
+      "path": "assets/embedded/65fdfb22f8c311c2.webp",
+      "size": 15054,
+      "sha256": "65fdfb22f8c311c21595c9e3ccd222d5cfeec7a600fd619738dc2c9f16cb9fc6"
+    },
+    {
+      "path": "assets/embedded/664cbbaa76a641bc.jpg",
+      "size": 86257,
+      "sha256": "664cbbaa76a641bc0c5c762a1f0de13f6ca684716a1e7cb3e48b6ae1a188740e"
+    },
+    {
+      "path": "assets/embedded/6691f15329167d77.webp",
+      "size": 742848,
+      "sha256": "6691f15329167d77f8ac900eaad7ebbeb5f5c5e82db9704991f4b2d515bc2b0b"
+    },
+    {
+      "path": "assets/embedded/675a99389b287689.webp",
+      "size": 20166,
+      "sha256": "675a99389b287689165b6eca6777f17612d1559dcca41d02d87c8d126e4eb8b6"
+    },
+    {
+      "path": "assets/embedded/69ce12a1695124f6.jpg",
+      "size": 70006,
+      "sha256": "69ce12a1695124f6790ecc3840c1bbf8ed85dc9562249d7bef6b1cc18314c57b"
+    },
+    {
+      "path": "assets/embedded/6a698ce72aa7ba10.webp",
+      "size": 18534,
+      "sha256": "6a698ce72aa7ba106e95be02ae07058e21a80d1896bc119328b7cbccf78136f4"
+    },
+    {
+      "path": "assets/embedded/6c6c49e4e62b0cd0.png",
+      "size": 53167,
+      "sha256": "6c6c49e4e62b0cd03f4192184434cc535ac12acc3d7094294ea8c134ce730849"
+    },
+    {
+      "path": "assets/embedded/6ea55400daee65f6.webp",
+      "size": 12260,
+      "sha256": "6ea55400daee65f6e204f0a30f0f2a9443b0520ac9c359f4eff9be45ececb11d"
+    },
+    {
+      "path": "assets/embedded/6fde37a01def2174.webp",
+      "size": 8176,
+      "sha256": "6fde37a01def21746346371f517a0d99aa967fa4ea3d05dcab19f1dab5ed881f"
+    },
+    {
+      "path": "assets/embedded/70c30e8b0feb70ab.jpg",
+      "size": 18980,
+      "sha256": "70c30e8b0feb70ab9709d68a64f64bf64a04c89c434f0747f3e6405731a563d9"
+    },
+    {
+      "path": "assets/embedded/7147d88817ea3d31.webp",
+      "size": 17132,
+      "sha256": "7147d88817ea3d31ad94ffe7f9c69749ec1115a7aea56bca323afe5615ff19bd"
+    },
+    {
+      "path": "assets/embedded/740b8f7907035452.webp",
+      "size": 401120,
+      "sha256": "740b8f7907035452c0f26e49611b24d6b2db084bb401229b7c853046cbdc490c"
+    },
+    {
+      "path": "assets/embedded/74a0819da595e0fb.png",
+      "size": 4939,
+      "sha256": "74a0819da595e0fbdc3183e1948a069ab1f6b7225b6729a8dd3da2e69001abbb"
+    },
+    {
+      "path": "assets/embedded/74de873c570a0062.webp",
+      "size": 298732,
+      "sha256": "74de873c570a0062d1da25cbab3c0747aa954f0557eabd0d35fc81c448c8de84"
+    },
+    {
+      "path": "assets/embedded/75db3eb6d6311d6d.webp",
+      "size": 122954,
+      "sha256": "75db3eb6d6311d6d132c1034d4056cb74ca7474a56c2a069e36e26008d0a1862"
+    },
+    {
+      "path": "assets/embedded/7979bb80f6ee3154.png",
+      "size": 86429,
+      "sha256": "7979bb80f6ee31549661e5c7e0e2608aa4ef99139748ed1f96552d93b35f9beb"
+    },
+    {
+      "path": "assets/embedded/7da16b466dea0b9e.webp",
+      "size": 1303190,
+      "sha256": "7da16b466dea0b9ef4959d2d120e4b7e0b9bdaa0f5210b79feef9c814d8d0eb2"
+    },
+    {
+      "path": "assets/embedded/8291321230bf0f68.jpg",
+      "size": 146687,
+      "sha256": "8291321230bf0f688d9efd94c7e4d41de21beb338f03cb74ec61a699ed172cc4"
+    },
+    {
+      "path": "assets/embedded/82e9798623f876a7.jpg",
+      "size": 109377,
+      "sha256": "82e9798623f876a7d9041ede01448c14de8c8f93832e17e5bee77d90546ba9c1"
+    },
+    {
+      "path": "assets/embedded/83a4e915814c7356.webp",
+      "size": 316780,
+      "sha256": "83a4e915814c7356c4914c8bda85c88ae96a5067abc7bbe5db30f67b9242ea14"
+    },
+    {
+      "path": "assets/embedded/84208d3b6120f626.png",
+      "size": 14174,
+      "sha256": "84208d3b6120f6262310bf02c4485fa4bf45bf8ec4b3f1e5f8b9ac7b7ce23348"
+    },
+    {
+      "path": "assets/embedded/874442be54d1d14c.webp",
+      "size": 13768,
+      "sha256": "874442be54d1d14c091ad42c9e1c0f3864679846b68f4520f8f38343203bcb5e"
+    },
+    {
+      "path": "assets/embedded/884c54669dab2032.png",
+      "size": 25218,
+      "sha256": "884c54669dab20325f4035bb9b342ca84216d87ea4b081339decfebc9e288feb"
+    },
+    {
+      "path": "assets/embedded/8d79e04c4bc1cf61.webp",
+      "size": 160028,
+      "sha256": "8d79e04c4bc1cf6150b4d99e4599c77e2ba06973a01a0cb3933e847f920e271a"
+    },
+    {
+      "path": "assets/embedded/8dabc85b384ddabc.jpg",
+      "size": 116763,
+      "sha256": "8dabc85b384ddabc1f54b0a3f46ff93965e63ff921af7d2df3984dc47ef6b1cb"
+    },
+    {
+      "path": "assets/embedded/8dedf1e93fb72ca5.webp",
+      "size": 22306,
+      "sha256": "8dedf1e93fb72ca510b951bcc8a7378c19afa3af7a4820153d3b21d057b44c00"
+    },
+    {
+      "path": "assets/embedded/9281f7acab4327fc.png",
+      "size": 27392,
+      "sha256": "9281f7acab4327fce856fcda0bf9ce71a0050f84e436738514895d61bb5f3ca8"
+    },
+    {
+      "path": "assets/embedded/92dc0ef6594f9336.jpg",
+      "size": 105070,
+      "sha256": "92dc0ef6594f9336ac6bdbbd44ac018050da37c2a21ed037819d423f954f872f"
+    },
+    {
+      "path": "assets/embedded/942c29813562ca5f.png",
+      "size": 49902,
+      "sha256": "942c29813562ca5f5078232d0e5c82f37e92d9de716ac659b5fa549170c9a9b8"
+    },
+    {
+      "path": "assets/embedded/99919872b8956076.webp",
+      "size": 115960,
+      "sha256": "99919872b8956076832484443c6426ac1151de802ae1d82998c9c56d9b69ea8f"
+    },
+    {
+      "path": "assets/embedded/9dd3081954517139.png",
+      "size": 8087,
+      "sha256": "9dd3081954517139b783094a67ab275ef019f6f3b48749d4482958bf6da38715"
+    },
+    {
+      "path": "assets/embedded/9e3636ed0d1cb32e.webp",
+      "size": 42272,
+      "sha256": "9e3636ed0d1cb32e728ed4285d7d4fc056e2c48d05dc2b9829367b9ef392df60"
+    },
+    {
+      "path": "assets/embedded/9f4a7c7a1c3baee2.png",
+      "size": 11121,
+      "sha256": "9f4a7c7a1c3baee23bac123d8bd6ddfedab8d26a421888e3e295c126be711b37"
+    },
+    {
+      "path": "assets/embedded/9f98ab0ac4434ca6.png",
+      "size": 2000,
+      "sha256": "9f98ab0ac4434ca6caaeacf2a326b645d484f6327a9fedc5f32a331f02c98743"
+    },
+    {
+      "path": "assets/embedded/a0dd6540f2598878.png",
+      "size": 5590,
+      "sha256": "a0dd6540f2598878fa42b58ba34826163e2c6ad7a4de15b2ecbd4d2eed3e4506"
+    },
+    {
+      "path": "assets/embedded/a195e30500684429.webp",
+      "size": 283340,
+      "sha256": "a195e3050068442941632a0bb00cc8c923cf2ea36d82aaaabeace3101901beb6"
+    },
+    {
+      "path": "assets/embedded/a1ad4137a7d87cac.jpg",
+      "size": 134948,
+      "sha256": "a1ad4137a7d87cac5f4a15361d6f64479c8beabb9398aa6b6788a763f8829450"
+    },
+    {
+      "path": "assets/embedded/a45f14787b928ab1.png",
+      "size": 46620,
+      "sha256": "a45f14787b928ab1714577418bd6d8a6fbea3e8ee9e8493aa0e9f78e51004f4e"
+    },
+    {
+      "path": "assets/embedded/a4bf49f48bcbfe03.jpg",
+      "size": 90530,
+      "sha256": "a4bf49f48bcbfe03e10335607200694be854c519600923f38047ef4161d8bd6a"
+    },
+    {
+      "path": "assets/embedded/a53ccc721a119d79.webp",
+      "size": 21030,
+      "sha256": "a53ccc721a119d792f1868600289d26a648f12a85020394a90ba979260d2ac3e"
+    },
+    {
+      "path": "assets/embedded/ac6c1b84576070ae.webp",
+      "size": 153956,
+      "sha256": "ac6c1b84576070aed18f68c976df92ca60bd84cd0605d0f33854bbbff6729c47"
+    },
+    {
+      "path": "assets/embedded/aca76134620a484c.png",
+      "size": 20689,
+      "sha256": "aca76134620a484c493342dffed31b17ed53bef3a3065b81eabea012d0767f69"
+    },
+    {
+      "path": "assets/embedded/ae1f2ff560954f5d.webp",
+      "size": 194924,
+      "sha256": "ae1f2ff560954f5d995e8420c2883c59af0b5f646ae618763f790334802629c4"
+    },
+    {
+      "path": "assets/embedded/af638f44c8814cfe.webp",
+      "size": 391158,
+      "sha256": "af638f44c8814cfe1d80f6d3d6a8b80f7caa98e830acfb953affc58ee83370e3"
+    },
+    {
+      "path": "assets/embedded/afaa45882d239af9.webp",
+      "size": 84446,
+      "sha256": "afaa45882d239af9c5b1b65002eaf03e7a75056bf90e72256b383b7c20a0e017"
+    },
+    {
+      "path": "assets/embedded/b1230f7b808640eb.jpg",
+      "size": 89290,
+      "sha256": "b1230f7b808640ebc1511e443695f7cb8571c01cea272166ce6ec162ec1d036d"
+    },
+    {
+      "path": "assets/embedded/b614aa1ccef0ff87.jpg",
+      "size": 148099,
+      "sha256": "b614aa1ccef0ff8794324334575d9e3d02e0fe0cb6170523bc0df12787458255"
+    },
+    {
+      "path": "assets/embedded/bd1fef506b91a420.webp",
+      "size": 12150,
+      "sha256": "bd1fef506b91a420c16cc193955692b30a87ba4415f2f8620c3d95844d2100e2"
+    },
+    {
+      "path": "assets/embedded/be82dc4c296ad131.webp",
+      "size": 116800,
+      "sha256": "be82dc4c296ad131e8a5a05a20f00a849071e19a1adac189b9fd331dfc1a765a"
+    },
+    {
+      "path": "assets/embedded/c160cfe19e3a6805.webp",
+      "size": 18108,
+      "sha256": "c160cfe19e3a680543fdb8bcf2be7c2441a3dc01d4af688da19d2137cafe2f84"
+    },
+    {
+      "path": "assets/embedded/c5de83094f27c8d8.webp",
+      "size": 288834,
+      "sha256": "c5de83094f27c8d86210ce6f30a55fee3f5a552b1e675f5fad264226aa6c9771"
+    },
+    {
+      "path": "assets/embedded/c6d5610d8ccfc84b.png",
+      "size": 5715,
+      "sha256": "c6d5610d8ccfc84b2b993f77902bdc2547ec6b5f34a47cc50868d05605533767"
+    },
+    {
+      "path": "assets/embedded/c97e609088bc84e6.jpg",
+      "size": 18136,
+      "sha256": "c97e609088bc84e6dc9f4f8ce0edc51706052cb702d81dc26863440f761632f7"
+    },
+    {
+      "path": "assets/embedded/ca528f4b971962c0.png",
+      "size": 15921,
+      "sha256": "ca528f4b971962c05e9134a183d6dc914cd8f71bdd112067a3156973a1d313c8"
+    },
+    {
+      "path": "assets/embedded/ce30cdb246ae2187.png",
+      "size": 245041,
+      "sha256": "ce30cdb246ae21871f8c148dce57abaa631316a4b4b9d33bcc6fc9e1495e04f8"
+    },
+    {
+      "path": "assets/embedded/d08357a8dee6d7da.png",
+      "size": 12989,
+      "sha256": "d08357a8dee6d7da1f60760523b5402fea05bacc0a7ef6fa9319ae8d3cf74e01"
+    },
+    {
+      "path": "assets/embedded/d087935ebeef39b7.webp",
+      "size": 11856,
+      "sha256": "d087935ebeef39b7d1980848717480470a28900a8412642dd89bff048a15d379"
+    },
+    {
+      "path": "assets/embedded/d292dad7047e39ae.jpg",
+      "size": 95871,
+      "sha256": "d292dad7047e39ae91502dff3f575c478cd41488736ab97ec3bfdd53d113daa5"
+    },
+    {
+      "path": "assets/embedded/d2a47327b0cec5d5.webp",
+      "size": 89438,
+      "sha256": "d2a47327b0cec5d54e15626ddf2c1f2ccd2f81d24f847b017a4eb8fec93d6f71"
+    },
+    {
+      "path": "assets/embedded/d32856bbc62cbe46.png",
+      "size": 27988,
+      "sha256": "d32856bbc62cbe4621fe1d0d39d745c60fa26e57ebef69d8e343266e95a594da"
+    },
+    {
+      "path": "assets/embedded/d5a04b9336642b11.png",
+      "size": 6312,
+      "sha256": "d5a04b9336642b115036f6281c245154c20a44c39ccf216754e520dc63b6848d"
+    },
+    {
+      "path": "assets/embedded/d66c71d3b6c54a52.jpg",
+      "size": 112862,
+      "sha256": "d66c71d3b6c54a52aae42a8ca7fa1583ef93064dd45912a6c0df127d14c916b1"
+    },
+    {
+      "path": "assets/embedded/d730be4f45f6f5c5.png",
+      "size": 38769,
+      "sha256": "d730be4f45f6f5c53981e76a12cf26b4076bbd000562d2b740ff2035716b3974"
+    },
+    {
+      "path": "assets/embedded/d743b86a8a57045a.webp",
+      "size": 322886,
+      "sha256": "d743b86a8a57045aea16c678276c63a720fcf99147914ed71275b50305e6681f"
+    },
+    {
+      "path": "assets/embedded/d950b6a0f2933cba.webp",
+      "size": 345408,
+      "sha256": "d950b6a0f2933cba586851a6f9128476b76e301976c50398ac04c3d4e5c22810"
+    },
+    {
+      "path": "assets/embedded/dd1d02e3aa805f5b.jpg",
+      "size": 115052,
+      "sha256": "dd1d02e3aa805f5b9e155f2bd79376fec8bf7167e5dc02f23690c5d4a92e9dfb"
+    },
+    {
+      "path": "assets/embedded/df2924b305b7c1f0.png",
+      "size": 33698,
+      "sha256": "df2924b305b7c1f03708eae4b07eebdc7498fa25eb97e1626f83350cd252a89e"
+    },
+    {
+      "path": "assets/embedded/e02a2f773c52a198.webm",
+      "size": 515,
+      "sha256": "e02a2f773c52a1989fa9e6f3113151637a822131c0847de5d456131d082c4806"
+    },
+    {
+      "path": "assets/embedded/e24c4d73d6b81295.webp",
+      "size": 348448,
+      "sha256": "e24c4d73d6b81295f07d48bd2e5b2b2d29b6330c5a7d0560bd2cd1ef47cf5fd4"
+    },
+    {
+      "path": "assets/embedded/e48543a99818bbfc.jpg",
+      "size": 94932,
+      "sha256": "e48543a99818bbfc448aac2bdcdce1e29929ffbd6edd7f5fcb1976961ffd465c"
+    },
+    {
+      "path": "assets/embedded/eb50dd9b03bb9957.webp",
+      "size": 253524,
+      "sha256": "eb50dd9b03bb995771d23a1f43e97bceb33c04097eddc1e34ca57bb2afcc2736"
+    },
+    {
+      "path": "assets/embedded/eefad1830950de3f.png",
+      "size": 27396,
+      "sha256": "eefad1830950de3fb2b18b747ace021bada5a3d63a44fffcb9973569004a9a73"
+    },
+    {
+      "path": "assets/embedded/ef2d7be7f11d51b6.png",
+      "size": 30941,
+      "sha256": "ef2d7be7f11d51b6e9684b29fa5eb9d67a22069790ebcaca1e2471ae58fbd87b"
+    },
+    {
+      "path": "assets/embedded/f16af09379119b6d.png",
+      "size": 8874,
+      "sha256": "f16af09379119b6d3a512c1fafb067c35a1eb5d4bd97bc319d16c4e0dc83e43b"
+    },
+    {
+      "path": "assets/embedded/f32f8d1452b8a0ff.webp",
+      "size": 13666,
+      "sha256": "f32f8d1452b8a0ff2b14cc0bee570dd60a1f29db4347b988b5fa2f4c79423031"
+    },
+    {
+      "path": "assets/embedded/f38280a0b9e58076.webp",
+      "size": 28230,
+      "sha256": "f38280a0b9e580762a6443c81d9bc5db5f7c511a3f4e252821c2952fc109af10"
+    },
+    {
+      "path": "assets/embedded/f45470132c3d7713.jpg",
+      "size": 59608,
+      "sha256": "f45470132c3d771387625bab406c1da01730a94a9222f4c4c6d1c71f6b65ed26"
+    },
+    {
+      "path": "assets/embedded/f4ea012476d485c8.webp",
+      "size": 239022,
+      "sha256": "f4ea012476d485c8e11ee27c107b021a259f00c0a81dfc3873803385b270c28c"
+    },
+    {
+      "path": "assets/embedded/f6facfa7ea64461e.jpg",
+      "size": 56728,
+      "sha256": "f6facfa7ea64461ea288c097f76582f77a72784e0729653b49038b5a0c7291fa"
+    },
+    {
+      "path": "assets/embedded/fa2e2ca46c5cf673.webp",
+      "size": 327350,
+      "sha256": "fa2e2ca46c5cf673d4ac6e118d9991a678d8456376a423bab06ce0fe3694f7b6"
+    },
+    {
+      "path": "assets/embedded/fb53278998ebe87d.png",
+      "size": 14320,
+      "sha256": "fb53278998ebe87dbcdee3e07bec4c054e77d8f8e0f91231e0497eb10877798a"
+    },
+    {
+      "path": "assets/embedded/fc66ada89fa7c041.webp",
+      "size": 19002,
+      "sha256": "fc66ada89fa7c0411e97cb4c5708c660e10b039d44d408ce217d97a88fc2afc2"
+    },
+    {
+      "path": "assets/embedded/feb2a5baf6d7de7f.jpg",
+      "size": 10757,
+      "sha256": "feb2a5baf6d7de7fe493786a9d31cc9f1ed96951370f1dbba1e3a5f22b4deb75"
+    },
+    {
+      "path": "assets/enemies/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/enemies/final-enemies-sheet.png",
+      "size": 2503597,
+      "sha256": "af6200b59a40faa61c03a94a798b25a820f11b10f7b0adba6c402b913e6d30ec"
+    },
+    {
+      "path": "assets/fanboy/README.md",
+      "size": 1637,
+      "sha256": "53a65e7858e9616528099e5e06265c08162b3706be1906642b1f18cf982ce342"
+    },
+    {
+      "path": "assets/fanboy/fx-material-reference.png",
+      "size": 2847843,
+      "sha256": "15cd4fa168380aa8206e2301ad595442afa89384f2d71ce87a4c9f8b14dd2274"
+    },
+    {
+      "path": "assets/fanboy/nv01-shell-render-v2.png",
+      "size": 2252621,
+      "sha256": "afa0693dbb8a25b3c3aea8e51c2d0c15af1bd9f1afd58539f41c96dcca15bbcf"
+    },
+    {
+      "path": "assets/fanboy/nv01-shell.svg",
+      "size": 1707,
+      "sha256": "f61961bc189cea0b7f3329f639efc5ab6575b848b8cbd56917ff481d942b64cd"
+    },
+    {
+      "path": "assets/final/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/final/base-interior.png",
+      "size": 2951558,
+      "sha256": "477c80e123c48cf5bf9bf2d613af589f4d3e11b400a4a25a76050cf54dd00d94"
+    },
+    {
+      "path": "assets/final/bulkhead-door.png",
+      "size": 2820701,
+      "sha256": "9400e77518ef7a989ed34c64369dc64e3829a9b7d9fdc12c60f5f4e6aa4bf10c"
+    },
+    {
+      "path": "assets/final/door-corridor.png",
+      "size": 2817291,
+      "sha256": "afaae3ed3f2d4f636d838012d7efc99d30507f70a4ff6efb94779745daaf7953"
+    },
+    {
+      "path": "assets/final/outer-space.png",
+      "size": 3065555,
+      "sha256": "f5273058352a63de9785211ebc404cc5f5090ac3b3fae2e819b885e1934ec0a0"
+    },
+    {
+      "path": "assets/level24-anime/manifest.json",
+      "size": 13811,
+      "sha256": "0f5636989a2008000358afb3559ffe185e909645ac18057b8ac99742e9818a60"
+    },
+    {
+      "path": "assets/level24-anime/mobile/boss/mains_articulees.webp",
+      "size": 434200,
+      "sha256": "41f49e8c5036cc98548e8841a5ad51f050972474f74bf610565538bb918d9c10"
+    },
+    {
+      "path": "assets/level24-anime/mobile/boss/vorax_degats.webp",
+      "size": 689030,
+      "sha256": "481323a0e8e23081b940c198f93d07512104fdcecd0ab3532bc093e5a5aa8444"
+    },
+    {
+      "path": "assets/level24-anime/mobile/boss/vorax_postures.webp",
+      "size": 1133712,
+      "sha256": "ff88a789f3d1d4d29a7fbadcb53ab3d59bc0effb6fff0d431ecc9eff9ac14f9b"
+    },
+    {
+      "path": "assets/level24-anime/mobile/decor/couloir_intact.webp",
+      "size": 273808,
+      "sha256": "423316690e31127c1aee5cfb2a57dc73b27016c55f877e47beee16d023700477"
+    },
+    {
+      "path": "assets/level24-anime/mobile/decor/debris_12.webp",
+      "size": 889044,
+      "sha256": "98a686c3e878bb7ee7dae990d4a2668c0b9114a013ec11ae04c91803218bca8a"
+    },
+    {
+      "path": "assets/level24-anime/mobile/decor/espace_bleu.webp",
+      "size": 129528,
+      "sha256": "b267b07be76ad8a6c80e85033a9f528dcfd5886aebc9ced6b4f5560dac99e47d"
+    },
+    {
+      "path": "assets/level24-anime/mobile/decor/espace_profond.webp",
+      "size": 209984,
+      "sha256": "b4192eb41ba9e5a90d769b20c84e5db0f406127cbbfd95359212b7b272da25eb"
+    },
+    {
+      "path": "assets/level24-anime/mobile/decor/espace_rouge.webp",
+      "size": 102524,
+      "sha256": "f6089bff195b50827db87b5b6af710b998cc83a49c307adc747e3a8dc1d2b394"
+    },
+    {
+      "path": "assets/level24-anime/mobile/decor/halo_terre.webp",
+      "size": 586238,
+      "sha256": "36bc1a6627227a6b69bc5b92b50dfeaf688fce7450227202520b5e3544d224d6"
+    },
+    {
+      "path": "assets/level24-anime/mobile/decor/ruines_parallaxe.webp",
+      "size": 559652,
+      "sha256": "d6f44004f39a15bbaf02d302824dabf2bc46f48cc51d1170867eac9ce1084059"
+    },
+    {
+      "path": "assets/level24-anime/mobile/decor/terre.webp",
+      "size": 1319090,
+      "sha256": "1e7e8f35cb12150e4413ad81ee46fc688db49aa9c8a44a526bb8390076805bcc"
+    },
+    {
+      "path": "assets/level24-anime/mobile/effets/alerte_sequence.webp",
+      "size": 964498,
+      "sha256": "46519553f5098889347928a1d4e83957217213af517cd69a0eaed34dfb0041f2"
+    },
+    {
+      "path": "assets/level24-anime/mobile/effets/explosion_finale.webp",
+      "size": 630066,
+      "sha256": "f53f03d91d0b00822a907b7a1e254a56031e4769ba271abba47453b33012322b"
+    },
+    {
+      "path": "assets/level24-anime/mobile/ennemis/defenses_base.webp",
+      "size": 672566,
+      "sha256": "c8aa43c0af8372925ce58d63d0b279fa72fe72b3a6c9a894254e89c527e24ab6"
+    },
+    {
+      "path": "assets/level24-anime/mobile/ennemis/escadrille.webp",
+      "size": 878680,
+      "sha256": "26ac11c76ddcec4d79ab0a769573726ba06a51821b9c135e576680d5bc6bdade"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/cadre_exterieur_original.webp",
+      "size": 345378,
+      "sha256": "71c0bc2fa51bb7d27d51993cb498c0cdd3f048421a60f8ef001973c405b84949"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/couloir_endommage_original.webp",
+      "size": 350776,
+      "sha256": "af5c2f586f7f5e60cad3aa75ca7170267947674ba744536852157fdcdd6253e4"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/halo_horizon_original.webp",
+      "size": 224616,
+      "sha256": "0439c4b15fc2e8d4c7ff5a9d98dddb1c9e6ed924b6e9180ab4aaee844f7c2894"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/sas_exterieur_detruit.webp",
+      "size": 380340,
+      "sha256": "44e83a6be78e7b6ab93bd8125b4409912d5ef817c4c1a27f17da2e5e053d94b1"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/sas_exterieur_fissure.webp",
+      "size": 346370,
+      "sha256": "a4004abba54a1672893b8fd3ea9380c6b9b895c72c0e5499e8a23d9e4886e702"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/sas_exterieur_intact.webp",
+      "size": 306478,
+      "sha256": "8da1d282d891807fc13dbbf594fb1cb78078f6eb52efaa77ce67efe6d96c8711"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/terre_horizon_original.webp",
+      "size": 569932,
+      "sha256": "8beffa279564666978757434e7b9e2a991853b1426159929b41095efe3bb8f7e"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/vorax_charge_modele.webp",
+      "size": 155744,
+      "sha256": "029248ba955d0ea064429dd34a09c111c0902127ee2aec994e546121644c214a"
+    },
+    {
+      "path": "assets/level24-anime/mobile/references/vorax_modele.webp",
+      "size": 151794,
+      "sha256": "2b0feed876dda683245fb2b503431b096b122bf4b78f3579f09fe4951984439f"
+    },
+    {
+      "path": "assets/level24-anime/mobile/sas/base_toit_devanture.webp",
+      "size": 791608,
+      "sha256": "02ffefc6fb82f85e08c93e36412d8743e40ef0aed31a508f47ac3597b47cb515"
+    },
+    {
+      "path": "assets/level24-anime/mobile/sas/sas_vorax_sequence.webp",
+      "size": 696138,
+      "sha256": "76e8452e4c29fe107a04b5cfda24cff0e9b660e867429f940087256f5323b001"
+    },
+    {
+      "path": "assets/level24-anime/pc/boss/mains_articulees.webp",
+      "size": 1198004,
+      "sha256": "fde865fc3d883be1c381faf3987e4c96c9890bd8874afb808eb2b2f9c47e465f"
+    },
+    {
+      "path": "assets/level24-anime/pc/boss/vorax_degats.webp",
+      "size": 1261094,
+      "sha256": "e82d86226325d968622bf07ff1c1b8e8f90c9386669bbd3cf168073eb7d3da3d"
+    },
+    {
+      "path": "assets/level24-anime/pc/boss/vorax_postures.webp",
+      "size": 1594250,
+      "sha256": "e8f9c90310e9318e2e7fa0503c2232747ebd54bd9806665ad8816af978420421"
+    },
+    {
+      "path": "assets/level24-anime/pc/decor/couloir_intact.webp",
+      "size": 547250,
+      "sha256": "5d1956edad88bc501dacadb0e76d7674bd41c22b5f07d657d37cacadb0f2c720"
+    },
+    {
+      "path": "assets/level24-anime/pc/decor/debris_12.webp",
+      "size": 1637252,
+      "sha256": "d860a9ff22563b5965a57f5bf39c3cd2d4ed304d5e99768bce5a5e9a3e9b37c2"
+    },
+    {
+      "path": "assets/level24-anime/pc/decor/espace_bleu.webp",
+      "size": 265960,
+      "sha256": "b44ec2fdb7452681f0b5abe3adb6b1caa201288e32baad26e667c48f35538462"
+    },
+    {
+      "path": "assets/level24-anime/pc/decor/espace_profond.webp",
+      "size": 428230,
+      "sha256": "5a98c6188941d242604b3bb0f4f6d8af06738f70aa233fce1ec7fc85d0a56e25"
+    },
+    {
+      "path": "assets/level24-anime/pc/decor/espace_rouge.webp",
+      "size": 205360,
+      "sha256": "fab481dd7b0cdbc19f0379016a6974f63b5fecc146d2758ea9806e0ef45cafbc"
+    },
+    {
+      "path": "assets/level24-anime/pc/decor/halo_terre.webp",
+      "size": 764228,
+      "sha256": "4729c334f91d58e568c0bfe3ef9986a500ac1e3ae2b26317105b69fa9d13a738"
+    },
+    {
+      "path": "assets/level24-anime/pc/decor/ruines_parallaxe.webp",
+      "size": 1185294,
+      "sha256": "836a6f319f0e42637b2ba033214b6dd05d0dba4803524d88a64e85e395fd7339"
+    },
+    {
+      "path": "assets/level24-anime/pc/decor/terre.webp",
+      "size": 1889540,
+      "sha256": "5ac959b8830b53e2afc88a36786078aa80ba6856eeb998e81859866816399a93"
+    },
+    {
+      "path": "assets/level24-anime/pc/effets/alerte_sequence.webp",
+      "size": 1566034,
+      "sha256": "7b891ad96387ca3fdbdd0bc2d827f437dc1db4948eeb8c8d8bca2c9b68d0667d"
+    },
+    {
+      "path": "assets/level24-anime/pc/effets/explosion_finale.webp",
+      "size": 1115786,
+      "sha256": "abe73f6bbdb1f69cf4f2e707551cbb66203f5cfc977d06717e32c4dac50b2234"
+    },
+    {
+      "path": "assets/level24-anime/pc/ennemis/defenses_base.webp",
+      "size": 1452952,
+      "sha256": "037f8ebdd3bbabc70da2d1b3b1f954a1862b93f3dc37f30e0e7db8fde811abd3"
+    },
+    {
+      "path": "assets/level24-anime/pc/ennemis/escadrille.webp",
+      "size": 1262212,
+      "sha256": "9664c17d20f71c257c37c509eedbe8735a19329bda68aa49fb63e7438f69caf9"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/cadre_exterieur_original.webp",
+      "size": 1287070,
+      "sha256": "3fd988b09e1b4afac8c93a4a21d631acccc5d7d015fc084e1855f95d9b376060"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/couloir_endommage_original.webp",
+      "size": 699378,
+      "sha256": "88880e4f029519526f96413bc5b40849d3ba96757bd7526129e42191dbbf6e25"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/halo_horizon_original.webp",
+      "size": 470698,
+      "sha256": "64315101ea322e9c40f20df6384a926651ad87ca59904d6eb7939b36e30662e8"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/sas_exterieur_detruit.webp",
+      "size": 1318850,
+      "sha256": "e0836ec52daf246c9b2672a18a916b5cf8d25d1f82a06c73291c67b57c46fe48"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/sas_exterieur_fissure.webp",
+      "size": 1291410,
+      "sha256": "38059a01096741b300344c28d4357bb69b0495c6c5fbcebfc3f7005da5d4f9d2"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/sas_exterieur_intact.webp",
+      "size": 1145532,
+      "sha256": "a48c03ef289653b02f5d012a2378c1a77e12002c0bcf1aa3ef0a6dd26dae4f7a"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/terre_horizon_original.webp",
+      "size": 1186346,
+      "sha256": "36a5387567fc54a6560bdf42d51d60943af6f9ecac51b455f317172235621c10"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/vorax_charge_modele.webp",
+      "size": 155744,
+      "sha256": "029248ba955d0ea064429dd34a09c111c0902127ee2aec994e546121644c214a"
+    },
+    {
+      "path": "assets/level24-anime/pc/references/vorax_modele.webp",
+      "size": 151794,
+      "sha256": "2b0feed876dda683245fb2b503431b096b122bf4b78f3579f09fe4951984439f"
+    },
+    {
+      "path": "assets/level24-anime/pc/sas/base_toit_devanture.webp",
+      "size": 1683742,
+      "sha256": "a8cc8cd06f560fd8c19e545a694e069ab7c8e29347051c9bfc6a3c4cd2b77f86"
+    },
+    {
+      "path": "assets/level24-anime/pc/sas/sas_vorax_sequence.webp",
+      "size": 1979552,
+      "sha256": "95a340049212848c690954c36f0d6df81639b5c68889c22c261aeb7a6eb6a1b2"
+    },
+    {
+      "path": "assets/level24-anime/vertical-loop.js",
+      "size": 1095,
+      "sha256": "0776819e8b6f9a308396d73266b2ac34013d54656d2c25aa356203bb4b6120b4"
+    },
+    {
+      "path": "assets/level24-v2/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/atlas.json",
+      "size": 16317,
+      "sha256": "b91d107acb1808744cb57f34bd74025076b50e017881cf7169513c2586fdd371"
+    },
+    {
+      "path": "assets/level24-v2/boss/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/boss/vorax-cuirasse.png",
+      "size": 3610239,
+      "sha256": "f571e1d16b76a04990575e199711c0c63fc716d9dde056ea1d8cf46ac259c1b1"
+    },
+    {
+      "path": "assets/level24-v2/boss/vorax-cuirasse.webp",
+      "size": 522630,
+      "sha256": "c7514579f1a3503e1713742e12ec510766019b749ab4882d1adc539066a2a59b"
+    },
+    {
+      "path": "assets/level24-v2/boss/vorax-necro-reacteur.png",
+      "size": 3186365,
+      "sha256": "4ca263d905e7477de2923b08f0720618599d777546889344c199a9bda0b317e0"
+    },
+    {
+      "path": "assets/level24-v2/boss/vorax-necro-reacteur.webp",
+      "size": 543846,
+      "sha256": "de23fc2c9aa49a9d3f97302213127d7eadb6d28b9dced9e19f465f7fa1dc6449"
+    },
+    {
+      "path": "assets/level24-v2/boss/vorax-singularite.png",
+      "size": 2596685,
+      "sha256": "e85fae5c192dc9ef8e42c4e8501ed6c12faaf669a48715f7ae18ec6ae3b5e4b8"
+    },
+    {
+      "path": "assets/level24-v2/boss/vorax-singularite.webp",
+      "size": 474844,
+      "sha256": "7e518eaa0b25aecd450ff04d4351c1f209ee2a576af5767d51182b2cf9cf908b"
+    },
+    {
+      "path": "assets/level24-v2/debris/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/debris/alloy.png",
+      "size": 93997,
+      "sha256": "feec53ab1d644cf212c7ded466bc539eb5c9d6b9639e08a2bf933f45eeaedf7d"
+    },
+    {
+      "path": "assets/level24-v2/debris/alloy.webp",
+      "size": 15296,
+      "sha256": "2916b614d84582328667b80f922225cddb48c06c718e8444eff5483e39ae30a9"
+    },
+    {
+      "path": "assets/level24-v2/debris/engine.png",
+      "size": 109682,
+      "sha256": "a61481f35cb2a53fbbd438ed593c4a6289c7476f4606bca76fe848046f43c4c1"
+    },
+    {
+      "path": "assets/level24-v2/debris/engine.webp",
+      "size": 17950,
+      "sha256": "19c71fa015dc3350ae972acad63f288e19aee4959a85332d896176c8ffea9487"
+    },
+    {
+      "path": "assets/level24-v2/debris/rock.png",
+      "size": 131377,
+      "sha256": "2d3138fc64f382b13cad1ad00daad1146fa31fc116fbd5d26668e12094c4050b"
+    },
+    {
+      "path": "assets/level24-v2/debris/rock.webp",
+      "size": 15816,
+      "sha256": "48c661277b5e7a6efe91aa780ff03ee31bb06ad3081029d10e638d5668f12f5d"
+    },
+    {
+      "path": "assets/level24-v2/debris/solar.png",
+      "size": 48653,
+      "sha256": "f03cec757f92612abda4cc7a390fd07b513bcdeaf39ee9b9f8b5f50ec089e995"
+    },
+    {
+      "path": "assets/level24-v2/debris/solar.webp",
+      "size": 7776,
+      "sha256": "afc2affdc0f16c49f1e627e604666533c5fbbb86363507256e17380c0c7adaee"
+    },
+    {
+      "path": "assets/level24-v2/doors/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/doors/airlock-fracture-1.png",
+      "size": 945268,
+      "sha256": "c806a89eb70033aedcff76083da0ff358bb5b86bb962e512a82640e3c4bee29c"
+    },
+    {
+      "path": "assets/level24-v2/doors/airlock-fracture-2.png",
+      "size": 947248,
+      "sha256": "d3359bc3a6d7e40492dcaed3564baf8af1444c7f7393f07c649e168ef736eedd"
+    },
+    {
+      "path": "assets/level24-v2/doors/airlock-fracture-3.png",
+      "size": 951789,
+      "sha256": "35fd094e94165d0d98eb692446c4ebe719abe6e1239649f94439c38361bd466f"
+    },
+    {
+      "path": "assets/level24-v2/doors/airlock.png",
+      "size": 935977,
+      "sha256": "1b26e4d98a1267c622cd32814f10f1e33d7df533c13b1b20fe5d8b9ccdc7fca7"
+    },
+    {
+      "path": "assets/level24-v2/doors/airlock.webp",
+      "size": 221438,
+      "sha256": "9d76b9f72246d3a6b3e6e750cdee65a0960ab25b3fb6de5b6bd6a7b9a648b718"
+    },
+    {
+      "path": "assets/level24-v2/effects/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/effects/beam-red.png",
+      "size": 307,
+      "sha256": "00a4648594ee545ed56016126083fb96264749c348d073d9b842c9e22ca122ec"
+    },
+    {
+      "path": "assets/level24-v2/effects/charge-ring.png",
+      "size": 10714,
+      "sha256": "bd00af588e0777fac4bf706574db46cd6f5bb87a8b9544c535f310549facc43c"
+    },
+    {
+      "path": "assets/level24-v2/effects/fracture.png",
+      "size": 5135,
+      "sha256": "a8ded5ae943bda43ed3699fe88e372be140215480e9755214a3f4fc78125d781"
+    },
+    {
+      "path": "assets/level24-v2/enemies/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/enemies/dard.png",
+      "size": 330630,
+      "sha256": "e56eda7cb6f0b2550681c05e5576b1df82eb8168ca3bfc943a4c671c332fe21e"
+    },
+    {
+      "path": "assets/level24-v2/enemies/defense-atlas.png",
+      "size": 2250588,
+      "sha256": "44b42cb3209e9f76e3b853aa1d990b52f10417817b3a2feb0fe577881b2eccc4"
+    },
+    {
+      "path": "assets/level24-v2/enemies/defense-atlas.webp",
+      "size": 608862,
+      "sha256": "5173b3fc88936d6cd0c5511b6425f2da71989960051cb6b2faf480161c60905e"
+    },
+    {
+      "path": "assets/level24-v2/enemies/gatling.png",
+      "size": 326214,
+      "sha256": "9f4f3aaef7313a8895b4944f131c9819da2bb1e90d304b5301ea1af366ef0926"
+    },
+    {
+      "path": "assets/level24-v2/enemies/griffe.png",
+      "size": 313784,
+      "sha256": "1f255d936c596acb6af31ac725e94d9607cb581b71c754ec755a00a3f928ee61"
+    },
+    {
+      "path": "assets/level24-v2/enemies/lance.png",
+      "size": 327755,
+      "sha256": "5c220d8e490d43d09132a4ed6ab5d2da447dc80d0ce020eaf3e9ccfc9e327394"
+    },
+    {
+      "path": "assets/level24-v2/enemies/manta.png",
+      "size": 282457,
+      "sha256": "7357a6d9666bc620d8b3f4bc8c0e4ec8d87a2ec68904ab47b1ffc98acb64487f"
+    },
+    {
+      "path": "assets/level24-v2/enemies/orbe.png",
+      "size": 256780,
+      "sha256": "7359dc31c789d6e244052315cdafa6e03ca47f58f021342cdb5e99bdae6ae782"
+    },
+    {
+      "path": "assets/level24-v2/enemies/tambour.png",
+      "size": 411576,
+      "sha256": "8fe4c7c3b4945c1ebb21b85dfd05faf18488ff3e4f39c754a4ec7047bda8514a"
+    },
+    {
+      "path": "assets/level24-v2/enemies/tourelle.png",
+      "size": 261781,
+      "sha256": "7fa190a242c601142b0581c9794796b8d51e919df1bed95126d50510ad90b1ad"
+    },
+    {
+      "path": "assets/level24-v2/environment/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/environment/core-chamber.webp",
+      "size": 486470,
+      "sha256": "ea39ea7f8cc4f6d49f8dc6c306d6e7ac380a42f32bb7ad1414b7eb91f6a6bbba"
+    },
+    {
+      "path": "assets/level24-v2/environment/corridor-tile.webp",
+      "size": 221456,
+      "sha256": "1e4767f5e652c4bbdc45660b4d00b2bba8e210649197a61cfb26e1f46032fd8a"
+    },
+    {
+      "path": "assets/level24-v2/environment/earth.png",
+      "size": 1721625,
+      "sha256": "150d7f5baf759e2f60d89b3e8d14555c69d5fb77dde6d8d6f2c94e1768c39001"
+    },
+    {
+      "path": "assets/level24-v2/environment/earth.webp",
+      "size": 189422,
+      "sha256": "d363e8f20aa8eaa05d3fc2b48b81b844250946d291a2adbd243df4ddbd0d1c5c"
+    },
+    {
+      "path": "assets/level24-v2/environment/nebula-tile.webp",
+      "size": 110692,
+      "sha256": "98080f542e72011a89a1b96eb927133b2e49b69a742431e7dc968dead1f8b219"
+    },
+    {
+      "path": "assets/level24-v2/environment/vorax-base.png",
+      "size": 1507493,
+      "sha256": "e8cd6cd207acf97036dd407167fb6413fbe3c2a6d25fcfb8e183c4aaeb6d2e74"
+    },
+    {
+      "path": "assets/level24-v2/environment/vorax-base.webp",
+      "size": 394196,
+      "sha256": "2ea3067d666c94225e6c5e2d577e74280596a51c62932e42e5f63149aea4d688"
+    },
+    {
+      "path": "assets/level24-v2/hands/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/hands/left-fist.png",
+      "size": 479592,
+      "sha256": "26765e661bf3f3365ccfea2e0b777d37103b485fcb566d45f09b3ca7d4d5351a"
+    },
+    {
+      "path": "assets/level24-v2/hands/left-open.png",
+      "size": 313518,
+      "sha256": "91b641ad30ef1672e9f1d52d72ce38d2b5feb0e13498d0d0e45b007d95ace222"
+    },
+    {
+      "path": "assets/level24-v2/hands/right-fist.png",
+      "size": 479310,
+      "sha256": "cc012930b4eaf6a9753fc9c67e00a186a73013dc94338737c62f16c3fffdde6f"
+    },
+    {
+      "path": "assets/level24-v2/hands/right-open.png",
+      "size": 313057,
+      "sha256": "0ee2f6e91f884bec38e583a10c06a8c909a9e5688b6ee9623f195517f5ab84e8"
+    },
+    {
+      "path": "assets/level24-v2/hands/vorax-hands-atlas.png",
+      "size": 2150148,
+      "sha256": "85d4094e36ebe660f429b0a21c4ee14faa74d10b3c9b4d69a302ec786d63f682"
+    },
+    {
+      "path": "assets/level24-v2/hands/vorax-hands-atlas.webp",
+      "size": 651446,
+      "sha256": "f080b253cd8d2df8362a20408662aa3485bea03ac984a27a6417ae46e2255902"
+    },
+    {
+      "path": "assets/level24-v2/manifest.json",
+      "size": 1125,
+      "sha256": "3e8fe4780db006f0401899a55476f5196000b503d80f15eb5198cc644624dd6a"
+    },
+    {
+      "path": "assets/level24-v2/source/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24-v2/source/airlock.png",
+      "size": 3050220,
+      "sha256": "d8f108247bc37e36c15d9073506d21e8e9d114d652d682dd0a0dd5662618389e"
+    },
+    {
+      "path": "assets/level24-v2/source/core-chamber.png",
+      "size": 3579400,
+      "sha256": "6ff4d963f38c45f6ee77f92e596f90e4c5af1d91e546cba9f36231c5b6f0057a"
+    },
+    {
+      "path": "assets/level24-v2/source/corridor.png",
+      "size": 3223346,
+      "sha256": "b4151d226393a7a2e3e40402351c0f30690ebea63e5f3bc39d9a6977c5f5e6cd"
+    },
+    {
+      "path": "assets/level24-v2/source/debris-alloy.png",
+      "size": 1173908,
+      "sha256": "ce15dec290589584f498a7686be83d2bbcd554e3c03dd373653fc0341c09941e"
+    },
+    {
+      "path": "assets/level24-v2/source/debris-engine.png",
+      "size": 1391383,
+      "sha256": "6f10d3a21d32c0a1aa948d4dfd1a9c475e3ce67ec002459bfebe1f451c53c3d6"
+    },
+    {
+      "path": "assets/level24-v2/source/debris-rock.png",
+      "size": 1530395,
+      "sha256": "de2084a1a409b4177a967006550889c5f9658c50fc0d5d5638aefa5dc2619fe1"
+    },
+    {
+      "path": "assets/level24-v2/source/debris-solar.png",
+      "size": 1193105,
+      "sha256": "df22797414f39e7fa611fd6cfc2ef6fabb80c13efb54e97f64e5c4e8ab9dff52"
+    },
+    {
+      "path": "assets/level24-v2/source/earth.png",
+      "size": 2637568,
+      "sha256": "16654fe5f64a0c869b46868f6f520736bbeb977c91838af137b95753ccb8b3ed"
+    },
+    {
+      "path": "assets/level24-v2/source/nebula.png",
+      "size": 2676577,
+      "sha256": "e574279d3ca15635d2bb072b7619ee14d6a0a9c45617425faf5bc64d3eb6634f"
+    },
+    {
+      "path": "assets/level24-v2/source/vorax-base.png",
+      "size": 1848348,
+      "sha256": "d99b51485d2144f61ff7864cbbe704a6d1bf21cbc83139b57a010637d32169ec"
+    },
+    {
+      "path": "assets/level24-v2/source/vorax-meta.json",
+      "size": 2161,
+      "sha256": "e1283f40d111843cff6c3e5447c73773181cbd62f70567bbdf7a4ab3f05eeab4"
+    },
+    {
+      "path": "assets/level24/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/level24/README.txt",
+      "size": 173,
+      "sha256": "8c9825b9cc988c461492ca9fb538a7677a5108b2c18815e4125f631e8a0af8d1"
+    },
+    {
+      "path": "assets/level24/asset_manifest.json",
+      "size": 881,
+      "sha256": "683f9ea69ccbabbe50dd78891dc9016d745f4fa84f01b1a6e4e23ca93a1eefee"
+    },
+    {
+      "path": "assets/level24/base-interior.webp",
+      "size": 316948,
+      "sha256": "c3ff1c352da134d0051d62440d48a83fb2be5660d0c73c07a44205431050684a"
+    },
+    {
+      "path": "assets/level24/defense-enemies-spritesheet.png",
+      "size": 2787304,
+      "sha256": "bd023c7a76f869ffcf49a0aaacd5fa4bec09f2bdfcd0b2c2f37818975471a27b"
+    },
+    {
+      "path": "assets/level24/defense-enemies-spritesheet.webp",
+      "size": 513216,
+      "sha256": "41a9e785eeeab7fdcfed54dd5d70ae2e9e6395d1fcb6dd8d4613abadf86d2c0c"
+    },
+    {
+      "path": "assets/level24/door-corridor.webp",
+      "size": 267152,
+      "sha256": "54bee06995dce929f03dbcf7585617e5efc4e7bea33a165037284b83af112b59"
+    },
+    {
+      "path": "assets/level24/flagship-base-corridor.png",
+      "size": 3000275,
+      "sha256": "a1a6d3f23146fe69ede8723e959a2dda9abe4fe5fd8b3f6570e24c2f42c8f54e"
+    },
+    {
+      "path": "assets/level24/flagship-base-corridor.webp",
+      "size": 355226,
+      "sha256": "8d45830e895aab33f860d24b7158a21d53a5534605c5db6f28eec510737f6953"
+    },
+    {
+      "path": "assets/level24/outer-space.webp",
+      "size": 358812,
+      "sha256": "b31d16da1310671fbe50b27fe54399a2db907b52a2e4ece6d20ec29a559431c7"
+    },
+    {
+      "path": "assets/level24/sas-door.webp",
+      "size": 132520,
+      "sha256": "e2d4e0f7feb55362edc6bb5a3550c2a661ae44cc363f07da80140aa58002112d"
+    },
+    {
+      "path": "assets/level24/vorax-hands-spritesheet.png",
+      "size": 3219413,
+      "sha256": "df4930b568603abf0531a1427533b18fbab60534414ada278e6a1ccf0612b70e"
+    },
+    {
+      "path": "assets/level24/vorax-hands-spritesheet.webp",
+      "size": 596416,
+      "sha256": "ac77d5d829585a447fed00f925d44ccaec4cf062f6353bc925ede0f54a6ce776"
+    },
+    {
+      "path": "assets/level24/vorax-intro-matched-spritesheet.png",
+      "size": 2807253,
+      "sha256": "7a4f70aeab6e0acccfc337875b1de0d110432a92a371155a6e7ad5bfd6f0376e"
+    },
+    {
+      "path": "assets/level24/vorax-intro-matched-spritesheet.webp",
+      "size": 544582,
+      "sha256": "9f33e38d267372798780e8f31b30ae4d5a3f62f439800963127b1ae18d72a16b"
+    },
+    {
+      "path": "assets/media/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/media/Neo-Vanguard_depart-vaisseau_sequence-fin.png",
+      "size": 3024663,
+      "sha256": "942b3e8c65c0e5ca5feac2db7edbec19d0130cd700a0344e09a3d45aa6cc37ec"
+    },
+    {
+      "path": "assets/media/Neo-Vanguard_intro_VORAX.png",
+      "size": 2819104,
+      "sha256": "01ca04204a798683ef8bf6f6e0d3fd9f50cd93549ca878f43e67db04b4843731"
+    },
+    {
+      "path": "assets/media/README.txt",
+      "size": 97,
+      "sha256": "062c8a2361414649c2b640c256caffb301d09aaceea5661f4e4b10615966c6a5"
+    },
+    {
+      "path": "assets/media/asset_manifest.json",
+      "size": 25378,
+      "sha256": "7ae6e363fb7ef58621e5f3a6b3f62ceafdd431a42bbdf582d008be67ff820a54"
+    },
+    {
+      "path": "assets/media/briefings/secteur-01.webp",
+      "size": 243646,
+      "sha256": "765db653432a4a012c13e73b4793e00defb27b255537158c36d6a67777e394d9"
+    },
+    {
+      "path": "assets/media/briefings/secteur-02.webp",
+      "size": 174538,
+      "sha256": "78091136846d92386473edbd603d63e05bea9ac46ea7f275faff62b317d8d126"
+    },
+    {
+      "path": "assets/media/briefings/secteur-03.webp",
+      "size": 252422,
+      "sha256": "c5a4cfe85d86a8c863eadc056cb48db3a8f8d7a8a8c535a0a45087c2893725ef"
+    },
+    {
+      "path": "assets/media/briefings/secteur-04.webp",
+      "size": 261816,
+      "sha256": "f1e93ea35308ae8ec29f8084b37fbd2d431d6a91d2d3fedecb1a8f5312ac5029"
+    },
+    {
+      "path": "assets/media/briefings/secteur-05.webp",
+      "size": 315536,
+      "sha256": "aaf5beedc55ad52b7c05b60c4b13d9a7ee009a18d991f7b7d25f09c42802a19e"
+    },
+    {
+      "path": "assets/media/briefings/secteur-06.webp",
+      "size": 447420,
+      "sha256": "84ca02cb589d3451e533b9eedd82f4bab48fbc79f9e54defcc4f26315ffebf78"
+    },
+    {
+      "path": "assets/media/briefings/secteur-07.webp",
+      "size": 348848,
+      "sha256": "43fc50de6f0318cf701468086a8f9bd5b234a74bd79e5600400934688b5b533d"
+    },
+    {
+      "path": "assets/media/briefings/secteur-08.webp",
+      "size": 370730,
+      "sha256": "d31c24a00ade1b86c4b53548c85e9f16fa37d02f33f502bacc8556aa75efff69"
+    },
+    {
+      "path": "assets/media/briefings/secteur-09.webp",
+      "size": 418890,
+      "sha256": "0ca7bc5af14f37b6b2f4ae1b24558b3738a4a6d9af04d97aeb01425469944a89"
+    },
+    {
+      "path": "assets/media/briefings/secteur-10.webp",
+      "size": 426822,
+      "sha256": "79f569a0dc2d7a941fd9ae237b311b542bdc504469815e9b332b3564b9f59fd0"
+    },
+    {
+      "path": "assets/media/briefings/secteur-11.webp",
+      "size": 354720,
+      "sha256": "b94fca20443f49ec43c14892f9ae286f5a0de4017bb4a851ffb15c0b9af2ec6d"
+    },
+    {
+      "path": "assets/media/briefings/secteur-12.webp",
+      "size": 331432,
+      "sha256": "ff72b78ca663367f54f104729055eb8d1826679f5b5a80195ddc98d7925bbb7f"
+    },
+    {
+      "path": "assets/media/briefings/secteur-13.webp",
+      "size": 401456,
+      "sha256": "ab4dd3c313f882cd9a7d28e183dd07a0e26c2814a61c543238e5007db4a25e69"
+    },
+    {
+      "path": "assets/media/briefings/secteur-14.webp",
+      "size": 335326,
+      "sha256": "6ec452ddcd1a528d0924b4104f3937335e5813a31e1105c5d5728a9d40a59c8c"
+    },
+    {
+      "path": "assets/media/briefings/secteur-15.webp",
+      "size": 500520,
+      "sha256": "9783503022280cf696a111175c39a93d99f28d362e10d85ff69b8bd5a7efc7c5"
+    },
+    {
+      "path": "assets/media/briefings/secteur-16.webp",
+      "size": 375766,
+      "sha256": "afd5f4f1803137e99b4d84589d5348c05271f31435a1a0a98d14a1d918323171"
+    },
+    {
+      "path": "assets/media/briefings/secteur-17.webp",
+      "size": 361434,
+      "sha256": "8226fe0a550841de58e23e9b9547c7c02ff86b87500d7c73e34bbb4124a2e1b7"
+    },
+    {
+      "path": "assets/media/briefings/secteur-18.webp",
+      "size": 398934,
+      "sha256": "c25167a66ef74285ff5b452fb1d0ebbcc361551cf02d7be22574d5bdc4d522c7"
+    },
+    {
+      "path": "assets/media/briefings/secteur-19.webp",
+      "size": 376162,
+      "sha256": "fccda4ff8f324a262813d38ca5f1a774f2bacedc159ab6511c060eb2399383a8"
+    },
+    {
+      "path": "assets/media/briefings/secteur-20.webp",
+      "size": 356182,
+      "sha256": "0722c5884ff4fa514d22d382eb283897bd594f41b612768886919c4aa9be978f"
+    },
+    {
+      "path": "assets/media/briefings/secteur-21.webp",
+      "size": 324582,
+      "sha256": "3f96147d42bdc82b8dd9a1b7f1e574daeab286c978f5020aba1456948ecb8cc7"
+    },
+    {
+      "path": "assets/media/briefings/secteur-22.webp",
+      "size": 378016,
+      "sha256": "f552f2ef64a763e68e0b923a820e8a5b8b66c4c84f73416eeed013788a1b5dab"
+    },
+    {
+      "path": "assets/media/briefings/secteur-23.webp",
+      "size": 364956,
+      "sha256": "311e4e1ca8a2c118e776e5d22bd259cab78d990a1d660fdc614c3079096e62b0"
+    },
+    {
+      "path": "assets/media/briefings/secteur-24.webp",
+      "size": 317210,
+      "sha256": "4a4afea553fcb96bbb547fbc5f79f5c6e5e0e022346888790d6d16309c43541b"
+    },
+    {
+      "path": "assets/media/carte-progression-circuit.webp",
+      "size": 84638,
+      "sha256": "14e06f3ef37f047e97db94238ffc0b498749fd24a384f8442fd91fe33b12b6cf"
+    },
+    {
+      "path": "assets/media/carte-progression-secteurs.png",
+      "size": 2775020,
+      "sha256": "4b49b9733dfd6b929c76e217d35dad9bfdc598c4881bc3b642e23e6f0ec05bb5"
+    },
+    {
+      "path": "assets/media/carte-progression-segments.png",
+      "size": 7962,
+      "sha256": "b93f0ac44bf5e786aca038a35f98a3f3efd8508e6bb492b7c4c64a4c6d2ee456"
+    },
+    {
+      "path": "assets/media/favicon.svg",
+      "size": 165,
+      "sha256": "ab5d07549996a7f5197da0ca1e422c671bf69837fa34049e61f54c8b73d178e1"
+    },
+    {
+      "path": "assets/media/homing-item.webp",
+      "size": 61656,
+      "sha256": "42602a813f6e4ce3c989966b84309859beeef43ab46706336e28b77ef07ca6d4"
+    },
+    {
+      "path": "assets/media/homing-missile.webp",
+      "size": 59174,
+      "sha256": "1fbf6245e3ab662d4a036ecd490bbef04ea9567406794caaea48f3b34f10d8bc"
+    },
+    {
+      "path": "assets/media/homing.svg",
+      "size": 320,
+      "sha256": "4336ac00617487d48cd856587960579e541ff6fa0ec85c7eea89a38a45d8a86f"
+    },
+    {
+      "path": "assets/media/media-001.webm",
+      "size": 515,
+      "sha256": "e02a2f773c52a1989fa9e6f3113151637a822131c0847de5d456131d082c4806"
+    },
+    {
+      "path": "assets/media/media-002.jpg",
+      "size": 92739,
+      "sha256": "058a156a9727e488bb15bfc2a885e9dd4f0e80d4846f54a4f4a7e5fa1c693d5b"
+    },
+    {
+      "path": "assets/media/media-003.jpg",
+      "size": 105070,
+      "sha256": "92dc0ef6594f9336ac6bdbbd44ac018050da37c2a21ed037819d423f954f872f"
+    },
+    {
+      "path": "assets/media/media-004.jpg",
+      "size": 90530,
+      "sha256": "a4bf49f48bcbfe03e10335607200694be854c519600923f38047ef4161d8bd6a"
+    },
+    {
+      "path": "assets/media/media-005.jpg",
+      "size": 56728,
+      "sha256": "f6facfa7ea64461ea288c097f76582f77a72784e0729653b49038b5a0c7291fa"
+    },
+    {
+      "path": "assets/media/media-006.jpg",
+      "size": 89290,
+      "sha256": "b1230f7b808640ebc1511e443695f7cb8571c01cea272166ce6ec162ec1d036d"
+    },
+    {
+      "path": "assets/media/media-007.jpg",
+      "size": 59608,
+      "sha256": "f45470132c3d771387625bab406c1da01730a94a9222f4c4c6d1c71f6b65ed26"
+    },
+    {
+      "path": "assets/media/media-008.jpg",
+      "size": 86257,
+      "sha256": "664cbbaa76a641bc0c5c762a1f0de13f6ca684716a1e7cb3e48b6ae1a188740e"
+    },
+    {
+      "path": "assets/media/media-009.jpg",
+      "size": 109377,
+      "sha256": "82e9798623f876a7d9041ede01448c14de8c8f93832e17e5bee77d90546ba9c1"
+    },
+    {
+      "path": "assets/media/media-010.jpg",
+      "size": 112862,
+      "sha256": "d66c71d3b6c54a52aae42a8ca7fa1583ef93064dd45912a6c0df127d14c916b1"
+    },
+    {
+      "path": "assets/media/media-011.jpg",
+      "size": 115052,
+      "sha256": "dd1d02e3aa805f5b9e155f2bd79376fec8bf7167e5dc02f23690c5d4a92e9dfb"
+    },
+    {
+      "path": "assets/media/media-012.jpg",
+      "size": 142505,
+      "sha256": "1a66d67f1164f808c8c34c807c713c7b6df6ce69f79072db42397e5e2dc480a5"
+    },
+    {
+      "path": "assets/media/media-013.jpg",
+      "size": 116763,
+      "sha256": "8dabc85b384ddabc1f54b0a3f46ff93965e63ff921af7d2df3984dc47ef6b1cb"
+    },
+    {
+      "path": "assets/media/media-014.jpg",
+      "size": 148099,
+      "sha256": "b614aa1ccef0ff8794324334575d9e3d02e0fe0cb6170523bc0df12787458255"
+    },
+    {
+      "path": "assets/media/media-015.jpg",
+      "size": 95871,
+      "sha256": "d292dad7047e39ae91502dff3f575c478cd41488736ab97ec3bfdd53d113daa5"
+    },
+    {
+      "path": "assets/media/media-016.jpg",
+      "size": 137486,
+      "sha256": "38c0faefbedcfdb02b525696d5abec5f8e4e98de6e4b7cae961a95f55074654b"
+    },
+    {
+      "path": "assets/media/media-017.jpg",
+      "size": 70006,
+      "sha256": "69ce12a1695124f6790ecc3840c1bbf8ed85dc9562249d7bef6b1cc18314c57b"
+    },
+    {
+      "path": "assets/media/media-018.jpg",
+      "size": 94932,
+      "sha256": "e48543a99818bbfc448aac2bdcdce1e29929ffbd6edd7f5fcb1976961ffd465c"
+    },
+    {
+      "path": "assets/media/media-019.jpg",
+      "size": 146687,
+      "sha256": "8291321230bf0f688d9efd94c7e4d41de21beb338f03cb74ec61a699ed172cc4"
+    },
+    {
+      "path": "assets/media/media-020.jpg",
+      "size": 125961,
+      "sha256": "00e146da979d2479efc432b43f0794c14ca921f4e3f504046c951fe6bb9124ac"
+    },
+    {
+      "path": "assets/media/media-021.jpg",
+      "size": 134948,
+      "sha256": "a1ad4137a7d87cac5f4a15361d6f64479c8beabb9398aa6b6788a763f8829450"
+    },
+    {
+      "path": "assets/media/media-022.jpg",
+      "size": 18212,
+      "sha256": "4e45eb81485b20f14cccc1be2f5269dce9ad077c03c7688217f895526d6d4bac"
+    },
+    {
+      "path": "assets/media/media-023.jpg",
+      "size": 10757,
+      "sha256": "feb2a5baf6d7de7fe493786a9d31cc9f1ed96951370f1dbba1e3a5f22b4deb75"
+    },
+    {
+      "path": "assets/media/media-024.jpg",
+      "size": 18980,
+      "sha256": "70c30e8b0feb70ab9709d68a64f64bf64a04c89c434f0747f3e6405731a563d9"
+    },
+    {
+      "path": "assets/media/media-025.jpg",
+      "size": 18136,
+      "sha256": "c97e609088bc84e6dc9f4f8ce0edc51706052cb702d81dc26863440f761632f7"
+    },
+    {
+      "path": "assets/media/media-026.webp",
+      "size": 28230,
+      "sha256": "f38280a0b9e580762a6443c81d9bc5db5f7c511a3f4e252821c2952fc109af10"
+    },
+    {
+      "path": "assets/media/media-027.webp",
+      "size": 37750,
+      "sha256": "2e2ba30baedd8a13dfd0cc577550e75fcc93d581bb680189f56b14af06682541"
+    },
+    {
+      "path": "assets/media/media-028.webp",
+      "size": 17892,
+      "sha256": "060c402d3935eec5ea115062051fc857ffe173ec60f1233ef529192ee81cf5b3"
+    },
+    {
+      "path": "assets/media/media-029.webp",
+      "size": 42272,
+      "sha256": "9e3636ed0d1cb32e728ed4285d7d4fc056e2c48d05dc2b9829367b9ef392df60"
+    },
+    {
+      "path": "assets/media/media-030.webp",
+      "size": 21546,
+      "sha256": "33d6c6c1c9e4b7b190c456b85612c72d49b6ca1b02dd0cba1304ae742eeb7d55"
+    },
+    {
+      "path": "assets/media/media-031.webp",
+      "size": 48944,
+      "sha256": "1621ad526dc2aeacf502032421476bfa16ef26640f4cb0bc64d2ae4c12707dc8"
+    },
+    {
+      "path": "assets/media/media-032.webp",
+      "size": 32648,
+      "sha256": "461152853088d34f25e457465afbd10dafba8b8dc8e59a917d56335329b1dc56"
+    },
+    {
+      "path": "assets/media/media-033.webp",
+      "size": 160028,
+      "sha256": "8d79e04c4bc1cf6150b4d99e4599c77e2ba06973a01a0cb3933e847f920e271a"
+    },
+    {
+      "path": "assets/media/media-034.webp",
+      "size": 153956,
+      "sha256": "ac6c1b84576070aed18f68c976df92ca60bd84cd0605d0f33854bbbff6729c47"
+    },
+    {
+      "path": "assets/media/media-035.webp",
+      "size": 211254,
+      "sha256": "260eae6a22aa9ac0c0501c2a5b1096268d6ae0dc037e3c25fe44c03c71448e02"
+    },
+    {
+      "path": "assets/media/media-036.webp",
+      "size": 122954,
+      "sha256": "75db3eb6d6311d6d132c1034d4056cb74ca7474a56c2a069e36e26008d0a1862"
+    },
+    {
+      "path": "assets/media/media-037.webp",
+      "size": 264008,
+      "sha256": "25f448240cdd4004887146eafc576cacdc8d0d4b8b9cb66f308a23a98a7f9a7e"
+    },
+    {
+      "path": "assets/media/media-038.webp",
+      "size": 184906,
+      "sha256": "5283cc0fd64f345004eb044c2379f132fb7e9d435e877442e2a6659cbac5f1b3"
+    },
+    {
+      "path": "assets/media/media-039.webp",
+      "size": 239022,
+      "sha256": "f4ea012476d485c8e11ee27c107b021a259f00c0a81dfc3873803385b270c28c"
+    },
+    {
+      "path": "assets/media/media-040.webp",
+      "size": 283476,
+      "sha256": "188f4ed1cd89cf1ffe7356c7a0d4b9803642bf55ae175c4cb1edd11967ae783a"
+    },
+    {
+      "path": "assets/media/media-041.webp",
+      "size": 100598,
+      "sha256": "4d7515a6d2de0f1bb9d8d1bfeb7e5313636db5d6544d32704a984bc7d082c590"
+    },
+    {
+      "path": "assets/media/media-042.webp",
+      "size": 298732,
+      "sha256": "74de873c570a0062d1da25cbab3c0747aa954f0557eabd0d35fc81c448c8de84"
+    },
+    {
+      "path": "assets/media/media-043.png",
+      "size": 27396,
+      "sha256": "eefad1830950de3fb2b18b747ace021bada5a3d63a44fffcb9973569004a9a73"
+    },
+    {
+      "path": "assets/media/media-044.png",
+      "size": 53468,
+      "sha256": "631e12c017125265ce3213eb5b54b100c9283df65f18fbedb82c8d306ad6540a"
+    },
+    {
+      "path": "assets/media/media-045.png",
+      "size": 74211,
+      "sha256": "434327de7bb39b52dc1a384addcf7033c4a39bb5552c366cb6062fe5a8dba4fd"
+    },
+    {
+      "path": "assets/media/media-046.png",
+      "size": 12989,
+      "sha256": "d08357a8dee6d7da1f60760523b5402fea05bacc0a7ef6fa9319ae8d3cf74e01"
+    },
+    {
+      "path": "assets/media/media-047.png",
+      "size": 30941,
+      "sha256": "ef2d7be7f11d51b6e9684b29fa5eb9d67a22069790ebcaca1e2471ae58fbd87b"
+    },
+    {
+      "path": "assets/media/media-048.png",
+      "size": 38131,
+      "sha256": "33c99d92b4e03f9226966e268cdf7c96eca8d5fd32321231933476f087d93f80"
+    },
+    {
+      "path": "assets/media/media-049.png",
+      "size": 14174,
+      "sha256": "84208d3b6120f6262310bf02c4485fa4bf45bf8ec4b3f1e5f8b9ac7b7ce23348"
+    },
+    {
+      "path": "assets/media/media-050.png",
+      "size": 22554,
+      "sha256": "2150f2ae967d49e6743a3cf278465c0fc84125b0e2388980ce304366797c433c"
+    },
+    {
+      "path": "assets/media/media-051.png",
+      "size": 27988,
+      "sha256": "d32856bbc62cbe4621fe1d0d39d745c60fa26e57ebef69d8e343266e95a594da"
+    },
+    {
+      "path": "assets/media/media-052.png",
+      "size": 6312,
+      "sha256": "d5a04b9336642b115036f6281c245154c20a44c39ccf216754e520dc63b6848d"
+    },
+    {
+      "path": "assets/media/media-053.png",
+      "size": 12689,
+      "sha256": "0894cc98b7cb02c8620e8b141e4a00ac7cdeac225a1bf059fa9da6b635b34547"
+    },
+    {
+      "path": "assets/media/media-054.png",
+      "size": 20689,
+      "sha256": "aca76134620a484c493342dffed31b17ed53bef3a3065b81eabea012d0767f69"
+    },
+    {
+      "path": "assets/media/media-055.png",
+      "size": 9721,
+      "sha256": "43b3505b7866ae3fd496085dddcda22b2f1a087d52e95de13d736bbb9ff9a42f"
+    },
+    {
+      "path": "assets/media/media-056.png",
+      "size": 20005,
+      "sha256": "54cfeb704bab573ba742618a247c5211f52f4b27256a4923678fe5e645b2b0aa"
+    },
+    {
+      "path": "assets/media/media-057.png",
+      "size": 27651,
+      "sha256": "2353a5da993349666d08ca5f607048d3336049251dbe695802b8447f76d43571"
+    },
+    {
+      "path": "assets/media/media-058.png",
+      "size": 13054,
+      "sha256": "0b7c9303be83382df15cf29648f985f5e42207a8dbc8640d7c6468a8f9aeba7c"
+    },
+    {
+      "path": "assets/media/media-059.png",
+      "size": 24345,
+      "sha256": "31a8c782a5ca450a8a771d9228d6bd8357ada88527bb006cd67072bc8aea4d5d"
+    },
+    {
+      "path": "assets/media/media-060.webp",
+      "size": 742848,
+      "sha256": "6691f15329167d77f8ac900eaad7ebbeb5f5c5e82db9704991f4b2d515bc2b0b"
+    },
+    {
+      "path": "assets/media/media-061.png",
+      "size": 5651,
+      "sha256": "22d1ae69d3ea8139f414767267d2e4fec5982d00b936aab03084b9935cdb5b42"
+    },
+    {
+      "path": "assets/media/media-062.png",
+      "size": 12850,
+      "sha256": "2b94e47fd3d984ebe8b71feae407f8aef1602aaebbcc5db2c176767f75f3b315"
+    },
+    {
+      "path": "assets/media/media-063.webp",
+      "size": 391158,
+      "sha256": "af638f44c8814cfe1d80f6d3d6a8b80f7caa98e830acfb953affc58ee83370e3"
+    },
+    {
+      "path": "assets/media/media-064.png",
+      "size": 9892,
+      "sha256": "0c227bea61cbd605bf4e9d5701fb21e08caf596bf59104d3494e5418b3350209"
+    },
+    {
+      "path": "assets/media/media-065.png",
+      "size": 20693,
+      "sha256": "4fe0f6aba9c1c1de5017148a4ecba5a2847d6c22199fbf93bf4d568d7e01f1e3"
+    },
+    {
+      "path": "assets/media/media-066.webp",
+      "size": 606774,
+      "sha256": "45067f31d7a5bfbe9ca332220ed8cdb41bcc31392788231c1ade8e36eb3c4fb1"
+    },
+    {
+      "path": "assets/media/media-067.png",
+      "size": 4939,
+      "sha256": "74a0819da595e0fbdc3183e1948a069ab1f6b7225b6729a8dd3da2e69001abbb"
+    },
+    {
+      "path": "assets/media/media-068.png",
+      "size": 9274,
+      "sha256": "40fa5232eac19a72b9827fb8266556ac80974d7b1ca6dec031d59cc8a1c95e75"
+    },
+    {
+      "path": "assets/media/media-069.webp",
+      "size": 401120,
+      "sha256": "740b8f7907035452c0f26e49611b24d6b2db084bb401229b7c853046cbdc490c"
+    },
+    {
+      "path": "assets/media/media-070.png",
+      "size": 8874,
+      "sha256": "f16af09379119b6d3a512c1fafb067c35a1eb5d4bd97bc319d16c4e0dc83e43b"
+    },
+    {
+      "path": "assets/media/media-071.png",
+      "size": 34348,
+      "sha256": "4aa095ef526888af39756b079606dff282f9b0a3e0f329391f94c74b33cf1961"
+    },
+    {
+      "path": "assets/media/media-072.png",
+      "size": 53167,
+      "sha256": "6c6c49e4e62b0cd03f4192184434cc535ac12acc3d7094294ea8c134ce730849"
+    },
+    {
+      "path": "assets/media/media-073.png",
+      "size": 5715,
+      "sha256": "c6d5610d8ccfc84b2b993f77902bdc2547ec6b5f34a47cc50868d05605533767"
+    },
+    {
+      "path": "assets/media/media-074.png",
+      "size": 11121,
+      "sha256": "9f4a7c7a1c3baee23bac123d8bd6ddfedab8d26a421888e3e295c126be711b37"
+    },
+    {
+      "path": "assets/media/media-075.png",
+      "size": 14320,
+      "sha256": "fb53278998ebe87dbcdee3e07bec4c054e77d8f8e0f91231e0497eb10877798a"
+    },
+    {
+      "path": "assets/media/media-076.png",
+      "size": 8087,
+      "sha256": "9dd3081954517139b783094a67ab275ef019f6f3b48749d4482958bf6da38715"
+    },
+    {
+      "path": "assets/media/media-077.png",
+      "size": 25218,
+      "sha256": "884c54669dab20325f4035bb9b342ca84216d87ea4b081339decfebc9e288feb"
+    },
+    {
+      "path": "assets/media/media-078.png",
+      "size": 36312,
+      "sha256": "4ac70fb0449f22c38910ebf1278d4f484d9be30581e3b18a852d1691d06e5c28"
+    },
+    {
+      "path": "assets/media/media-079.png",
+      "size": 21189,
+      "sha256": "6411d63e74e408b180c60d37381a8994f00e34fdc1202ce8f691df0153e8f246"
+    },
+    {
+      "path": "assets/media/media-080.png",
+      "size": 38037,
+      "sha256": "215981f910d7660c96f984d303e9a0063abcfd2489f0ae67a8e04afcb661b776"
+    },
+    {
+      "path": "assets/media/media-081.png",
+      "size": 49902,
+      "sha256": "942c29813562ca5f5078232d0e5c82f37e92d9de716ac659b5fa549170c9a9b8"
+    },
+    {
+      "path": "assets/media/media-082.png",
+      "size": 2000,
+      "sha256": "9f98ab0ac4434ca6caaeacf2a326b645d484f6327a9fedc5f32a331f02c98743"
+    },
+    {
+      "path": "assets/media/media-083.png",
+      "size": 4067,
+      "sha256": "63c8d3f7944833a97d37efeda5a6ba4ba4aace34534652f9705e125a4f085326"
+    },
+    {
+      "path": "assets/media/media-084.png",
+      "size": 5590,
+      "sha256": "a0dd6540f2598878fa42b58ba34826163e2c6ad7a4de15b2ecbd4d2eed3e4506"
+    },
+    {
+      "path": "assets/media/media-085.png",
+      "size": 28257,
+      "sha256": "0217b25e3f3b82808f186ace30802da2ab11fcbdf6d07c294f56faebebcf794a"
+    },
+    {
+      "path": "assets/media/media-086.png",
+      "size": 86429,
+      "sha256": "7979bb80f6ee31549661e5c7e0e2608aa4ef99139748ed1f96552d93b35f9beb"
+    },
+    {
+      "path": "assets/media/media-087.webp",
+      "size": 1558408,
+      "sha256": "20ce1c98e165991034540f4875c04697d1bef5cc1d69649388fe420bd16e2e81"
+    },
+    {
+      "path": "assets/media/media-088.png",
+      "size": 27392,
+      "sha256": "9281f7acab4327fce856fcda0bf9ce71a0050f84e436738514895d61bb5f3ca8"
+    },
+    {
+      "path": "assets/media/media-089.png",
+      "size": 46620,
+      "sha256": "a45f14787b928ab1714577418bd6d8a6fbea3e8ee9e8493aa0e9f78e51004f4e"
+    },
+    {
+      "path": "assets/media/media-090.webp",
+      "size": 1303190,
+      "sha256": "7da16b466dea0b9ef4959d2d120e4b7e0b9bdaa0f5210b79feef9c814d8d0eb2"
+    },
+    {
+      "path": "assets/media/media-091.webp",
+      "size": 345408,
+      "sha256": "d950b6a0f2933cba586851a6f9128476b76e301976c50398ac04c3d4e5c22810"
+    },
+    {
+      "path": "assets/media/media-092.webp",
+      "size": 306882,
+      "sha256": "42090d3db6e8f3592bbb4aec4c0655409189ec37f6f18a1936cf333a6a86a081"
+    },
+    {
+      "path": "assets/media/media-093.webp",
+      "size": 327350,
+      "sha256": "fa2e2ca46c5cf673d4ac6e118d9991a678d8456376a423bab06ce0fe3694f7b6"
+    },
+    {
+      "path": "assets/media/media-094.webp",
+      "size": 394734,
+      "sha256": "0346edb6e43315a8864eb1a9583093c92ace1366dc046f06927971a2ae7d97c7"
+    },
+    {
+      "path": "assets/media/media-095.png",
+      "size": 33698,
+      "sha256": "df2924b305b7c1f03708eae4b07eebdc7498fa25eb97e1626f83350cd252a89e"
+    },
+    {
+      "path": "assets/media/media-096.png",
+      "size": 111122,
+      "sha256": "28d7b6696c23eef27f949c3cd5ec2c541914bd9b94ae46e5e49b693c9a38ea5a"
+    },
+    {
+      "path": "assets/media/media-097.png",
+      "size": 245041,
+      "sha256": "ce30cdb246ae21871f8c148dce57abaa631316a4b4b9d33bcc6fc9e1495e04f8"
+    },
+    {
+      "path": "assets/media/media-098.png",
+      "size": 3051,
+      "sha256": "1d1e968722fae4a688d4f6266da287349718eda7e299815e69bf777f1d6b2819"
+    },
+    {
+      "path": "assets/media/media-099.png",
+      "size": 15921,
+      "sha256": "ca528f4b971962c05e9134a183d6dc914cd8f71bdd112067a3156973a1d313c8"
+    },
+    {
+      "path": "assets/media/media-100.png",
+      "size": 38769,
+      "sha256": "d730be4f45f6f5c53981e76a12cf26b4076bbd000562d2b740ff2035716b3974"
+    },
+    {
+      "path": "assets/media/media-101.webp",
+      "size": 89438,
+      "sha256": "d2a47327b0cec5d54e15626ddf2c1f2ccd2f81d24f847b017a4eb8fec93d6f71"
+    },
+    {
+      "path": "assets/media/media-102.webp",
+      "size": 116800,
+      "sha256": "be82dc4c296ad131e8a5a05a20f00a849071e19a1adac189b9fd331dfc1a765a"
+    },
+    {
+      "path": "assets/media/media-103.webp",
+      "size": 84446,
+      "sha256": "afaa45882d239af9c5b1b65002eaf03e7a75056bf90e72256b383b7c20a0e017"
+    },
+    {
+      "path": "assets/media/media-104.webp",
+      "size": 96552,
+      "sha256": "429ba55ea36cd2c012f5625152731f975256c396790289f4aff9c29c3f3bbcee"
+    },
+    {
+      "path": "assets/media/media-105.webp",
+      "size": 115960,
+      "sha256": "99919872b8956076832484443c6426ac1151de802ae1d82998c9c56d9b69ea8f"
+    },
+    {
+      "path": "assets/media/media-106.webp",
+      "size": 76984,
+      "sha256": "5d4545b7b5caa555019e5efc3afb3c0ae72aaa6ae507ce33e164cc6f11da9731"
+    },
+    {
+      "path": "assets/media/media-108.webp",
+      "size": 18108,
+      "sha256": "c160cfe19e3a680543fdb8bcf2be7c2441a3dc01d4af688da19d2137cafe2f84"
+    },
+    {
+      "path": "assets/media/media-109.webp",
+      "size": 21030,
+      "sha256": "a53ccc721a119d792f1868600289d26a648f12a85020394a90ba979260d2ac3e"
+    },
+    {
+      "path": "assets/media/media-110.webp",
+      "size": 20166,
+      "sha256": "675a99389b287689165b6eca6777f17612d1559dcca41d02d87c8d126e4eb8b6"
+    },
+    {
+      "path": "assets/media/media-111.webp",
+      "size": 10514,
+      "sha256": "11291466a2688d90a9b2b01b17af49fbf4feb9ce0cca6c896ee4423fb18855f5"
+    },
+    {
+      "path": "assets/media/media-112.webp",
+      "size": 13768,
+      "sha256": "874442be54d1d14c091ad42c9e1c0f3864679846b68f4520f8f38343203bcb5e"
+    },
+    {
+      "path": "assets/media/media-113.webp",
+      "size": 22306,
+      "sha256": "8dedf1e93fb72ca510b951bcc8a7378c19afa3af7a4820153d3b21d057b44c00"
+    },
+    {
+      "path": "assets/media/media-114.webp",
+      "size": 8176,
+      "sha256": "6fde37a01def21746346371f517a0d99aa967fa4ea3d05dcab19f1dab5ed881f"
+    },
+    {
+      "path": "assets/media/media-115.webp",
+      "size": 16840,
+      "sha256": "521146a1fe0c81a1d7762f0f00d3e56e965d7b7cc5bd0472e34e688be41492e4"
+    },
+    {
+      "path": "assets/media/media-116.webp",
+      "size": 24562,
+      "sha256": "2b762abd4da96c2613db0b8e684213b73dc9e634028c50916bcd2063f14b8e8d"
+    },
+    {
+      "path": "assets/media/media-117.webp",
+      "size": 16146,
+      "sha256": "0da4170338ba1521d506b64d12ddb84707c711ff9b3f3dc08c7b573892cbd421"
+    },
+    {
+      "path": "assets/media/media-118.webp",
+      "size": 12260,
+      "sha256": "6ea55400daee65f6e204f0a30f0f2a9443b0520ac9c359f4eff9be45ececb11d"
+    },
+    {
+      "path": "assets/media/media-119.webp",
+      "size": 11856,
+      "sha256": "d087935ebeef39b7d1980848717480470a28900a8412642dd89bff048a15d379"
+    },
+    {
+      "path": "assets/media/media-120.webp",
+      "size": 18534,
+      "sha256": "6a698ce72aa7ba106e95be02ae07058e21a80d1896bc119328b7cbccf78136f4"
+    },
+    {
+      "path": "assets/media/media-121.webp",
+      "size": 19002,
+      "sha256": "fc66ada89fa7c0411e97cb4c5708c660e10b039d44d408ce217d97a88fc2afc2"
+    },
+    {
+      "path": "assets/media/media-122.webp",
+      "size": 12150,
+      "sha256": "bd1fef506b91a420c16cc193955692b30a87ba4415f2f8620c3d95844d2100e2"
+    },
+    {
+      "path": "assets/media/media-123.webp",
+      "size": 266124,
+      "sha256": "549c661c77fda2fcd7f8c2921dd001df9d01149867742e513a8dfb6ee4e76b4e"
+    },
+    {
+      "path": "assets/media/media-124.webp",
+      "size": 194924,
+      "sha256": "ae1f2ff560954f5d995e8420c2883c59af0b5f646ae618763f790334802629c4"
+    },
+    {
+      "path": "assets/media/media-125.webp",
+      "size": 259292,
+      "sha256": "3dab9dfb08f88656569f753d396bb5498f262746dc5d9a87c1ac9e4548ab0116"
+    },
+    {
+      "path": "assets/media/media-126.webp",
+      "size": 253524,
+      "sha256": "eb50dd9b03bb995771d23a1f43e97bceb33c04097eddc1e34ca57bb2afcc2736"
+    },
+    {
+      "path": "assets/media/media-127.webp",
+      "size": 322886,
+      "sha256": "d743b86a8a57045aea16c678276c63a720fcf99147914ed71275b50305e6681f"
+    },
+    {
+      "path": "assets/media/media-128.webp",
+      "size": 348448,
+      "sha256": "e24c4d73d6b81295f07d48bd2e5b2b2d29b6330c5a7d0560bd2cd1ef47cf5fd4"
+    },
+    {
+      "path": "assets/media/media-130.webp",
+      "size": 320814,
+      "sha256": "39673adce91f8f33c1abecfcf9a90cd20a3aa747e96cc6c2cfe2cb1ec3415b81"
+    },
+    {
+      "path": "assets/media/media-131.webp",
+      "size": 13666,
+      "sha256": "f32f8d1452b8a0ff2b14cc0bee570dd60a1f29db4347b988b5fa2f4c79423031"
+    },
+    {
+      "path": "assets/media/media-132.webp",
+      "size": 15054,
+      "sha256": "65fdfb22f8c311c21595c9e3ccd222d5cfeec7a600fd619738dc2c9f16cb9fc6"
+    },
+    {
+      "path": "assets/media/media-133.webp",
+      "size": 17132,
+      "sha256": "7147d88817ea3d31ad94ffe7f9c69749ec1115a7aea56bca323afe5615ff19bd"
+    },
+    {
+      "path": "assets/media/media-134.webp",
+      "size": 14654,
+      "sha256": "32401c1d72541c7ef9bca5ede255ec2f69f2c366656d4d8d31ac643ad66c785e"
+    },
+    {
+      "path": "assets/media/media-135.webp",
+      "size": 316780,
+      "sha256": "83a4e915814c7356c4914c8bda85c88ae96a5067abc7bbe5db30f67b9242ea14"
+    },
+    {
+      "path": "assets/media/media-136.webp",
+      "size": 288834,
+      "sha256": "c5de83094f27c8d86210ce6f30a55fee3f5a552b1e675f5fad264226aa6c9771"
+    },
+    {
+      "path": "assets/media/media-137.webp",
+      "size": 336130,
+      "sha256": "46c64f5e1fd178fffe73160b255777a3c550075a6b72dbf7b7e2a5a2d2fa62db"
+    },
+    {
+      "path": "assets/media/media-138.webp",
+      "size": 283340,
+      "sha256": "a195e3050068442941632a0bb00cc8c923cf2ea36d82aaaabeace3101901beb6"
+    },
+    {
+      "path": "assets/media/ships-shop/falcon.webp",
+      "size": 80436,
+      "sha256": "02220fd42a03e79a96279a12f7bf5ff90410f0bd084a28d75208b0447c6febcb"
+    },
+    {
+      "path": "assets/media/ships-shop/falconA.webp",
+      "size": 116856,
+      "sha256": "8bc051b264da9c21f4050884f66d4e386d1663bb662b8c63ddc69f4effb3d857"
+    },
+    {
+      "path": "assets/media/ships-shop/falconB.webp",
+      "size": 85164,
+      "sha256": "b664b8e70e9e5df15850388297c398a9f95816eb619b5eb0823b5a61b44ad013"
+    },
+    {
+      "path": "assets/media/ships-shop/singularis.webp",
+      "size": 127990,
+      "sha256": "c92efd196a433cb628859c8c4d3d0be46f029f9017f2694c876fc01f907b6ab5"
+    },
+    {
+      "path": "assets/media/ships-shop/spectre.webp",
+      "size": 76536,
+      "sha256": "ae85aec7aa862b9abeeb35199650cf5aaac8b9273b3b251f746882ac05fba811"
+    },
+    {
+      "path": "assets/media/ships-shop/titan.webp",
+      "size": 114232,
+      "sha256": "66cd8ebf6a8d425d6b24f9077089b75425f400c6b9115876d34da7c3be78f391"
+    },
+    {
+      "path": "assets/media/ships-shop/viper.webp",
+      "size": 97832,
+      "sha256": "41428a7345f55c7b5fd678a7fc4da06091422931db2e66296dc22dd97bea6a42"
+    },
+    {
+      "path": "assets/music-shop/art/cassette-labels-families-preview.png",
+      "size": 215171,
+      "sha256": "c0a41488358c553580d093500cb07fd8ec2c248fe731d5193297a4561017eab1"
+    },
+    {
+      "path": "assets/music-shop/art/cassette-shell-transparent.png",
+      "size": 1120325,
+      "sha256": "61d1dad7b7e59eb1af478a1e5d6467c3b421ec818676d6556107f011a6f603df"
+    },
+    {
+      "path": "assets/music-shop/art/cassette-shell-transparent.webp",
+      "size": 71864,
+      "sha256": "28164078ad2bcdecb2dbb271b00ce489980ca868ce64ee2a8f510813ec6dd87c"
+    },
+    {
+      "path": "assets/music-shop/art/cassette-store-galactic.png",
+      "size": 2711082,
+      "sha256": "156b3e403b0f11da8e602804ed7cf5fd0c365e01d3e229c640975c23dff869c8"
+    },
+    {
+      "path": "assets/music-shop/art/cassette-store-galactic.webp",
+      "size": 306000,
+      "sha256": "58474f617f6e65847dbd9edbc32f5b3345eea899213cdc940979f4e9cdfa89cc"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-01.webp",
+      "size": 63054,
+      "sha256": "5a3d9114a338378ce0525c77bc0b3f8e9a258ae3a4ebf175fbbfbe8ba057d942"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-02.webp",
+      "size": 67998,
+      "sha256": "f6206391e11caf7bb876e846938b70b5f910116784c50d9826370ad810a41ae5"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-03.webp",
+      "size": 52138,
+      "sha256": "e2287c09f701b7de3fcbfb557bbed320e0ff867a2cb79cfe8163b5e6660bd04f"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-04.webp",
+      "size": 55594,
+      "sha256": "45919f4731125ae7dd462b7baa47c9812d15ac5d215fcbef98adba10c64eedf6"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-05.webp",
+      "size": 68164,
+      "sha256": "44fe88e86d95736f19eb3db80736d2816a55383ab90bb753decaf4565ffe4b87"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-06.webp",
+      "size": 68654,
+      "sha256": "bb4496f0e971dc495dcc11755e103e15e0ffc28c21afb64b3d6d6ad238e65f1a"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-07.webp",
+      "size": 57640,
+      "sha256": "203ce727569051483a7f21f51b014514f4b7771ecf6407060ade020ff87336d4"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-08.webp",
+      "size": 56476,
+      "sha256": "5d2b4fc6af31427bdc7204b367578c99bc5e0b1e25dbeec93188f2780510ade6"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-09.webp",
+      "size": 61326,
+      "sha256": "71d34d4a41cf0cc127a6be30c5cae9533a00e98460578e29e2d62a0cbf8905b5"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-10.webp",
+      "size": 67176,
+      "sha256": "ec421097749167eb55bf0da8231516b75bd526d92ff7fe37f0178b375b3067dc"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-11.webp",
+      "size": 71076,
+      "sha256": "39f9e77d195dc79ea2c9824df44a8d8310192b0ec0a57e2bba63e99f3a48c9dc"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-12.webp",
+      "size": 70804,
+      "sha256": "91b37162be07b3ed6ee4b302accc16e8499798af21b869cf5f991a7d064acd07"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-13.webp",
+      "size": 67642,
+      "sha256": "25396c67d834ffc00c9ab05eb75c5c7c6cfd11adec3c04c89c2eeec55de6ae1a"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-14.webp",
+      "size": 74246,
+      "sha256": "39a5e1a84b18078cce3aad4a21937e3d222094353e90fb3c203b94255649f5ba"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-15.webp",
+      "size": 62614,
+      "sha256": "e4ecb65cf3e37db498090baab0d4f6ff121d609cf3f18f36cb7e78401c06ee40"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-16.webp",
+      "size": 70168,
+      "sha256": "be986c430f0b74b66593321b4761fcca87a447e1c263f7516876bee5e75bcd84"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-17.webp",
+      "size": 66332,
+      "sha256": "a770d4f36c642f22a40416fac575585e26d45eb9cd25edad0f47900915d03217"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-18.webp",
+      "size": 60998,
+      "sha256": "3e70dda36411ec6bbcab1b0bb136b6025589ddccdc5dae3710d547bc50a5e341"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-19.webp",
+      "size": 68880,
+      "sha256": "0f0a4ca2624deae241d0f323cfcf6ed4ef20ccb46a77b8366fc5bfc4484e5657"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-20.webp",
+      "size": 48846,
+      "sha256": "3891605abfc56cf595f4ff34345480690d37d5149353b5caac8a37a758692dcd"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-21.webp",
+      "size": 53356,
+      "sha256": "c66e0c15ecbe844cf6877738640b71d7497fbf12711e36d839032b2e7baef4a7"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-22.webp",
+      "size": 61942,
+      "sha256": "ca255550e2702819ed8b873e1551a5996c2c9cc836b6ce4831a523bccf7e0993"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-23.webp",
+      "size": 59480,
+      "sha256": "b9f515ba7217da3ee6bd2f5f2f78d23f8531be7ac1e44693eaa8e9767534ae50"
+    },
+    {
+      "path": "assets/music-shop/cases/boss-24.webp",
+      "size": 57146,
+      "sha256": "2ccb3debd463a1f55dc7c02e50ee939e819695f2e769950e32d7c86566da676a"
+    },
+    {
+      "path": "assets/music-shop/cases/game-over.webp",
+      "size": 56092,
+      "sha256": "44109d9bd06f609c7fb12a7d4fe2c9d0ce6c9d79f642b7b4f382647eb2d9d8e5"
+    },
+    {
+      "path": "assets/music-shop/cases/sector-01.webp",
+      "size": 63108,
+      "sha256": "db7bc097a1b86c465eda6deda101f720a5a4ac23cea351b20b51ce41d28bd9d0"
+    },
+    {
+      "path": "assets/music-shop/cases/sector-02.webp",
+      "size": 68222,
+      "sha256": "ab3ac037419dc209108858ab64ac0c0bea9c0e89122c97329826c00703dc3b98"
+    },
+    {
+      "path": "assets/music-shop/cases/sector-03.webp",
+      "size": 64724,
+      "sha256": "f39407e7faebce1161e21d33af03454bbc4aa2d484b234b4f48255ae7b2ba306"
+    },
+    {
+      "path": "assets/music-shop/cases/sector-04.webp",
+      "size": 78356,
+      "sha256": "9c7b699001d4c0e4f057e88e482a06b0b5ee4622585f541a814ed67586d4f732"
+    },
+    {
+      "path": "assets/music-shop/cases/sector-05.webp",
+      "size": 60362,
+      "sha256": "692bb1f6e7d8d2cce20924c1d07be96f0ea18bdc026fab95bee3de600396c342"
+    },
+    {
+      "path": "assets/music-shop/cases/sector-06.webp",
+      "size": 64122,
+      "sha256": "65dfa30777f0c31f92ba7c2acd779ad61603b879a0df56b0e3b4b4e4d1ac39f6"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-01.webp",
+      "size": 140376,
+      "sha256": "a04872c48f31b50c1ee341555b7249012d1aaacc16010fb284b88ae0af7bde0d"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-02.webp",
+      "size": 155580,
+      "sha256": "437a68bb9fe7e035100b3df669439bf5c14df8f20e64053392caa69e98a7b6e4"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-03.webp",
+      "size": 113584,
+      "sha256": "04bd9ba738f266f0d3a55cddc4bbb3abc9810165c17a27243065285d676cdfef"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-04.webp",
+      "size": 115800,
+      "sha256": "38a65dfacc3f90cef5688f8e3bbb0424f3a8bd48fa55f1b83e8bd0e92ba63442"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-05.webp",
+      "size": 149008,
+      "sha256": "0162093f21a62b2163c5aff26f56ad13a94b2276aa2ad84e89fbb146be4189e7"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-06.webp",
+      "size": 151458,
+      "sha256": "35e46fab77293a2e0ac55b3a393ddb96ebb886b2486ecc02c8fd17aa2073f835"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-07.webp",
+      "size": 125872,
+      "sha256": "cc5414038ed505fc0d83e5f04d0c3a9d646dcf50907d23013324b737ccc89c59"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-08.webp",
+      "size": 93234,
+      "sha256": "7a176d96be42e03238b3ae28b6f1f659d567f90dc962358618207a5b4ea9dee0"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-09.webp",
+      "size": 135090,
+      "sha256": "4185a6b2135244f5e1e8cb7754d98cb6b4587692357583e2edd08832220a3e0b"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-10.webp",
+      "size": 145790,
+      "sha256": "0a338d4e773cba277ab34c24040e65d6e94008724d03d3ff08a9813caa070753"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-11.webp",
+      "size": 149638,
+      "sha256": "0d1ee49dc78f2b7506d6e96e50ab8e20b6c1b5ff7a54d9b4c0fb78a1b0f6c560"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-12.webp",
+      "size": 152916,
+      "sha256": "72082dfceb5c15987573d4a52ee4940a4b7c2dd8caafca40a60ba1701c9b0e36"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-13.webp",
+      "size": 156286,
+      "sha256": "251a7371a64634fe76f71fadc8983e3377f23741a29ebc86863b0021b2bfc6e1"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-14.webp",
+      "size": 166382,
+      "sha256": "bf40b2334450fcf7bc4b1262c429e73672f76573843056776bff8a3e1817a5c3"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-15.webp",
+      "size": 128882,
+      "sha256": "b37840dccbfb066f43c2157b172b019f6e0c8f9d9e01d4ca7cfb60bfc3207814"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-16.webp",
+      "size": 149224,
+      "sha256": "dcfdf8a7a93d159f680e90331ca1422447d1149451e02b832bfa23d2fb6b6a46"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-17.webp",
+      "size": 141566,
+      "sha256": "8fdaf5f621e5e6ba696885b5037a8d21b42967f4dfed0414147f3e97e899022b"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-18.webp",
+      "size": 135172,
+      "sha256": "db1023d6042ef14bd580352c2f5213ad2fe987fa10d1b9e8f2e9cb8f7572a1c8"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-19.webp",
+      "size": 151076,
+      "sha256": "792a6ed4f55c536484cca6dd6e3c30b9f72d9758415060768934d3a894009320"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-20.webp",
+      "size": 84464,
+      "sha256": "383a3012b6ccbe27075d04ba8acb763b7401131c626b807b12328a79d26f7cd3"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-21.webp",
+      "size": 118704,
+      "sha256": "ca30b09df2c46d33e7297bd23e5ec9b6d08dbb561386c1c33c5c16dd310a044e"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-22.webp",
+      "size": 131328,
+      "sha256": "d15ba3247e4922a4160adf4c9e8e850cb1c2d6beced27fb8d22977ee2003aded"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-23.webp",
+      "size": 131550,
+      "sha256": "25af8388c0135010b8d51d7a38fdf24bfb2ffd1f813aa94c237df08fd0fff80a"
+    },
+    {
+      "path": "assets/music-shop/covers/boss-24.webp",
+      "size": 136352,
+      "sha256": "ab45fb9b3641eba6441647c2a60f39bfffbc5ca3adf7cf1f9f25e469902a8f1c"
+    },
+    {
+      "path": "assets/music-shop/covers/game-over.webp",
+      "size": 104060,
+      "sha256": "161088cdee968a0bd8af74b47874a45a2f73baa57e38d9866cec3265ec90c00b"
+    },
+    {
+      "path": "assets/music-shop/covers/sector-01.webp",
+      "size": 115066,
+      "sha256": "b4020e0358a35c29eb8cc684670f6340ddeb236b0a69d57f6bd29308ca120fb8"
+    },
+    {
+      "path": "assets/music-shop/covers/sector-02.webp",
+      "size": 141016,
+      "sha256": "d6ea1a997848f185979609aea28306da8fda921ec3787ec5d7312ae672c4812a"
+    },
+    {
+      "path": "assets/music-shop/covers/sector-03.webp",
+      "size": 133362,
+      "sha256": "7df0ece953ae5c86597194c24f83c3bc5d601f57617296d0f4bd5de9827bacf1"
+    },
+    {
+      "path": "assets/music-shop/covers/sector-04.webp",
+      "size": 177342,
+      "sha256": "b69a7ae292de130b7d91d15692bd244a74c5a9e45926c1cdf9e597c0cce1e029"
+    },
+    {
+      "path": "assets/music-shop/covers/sector-05.webp",
+      "size": 127764,
+      "sha256": "9565f86428a25caa57186f00f59cfd3deba32029a6121f948a43f90a888c13db"
+    },
+    {
+      "path": "assets/music-shop/covers/sector-06.webp",
+      "size": 132142,
+      "sha256": "d69101a90bef152fa59765b437335ef9bd3ea679e43954322083f11e7cc7668d"
+    },
+    {
+      "path": "assets/music-shop/meuble/chevalet-vendu.webp",
+      "size": 36964,
+      "sha256": "a60d37263bacc9778f4c18f7c904e5a2029b5ef3e8917c07c004de9c79d1a8c9"
+    },
+    {
+      "path": "assets/music-shop/meuble/facades-bas.webp",
+      "size": 24146,
+      "sha256": "134018017452f82c78d938102f1b31108221af72e95cd109b9c330014ed5f333"
+    },
+    {
+      "path": "assets/music-shop/meuble/facades-haut.webp",
+      "size": 23598,
+      "sha256": "97ee4202fbe2eb298a2eea4f12c8c7a3511ef2d54b21d43abb0a984b9c43e558"
+    },
+    {
+      "path": "assets/music-shop/meuble/meuble-face.webp",
+      "size": 166208,
+      "sha256": "ea170276506fde1c4c3aabbf033ff122f00306de99866e5003d8de47e6d97a7c"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-01-gardien-du-silo.mp3",
+      "size": 739248,
+      "sha256": "0fb83d439ffb400f2986d431124f85e5f4aa46d65caa2504ee616edd383f1ff6"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-02-bastion-4.mp3",
+      "size": 871630,
+      "sha256": "37508e49fbbfa75375aba4f2707379ae50b4427b7517204e4824359551ef7db7"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-03-sentinelle-2.mp3",
+      "size": 765576,
+      "sha256": "1fd328294526f52fa22b2ced65fe3f45820c3926f5c11f1c776ad0fe8a057cd2"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-04-goliath-prime.mp3",
+      "size": 924663,
+      "sha256": "43c517a9c97fbd23ff8a2d6e39c25f1b1dcc335d8badf7948e2616bdf44eab8a"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-05-contremaitre.mp3",
+      "size": 908937,
+      "sha256": "dbe378257d6b30842eea48e6529df2f9ce8465bf51721dbed132c8eba82d9aca"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-06-locomotive-9.mp3",
+      "size": 794102,
+      "sha256": "46196892ddd9ab16f227f75df8576a65cf094b71047b658ffb4113b11a243045"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-07-regisseur.mp3",
+      "size": 704865,
+      "sha256": "f560e3d121ed4dee142b60bf063fd3ab0f8dc9d481df3a1184306ff7a945dd47"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-08-warden-7.mp3",
+      "size": 806166,
+      "sha256": "8e099e492f03338ae84744432a9a8325b6ca2eb674721f5efac3996cc324bcca"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-09-matriarche.mp3",
+      "size": 824820,
+      "sha256": "03d4cef97bc961b19551668e89f9ed027ffe5301100041b4f36337246bd9bd7a"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-10-roi-des-docks.mp3",
+      "size": 729007,
+      "sha256": "cbf2daac98ac2302bf6055358a29859c74cae614217841ebf136c584e06edc8c"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-11-neon-pretre.mp3",
+      "size": 857738,
+      "sha256": "9919e64c0e30cad37e0ba6e7ac72762c011084de2564a1f3dd0ed928e6f31825"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-12-hydra-nexus.mp3",
+      "size": 714376,
+      "sha256": "9e7efec3dd5b6016ad971a7231170885d92f02b20b5f835b4a90d36ab6ec4862"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-13-croupier.mp3",
+      "size": 754967,
+      "sha256": "c3b84e002406e08ce42c2dd34734e2433b12a8eb9a798dfd35beecfeac9b85a4"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-14-flipper.mp3",
+      "size": 893572,
+      "sha256": "63025fa4207052be56b251053e88bf185a99d3af1101f88d30c7ddc6fafb8215"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-15-banquier.mp3",
+      "size": 782396,
+      "sha256": "7a72c4cdc4a445d325413b05637e901d83bbe004bdc874fd0c5738d3c5e536e2"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-16-roi-monnayeur.mp3",
+      "size": 695727,
+      "sha256": "1a336eff2cda3e9aec11a8d9c9e2db5424de8269a08979099d3b60b3973c9d09"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-17-archiviste.mp3",
+      "size": 812021,
+      "sha256": "b572a0ac8f8cb1a271abffaa79c197aa03ce5dff3b7b1db8522da1c2b7647089"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-18-compilateur.mp3",
+      "size": 719130,
+      "sha256": "90bbae72f79705bd79d3067be9c6ff8878fab9f94b9bfdf2b2292fb19ebb9faa"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-19-tessellateur.mp3",
+      "size": 844206,
+      "sha256": "dcdf167a6c0ab7bd5cc5b4180806d7889de432a6bfb9159068cf4031020a28d0"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-20-archive-zero.mp3",
+      "size": 744367,
+      "sha256": "231945c5a75a8304ed98d77fbe6a81fcf9e61dfaf3ffe748697b7305fd39a69b"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-21-heraut.mp3",
+      "size": 878943,
+      "sha256": "faed297f1c28d6b1f64d64a53686e1f484dac53c1a1370d017ef42a123e75902"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-22-raytraceur.mp3",
+      "size": 771061,
+      "sha256": "6f39fb21d59b99ed7642e2402c1c37c20086f72c4109a1f215827603e49982de"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-23-omega-vector.mp3",
+      "size": 837623,
+      "sha256": "70b204bbac735116026017a8a7c0cfda886a8c8906cbf1561cfe8a2e74dcb456"
+    },
+    {
+      "path": "assets/music-shop/mp3/boss-24-vorax.mp3",
+      "size": 916610,
+      "sha256": "4e0150b494f872f3735d94ddc021271a6d4823c10923a55dae918d51b7f7d2ff"
+    },
+    {
+      "path": "assets/music-shop/mp3/game-over-credits.mp3",
+      "size": 837613,
+      "sha256": "67c79e2c9f513a7589f6d92d5a41661f09246ca35be0033ca59166e4423b9a33"
+    },
+    {
+      "path": "assets/music-shop/mp3/sector-01-kfm01.mp3",
+      "size": 864671,
+      "sha256": "ccba11d34c2d658370712882beac22e6846a36cb9a3eb711ffc3005bf353507f"
+    },
+    {
+      "path": "assets/music-shop/mp3/sector-02-home-system.mp3",
+      "size": 765561,
+      "sha256": "bd880dfeb6237c68581ff89f00393784ef37bc4c77d5d1697e4e6d6d49ec0441"
+    },
+    {
+      "path": "assets/music-shop/mp3/sector-03-16bit-console.mp3",
+      "size": 714357,
+      "sha256": "a3b539fe585d0e4566af0c02519b96fd8701955278ebab06a9a32f2064cecba3"
+    },
+    {
+      "path": "assets/music-shop/mp3/sector-04-arcadia.mp3",
+      "size": 678158,
+      "sha256": "26d8aa47590c231c1bcd6a074bab389a6bc5c94bb0270c237253b6ecd1b4801c"
+    },
+    {
+      "path": "assets/music-shop/mp3/sector-05-nova-cd.mp3",
+      "size": 734106,
+      "sha256": "305009af5ba886351943064b5fde431d3d367f4d725314f29aa98ce43b0df34b"
+    },
+    {
+      "path": "assets/music-shop/mp3/sector-06-hd.mp3",
+      "size": 661331,
+      "sha256": "1b476546ed5b805f0bc6bd475fb11d84957638574a6efc7f0e1c719308ce0d8f"
+    },
+    {
+      "path": "assets/music-shop/music-catalog.json",
+      "size": 6004,
+      "sha256": "7254787a3cc1f6c41fecc6dd984a05bddda9f44afee37a95929dc1f5160a96bf"
+    },
+    {
+      "path": "assets/music-shop/open/boss-01.webp",
+      "size": 111474,
+      "sha256": "6d152b9b1e3012b010aec8dc37dd83f0802d13c4d482827f875cc4920b6df382"
+    },
+    {
+      "path": "assets/music-shop/open/boss-02.webp",
+      "size": 117414,
+      "sha256": "089c207c5b1ee83642b57a408d7d7755e274fdc574929bffd219b4f711919c23"
+    },
+    {
+      "path": "assets/music-shop/open/boss-03.webp",
+      "size": 105458,
+      "sha256": "b88af72db2793988f295c3d0d3565cc6816df2897e5b23a4718810fdc4c000b7"
+    },
+    {
+      "path": "assets/music-shop/open/boss-04.webp",
+      "size": 106702,
+      "sha256": "f27454955679c6a93f897df0036d8560fe2917e09141143b502d28692927e8c4"
+    },
+    {
+      "path": "assets/music-shop/open/boss-05.webp",
+      "size": 116694,
+      "sha256": "69ac595ec31b22531c48f7341edcf29547443570318f2c31608a4995a1352d0a"
+    },
+    {
+      "path": "assets/music-shop/open/boss-06.webp",
+      "size": 117296,
+      "sha256": "4eecfd38d33d72c2fe80a20091bafda92de92915c11ebf83a6f5dc40e939f0e8"
+    },
+    {
+      "path": "assets/music-shop/open/boss-07.webp",
+      "size": 109172,
+      "sha256": "6532d6f4f3710338c0ec333d1ec84c8c201d6c078e05a4c20f3f00d0637b2cef"
+    },
+    {
+      "path": "assets/music-shop/open/boss-08.webp",
+      "size": 106774,
+      "sha256": "ee9b44d4782df42f77e80d281d359e6ac0bf915adb9e29659c15c9a81e2bf678"
+    },
+    {
+      "path": "assets/music-shop/open/boss-09.webp",
+      "size": 110766,
+      "sha256": "e4f57555d6c32d36bf51938e9738b6e3c80efc7a8d4c1e9ed0fbb77a49b82517"
+    },
+    {
+      "path": "assets/music-shop/open/boss-10.webp",
+      "size": 116708,
+      "sha256": "4e6da07b1cf6bc5a4861dddeaf7dab26a82c6b5d22f5fb9fb702821a03801359"
+    },
+    {
+      "path": "assets/music-shop/open/boss-11.webp",
+      "size": 119708,
+      "sha256": "9b83e39c3ae62be1a7bcc9044cc8327d4830d8fa630462e11d72245842d42c67"
+    },
+    {
+      "path": "assets/music-shop/open/boss-12.webp",
+      "size": 119452,
+      "sha256": "b4e20405007d65965ce9de9520ac28e8a6a47b44842cc9fbf690fc8043cc444b"
+    },
+    {
+      "path": "assets/music-shop/open/boss-13.webp",
+      "size": 117454,
+      "sha256": "554a9e86cf9a7e1259951b61cbb9a22dd0b3359f761e5b28476e6a46f98c362c"
+    },
+    {
+      "path": "assets/music-shop/open/boss-14.webp",
+      "size": 122914,
+      "sha256": "376e6d6376359095de24270cef7082806889da981608b7962a0ca23b85562c4e"
+    },
+    {
+      "path": "assets/music-shop/open/boss-15.webp",
+      "size": 111132,
+      "sha256": "b2fb1e18dd4ef36d7b23a0657e4faaec8891acadf62ba88b308f7ac83a236a2f"
+    },
+    {
+      "path": "assets/music-shop/open/boss-16.webp",
+      "size": 117588,
+      "sha256": "1c6b57ff3e6f65478e6cd61f949cf5c7daaf120295826e456c176f3408289c58"
+    },
+    {
+      "path": "assets/music-shop/open/boss-17.webp",
+      "size": 113268,
+      "sha256": "41ecd687834704bdbcb2f5a71ce906ba691973c4433d0b1e38e5584917280424"
+    },
+    {
+      "path": "assets/music-shop/open/boss-18.webp",
+      "size": 110948,
+      "sha256": "dfde90dd655a1dd11c00bff61d0a3d0b1bca689fa67027f82959cee5aaaa0c54"
+    },
+    {
+      "path": "assets/music-shop/open/boss-19.webp",
+      "size": 117444,
+      "sha256": "114c3379136dfa3270ed50b850fa045906dd8b69796bdbcb9b1bdd9587c211b6"
+    },
+    {
+      "path": "assets/music-shop/open/boss-20.webp",
+      "size": 100146,
+      "sha256": "34cd5e5556c612c0d4e4f55b006e0c127442c3df964b5fb2bb94ccc36e33e9f3"
+    },
+    {
+      "path": "assets/music-shop/open/boss-21.webp",
+      "size": 106688,
+      "sha256": "c5d55bcacfc28ba6ad3e25f83fe58b4bb6eec66ddfa402306b0855f68f736e26"
+    },
+    {
+      "path": "assets/music-shop/open/boss-22.webp",
+      "size": 111722,
+      "sha256": "df66149aeb59220aeb7650e5500d55a64b0efe1068e22be9be63e42e05a48ddd"
+    },
+    {
+      "path": "assets/music-shop/open/boss-23.webp",
+      "size": 110820,
+      "sha256": "ba7125a254d7651da215b11658385a8d742c41c6f99159253cb90219ef004288"
+    },
+    {
+      "path": "assets/music-shop/open/boss-24.webp",
+      "size": 108232,
+      "sha256": "e77c68149c237767e9f7d01b33bd6d0c745a7012226e4d0d50af87d5251f8c1e"
+    },
+    {
+      "path": "assets/music-shop/open/game-over.webp",
+      "size": 108146,
+      "sha256": "3b967a7150cb06b69d2c5084a9a0de46930223218861e11291c1544f39d34d63"
+    },
+    {
+      "path": "assets/music-shop/open/sector-01.webp",
+      "size": 111738,
+      "sha256": "e6c287365c4ba0cb2fd61ddab1ddc30b80df53b76f2352c67a95cca68e2e1b3e"
+    },
+    {
+      "path": "assets/music-shop/open/sector-02.webp",
+      "size": 117086,
+      "sha256": "5487485f528bb87509f1104778e55e9706fd06fd6fac7340fe4f9ee1e4bea1c9"
+    },
+    {
+      "path": "assets/music-shop/open/sector-03.webp",
+      "size": 114160,
+      "sha256": "a208f08c86681e0e8b4be2d36165511539f366060c7e8269b18f6aa072806903"
+    },
+    {
+      "path": "assets/music-shop/open/sector-04.webp",
+      "size": 124954,
+      "sha256": "ac5a7e46266357f54e66ec293404b4bdb89a161517c621d8652c4b44686dd376"
+    },
+    {
+      "path": "assets/music-shop/open/sector-05.webp",
+      "size": 111064,
+      "sha256": "92039ec7c2510766c69ec3dc4a4b3bdd4af52d96de4882fec2691726baadd929"
+    },
+    {
+      "path": "assets/music-shop/open/sector-06.webp",
+      "size": 114836,
+      "sha256": "79952104619aaeb3843d59d07ef84a0c216941a550f79b88efafa9baccbe1422"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/01_meuble_couche_arriere.webp",
+      "size": 171530,
+      "sha256": "804029409e53ce2075b19ad069f4d22481b9a3c4ce09869ac7a699f586d5ab9a"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/02_meuble_couche_avant.webp",
+      "size": 111664,
+      "sha256": "727f48f089a30c6aeaf0c467fcfc982fad32231b3bb7b69d7026f9f235039213"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/03_boitiers/boss_rose.webp",
+      "size": 416560,
+      "sha256": "703b61e7367da6f4ec709079fba6f4febd03622eb287916505381143fb9dda8a"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/03_boitiers/secteurs_cyan.webp",
+      "size": 440068,
+      "sha256": "b33724fd357e5e46743947537b02f0521e42c378c812d22d0fcbe6f452a1f5f4"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/03_boitiers/speciale_or.webp",
+      "size": 486970,
+      "sha256": "74a69f798f36d83273521efb971ca6416749a8f5790deb6b496555738e4a3672"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/04_tranche_boite.webp",
+      "size": 178282,
+      "sha256": "7ad71687819deebe27eed06acb5f6f08279aa8828a6c68a19cbb531f072ee778"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/05_boite_ouverte_cassette.webp",
+      "size": 361900,
+      "sha256": "204bbaa599e341759fcb6aa221eff6bfce5851f436cdeb7dbb96c6587730576b"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/06_cassettes/boss_rose.webp",
+      "size": 230980,
+      "sha256": "7924a482afe2e34a9e3f6a7d08c8f6ef561d8eb857d17f4e2e40b4f747056db7"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/06_cassettes/secteurs_cyan.webp",
+      "size": 328772,
+      "sha256": "875a8c3d934049eb42e341a959733c237647a7c91129d94e3f091562dea71ec1"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/06_cassettes/speciale_or.webp",
+      "size": 205726,
+      "sha256": "05c83fe8fc87368a16dc12d901da9c51ea3b95408c37a7ff10ef08747b124d02"
+    },
+    {
+      "path": "assets/music-shop/pack-fm/08_chevalet_vendu.webp",
+      "size": 126524,
+      "sha256": "640f3609bbc997e5f981069b83dcf55776101cc25da302d2da80637518c61c48"
+    },
+    {
+      "path": "assets/music-shop/sfx/cassette-insert.mp3",
+      "size": 6354,
+      "sha256": "a973113723dcd766317dd4aa0ac42bf92de0e39b29823631cb1697721d9917c5"
+    },
+    {
+      "path": "assets/music-shop/sfx/credit-chime.mp3",
+      "size": 6978,
+      "sha256": "5bddddc79ad61e2c7890caba6f6ca8fb39249ad0c1fd75c2fe0ad8c2fafa1269"
+    },
+    {
+      "path": "assets/music-shop/sfx/tape-click.mp3",
+      "size": 3214,
+      "sha256": "8a1277ac1e69abdadb178e0ca8e25df3611d9d2e99987e133340d5f5316d206e"
+    },
+    {
+      "path": "assets/music-shop/sfx/walkman-eject.mp3",
+      "size": 7292,
+      "sha256": "9cd80a327a4ff1923185c742b9b08d79bb786912443dde739b47ad0afbd89d04"
+    },
+    {
+      "path": "assets/music-shop/walkman-closed.png",
+      "size": 1816693,
+      "sha256": "117c4e10a973901920d5c44d88fa489f8fdd3736e0acd0732afdab00b5e273e9"
+    },
+    {
+      "path": "assets/music-shop/walkman-lid-closed.webp",
+      "size": 427112,
+      "sha256": "95c03d3d90f5de4df67370c170c5911c14ec54d11cc08c880f7206a57f361251"
+    },
+    {
+      "path": "assets/music-shop/walkman-lid-open.png",
+      "size": 582290,
+      "sha256": "92806376f10d1500282cc3f9c3481bfd5399e1c9f7afd801e8db2488a1efcf85"
+    },
+    {
+      "path": "assets/music-shop/walkman-lid-open.webp",
+      "size": 110188,
+      "sha256": "49e23ca1e8de43bb0de0e5250edc8268c431e2da7fec1b04aedf9ed6bf534e4d"
+    },
+    {
+      "path": "assets/music-shop/walkman-open-base.png",
+      "size": 2420772,
+      "sha256": "c85a489e21c2439fba2d7e98cb2b9b44ec82c8ca9a9c54de894414d073639d3c"
+    },
+    {
+      "path": "assets/music-shop/walkman-open-base.webp",
+      "size": 267408,
+      "sha256": "f790c891ca3492f5f0c6a6afa5ab51fe43d1ad3f82b87e9dfb645b77e1d4abcb"
+    },
+    {
+      "path": "assets/music-shop/walkman-open.png",
+      "size": 2678471,
+      "sha256": "4e8d704221036ff842c72dd4e5d1ce2bbdd6c7d5674b4147f6b74ca369399cd6"
+    },
+    {
+      "path": "assets/pinball/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/01_intercepteur_tir.ogg",
+      "size": 8453,
+      "sha256": "e23136f570c019442534c246256f543a0b1ad31de33097c6ea5826637a6cc42a"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/02_tourelle_double.ogg",
+      "size": 10657,
+      "sha256": "e8a8cec46e84e04d1bdc9dd0e5720e367f175a900f1f35b768d2fb4d487b79c4"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/03_missile_depart.ogg",
+      "size": 22316,
+      "sha256": "f86fb50e723c6aeef4436f2eba367286d0a2aed7ed5add165ecb2024a6590e45"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/04_impact_blindage.ogg",
+      "size": 14744,
+      "sha256": "d94c14cc6376cddb09ce2e60cc37c7f218a455bac4ed6a656679955485a66db6"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/05_drone_explosion.ogg",
+      "size": 16311,
+      "sha256": "0f369c3ed8407e89206218b11d3520858dfab8b746ef00f5c2313c449a02b92b"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/06_bombardier_explosion.ogg",
+      "size": 36585,
+      "sha256": "c8c9760dbc9a00b5cc147b9d306b18174d362e03634dfc9212f87936d57df566"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/07_tourelle_detruite.ogg",
+      "size": 28167,
+      "sha256": "18bb1436d4a968111d3af9e5a1d3ecc724b9f30d420770e251045d37ecb77157"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/08_sas_verrouille.ogg",
+      "size": 15676,
+      "sha256": "e40e1ed0d163979fdc39f2cb6b972916fcb4aea19d28f927948cd0174791caae"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/09_sas_impact.ogg",
+      "size": 17552,
+      "sha256": "1db5c3b77225cda8f16c5bd5d63244cf91e174803d60543070f6e6022bdc9c12"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/10_sas_rupture.ogg",
+      "size": 38579,
+      "sha256": "15950707ad6d54adc1ef598eabb85b4a820d2f50b7d60dd388f31a795af07c8d"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/11_doigts_percement.ogg",
+      "size": 38588,
+      "sha256": "4cb429e96149e82c32b515e460bd8dbded263ccfc46cdd03271df5284769c8a2"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/12_doigt_blesse.ogg",
+      "size": 16926,
+      "sha256": "a830c66931ee03dfd245bde1274bad497d7fa2519fb1cad1e63702bbeddd55b5"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/13_porte_arrachee.ogg",
+      "size": 52515,
+      "sha256": "5c7ad482741dbe4987566dcb1d236219d8be0d1dbfce52605f7a5b3b10228ec3"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/14_alerte_sirene.ogg",
+      "size": 15921,
+      "sha256": "6ca6b4e5f06772e38b3dc45289a55c7f60897623146baf65a199bcd552036d3c"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/15_alerte_electricite.ogg",
+      "size": 45788,
+      "sha256": "9bbcef20a2748578d766403804d8681d41b23f60e667fe23dad60d1e58e12c00"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/16_alerte_verre_brise.ogg",
+      "size": 29463,
+      "sha256": "8c40b0460eb24d3bcb0ab3550a6dabd14cd4d5a6cd2c0c29da3c7935e62a8635"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/17_vorax_apparition.ogg",
+      "size": 54972,
+      "sha256": "b70a0bdaa1234b419369498f85cc5d1e487f40f8d56ffa20fe1334126e69abd0"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/18_vorax_charge.ogg",
+      "size": 43447,
+      "sha256": "8df2b2106b7618b9796417cc31369b75d2ee0f0eae89b554846039d1f4b699ea"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/19_vorax_laser.ogg",
+      "size": 43373,
+      "sha256": "4379168ba76048dda751c1f2518d2b1b52edb86b53812268b0654d3427a9ca1e"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/20_vorax_poing.ogg",
+      "size": 27717,
+      "sha256": "235bbe3a03cb8439a4460e0b9ca577c926462e4133e1633fc71a5424ce263127"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/21_vorax_bouclier.ogg",
+      "size": 42755,
+      "sha256": "c8ae18f54ae9fb7b3074af6d7d289e6555ff2c92e43326a253b690bb3eab9599"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/22_vorax_surcharge.ogg",
+      "size": 87012,
+      "sha256": "726049210e96783f40374092e56cff8e49c0f462e9695444e373c98a9ed246d9"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/23_vorax_explosion_FINALE.ogg",
+      "size": 178100,
+      "sha256": "fc19a5d04ae66dfce97c3f725b1e56b379b311edd642a46df80947e3e0e3deb6"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/24_debris_retombee.ogg",
+      "size": 42922,
+      "sha256": "4c8bd70dbf28976b9b900c1183116f42fb5f1a29673982c0a5ae9f6402cfdae3"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/25_base_effondrement.ogg",
+      "size": 81602,
+      "sha256": "ba8fab1d0ced3cc18e25e25ee2e0d52bd723728293d6a688155b4eb34be4597a"
+    },
+    {
+      "path": "assets/sector24/audio/ogg/26_ambiance_reacteur_BOUCLE.ogg",
+      "size": 25234,
+      "sha256": "cefe066ae3e47588df8fb9505aa820906a4d0b3bfbe6f16f86da0058f7557650"
+    },
+    {
+      "path": "assets/sector24/audio/wav/01_intercepteur_tir.wav",
+      "size": 52964,
+      "sha256": "133e9d7b6a08907f2223b267e03f42bcf17d796ee8996c127a545274679f88b1"
+    },
+    {
+      "path": "assets/sector24/audio/wav/02_tourelle_double.wav",
+      "size": 105884,
+      "sha256": "3dd96ee848c76921f0753b6906a8eeeffb2e4db555a805c51dca9c14ffa1de48"
+    },
+    {
+      "path": "assets/sector24/audio/wav/03_missile_depart.wav",
+      "size": 264644,
+      "sha256": "883555026f4d35dc31a835eefdf9f4ce843549c7153804dae50806f572d4a988"
+    },
+    {
+      "path": "assets/sector24/audio/wav/04_impact_blindage.wav",
+      "size": 141164,
+      "sha256": "ef08e4c906cc7b671485a3db99afc3b5589996501f1e09e9813af3fc8af2c2cf"
+    },
+    {
+      "path": "assets/sector24/audio/wav/05_drone_explosion.wav",
+      "size": 158804,
+      "sha256": "de961d7365ac0b22c2de89e862b87227e6498a0aeb44c877555a3e87ad564e02"
+    },
+    {
+      "path": "assets/sector24/audio/wav/06_bombardier_explosion.wav",
+      "size": 441044,
+      "sha256": "6286fdcd8ce22e2a3f35d949f5896552f44c4bca23c6493f8ead7b5055d3e472"
+    },
+    {
+      "path": "assets/sector24/audio/wav/07_tourelle_detruite.wav",
+      "size": 352844,
+      "sha256": "3cc24f2a1f2f177e6b48bcbdb165a8cd66160d0d1671cf07c93d77cc98ebe8db"
+    },
+    {
+      "path": "assets/sector24/audio/wav/08_sas_verrouille.wav",
+      "size": 176444,
+      "sha256": "2e4b5092866b4c57456786ddc2763c9adebc7613bcb6941b23c98f768efbe4d0"
+    },
+    {
+      "path": "assets/sector24/audio/wav/09_sas_impact.wav",
+      "size": 211724,
+      "sha256": "e60091a12b9f9ab02ad50c8bb99983cec8db83de1a4f7e805c626163a986392b"
+    },
+    {
+      "path": "assets/sector24/audio/wav/10_sas_rupture.wav",
+      "size": 529244,
+      "sha256": "c9d00ae343675f5355c6edd30bfca606240493cb09ea4191ee6814ac5db41841"
+    },
+    {
+      "path": "assets/sector24/audio/wav/11_doigts_percement.wav",
+      "size": 388124,
+      "sha256": "855c696fe0d02a9c1e008a9950036005ec76dfd5660c82273ab5fb3a24a5284c"
+    },
+    {
+      "path": "assets/sector24/audio/wav/12_doigt_blesse.wav",
+      "size": 123520,
+      "sha256": "1710803df633132f2e386115f552ba225ee6a1c2350641faa8aa66bed3871ea5"
+    },
+    {
+      "path": "assets/sector24/audio/wav/13_porte_arrachee.wav",
+      "size": 705644,
+      "sha256": "57ce14efd012afd87608b30e67cd5e23d24396d2e889c274aa935fc7d40af455"
+    },
+    {
+      "path": "assets/sector24/audio/wav/14_alerte_sirene.wav",
+      "size": 529244,
+      "sha256": "ad85dfa9a158b402b2947ccf388f96d81a7ac85401feb7e3cf65e117dac6ff23"
+    },
+    {
+      "path": "assets/sector24/audio/wav/15_alerte_electricite.wav",
+      "size": 352844,
+      "sha256": "7708889939f07a47785c3357892700d1b44b2e9ece513d192cc748a3efb13822"
+    },
+    {
+      "path": "assets/sector24/audio/wav/16_alerte_verre_brise.wav",
+      "size": 352844,
+      "sha256": "722bfcd7b0c34d85d10ba1178c1a89af55e753d2c9b2df7c5110181e62fce2b0"
+    },
+    {
+      "path": "assets/sector24/audio/wav/17_vorax_apparition.wav",
+      "size": 705644,
+      "sha256": "d9883b7547af1f5479c9c329b790acd059b6e7ff3d05a5dc53b83b5c7b8cadc1"
+    },
+    {
+      "path": "assets/sector24/audio/wav/18_vorax_charge.wav",
+      "size": 493960,
+      "sha256": "06e321044e00ed01bbe358df8276c36cf629e9a0e13643c93f2899eb3027e23e"
+    },
+    {
+      "path": "assets/sector24/audio/wav/19_vorax_laser.wav",
+      "size": 352844,
+      "sha256": "8a246b53459da6cd6661cd2aee5026a615b35faa30daab3945295d1e2dd80288"
+    },
+    {
+      "path": "assets/sector24/audio/wav/20_vorax_poing.wav",
+      "size": 352844,
+      "sha256": "e6e474ee228cc42467966f2e7ab5da58b8462b1d82866511c0312b231cddf4ca"
+    },
+    {
+      "path": "assets/sector24/audio/wav/21_vorax_bouclier.wav",
+      "size": 352844,
+      "sha256": "462e070ebe161e863953d1a3112d5588555ef47dd26ecc42e2ff6b8f4783c8f5"
+    },
+    {
+      "path": "assets/sector24/audio/wav/22_vorax_surcharge.wav",
+      "size": 705644,
+      "sha256": "646497583f6f5771270bd1f13650347ad34f3f306103a97d7853463ca2de086a"
+    },
+    {
+      "path": "assets/sector24/audio/wav/23_vorax_explosion_FINALE.wav",
+      "size": 2116844,
+      "sha256": "e2602b3218150c92ecd14d4ffe11d41ae064ab9c3a914ec6abf45ead75bc2e1e"
+    },
+    {
+      "path": "assets/sector24/audio/wav/24_debris_retombee.wav",
+      "size": 529244,
+      "sha256": "27ee2946752dfe2bcf60e9adb551856591efca8c23e9f356710915aa11b4c50e"
+    },
+    {
+      "path": "assets/sector24/audio/wav/25_base_effondrement.wav",
+      "size": 1058444,
+      "sha256": "c20fdc56e97ee8df44116fd7cfecf90ead2f69f0d0e02e479bdf89c66122c7d2"
+    },
+    {
+      "path": "assets/sector24/audio/wav/26_ambiance_reacteur_BOUCLE.wav",
+      "size": 1411244,
+      "sha256": "f18407efc7ca52489133511321968ff4465212564ce4a0834b0b8ce62b04391e"
+    },
+    {
+      "path": "assets/ships-anim/era0-kfm01/falcon-a-marteau-anim.png",
+      "size": 10628,
+      "sha256": "7f0a699f0dffadd1418347cdb4c75ab79a95e9f7759999fbfb6a2af46c68feaf"
+    },
+    {
+      "path": "assets/ships-anim/era0-kfm01/falcon-b-lame-anim.png",
+      "size": 8197,
+      "sha256": "6ee099b36156d332c1c532830b92f5c495dd19ca189e6c0d4d04fc70e6e8d3e5"
+    },
+    {
+      "path": "assets/ships-anim/era0-kfm01/singularis-anim.png",
+      "size": 11887,
+      "sha256": "773734b9aac5f53926b59c2cb03a8172e0ba9da8ef9c7c5a48d30f5d77cb52e3"
+    },
+    {
+      "path": "assets/ships-anim/era0-kfm01/spectre-anim.png",
+      "size": 10255,
+      "sha256": "25f249daede2ea8a0e848687a859f133e3221a122c2660c8651c779244e65611"
+    },
+    {
+      "path": "assets/ships-anim/era0-kfm01/titan-anim.png",
+      "size": 12310,
+      "sha256": "7a18c0f70cb114c9fc8e4390c822cca569f58feec222bd77902d9d1bb57df380"
+    },
+    {
+      "path": "assets/ships-anim/era0-kfm01/vanguard-mk1-anim.png",
+      "size": 9168,
+      "sha256": "08c0a108631e2ef7fc74049a3089f57964e58335b83618bdba3af7a5d7253b6e"
+    },
+    {
+      "path": "assets/ships-anim/era0-kfm01/vipere-anim.png",
+      "size": 9360,
+      "sha256": "bb4195f04a429b11e1e33692b8529a158255178e9d54b0e1be60dfdfe84209fe"
+    },
+    {
+      "path": "assets/ships-anim/era1-8bit-plus/falcon-a-marteau-anim.png",
+      "size": 17481,
+      "sha256": "975930362e11f1955b5da1e222d826792139c9e926619731ec8301fe7b124c6f"
+    },
+    {
+      "path": "assets/ships-anim/era1-8bit-plus/falcon-b-lame-anim.png",
+      "size": 12647,
+      "sha256": "f3ddd046bf51942ce8745c20632c0c329b03f252892f1d95b83b20d1a241daf5"
+    },
+    {
+      "path": "assets/ships-anim/era1-8bit-plus/singularis-anim.png",
+      "size": 20082,
+      "sha256": "afd63cae2335a97937d401a010659d5182f3d3fd8b2a221f870a1cc499a5130c"
+    },
+    {
+      "path": "assets/ships-anim/era1-8bit-plus/spectre-anim.png",
+      "size": 15399,
+      "sha256": "80b9217fdb7625dac0e0e5d756826acc2c1449c10c662422c6e208f4f8730867"
+    },
+    {
+      "path": "assets/ships-anim/era1-8bit-plus/titan-anim.png",
+      "size": 19341,
+      "sha256": "41b64a8ec5b475d263549345bd83944528510de05907e62e87e863157e177ea2"
+    },
+    {
+      "path": "assets/ships-anim/era1-8bit-plus/vanguard-mk1-anim.png",
+      "size": 14141,
+      "sha256": "cedcc9aa5b9f51ce9ae303f1bf5ba6815d29b895c06c3dace324c0663e899c68"
+    },
+    {
+      "path": "assets/ships-anim/era1-8bit-plus/vipere-anim.png",
+      "size": 15414,
+      "sha256": "cb471e6640975a013b7ad5da5b28fc33f007a479b0db810d5df26703941ba3ca"
+    },
+    {
+      "path": "assets/ships-anim/era2-16bit-home/falcon-a-marteau-anim.png",
+      "size": 33562,
+      "sha256": "e4c36978c82464e9f9bc44b64cebfcc14a91ad187838057143c3f51145c634b0"
+    },
+    {
+      "path": "assets/ships-anim/era2-16bit-home/falcon-b-lame-anim.png",
+      "size": 23699,
+      "sha256": "42ef6e790b039a68e68036193d4b2ddbad1c4ae3f7ec42fe3734f96152255d37"
+    },
+    {
+      "path": "assets/ships-anim/era2-16bit-home/singularis-anim.png",
+      "size": 32882,
+      "sha256": "ff3ea3cf62930e7ca3f283a41ec1fcb57d9232414c6d9efd2ae8031a64e754ca"
+    },
+    {
+      "path": "assets/ships-anim/era2-16bit-home/spectre-anim.png",
+      "size": 30827,
+      "sha256": "759a91bfcca5218b81cd80dde84575506cafab38da0d860ce9878002319071da"
+    },
+    {
+      "path": "assets/ships-anim/era2-16bit-home/titan-anim.png",
+      "size": 41126,
+      "sha256": "79496a9fd96f16fd908544326b0915f9c406d9b955bc52a0f9003762b0bbd105"
+    },
+    {
+      "path": "assets/ships-anim/era2-16bit-home/vanguard-mk1-anim.png",
+      "size": 24383,
+      "sha256": "4f000ad8a535dbdfb6c6ee721bfb151abffddadc6481ae12ee9a8bed108c247b"
+    },
+    {
+      "path": "assets/ships-anim/era2-16bit-home/vipere-anim.png",
+      "size": 28519,
+      "sha256": "001bbbcc31edd55c4425045f22a757d59b14fe59758633d4634c669d2cad5c01"
+    },
+    {
+      "path": "assets/ships-anim/era3-16bit-arcade/falcon-a-marteau-anim.png",
+      "size": 43579,
+      "sha256": "ae9566500537ebefb6fe4f05fc56eb259d614b6fe87516a3dbc83392796835a7"
+    },
+    {
+      "path": "assets/ships-anim/era3-16bit-arcade/falcon-b-lame-anim.png",
+      "size": 30416,
+      "sha256": "9bbdb299b317273a797139812ece1a480deb0e4140a227065989aee5d6c387d3"
+    },
+    {
+      "path": "assets/ships-anim/era3-16bit-arcade/singularis-anim.png",
+      "size": 44682,
+      "sha256": "13d08208ead0588c92e5c5b6743b77e49cd309b0dcc651c4bbe63d36b0c120f1"
+    },
+    {
+      "path": "assets/ships-anim/era3-16bit-arcade/spectre-anim.png",
+      "size": 41651,
+      "sha256": "45da9e7c7ec94c598e1d3a7e44c341363fae1b07c44a9ddbd90f36a5374b06a6"
+    },
+    {
+      "path": "assets/ships-anim/era3-16bit-arcade/titan-anim.png",
+      "size": 55656,
+      "sha256": "801b1788ebbe6fdd3717fe5a2d045dc3844df939532089013dd95ddebc674f8c"
+    },
+    {
+      "path": "assets/ships-anim/era3-16bit-arcade/vanguard-mk1-anim.png",
+      "size": 33104,
+      "sha256": "3d14b9ab101bfd9231cfd5fcd69d773c593454f52cf794f8422b668d08e7d030"
+    },
+    {
+      "path": "assets/ships-anim/era3-16bit-arcade/vipere-anim.png",
+      "size": 37472,
+      "sha256": "50ca199aeecaf2fd1441f8eec897d1fde41f4c6a322bd35bc5367784599c07cf"
+    },
+    {
+      "path": "assets/ships-anim/era4-32bit-cd/falcon-a-marteau-anim.png",
+      "size": 111745,
+      "sha256": "ab958d01ede0eed54f804ad9debd9e61f07baeebd41fdc4f24664d1731fdfb38"
+    },
+    {
+      "path": "assets/ships-anim/era4-32bit-cd/falcon-b-lame-anim.png",
+      "size": 87942,
+      "sha256": "0da0a273844d8c9974829e9b135e9e862279d80375bafb16be6abad701ecb635"
+    },
+    {
+      "path": "assets/ships-anim/era4-32bit-cd/singularis-anim.png",
+      "size": 120932,
+      "sha256": "274de9ccc30854c121ebc389e23a93b0e9a64bb09cacab5cec3f3fbf992d5937"
+    },
+    {
+      "path": "assets/ships-anim/era4-32bit-cd/spectre-anim.png",
+      "size": 109552,
+      "sha256": "800057d601e9d159ee539632412738d6033cd6bd10905dc11c43078fd461c868"
+    },
+    {
+      "path": "assets/ships-anim/era4-32bit-cd/titan-anim.png",
+      "size": 125562,
+      "sha256": "6829f8c5be2cb92b3c7bdaede7715a972f26afb62b43a591a6565eca29c02947"
+    },
+    {
+      "path": "assets/ships-anim/era4-32bit-cd/vanguard-mk1-anim.png",
+      "size": 94324,
+      "sha256": "92110856b141fd6172efa81c70a95563c9ea78eb4211e9f301181137bb82b0df"
+    },
+    {
+      "path": "assets/ships-anim/era4-32bit-cd/vipere-anim.png",
+      "size": 104090,
+      "sha256": "b63fccc624354ddc02b91dd83866f768a6efeaf5e9f144de3a492fd42bb7bc95"
+    },
+    {
+      "path": "assets/ships-anim/era5-hd/falcon-a-marteau-anim.png",
+      "size": 347997,
+      "sha256": "d3266cc267a43c482161c28506657127a3fbb7df9be27c3dea90a1dedd014b34"
+    },
+    {
+      "path": "assets/ships-anim/era5-hd/falcon-b-lame-anim.png",
+      "size": 246962,
+      "sha256": "4445f9112e4eee7a81486701b5ed7f4fed8dcacb78f508de2dc52c5d1e7e53d8"
+    },
+    {
+      "path": "assets/ships-anim/era5-hd/singularis-anim.png",
+      "size": 358338,
+      "sha256": "83298fabd912c85c0784c40a6495a773f721436f0d4f1210218516a669bac5e8"
+    },
+    {
+      "path": "assets/ships-anim/era5-hd/spectre-anim.png",
+      "size": 334700,
+      "sha256": "868012934884c81f03940534bf0b935e43340f23f2388bb8ac038b777d0c5085"
+    },
+    {
+      "path": "assets/ships-anim/era5-hd/titan-anim.png",
+      "size": 409541,
+      "sha256": "70549d630563713f0fba276893fcedb3f3a883a5ab8d4ba089398283789ea5df"
+    },
+    {
+      "path": "assets/ships-anim/era5-hd/vanguard-mk1-anim.png",
+      "size": 273275,
+      "sha256": "098c2e1523c44e5ca4c7a06ac6ffce8589e5ea0a011b4741434fb2b92ab83826"
+    },
+    {
+      "path": "assets/ships-anim/era5-hd/vipere-anim.png",
+      "size": 295034,
+      "sha256": "9a59015053977589eedf359ed712d151df57fdf3c7966ecdc2390a57dd0ae1ef"
+    },
+    {
+      "path": "assets/ships-native/r0-falcon.png",
+      "size": 22321,
+      "sha256": "3e153dc4bab099440f665f5664f83c9a6f99a3653982690a38ee36eedf55ef40"
+    },
+    {
+      "path": "assets/ships-native/r0-falconA.png",
+      "size": 25022,
+      "sha256": "c2edeff1b5e58caa7eef2bceb0b1069bd1894f83c618f167798ad37645088618"
+    },
+    {
+      "path": "assets/ships-native/r0-falconB.png",
+      "size": 17197,
+      "sha256": "211c74ad78b20cb8b69a1e2d4b68355635fc655e153312b8c71dd079c6344bb6"
+    },
+    {
+      "path": "assets/ships-native/r0-singularis.png",
+      "size": 29504,
+      "sha256": "5be1187c7d3c4a4d6fb24f4bdd6f5731a07627897606db38f77118fa94c4e8fc"
+    },
+    {
+      "path": "assets/ships-native/r0-spectre.png",
+      "size": 20979,
+      "sha256": "dab382831ca59ae7514cde4c13ae7092f232e87b8444d379252752321d7b2644"
+    },
+    {
+      "path": "assets/ships-native/r0-titan.png",
+      "size": 26036,
+      "sha256": "483d711f37764daee0dd5b1a54a7a8958bb4759650c8c4169b7753aa83b0fdff"
+    },
+    {
+      "path": "assets/ships-native/r0-viper.png",
+      "size": 22715,
+      "sha256": "5847727cf504949e63161a4d049098de4b58ea656a7d45b71ab0473fc94206f9"
+    },
+    {
+      "path": "assets/ships-native/r1-falcon-fx.png",
+      "size": 6479,
+      "sha256": "145aafac6848280ed15afdcc4042db9a0c6c44d8a7bf84bc59528e8352c8aa32"
+    },
+    {
+      "path": "assets/ships-native/r1-falcon.png",
+      "size": 20993,
+      "sha256": "d182a943df6dd1d72c75daeb5efe8a6464b302a1e367ea9288d10c22dcdd646d"
+    },
+    {
+      "path": "assets/ships-native/r1-falconA-fx.png",
+      "size": 5744,
+      "sha256": "8be526af9964188e87fbbf8ff9df2a9449a419f3f4db41e8bbcf2beb4000969a"
+    },
+    {
+      "path": "assets/ships-native/r1-falconA.png",
+      "size": 28658,
+      "sha256": "8db77819b38f5c0de1b876df055fefc9fcb1f2696dab0fab219d271fa49ff3c0"
+    },
+    {
+      "path": "assets/ships-native/r1-falconB-fx.png",
+      "size": 3053,
+      "sha256": "805650c40835303ef749b10438c72877306e6d1db62e9a7ababd22866781fdd0"
+    },
+    {
+      "path": "assets/ships-native/r1-falconB.png",
+      "size": 17212,
+      "sha256": "234d7e6df0fe25213b46e9a295a967ff287f00695d8c62271fd7340cebabad61"
+    },
+    {
+      "path": "assets/ships-native/r1-singularis-fx.png",
+      "size": 4178,
+      "sha256": "8754a4d839683f0eb7967a1d0dd08d2760abd22598e5ffb455b185c528dc5c9f"
+    },
+    {
+      "path": "assets/ships-native/r1-singularis.png",
+      "size": 37362,
+      "sha256": "1a50b490faddc2c2f58f39aea9637a06b265b5f9214f1da992197d95a0134721"
+    },
+    {
+      "path": "assets/ships-native/r1-spectre-fx.png",
+      "size": 4302,
+      "sha256": "3e16cc018848a31b5a8dc16d5827dc35bb817bde1c6b811da1d0218b012c26ad"
+    },
+    {
+      "path": "assets/ships-native/r1-spectre.png",
+      "size": 26564,
+      "sha256": "292c87bdafd015a03ddd3f7a55285df3e12a22b9d3b13e5904ebfbaa3159bcad"
+    },
+    {
+      "path": "assets/ships-native/r1-titan-fx.png",
+      "size": 5652,
+      "sha256": "26ef9784895500db6f7426979fab36ac0635137d570c934d2e612c55b3c6f36d"
+    },
+    {
+      "path": "assets/ships-native/r1-titan.png",
+      "size": 31353,
+      "sha256": "bb9dfed92fada87397f18e69f2c20670ec016158f51a9e28df06a502838aaea4"
+    },
+    {
+      "path": "assets/ships-native/r1-viper-fx.png",
+      "size": 4498,
+      "sha256": "c271787161f6fa82870bb56c5c329b1a1e4ee154ccf2f91adc3b655561fa0a19"
+    },
+    {
+      "path": "assets/ships-native/r1-viper.png",
+      "size": 24077,
+      "sha256": "d1dbfcf96b8b145f7eb50ebcd583f616e6a9012e813b972868487d2dcce927f8"
+    },
+    {
+      "path": "assets/ships-native/r2-falcon-fx.png",
+      "size": 3168,
+      "sha256": "adb1f1cb873b1d062850110c5709c472f9bc442cb8d941af4802f0a958088c8e"
+    },
+    {
+      "path": "assets/ships-native/r2-falcon.png",
+      "size": 28181,
+      "sha256": "174a36b7fda3c60c04192fde1d07633c8e1cc99c3d685d250e80e8c14c1bf4bd"
+    },
+    {
+      "path": "assets/ships-native/r2-falconA-fx.png",
+      "size": 5665,
+      "sha256": "6ddca732550bb48b62725bf4f22653794e9500a0643165cc467f142cf7aea4e1"
+    },
+    {
+      "path": "assets/ships-native/r2-falconA.png",
+      "size": 39195,
+      "sha256": "89317fbb855d577b0f219fea5c9e184e55202a7ab2ae685bca076e1896dd1b6d"
+    },
+    {
+      "path": "assets/ships-native/r2-falconB-fx.png",
+      "size": 3228,
+      "sha256": "962deede072ff36b593ff2b4610104537eb10b917a5f3b3054b2666d80411e5b"
+    },
+    {
+      "path": "assets/ships-native/r2-falconB.png",
+      "size": 24421,
+      "sha256": "82b98ef54125afe79c55050ff0033991dfd3142014d303a48e461e41f3856f27"
+    },
+    {
+      "path": "assets/ships-native/r2-singularis-fx.png",
+      "size": 4055,
+      "sha256": "fe522e33f30bfca00f80bf7896f5fde91fe98082cc882e5a9a739515679e2cdc"
+    },
+    {
+      "path": "assets/ships-native/r2-singularis.png",
+      "size": 47547,
+      "sha256": "a90ea6163e0c11581e91770b21c5d801bfd8eba8b2ec7d35a3cbb3d1a019cda8"
+    },
+    {
+      "path": "assets/ships-native/r2-spectre-fx.png",
+      "size": 7625,
+      "sha256": "64300d40720e69d7047183688ad28978314a47d1300d5f6947c7cb7d324ce6e3"
+    },
+    {
+      "path": "assets/ships-native/r2-spectre.png",
+      "size": 34217,
+      "sha256": "f50cbc30d3bfbc25399a7f9d6c079121e3e948a0a7f107aa9c605c7ad74b506e"
+    },
+    {
+      "path": "assets/ships-native/r2-titan-fx.png",
+      "size": 5770,
+      "sha256": "bac6e8cfd6e2dad305f2680428dbcfc0eafcf6f1d9f557e0a10a064630748975"
+    },
+    {
+      "path": "assets/ships-native/r2-titan.png",
+      "size": 43368,
+      "sha256": "defa81921351a2ba48e0219d23999012782fd6028b35075e278aa953953ff76a"
+    },
+    {
+      "path": "assets/ships-native/r2-viper-fx.png",
+      "size": 4682,
+      "sha256": "1013c8f8c68a6dc1b9e66da76bcb0e6aaaffd6a3247dc1faf33eb7901207671b"
+    },
+    {
+      "path": "assets/ships-native/r2-viper.png",
+      "size": 31741,
+      "sha256": "d1568a6b4e10bf681e1c189ff793eade397afa79bd696154097fa8259e48ded0"
+    },
+    {
+      "path": "assets/ships-native/r3-falcon-fx.png",
+      "size": 3880,
+      "sha256": "d3ef1d937759d285f7e1f410f0124d9334eb271bc7a77ddba6a21df5df3be884"
+    },
+    {
+      "path": "assets/ships-native/r3-falcon.png",
+      "size": 35272,
+      "sha256": "69de6388d651cd15c63196b96735a0de229eb3d927be98a11244a43295ecb4a1"
+    },
+    {
+      "path": "assets/ships-native/r3-falconA-fx.png",
+      "size": 7098,
+      "sha256": "5c4b4d3c7705c0ff7f74f46319f892ed79b367a97c4bda00917784d8b3e1e7ff"
+    },
+    {
+      "path": "assets/ships-native/r3-falconA.png",
+      "size": 51168,
+      "sha256": "9426271f69df6f5074eb02c39891aa261ab3dc16b56dfc9df7b54eeb0f19c72d"
+    },
+    {
+      "path": "assets/ships-native/r3-falconB-fx.png",
+      "size": 3098,
+      "sha256": "69d9e915d4abbc6a3500f8d86f5f54b5dabc412e9c5107aaf3d87bbccb1c1d55"
+    },
+    {
+      "path": "assets/ships-native/r3-falconB.png",
+      "size": 27383,
+      "sha256": "a8499bac557d289c51733c65cfbd6cf2555a92927458ce6224de70e100d7864e"
+    },
+    {
+      "path": "assets/ships-native/r3-singularis-fx.png",
+      "size": 3625,
+      "sha256": "c8016cbc5153c1463356d3da4cbd0f2a200a97ca5e4aeac0798edd48be5ffcd3"
+    },
+    {
+      "path": "assets/ships-native/r3-singularis.png",
+      "size": 54952,
+      "sha256": "03e704bcfca0bfaae95f80315e576df07a6946371164101baaa6b77d6a69e848"
+    },
+    {
+      "path": "assets/ships-native/r3-spectre-fx.png",
+      "size": 4831,
+      "sha256": "866329823d455370c46a9809b3adf9112a3332b467992503de93da1913f42c2c"
+    },
+    {
+      "path": "assets/ships-native/r3-spectre.png",
+      "size": 39625,
+      "sha256": "fc7f631ee4da693667eb013e186e498b3b12c170f954aa626e8c23c3be87ad40"
+    },
+    {
+      "path": "assets/ships-native/r3-titan-fx.png",
+      "size": 5247,
+      "sha256": "949c258394038afc8681a44ef0ee433e6d62fa6435a705f89c8f3fb905bc25ac"
+    },
+    {
+      "path": "assets/ships-native/r3-titan.png",
+      "size": 51083,
+      "sha256": "bf54cb2af844ce8eb417d5c043b8ba5293bd77dcc2685e1e0e8e862bd342a9b7"
+    },
+    {
+      "path": "assets/ships-native/r3-viper-fx.png",
+      "size": 4582,
+      "sha256": "8324e6216f3f775f52d6db176c3239022897ade7fdb2ac36a8ae1d95ce3a94a1"
+    },
+    {
+      "path": "assets/ships-native/r3-viper.png",
+      "size": 37754,
+      "sha256": "b4ff6b59527f50ee664d5a28115530adb393aaaefed607fa6b6408973be57637"
+    },
+    {
+      "path": "assets/tickets/base_casual.webp",
+      "size": 697586,
+      "sha256": "3cd559109daf66dd1d14fff293ff872d70d86aafcc1288ea91b2538afc90acb9"
+    },
+    {
+      "path": "assets/tickets/base_epique.webp",
+      "size": 704674,
+      "sha256": "7a5586f1c21b01cb85dc1a99934f2f85d8b5f76900759d158d17cd336c9aecef"
+    },
+    {
+      "path": "assets/tickets/base_legendaire.webp",
+      "size": 700278,
+      "sha256": "415134ec40c7771413db8d8ee4b7075153965b8bc562520562528edc140a26e8"
+    },
+    {
+      "path": "assets/tickets/base_peu_commun.webp",
+      "size": 698486,
+      "sha256": "da88844141e413caac2b7c6d135a0fb01cb8fd7db17ea8a6475571e15e0b59c2"
+    },
+    {
+      "path": "assets/tickets/base_rare.webp",
+      "size": 704770,
+      "sha256": "bfdb0827d5c1629fb5351cb4d09e8465d03752e2be25a7c23881e3175473e077"
+    },
+    {
+      "path": "assets/tickets/frottement.wav",
+      "size": 35324,
+      "sha256": "c92c22e9277430ef06899f64706a931c9da902272aae02a10d5c9da7078bc1f8"
+    },
+    {
+      "path": "assets/tickets/neomelodies_base_epique.webp",
+      "size": 628886,
+      "sha256": "69dbe1c67ee340a7444cdf1a4c8192d81268b0506acf181d4e4b6f4cc2f949d1"
+    },
+    {
+      "path": "assets/tickets/neomelodies_recompense.png",
+      "size": 19139,
+      "sha256": "9bbce6d032537095ab1631187f4b7be36de46fb133d1ab538d7804d0f3cc8fb0"
+    },
+    {
+      "path": "assets/tickets/pastille_casual.png",
+      "size": 2128,
+      "sha256": "902fd98ec753b160b6d2838faf56798ce8655aa560a497e94909124c03119106"
+    },
+    {
+      "path": "assets/tickets/pastille_epique.png",
+      "size": 2361,
+      "sha256": "7d013cc0c66057d32233584d0cd7a64ef10a2cf9fc4e363229bf94a91795ef8a"
+    },
+    {
+      "path": "assets/tickets/pastille_legendaire.png",
+      "size": 2422,
+      "sha256": "678f8df6392993968d418b7bf37226dabe74403cd04fe3e965fcd0d8f5ed4f30"
+    },
+    {
+      "path": "assets/tickets/pastille_peu_commun.png",
+      "size": 2411,
+      "sha256": "9d6a2317c8fe471733556619a7e8cab22263875aeab1336e72417c1f2041c60a"
+    },
+    {
+      "path": "assets/tickets/pastille_rare.png",
+      "size": 2466,
+      "sha256": "00ef961d2074cfb847840bb7fe75983091b5bb37e0490d992f9e0c98c04a219d"
+    },
+    {
+      "path": "assets/tickets/recompense_fin.png",
+      "size": 17143,
+      "sha256": "e7c5605de5c8c5d4398322386543a7ac02bca87b47bdd47af42551e3f2bc4d8a"
+    },
+    {
+      "path": "assets/tickets/revelation.wav",
+      "size": 48554,
+      "sha256": "4124df83862a017ed4431f8dbf2cc55d73443fcdd6dd36c48f2ef4800b42d191"
+    },
+    {
+      "path": "assets/tickets/surface_argentee.png",
+      "size": 114250,
+      "sha256": "8aaaf9e67c8c30a92c68db999cc771253a2187067abedf29dd9a6e2435e1375c"
+    },
+    {
+      "path": "assets/vorax/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "bandeau-readme.png",
+      "size": 65651,
+      "sha256": "5e83cec704f2fb9e88bf15a8808a2ead7186d5f9e361679fef521ac63bd33681"
+    },
+    {
+      "path": "banniere-neo-vanguard.png",
+      "size": 305501,
+      "sha256": "3d9ba05c3c75443998d7551700cd650d4931beed07ca86d083437d42d5fecdf1"
+    },
+    {
+      "path": "boites-3d.png",
+      "size": 801135,
+      "sha256": "aae0beb30fbe007738d3b155c5f4162e101fcb4be3e73e3ac3926e82df0734e4"
+    },
+    {
+      "path": "briefings-secteurs.png",
+      "size": 846642,
+      "sha256": "15e5f7a686dc6690be03503157adcd6ed8f8cd97bac5170293500bacad3c5147"
+    },
+    {
+      "path": "captures-secteur-4.png",
+      "size": 1272486,
+      "sha256": "27f76f17f4911feb73627b18982a05b7383d6e94c7bd85251f8fe37e653008d3"
+    },
+    {
+      "path": "comparatif-bestiaire.png",
+      "size": 1452158,
+      "sha256": "e520dabfa109ead740f3a3cb6f33e7d2a0444a92a1a98ad8935e26af2f4de667"
+    },
+    {
+      "path": "comparatif-decor.png",
+      "size": 1395310,
+      "sha256": "1019414ccaab7278eb994a5a7b13134407743d859201b82ce02cd002017541a8"
+    },
+    {
+      "path": "comparatif-explosion.png",
+      "size": 765441,
+      "sha256": "2e961e2e1998b039724b506f68db0f92934e0643d3b50a5a2f6be2dc20583e7c"
+    },
+    {
+      "path": "comparatif-fond.png",
+      "size": 1511079,
+      "sha256": "081e62694a1f7c201376913a99c2d1382fea92651dc74e1d582d348bd46e4747"
+    },
+    {
+      "path": "comparatif-heros.png",
+      "size": 253990,
+      "sha256": "3c1a59524a098fc5aab8844c8d619c8bf4a4170a8b721ae028917ee988849d34"
+    },
+    {
+      "path": "css/neo-vanguard.css",
+      "size": 143020,
+      "sha256": "b03ec7552c847f7edd44baeee786a94bf6b7d1ea5a662627c1213ee2f74d98be"
+    },
+    {
+      "path": "index.html",
+      "size": 33035,
+      "sha256": "bc4546993ebfff32f1acd6950773a41f051e33dddae7f2664792ca9fdaae5069"
+    },
+    {
+      "path": "js/01-nv-warnings.js",
+      "size": 9852,
+      "sha256": "1a21c7a8910f72d57837edd6bc33ab208a6d2140f87dbb4bc563c6352b1815d2"
+    },
+    {
+      "path": "js/02-moteur-jeu.js",
+      "size": 1874146,
+      "sha256": "b1f8b4ec8a0db66cb7e686ed0b1e2c6ddcce4c2c1967cbc23c5fe01684b4ea1a"
+    },
+    {
+      "path": "js/03-cloudflare-1.js",
+      "size": 214732,
+      "sha256": "722f41b940521d2e389aab55258008f14547a3ba0e99c7c7008a20202c7ad8e2"
+    },
+    {
+      "path": "js/04-cloudflare-2.js",
+      "size": 921,
+      "sha256": "b6098aba595526d860d56750e55be379a946d37b536eca51265569e4a31a1b38"
+    },
+    {
+      "path": "js/05-cloudflare-3.js",
+      "size": 921,
+      "sha256": "9c42f4f78ff28941cb67c02e35f6dab35ba01c8594d44b3e0cd2edf7bd307dfc"
+    },
+    {
+      "path": "js/06-nv-cinematic-game-pass.js",
+      "size": 5472,
+      "sha256": "f7e21d6f4669e345ecb50b33165f9ebfc020e8057705013641f1c4c3b5a42a9e"
+    },
+    {
+      "path": "js/07-nv-ultimate-render-pass.js",
+      "size": 4336,
+      "sha256": "9112c7020b09755e0a0e74af55f3c6e87d55be6c1cd281ec69f27eb53d2b1ca6"
+    },
+    {
+      "path": "js/08-nv-generation16-boss-art.js",
+      "size": 1280,
+      "sha256": "c2bb56ef6793276ae13e1d7d3e2d72110d1c661cd9082307a32dfda816c6b2b4"
+    },
+    {
+      "path": "js/09-nv-performance-rewards.js",
+      "size": 6692,
+      "sha256": "938d2d44d05a52b72b628f499aa89e92531548d4acd817854d4fa03ba9284620"
+    },
+    {
+      "path": "js/10-nv-painted-generation-backdrops.js",
+      "size": 7350,
+      "sha256": "6778aac3ba9dcbf1b5a42a6b67d90821a3ff16d7140d6fac6c6ab273e46646fb"
+    },
+    {
+      "path": "js/11-profils-machines.js",
+      "size": 1236,
+      "sha256": "7bc9e646cce10e5e9baee9f789ea22ff0db23ea10a575d33f6333f473bd09731"
+    },
+    {
+      "path": "js/12-lumiere-auto.js",
+      "size": 667,
+      "sha256": "30e5f76b62935a87ef09b8cae05d84a4a1b54156c7c7de5fd2a8cf3b6831fc5b"
+    },
+    {
+      "path": "js/13-tier-lancement.js",
+      "size": 1369,
+      "sha256": "54554cc23895e7a6def642cfb703f593f5f9fc7f4c5eb7d20217e316c5ef15c1"
+    },
+    {
+      "path": "js/14-guardian-silo-art.js",
+      "size": 12554,
+      "sha256": "66f9976b145f65462883099c414db233b7f92d460a1178a04937ccf33c99ccd7"
+    },
+    {
+      "path": "js/15-nv-level1-hazard-cleanup.js",
+      "size": 811,
+      "sha256": "d91832afc0e508f9229713d9f51762ad7ac65053da1f1251ad609efc720b11d4"
+    },
+    {
+      "path": "js/16-nv-silo-guardian-deluxe.js",
+      "size": 9588,
+      "sha256": "acc5e9f0b8cdfe410b7199b8ce46d8e54bfed900045dbe29d0e43897ec04ed01"
+    },
+    {
+      "path": "js/17-nv-silo-guardian-v3.js",
+      "size": 12521,
+      "sha256": "396c2bcbb77903aee8232769b3aff53ece6057922e773093bae1d5dfd2dc75c3"
+    },
+    {
+      "path": "js/18-nv-bastion4-deluxe.js",
+      "size": 10004,
+      "sha256": "b3a5bf506fb0a6f5f01404be26e076caf6ac40ec5d0a6011462fbb2a1e05896a"
+    },
+    {
+      "path": "js/19-nv-sentinel2-transformation.js",
+      "size": 10883,
+      "sha256": "a4396095751c8ab01db4643e6c6b97289084b4c4b56b1d01056e5b36bff33667"
+    },
+    {
+      "path": "js/20-nv-vorax-eyebeams-and-shattered-alert.js",
+      "size": 9757,
+      "sha256": "f45e330f21d4b361bcb522b22786fe611dfd8574aef7aa1c515fb7e8e1d0ea1a"
+    },
+    {
+      "path": "js/21-nv-alert-redesign.js",
+      "size": 6869,
+      "sha256": "cd564ee4e06be1f73316456c5ce9e53019d14c3fc53f05a723f6759a18b04338"
+    },
+    {
+      "path": "js/22-nv-sector-phone-profiles.js",
+      "size": 7693,
+      "sha256": "a54a1284a63a43e978136b983f4bbc69ad5b5e4fc9a75ae0d5211f8c619f68d2"
+    },
+    {
+      "path": "js/23-nv-no-horizontal-drift.js",
+      "size": 1097,
+      "sha256": "a8c373f03f417d01e3e5afe34b54988c5175782857627235abc3d2891106027e"
+    },
+    {
+      "path": "js/24-nv-fanboy-authentic.js",
+      "size": 25218,
+      "sha256": "65b2bad4c49833c763328bbafb5e808d790a18438102f6cfa4402d7bbb21f489"
+    },
+    {
+      "path": "js/25-nv-options-reorg.js",
+      "size": 11497,
+      "sha256": "8f07ca14325dffc1ffd8d440ca9073e75ef43fd7a25c777fd92ceda51b31c000"
+    },
+    {
+      "path": "js/26-nv-title-reorg.js",
+      "size": 5723,
+      "sha256": "68a8f3ca04d1ee142245fe6e9c758a21d00dce0967e1b2facfdb906b7a30f5c4"
+    },
+    {
+      "path": "js/27-nv-shop-reorg.js",
+      "size": 7755,
+      "sha256": "ba42f801ee72f307f0792f4534a581dc29cd4d82062b16157f98e08400038eb8"
+    },
+    {
+      "path": "js/28-nv-insert-coin-and-bonus.js",
+      "size": 28987,
+      "sha256": "e024c56642522ce675130b743471ba0a921aad7362b7a545804761e7315ab5d7"
+    },
+    {
+      "path": "js/29-nv24-final-rework.js",
+      "size": 93531,
+      "sha256": "dd554cf4e3fe403dc9a55aea9432079d9750fee8c4a9d496ef80f2606f135dba"
+    },
+    {
+      "path": "js/30-nv-music-shop-js.js",
+      "size": 14268,
+      "sha256": "0e4886b1622f8a2d108c7fb2ad7dc932d5986294a0ed696338ab420d335cffa1"
+    },
+    {
+      "path": "js/31-nv-fm-relook-js.js",
+      "size": 17656,
+      "sha256": "c2c779cd2d431a0fe4e1a7e84d3440f70c47ffd3501651a1de19c9df9322c99e"
+    },
+    {
+      "path": "js/32-nv-lcd-calm.js",
+      "size": 4193,
+      "sha256": "aad683c80997ba334da7d614ee7df50de3f928b30404d9d4cdc15a0b17fb54a7"
+    },
+    {
+      "path": "js/33-nv-ship-sheets.js",
+      "size": 16279,
+      "sha256": "0d50c5fef5e30f737a20ac0f00d76e22258f64b9dc507ba5eabf63c17960b677"
+    },
+    {
+      "path": "js/34-nv-ship-native.js",
+      "size": 30243,
+      "sha256": "0c20f17195c7acb67c391381dcc656c263a80f612246db8ac8b71554e2aa26d8"
+    },
+    {
+      "path": "js/35-nv-pause-btn-js.js",
+      "size": 1146,
+      "sha256": "c290f24935a91003ec56950db4ce11fc196d3bca0fcb6c5c790e13b9f6a79c6a"
+    },
+    {
+      "path": "js/36-nv-title-mute.js",
+      "size": 351,
+      "sha256": "c87fabf7019f76ee56d522442e1bf7d1097f73a09c0432aac43f6650ec6d6900"
+    },
+    {
+      "path": "js/37-nv-fm-labels-js.js",
+      "size": 5487,
+      "sha256": "9a58418f4d918187f242b11aff480c7212a8a8b75c4f91ee31b64f5958783cab"
+    },
+    {
+      "path": "js/38-nv-fm-meuble-js.js",
+      "size": 4649,
+      "sha256": "8158c6fad66f45eb361b5aa5618239cc6d851537db7c0421c41fdc3df53f46a6"
+    },
+    {
+      "path": "js/39-nv-homing-sprite.js",
+      "size": 3763,
+      "sha256": "0cd7c739b9f932cf4e1a826c7e8730706e73228b00fbdf7a541087b4038b9c8c"
+    },
+    {
+      "path": "js/40-nv-voice-gender.js",
+      "size": 3133,
+      "sha256": "6ea818dfe9395583bad8a5bb4c29bd25dc77fdc63b9401f4dfcbe9c59563abf8"
+    },
+    {
+      "path": "js/41-nv-fm-deck-js.js",
+      "size": 21170,
+      "sha256": "6507abde6b87dbbd1127089d797294fc9c21cb723445a3fa9b2c907db0c344cc"
+    },
+    {
+      "path": "js/42-nv-help-js.js",
+      "size": 29680,
+      "sha256": "9e6f3704b85fe366b0c344336e6e802b1b6501483b5825ca3fe3ac34f1216d24"
+    },
+    {
+      "path": "js/43-nv-fluid-js.js",
+      "size": 21166,
+      "sha256": "8693b543016cdfe4a79caf7cbcac6ee9a53bed6891604feff13385881a191d6b"
+    },
+    {
+      "path": "js/44-nv-progress-map.js",
+      "size": 8403,
+      "sha256": "b6d3130a4caaef40b94630c9f1e2599ba1c07f0061a214f6b2ab4ef87ec2d3a6"
+    },
+    {
+      "path": "js/45-nv-brief-art.js",
+      "size": 2826,
+      "sha256": "d84c78da781599051861dab9af8db92f9890efe790dd9d9edfeebfe83f571430"
+    },
+    {
+      "path": "js/46-nv-boss-sprites.js",
+      "size": 50966,
+      "sha256": "8933c76614b9fdb5bc2b7b497e696f4390790d5037bff70c16f07c1b0325d709"
+    },
+    {
+      "path": "js/47-nv-tickets.js",
+      "size": 43127,
+      "sha256": "17ecf765f18ead859749143ccf21bcbaed39db3a4980cda105fda6fd308db248"
+    },
+    {
+      "path": "js/48-nv-big-sprites.js",
+      "size": 4976,
+      "sha256": "9116ce336f778309a85f97338750778425bb0e070ec652af1b80cdda5d574e7f"
+    },
+    {
+      "path": "js/49-nv-mix.js",
+      "size": 5435,
+      "sha256": "abfc034eb8c79baaea83c1ce06f99bebb1acd6e2bc73864b63fee399ef54c3b5"
+    },
+    {
+      "path": "js/50-cloudflare-4.js",
+      "size": 921,
+      "sha256": "cb12587d94db3c7625a29ea7226d9ea5c1b1da90d3e057fb22e35ff4506be392"
+    },
+    {
+      "path": "js/51-nv-fanboy-reference.js",
+      "size": 26487,
+      "sha256": "1ef3601d9a244b62c5427d423f2146be78b4ecdd2aa0db083bb51c60c9191c27"
+    },
+    {
+      "path": "level24-v2/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "level24-v2/README.md",
+      "size": 5043,
+      "sha256": "5958474df71d72cfa6876936aa432a5e8d7a31cbdacb539cdf49b5b14221433e"
+    },
+    {
+      "path": "level24-v2/build_assets.py",
+      "size": 15327,
+      "sha256": "9ffdbcd023dfcc29e432bac85c7a16681d629e4a8075b2a543874cd7838c6b2e"
+    },
+    {
+      "path": "level24-v2/level24-anime.js",
+      "size": 20828,
+      "sha256": "57e88b269851c0ece6231b63a792f06210a96b64aaa8115ee06f5d5b98dfe13a"
+    },
+    {
+      "path": "level24-v2/level24-v2.js",
+      "size": 16265,
+      "sha256": "82cf51f3c0efed0f647e9dffa3417a3f4d41278aaf62a6b7b335946fb4cce17f"
+    },
+    {
+      "path": "music/CREDITS.txt",
+      "size": 2615,
+      "sha256": "d652044a30f7259215b7f8a77b238805aaa651a4186c5b1f28d9a3383e9aa027"
+    },
+    {
+      "path": "music/README.md",
+      "size": 449,
+      "sha256": "c230f4c6de5ab9b2c10303b9cf0c14189415b842fa05cee39800d775526d7305"
+    },
+    {
+      "path": "music/README.txt",
+      "size": 1937,
+      "sha256": "01e68c021e1bac6ec3f69d5e30a59491f66ac29b9a37f5fd762229ac5bffcc56"
+    },
+    {
+      "path": "music/boss.mp3",
+      "size": 3050063,
+      "sha256": "d4b9f90048cfa3c5004763cd2483172a989dc921cd1a9538e4bae7aa9c3b9ce6"
+    },
+    {
+      "path": "music/boss0.mp3",
+      "size": 2434684,
+      "sha256": "95501646b37cda613d99377245c3f32b9beeee9f7e37c4be1bb324b7b9e26761"
+    },
+    {
+      "path": "music/boss1.mp3",
+      "size": 3934112,
+      "sha256": "613afdd040dbb06a712d9db992d58632b390292c1fc22555861f14568357fd60"
+    },
+    {
+      "path": "music/boss10.mp3",
+      "size": 3173427,
+      "sha256": "1cc15bf30f3adb7b0d7f52203df1c32602b0f35f300ef6c589b4e7ff21dadbb5"
+    },
+    {
+      "path": "music/boss11.mp3",
+      "size": 3274782,
+      "sha256": "f455b3bb72a264332c254057b2a997782cea104e8361ad18992626c776573d79"
+    },
+    {
+      "path": "music/boss12.mp3",
+      "size": 1847451,
+      "sha256": "7d9e5a2a1f034d891b296679a111c677d2e251015258c8c6587d715617583513"
+    },
+    {
+      "path": "music/boss13.mp3",
+      "size": 1902831,
+      "sha256": "61c747a3505ed87b713cceef1a2fc19975b5f11fa0d5b369bdae75632f1d4749"
+    },
+    {
+      "path": "music/boss14.mp3",
+      "size": 2239288,
+      "sha256": "5124a02e611b6c2cb6fc70bb254e00cfee6a5780c77cf4dbd5bacb2e7eb17d38"
+    },
+    {
+      "path": "music/boss15.mp3",
+      "size": 1282161,
+      "sha256": "15cabfb19fdc0a7aa338e4d3dcba115a4bbfeae59d0d16dfabc3232cbd108ad5"
+    },
+    {
+      "path": "music/boss16.mp3",
+      "size": 3281051,
+      "sha256": "d95e6a3d590865051486c4d5cb439804ecb11f6a237d05857ce78f63905791f3"
+    },
+    {
+      "path": "music/boss17.mp3",
+      "size": 2283174,
+      "sha256": "73cc02a6d0fa7ec621f3ff26e3ece511136967a341b168ca989493e6c9468666"
+    },
+    {
+      "path": "music/boss18.mp3",
+      "size": 2573655,
+      "sha256": "4fb564fc45323a98d6e55f621f8e1277f0b6f47936b58f8d33eacad31a31d236"
+    },
+    {
+      "path": "music/boss19.mp3",
+      "size": 2988480,
+      "sha256": "7a49ebbc18ea3902edee0b1e633872ed12e87c3fac0701c8401df87e0b6bde53"
+    },
+    {
+      "path": "music/boss2.mp3",
+      "size": 3404349,
+      "sha256": "e519bd30860667c52a4145a86953781cbe4449477c73ef52e9368d701d28a34b"
+    },
+    {
+      "path": "music/boss20.mp3",
+      "size": 2804578,
+      "sha256": "416987729bd1d5d805ade62534fe67a068f6a43aa348cf84c2bb0c8fef1793c1"
+    },
+    {
+      "path": "music/boss21.mp3",
+      "size": 2032398,
+      "sha256": "bc364192316799f24ce308697e08634bb2184cf4a51b8d1f6e4ed87ea9fb3f26"
+    },
+    {
+      "path": "music/boss22.mp3",
+      "size": 1829688,
+      "sha256": "88576d8d84155cf15d304197e091ada3f31100734dc7004c9ddb6aa9e8f3c925"
+    },
+    {
+      "path": "music/boss23.mp3",
+      "size": 2816072,
+      "sha256": "20729b3f0eba8a5109722d21238f91bbffa291d095ae142954d90dcec1bfafeb"
+    },
+    {
+      "path": "music/boss24-vorax.mp3",
+      "size": 6859825,
+      "sha256": "207453cb5b4926c6b3e94a1627002b747e1001792e751c6eff473e210cc6cae4"
+    },
+    {
+      "path": "music/boss3.mp3",
+      "size": 3410619,
+      "sha256": "82b19ccf677ef10352cb4914f396fad10c6a7a5e594ffad1987a94356544cc8b"
+    },
+    {
+      "path": "music/boss4.mp3",
+      "size": 3308219,
+      "sha256": "c7be1e00bf69a2405408e419f6e7e70d3a7ecbb5d6773c78b44a1475fe50ffd6"
+    },
+    {
+      "path": "music/boss5.mp3",
+      "size": 3601835,
+      "sha256": "cfc44016f01154e6c82dd10a5e6957946429f659476ebefa9c717c984c6998ab"
+    },
+    {
+      "path": "music/boss6.mp3",
+      "size": 2514096,
+      "sha256": "fa6f598bf10f15c686bd9d58461d38f32a9a21ef44bf04ddf7d0f62e3708da5c"
+    },
+    {
+      "path": "music/boss7.mp3",
+      "size": 1960300,
+      "sha256": "ef3ea426016eaad86c799e177d66f3c9e81a9553d238ab62da78ac841042951b"
+    },
+    {
+      "path": "music/boss8.mp3",
+      "size": 3423157,
+      "sha256": "c6db230a8bf688e592bbb7d7c713ecfa00b27d0244fdd49aca17e248db710f02"
+    },
+    {
+      "path": "music/boss9.mp3",
+      "size": 2850553,
+      "sha256": "155a4f168db7599ed60632f82150e35983207e743f51a8809ef05bcd0d5dc973"
+    },
+    {
+      "path": "music/ending.mp3",
+      "size": 1135104,
+      "sha256": "e42da003defdf3e6d03a3e7771a84792c9f49faa047757963fc144d462b486db"
+    },
+    {
+      "path": "music/era0.mp3",
+      "size": 685056,
+      "sha256": "3e28c357732fa9568b85de81d512adf2dfcfeb95909d993f9e4e0d59833d9550"
+    },
+    {
+      "path": "music/era1.mp3",
+      "size": 2127872,
+      "sha256": "728444f7a77c28e4dbedbe50ba4f0fca4a3e6eaff1918c603475629ae302f208"
+    },
+    {
+      "path": "music/era2.mp3",
+      "size": 1822208,
+      "sha256": "d3073b8fb29daf755ad5750356728c919f78be91762528aa983bd27cacc0ea03"
+    },
+    {
+      "path": "music/era3.mp3",
+      "size": 1919194,
+      "sha256": "c0421c3ae2ad4beb6d81ebfaf91e2a175a15d271185b39769ffbc67e82a44db2"
+    },
+    {
+      "path": "music/era4.mp3",
+      "size": 2338920,
+      "sha256": "75da0c212b36cab3556dfe2928d10d996fa4a6e4ad1e068e06a565389cc2c90c"
+    },
+    {
+      "path": "music/era5.mp3",
+      "size": 7178499,
+      "sha256": "daae7586952138f433601e817195166afb4a1a2e11fd42a91294d7b1a9330b7c"
+    },
+    {
+      "path": "music/gate.mp3",
+      "size": 2000980,
+      "sha256": "7ae990096e2c721644db72d8ecbb9eae5726022edb1bda9b6a59de00c9addac2"
+    },
+    {
+      "path": "music/shop.mp3",
+      "size": 2817855,
+      "sha256": "4a5f11df5ea56f5666460324886d67bd35d939a99bee906011c2ccdf8806980d"
+    },
+    {
+      "path": "music/story.mp3",
+      "size": 1880710,
+      "sha256": "a0ace6f2a8cb6ef1b5fcea41eee03128167d1a94fc540236b97426b4d666b951"
+    },
+    {
+      "path": "music/title.mp3",
+      "size": 5847553,
+      "sha256": "d498390c9cb4ec54b6e9f9744800bab4d2d2346e3210b0f120b8b4b8a46a38d0"
+    },
+    {
+      "path": "neo-vanguard-6-secteurs.zip",
+      "size": 15753401,
+      "sha256": "6b1dca43b1bdbcc1e6392520a397d6a21824e5b2875609f5722ca8c02c41ca99"
+    },
+    {
+      "path": "neo-vanguard-codes-triches.pdf",
+      "size": 207280,
+      "sha256": "088fce1f6d1ba837a9647e82e14baa5f6069adcc19667974664fdd50993917c1"
+    },
+    {
+      "path": "nouveaux-secteurs.png",
+      "size": 611110,
+      "sha256": "257af74e5691b9428407e5bcd3cfa6a1aa04ba12eea80a44b5bffbd962396bbe"
+    },
+    {
+      "path": "pack-graphique-4-eres.png",
+      "size": 341844,
+      "sha256": "e870eed407c10571fbb81fb6e7ebf630eb4fd3c92edfb6fa475fee54fdf6664a"
+    },
+    {
+      "path": "pack-nouveautes.png",
+      "size": 2136635,
+      "sha256": "bc765cbfe7e10e402e8f7eed93be379ed16455197428628be25e758703009c79"
+    },
+    {
+      "path": "pieces-level1.png",
+      "size": 84229,
+      "sha256": "5f681513188a9645aed210e1877b967ab36693523d0cab30001bb55de40d8e05"
+    },
+    {
+      "path": "pinball/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "pinball/LIRE_EN_PREMIER.txt",
+      "size": 2307,
+      "sha256": "bb4026bd0412df6a91187f09eead558374f987b621eba7a148e392a6edc205f8"
+    },
+    {
+      "path": "pinball/assets/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "pinball/assets/01_table_reference.png",
+      "size": 3719873,
+      "sha256": "10d6735a75557cff24e8ff15b00a570e500888da61eeed74cadd17a94b397295"
+    },
+    {
+      "path": "pinball/assets/02_plateau_statique.png",
+      "size": 3440521,
+      "sha256": "b77150fe9c6cafccd83b1a92aeb1ae13a294cf061efc7e4d0ed17f7e9dfd2393"
+    },
+    {
+      "path": "pinball/assets/03_mecanismes_4x4.png",
+      "size": 1626111,
+      "sha256": "ffdc1a603e68dc3e3f9683fd5d0995ed897f0a5a5b6475442a5387fd89991ac2"
+    },
+    {
+      "path": "pinball/assets/04_effets_4x4.png",
+      "size": 2517736,
+      "sha256": "bf757f92ba3d132196e0db539e88f30478b80b61510a2aab177a9a315c54e85e"
+    },
+    {
+      "path": "pinball/assets/05_menu_deblocage.png",
+      "size": 3429065,
+      "sha256": "8d5b8d183eda867d7fa95b7c098386eebc02fb0d8681b80e9113a395a3b8e3d6"
+    },
+    {
+      "path": "pinball/assets/06_interface_4x4.png",
+      "size": 2263058,
+      "sha256": "d1cdf58c6736b4cce8b148d1890325eb69503a12a30c137a6ef11442bba489c6"
+    },
+    {
+      "path": "pinball/audio/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "pinball/audio/bille_perdue.wav",
+      "size": 42380,
+      "sha256": "7dfe258a0477f26c65ec8e0e8bd3fd2d5b6fd3b082f8fd6b452052978c93f222"
+    },
+    {
+      "path": "pinball/audio/bonus_debloque.wav",
+      "size": 160568,
+      "sha256": "1bc4a9180b81d9ee7c649ce6a8e7e7822f0c56d72cede0c2340d74328b191563"
+    },
+    {
+      "path": "pinball/audio/bumper_cyan.wav",
+      "size": 45908,
+      "sha256": "2d7cc72b8371f5fb78dca81824068becbc418af882e0e31139be6866f77b1573"
+    },
+    {
+      "path": "pinball/audio/bumper_magenta.wav",
+      "size": 45908,
+      "sha256": "c6b3afe560e2eb792f9355909210464589852196ef47fd32b9f30c76956694d5"
+    },
+    {
+      "path": "pinball/audio/cible_abaissee.wav",
+      "size": 42380,
+      "sha256": "df3c1bee025f727db0f978387873549d08886e2fa2700958206e030f0fbd97fc"
+    },
+    {
+      "path": "pinball/audio/cible_touchee.wav",
+      "size": 42380,
+      "sha256": "4d21fd59ba7f146b43b2619dafa35e0ccc31627aef71118782cb39cc531bf4cd"
+    },
+    {
+      "path": "pinball/audio/fin_partie.wav",
+      "size": 91772,
+      "sha256": "3d6e79580f7b059b4f4f5bf0bf11aa2579dd119ccc188077acae83b006a484f0"
+    },
+    {
+      "path": "pinball/audio/flipper_droit.wav",
+      "size": 42380,
+      "sha256": "abff43699fc2cfa5be8794a7921aaa59073d0ce3df3541ea526d76737da4706f"
+    },
+    {
+      "path": "pinball/audio/flipper_gauche.wav",
+      "size": 42380,
+      "sha256": "39521843169889112aa4692489b5edc64e3f9cad79f1464439fdc90157d2cb0d"
+    },
+    {
+      "path": "pinball/audio/jackpot.wav",
+      "size": 137636,
+      "sha256": "7da6e4ba9b8d037b6031893785a1192d9ae4804621cb3379918f588d0b07022b"
+    },
+    {
+      "path": "pinball/audio/lance_bille.wav",
+      "size": 114704,
+      "sha256": "7a196b371711f8541a9cf41f15e7589514bb0ee176463288e601ff96a08f8667"
+    },
+    {
+      "path": "pinball/audio/menu_navigation.wav",
+      "size": 22976,
+      "sha256": "a4b1e2665605eca94384d9c7719607d17ed73cc67e7460753fc3a596209a24b5"
+    },
+    {
+      "path": "pinball/audio/menu_validation.wav",
+      "size": 45908,
+      "sha256": "79d3d8d2776499e863cebab963c8d676d93b3d8019227e4d3e364f16a53de7d1"
+    },
+    {
+      "path": "pinball/audio/multibille.wav",
+      "size": 137636,
+      "sha256": "07dce19afc4a5a107cb28751e3154b99a4498eedd1f9416cf44317fd27dd9217"
+    },
+    {
+      "path": "pinball/audio/musique_neon_orbit_120bpm_boucle_32s.wav",
+      "size": 5644844,
+      "sha256": "46c89e60fcf8a2812e4a885a651f7089780457e047b1ac8680d9506eb51ae1df"
+    },
+    {
+      "path": "pinball/audio/rampe_validee.wav",
+      "size": 91772,
+      "sha256": "2715b6bb917cf07ca1f33bab9ae39c9ffa9419502d1ab703a7d5caa74e35364f"
+    },
+    {
+      "path": "pinball/audio/rebond_metal.wav",
+      "size": 42380,
+      "sha256": "28e0623c5977614f5b97ab4ec64544d0b9ae9b23e2d6b6380fbab22b2232d160"
+    },
+    {
+      "path": "pinball/audio/secteur_valide.wav",
+      "size": 68840,
+      "sha256": "bacdd490a7cfeeb9764bf36606fc4c22bd4d7364bac2da26e9cc295587e13042"
+    },
+    {
+      "path": "pinball/docs/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "pinball/docs/CONCEPTION_ET_ANIMATIONS.md",
+      "size": 6501,
+      "sha256": "37dd688c04895a34b5768b72129ef880bd5917c3dc4955163af82f3831545c0f"
+    },
+    {
+      "path": "pinball/docs/PROMPT_POUR_CLAUDE.txt",
+      "size": 4798,
+      "sha256": "56f0c727e6fa59a6a6127ee8ab2ba3455e3b5d9a1660c3ffac1880e3f00db5ea"
+    },
+    {
+      "path": "pinball/docs/atlas.json",
+      "size": 11870,
+      "sha256": "7fd907b249559e66034d4566c8fc4e26da1e36f74df269f5efaa54de332bc75f"
+    },
+    {
+      "path": "pinball/docs/prompts_images.json",
+      "size": 5956,
+      "sha256": "22192475b167726a8b6e039edbbbe7079ffd6445cfc82e479b7cdb6e26187949"
+    },
+    {
+      "path": "pinball/engine.js",
+      "size": 24091,
+      "sha256": "3651bdfedc9d6d0764fbc20da91392356f3027d1f328f8025472ec2714d4c235"
+    },
+    {
+      "path": "pinball/pinball.css",
+      "size": 12031,
+      "sha256": "870b8424577d1aad5790c7ed1070a52d2f36699d67dfefdf3da29ad93cfd8a99"
+    },
+    {
+      "path": "pinball/pinball.js",
+      "size": 50069,
+      "sha256": "53b69fbe9b89451f3d0016b2cde2422ec117a414a12496475290806523a7fffd"
+    },
+    {
+      "path": "pinball/tests/.gitkeep",
+      "size": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "pinball/tests/engine.test.js",
+      "size": 7436,
+      "sha256": "a4a1a62b5427d86854057b1e7448c9fc0f05a0beb576cd829d0865dbbab9db1c"
+    },
+    {
+      "path": "planche-pack.png",
+      "size": 1836573,
+      "sha256": "c4de2937076bf7e7ac993823099933b8bfdc6528aa87aa9fcdd36f85edd26179"
+    },
+    {
+      "path": "pousser-vers-github.sh",
+      "size": 1607,
+      "sha256": "b12ca5bacf77b9c6a03b4a8a34c7089848e363e7feba6924a325bbb7e25b7e74"
+    },
+    {
+      "path": "secteur4-nouveau.png",
+      "size": 601662,
+      "sha256": "8f97bd33c1fdc6cee8e3c341945b34e6369ee00a42058c9b736b56d4210bff1e"
+    },
+    {
+      "path": "tests/FANBOY-VALIDATION.md",
+      "size": 1675,
+      "sha256": "bfb1791de26cde72855f763c21cbf5f610ca3e50cd6664406de792f0dad31248"
+    },
+    {
+      "path": "tests/fanboy-input.browser.cjs",
+      "size": 4594,
+      "sha256": "f7dc03946c3eb301df90e79b0e4150d76242440d817c7e015726fddfdbecbc70"
+    },
+    {
+      "path": "tests/fanboy.browser.cjs",
+      "size": 6856,
+      "sha256": "3da54f912eef2a91b4e136fd168b2af882a5807b76916de5e932da307c9ee996"
+    }
+  ]
+}
