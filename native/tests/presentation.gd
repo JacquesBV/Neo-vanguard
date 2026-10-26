@@ -8,7 +8,7 @@ func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
 	var scene=load("res://native/scenes/sector1.tscn").instantiate()
-	scene.store.save_path="user://native-ui-test.json"
+	scene.store.save_path="user://native-ui-test-"+str(OS.get_process_id())+".json"
 	root.add_child(scene)
 	await process_frame
 	for mobile in [false,true]:
@@ -35,7 +35,16 @@ func run() -> void:
 	scene._primary();scene._bomb();check(scene.mission.player.bombs==1,"Resume permits bomb exactly once")
 	scene.session.transition(&"title");scene._primary();scene._primary()
 	check(scene.mission.time==0 and scene.mission.player.bombs==2,"New mission starts with independent state")
+	var saved_materials:int=scene.store.data.materials.circuit
+	scene.mission.collect({"kind":"circuit","value":3})
+	check(scene.store.data.materials.circuit==saved_materials+3,"Collected material reaches native save immediately")
+	var reloaded=scene.Store.new(scene.Catalog.new().initial_save(),scene.store.save_path)
+	check(reloaded.load_save()==OK and reloaded.data.materials.circuit==saved_materials+3,"Material collection persists on disk")
+	scene._bank();scene._bank()
+	check(scene.store.data.materials.circuit==saved_materials+3,"Mission banking never duplicates already-persisted materials")
+	var path:String=scene.store.save_path
 	scene.queue_free();await process_frame
+	DirAccess.remove_absolute(path)
 	await create_timer(0.15).timeout
 	print(JSON.stringify({"checks":checks,"failures":failures,"scope":"native scene, layout and routed inputs; no physical device claims"}))
 	quit(0 if failures.is_empty() else 1)

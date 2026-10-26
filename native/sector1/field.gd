@@ -32,14 +32,11 @@ func _draw() -> void:
 		var y := roundf((offset+row*64)/3)
 		draw_rect(Rect2(0,y,160,1),inks[1])
 		for x in range(((row+start)&1)*64,480,128):draw_rect(Rect2(roundf(x/3.0),y,1,roundf(64/3.0)),inks[1])
-	for d in m.decor:sprite(d.sprite,d.pos)
+	for d in m.decor:
+		sprite(d.frames[int(m.time*4)%d.frames.size()],d.pos)
 	for p in m.pickups:
-		var x: float=p.pos.x/3
-		var y: float=p.pos.y/3
-		var turn: float=maxf(0.15,absf(cos(p.t*5)))
-		draw_rect(Rect2(Vector2(x-4*turn,y-4),Vector2(8*turn,9)),inks[3])
-		draw_rect(Rect2(Vector2(x-3*turn,y-3),Vector2(6*turn,7)),inks[0])
-		draw_rect(Rect2(x-1,y-2,2,5),inks[2])
+		var f:=int(fposmod(p.t*3.2,TAU)/TAU*12)%12
+		sprite("pickup_"+p.kind+"_"+str(f),p.pos+Vector2(0,sin(p.t*6+p.pos.x*.04)*3))
 	var actors: Array = []
 	for p in m.props:actors.append({"pos":p.pos,"sprite":p.kind+"_"+str(int(p.t*8)%8),"alpha":1.0})
 	for e in m.enemies:actors.append({"pos":e.pos,"sprite":e.kind+"_"+str(int(e.t*8)%8),"alpha":1.0})
@@ -56,9 +53,9 @@ func _draw() -> void:
 	actors.sort_custom(func(a,b):return a.pos.y<b.pos.y)
 	for a in actors:sprite(a.sprite,a.pos,a.alpha)
 	for shot in m.hostile:
-		var at: Vector2=(shot.pos/3).round()
-		draw_rect(Rect2(at-Vector2(2,2),Vector2(5,5)),inks[3])
-		draw_rect(Rect2(at-Vector2(1,1),Vector2(3,3)),inks[0])
+		var angle:=int(round(fposmod(shot.vel.angle(),TAU)/TAU*16))%16
+		var pulse: int=int(shot.get("t",0)*12+shot.get("seed",0))%2
+		sprite("hostile_"+str(int(shot.r))+"_"+str(angle)+"_"+str(pulse),shot.pos)
 	for shot in m.bullets:
 		var at: Vector2=(shot.pos/3).round()
 		draw_rect(Rect2(at-Vector2(1,2),Vector2(2,5)),inks[0])

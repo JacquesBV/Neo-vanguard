@@ -7,6 +7,36 @@ Les 23 autres secteurs, les menus définitifs et les systèmes de campagne reste
 à recréer. La parité visuelle, sonore et ludique intégrale n'est pas validée.
 Ce n'est pas une version commercialisable, un APK ou un candidat Meta Store.
 
+## Fidélité du secteur 1 — reprise après a70ff92
+
+- Collecte : puissances, boucliers, soins, bombes, COINS et trois matériaux,
+  y compris conversions en score lorsque l'inventaire est plein. **13 cas natifs
+  correspondent aux résultats de la fonction `collect()` JavaScript d'origine**.
+- Les matériaux collectés sont sauvegardés immédiatement et ne sont pas
+  crédités une seconde fois à la fin de mission.
+- Récolte : conversion des tirs et ennemis survivants dès la mort du boss,
+  pluie de bonus, aimant global puis récupération automatique des restes à 6,4 s.
+- Frôlement : score une fois par projectile, jauge et surcharge automatique
+  après 90 frôlements, dégâts et invulnérabilité sans consommation de bombe.
+- Objets : réactions en chaîne des barils, score avec multiplicateur de combo,
+  butin des modules et des caisses alignés sur les règles de base source.
+- Décors : 96 variantes de taille/graine, chacune avec quatre échantillons
+  d'animation source. La pondération des types reste indépendante du nombre
+  de variantes ; aucune mise à l'échelle des sprites cuits.
+- Visuel : pièces avec rotation et symboles, silhouettes propres aux matériaux,
+  projectiles ennemis fléchés avec direction et pulsation. Atlas : **726 poses**.
+- Vérification actuelle : **145 contrôles réussis** (40 socle, 39 secteur,
+  37 présentation/persistance, 29 récompenses/règles, dont les 13 comparaisons JS).
+  Le secteur se termine toujours avec les vrais tirs dans le replay de test.
+
+La comparaison navigateur/native reste à réaliser. Les angles des tirs sont
+échantillonnés sur 16 directions ; les décors utilisent des tailles préréglées
+et quatre images d'animation par seconde. L'apparition/scintillement des bonus,
+les effets d'impact, les boosts/flashs du Falcon, le ghost LCD et la mise en
+scène restent partiels. Les règles correspondent au vaisseau/équipement de
+départ : progression, améliorations, achats et modes spéciaux ne sont pas
+encore raccordés. Aucune parité intégrale ou validation commerciale annoncée.
+
 ## Reprise après b202d02 — 26 octobre 2026
 
 - Simulation native : déplacement, tir, 12 vagues, mini-gardien, boss à trois
@@ -25,7 +55,7 @@ Ce n'est pas une version commercialisable, un APK ou un candidat Meta Store.
 - Captures OpenGL logiciel (Mesa) dans `native/tests/captures/` ; rendu natif
   inspecté visuellement. Aucune comparaison au pixel près avec le navigateur.
 
-**Écarts connus du secteur 1 :** décors de tailles fixes et animations partielles,
+**Écarts relevés au commit a70ff92 (historique) :** décors de tailles fixes et animations partielles,
 choix des formations dans un RNG natif, effets de tir/impact et pickups simplifiés,
 rémanence LCD non reproduite, dialogues et mise en scène incomplets, menus provisoires,
 économie et récompenses partielles. Le graze, la surcharge et certaines statistiques

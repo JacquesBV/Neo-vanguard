@@ -40,8 +40,9 @@ for(const mobile of [false,true]){IS_TOUCH=mobile;for(let bank=-2;bank<=2;bank++
 run(src.slice(src.indexOf('const ETYPES ='),src.indexOf('function eScale()')));
 run(src.slice(src.indexOf('Object.assign(ETYPES, {'),src.indexOf('Object.assign(ETHEME, {')));
 run(`for(const kind of ['drone','stinger','mGuardian','crate','barrel','pod'])for(let f=0;f<8;f++){const e={kind,x:240,y:600,t:f/8,phase:0,hp:150,maxHp:150,r:48,fireT:1,flash:0};bake(kind+'_'+f,()=>kind==='mGuardian'||kind==='drone'||kind==='stinger'?drawEnemyOne(e,PAINT.g,PAINT.K,0):drawSpriteTo(PAINT.g,PAINT.K,kind,240,600,{kind:'enemy',frame:f&3}));}
-const dims={plateforme:[190,130],conduites:[140,80],baie:[110,105],paroi:[60,220],dock:[160,140]};
-for(let i=0;i<CHUNKS.length;i++){const c=CHUNKS[i];if((c.minE||0)>0||(c.maxE!==undefined&&c.maxE<0)||c.fore||c.id==='cristaux'||c.sec!==undefined||c.stage!==undefined)continue;for(let seed=0;seed<4;seed++){const [w,h]=dims[c.id]||[150,130],inst={ci:i,x:90,y:90,w,h,seed};bake('decor_'+i+'_'+seed,()=>decorBlit([inst],R.bufNear),90,90);result.decor.push({id:c.id,ci:i,seed,w,h,sprite:'decor_'+i+'_'+seed,weight:c.wt||1});}}
+const dims={plateforme:[[140,100],[190,130],[240,170]],conduites:[[100,56],[140,80],[180,100]],baie:[[86,80],[110,105],[140,130]],paroi:[[44,160],[60,220],[74,280]],dock:[[160,140]],asteroides:[[90,90],[120,120],[150,150]],passerelle:[[240,48],[285,60],[330,74]],megatour:[[86,250],[110,340],[140,430]],anneau:[[200,200]],holo:[[128,86]]};
+for(let i=0;i<CHUNKS.length;i++){const c=CHUNKS[i];if((c.minE||0)>0||(c.maxE!==undefined&&c.maxE<0)||c.fore||c.id==='cristaux'||c.sec!==undefined||c.stage!==undefined)continue;
+for(const [variant,[w,h]] of (dims[c.id]||[[150,130]]).entries())for(let seed=0;seed<4;seed++){const inst={ci:i,x:90,y:90,w,h,seed},frames=[];for(let f=0;f<4;f++){DEC.t=f*.25;const key='decor_'+i+'_'+seed+'_'+variant+'_'+f;bake(key,()=>decorBlit([inst],R.bufNear),90,90);frames.push(key);}result.decor.push({id:c.id,ci:i,seed,w,h,sprite:frames[0],frames,weight:(c.wt||1)/((dims[c.id]||[[150,130]]).length*4)});}}DEC.t=0;
 IS_TOUCH=true;for(const kind of ['drone','stinger','crate','barrel','pod'])for(let f=0;f<8;f++){const e={kind,x:240,y:600,t:f/8,phase:0,flash:0};bake('mobile_'+kind+'_'+f,()=>kind==='drone'||kind==='stinger'?drawEnemyOne(e,PAINT.g,PAINT.K,0):drawSpriteTo(PAINT.g,PAINT.K,kind,240,600,{kind:'enemy',frame:f&3}));}IS_TOUCH=false;result.enemy_types={drone:ETYPES.drone,stinger:ETYPES.stinger,mGuardian:ETYPES.mGuardian};`);
 // Atlas pixels retain the source frame anchors, scale and ordered palette conversion.
 box.bossImage=new LocalImage();box.bossImage.src='assets/bosses/boss-01.webp';await Promise.all(pending);
@@ -52,9 +53,20 @@ let songcode=chip.slice(chip.indexOf('  const SONGS ='),chip.indexOf('  const _m
 run(`const AudioNotes=[];function gbVoice(t,o){AudioNotes.push({t,...o,type:o.type||'square'})};function gbNoise(t,o){AudioNotes.push({t,...o,type:'noise'})};const cl=clamp;Audio2.musicGain='music';const playing=()=>true;const calOn=()=>false;const O={};`);
 run(songcode);
 run(`result.music={};for(const [name,song] of [['sector',SONGS[0]],['boss',BOSS]]){AudioNotes.length=0;compose(song);const sd=60/song.bpm/4;for(let i=0;i<128;i++)gmSchedule(song,i,i*sd,sd);result.music[name]={duration:128*sd,events:AudioNotes.slice()};}fs.writeFileSync(out+'/../sector.json',JSON.stringify(result,null,2));`);
+// Bake the actual coin/material drawings and directional hostile projectiles.
+run(src.slice(src.indexOf('const PKIND ='),src.indexOf('function addPickup(')));
+run(fun('drawCoinGB'));run(src.slice(src.indexOf('const MATERIAL_PICKUP_ART ='),src.indexOf('function drawOpaqueLootToken(')));
+run(fun('drawEBullets'));
+run(`for(const kind of Object.keys(PKIND))for(let f=0;f<12;f++){const spin=Math.cos(f/12*TAU);bake('pickup_'+kind+'_'+f,()=>MATERIALS.some(m=>m.id===kind)?drawMaterialPickup(PAINT.g,PAINT.K,240,600,1,kind,0,TH.livery.gb):drawCoinGB(PAINT.g,PAINT.K,240,600,1,spin,kind,TH.livery.gb));}
+for(const radius of [11,12,15])for(let a=0;a<16;a++)for(let pulse=0;pulse<2;pulse++){G.ebullets=[{x:240,y:600,r:radius,ang:a/16*TAU,t:pulse/12,seed:0}];bake('hostile_'+radius+'_'+a+'_'+pulse,()=>drawEBullets());}G.ebullets=[];`);
+// Independent source collect fixtures: expected results come from the web function.
+run(`function popText(){};G.stats={creditMul:1};function addScore(p,n){G.score+=Math.round(n)};`);
+run(fun('collect'));
+run(`result.collect_fixtures=[];const defaults={power:1,shield:0,shMax:0,hp:3,maxHp:3,bombs:2,x:240,y:710};
+for(const c of [{kind:'power'},{kind:'power',power:5},{kind:'shield'},{kind:'shield',shield:1},{kind:'hull',hp:1},{kind:'hull'},{kind:'bomb'},{kind:'bomb',bombs:5},{kind:'credit',value:0},{kind:'credit',value:17,diff:0},{kind:'scrap',value:3},{kind:'crystal',value:0},{kind:'circuit',value:2}]){G.score=0;G.credits=0;G.runCredits=0;S.materials={scrap:0,crystal:0,circuit:0};S.opts.diff=c.diff??1;const p={...defaults,...c};collect({kind:c.kind,value:c.value||0},p);result.collect_fixtures.push({input:c,expected:{power:p.power,shield:p.shield,hp:p.hp,bombs:p.bombs,coins:G.credits,score:G.score,materials:{...S.materials}}});}S.opts.diff=1;`);
 // Pack without resampling: native rendering uses these exact integer regions.
-const sprites=run('result.sprites'),atlas=createCanvas(1024,1024),ag=atlas.getContext('2d');let x=0,y=0,rowH=0;
-for(const [key,m] of Object.entries(sprites)){const im=new Image();im.src=fs.readFileSync(path.join(out,key+'.png'));await im.decode();if(x+im.width>1024){x=0;y+=rowH+2;rowH=0;}if(y+im.height>1024)throw Error('atlas overflow');ag.drawImage(im,x,y);m.path='res://native/sector1/baked/atlas.png';m.region=[x,y,im.width,im.height];x+=im.width+2;rowH=Math.max(rowH,im.height);}
+const sprites=run('result.sprites'),atlas=createCanvas(2048,2048),ag=atlas.getContext('2d');let x=0,y=0,rowH=0;
+for(const [key,m] of Object.entries(sprites)){const im=new Image();im.src=fs.readFileSync(path.join(out,key+'.png'));await im.decode();if(x+im.width>2048){x=0;y+=rowH+2;rowH=0;}if(y+im.height>2048)throw Error('atlas overflow');ag.drawImage(im,x,y);m.path='res://native/sector1/baked/atlas.png';m.region=[x,y,im.width,im.height];x+=im.width+2;rowH=Math.max(rowH,im.height);}
 fs.writeFileSync(path.join(out,'atlas.png'),atlas.toBuffer('image/png'));
 run('result.sprites='+JSON.stringify(sprites));
 run(`fs.writeFileSync(out+'/../sector.json',JSON.stringify(result,null,2));`);

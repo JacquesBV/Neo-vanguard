@@ -3,6 +3,7 @@ extends RefCounted
 signal cue(name: String)
 signal completed
 signal game_over
+signal material_collected(kind: String, amount: int)
 const Catalog = preload("res://native/core/catalog.gd")
 const WAVE_TIMES := [2.2, 6.2, 10.7, 15.2, 19.7, 24.7, 33.7, 37.7, 41.7, 45.7, 49.7, 54.2]
 const FIELD := Rect2(32, 76, 416, 742)
@@ -30,6 +31,12 @@ var coins := 0
 var kills := 0
 var combo := 0
 var combo_time := 0.0
+var combo_max := 0
+var materials := {"scrap":0,"crystal":0,"circuit":0}
+var graze := 0
+var gauge := 0.0
+var supers := 0
+var harvest: Dictionary = {}
 var no_death := true
 var prop_timer := 6.0
 var decor_timer := 0.0
@@ -44,7 +51,7 @@ func _init(seed_value: int = 20261026, difficulty_value: int = 1) -> void:
 	difficulty = clampi(difficulty_value, 0, 2)
 	diff = Catalog.new().data.diffs[difficulty]
 	player = {"pos":Vector2(240,710), "vel":Vector2.ZERO, "hp":3, "max_hp":3, "lives":int(diff.lives)-1,
-		"bombs":2, "power":1, "shield":0, "inv":2.6, "fire_cd":0.0, "bank":0.0, "anim":0.0,
+		"bombs":2, "power":1, "shield":0, "shield_max":0, "inv":2.6, "fire_cd":0.0, "bank":0.0, "anim":0.0,
 		"hit":0.0, "alive":true, "dead_time":0.0, "bomb_cd":0.0}
 	for i in 10:
 		_spawn_decor(rng.randf_range(-300,860))
@@ -62,7 +69,7 @@ func _spawn_decor(y: float) -> void:
 		if choice <= 0:
 			selected = d
 			break
-	decor.append({"sprite":selected.sprite, "pos":Vector2(rng.randf_range(-40,520),y)})
+	decor.append({"sprite":selected.sprite, "frames":selected.get("frames",[selected.sprite]), "pos":Vector2(rng.randf_range(-40,520),y)})
 
 func spawn(kind: String, pos: Vector2, opt: Dictionary = {}) -> Dictionary:
 	next_id += 1
@@ -138,14 +145,14 @@ func step(dt: float, axis: Vector2 = Vector2.ZERO, firing: bool = false, precisi
 			phase="warning";phase_time=0;cue.emit("alert")
 	elif phase=="warning" and phase_time>3.6:
 		start_boss()
-	elif phase=="harvest" and phase_time>8:
-		coins += int(round(190*float(diff.credit)))+(40 if no_death else 0)
-		phase="clear";finished=true;completed.emit();return
+	elif phase=="harvest":
+		pass # Harvest clock begins on boss death, including its destruction animation.
 	_update_enemies(dt)
 	_update_boss(dt)
 	_update_bullets(dt)
 	_update_props(dt)
 	_update_pickups(dt)
+	_update_harvest(dt)
 	for p in particles:
 		p.pos += p.vel*dt;p.life -= dt
 	particles=particles.filter(func(p):return p.life>0)
@@ -206,7 +213,7 @@ func _update_enemies(dt: float) -> void:
 			hit_player();damage(e,3)
 
 func _hostile(pos: Vector2, angle: float, speed: float, radius: float, source: int = -1) -> void:
-	hostile.append({"pos":pos,"vel":Vector2.from_angle(angle)*speed,"r":radius,"source":source})
+	hostile.append({"pos":pos,"vel":Vector2.from_angle(angle)*speed,"r":radius,"source":source,"t":0.0,"seed":rng.randf()*TAU,"grazed":false})
 
 func _aim(pos: Vector2, count: int, arc: float, speed: float, source: int = -1) -> void:
 	var angle: float=(player.pos-pos).angle()
@@ -251,7 +258,7 @@ func _update_boss(dt: float) -> void:
 				for i in 10:_hostile(b.pos+Vector2(0,10),i/10.0*TAU+b.seed,134*0.8*float(diff.bs),15)
 			1:_aim(b.pos+Vector2(0,40),3,0.5,138*0.9*float(diff.bs))
 			2:
-				for i in 3:spawn("drone",b.pos+Vector2((i-1)*46,90),{"ty":350.0})
+				for i in 3:spawn("drone",b.pos+Vector2(rng.randf_range(-80,80),40),{"ty":rng.randf_range(240,380)})
 		b.attack+=1;b.fire_t=0.34
 		b.attack_t=[2.2,2.0,2.8][attack]*([1.0,0.86,0.72][b.phase]);cue.emit("enemy")
 	if b.form:b.frame=19 if b.fire_t>0 else 18
@@ -267,15 +274,19 @@ func damage(e: Dictionary, amount: float) -> bool:
 	e.hp-=amount;e.flash=0.09
 	if e==boss:
 		if e.hp<=0:
-			e.dead=true;score+=3200;coins+=int(round(650*float(diff.credit)));hostile.clear();_explode(e.pos,55);cue.emit("explode")
+			e.dead=true;score+=int(round(3200*multiplier()));coins+=int(round(650*float(diff.credit)));_start_harvest();_explode(e.pos,55);cue.emit("explode")
 		return true
 	if e.hp<=0:
-		enemies.erase(e);kills+=1;combo+=1;combo_time=1.6
+		enemies.erase(e);kills+=1;combo+=1;combo_time=1.6;combo_max=maxi(combo_max,combo)
 		var t: Dictionary=reference.enemy_types[e.kind]
 		score+=int(round((float(t.sc)+(300 if e.kind=="mGuardian" else 0))*(1+mini(combo,60)*0.05)))
-		var value := rng.randi_range(int(t.cr[0]),int(t.cr[1]))
-		if value>0:_drop(e.pos,"credit",value)
-		if rng.randf()<0.16:_drop(e.pos,["power","hull","bomb","scrap"][rng.randi_range(0,3)])
+		# Source killEnemy: bonus pool, then currency chance/amount (not one guaranteed coin).
+		if rng.randf()<0.16:
+			var pool := ["power","power","shield","credit","credit","hull","bomb"] if player.power<5 else ["credit","credit","credit","shield","hull","bomb"]
+			pool.append_array(["scrap","scrap","crystal"])
+			_drop(e.pos,pool[rng.randi_range(0,pool.size()-1)])
+		var cr := int(floor(rng.randf_range(float(t.cr[0]),float(t.cr[1]))*3+0.5))
+		if cr>0 and rng.randf()<0.3:_drop(e.pos+Vector2(0,8),"credit",int(floor(cr*3.2+0.5)))
 		_explode(e.pos,20);cue.emit("explode")
 	return true
 
@@ -295,9 +306,11 @@ func _update_bullets(dt: float) -> void:
 	for e in enemies:ids[e.id]=true
 	for shot in hostile.duplicate():
 		if shot.source>=0 and not ids.has(shot.source):hostile.erase(shot);continue
-		shot.pos+=shot.vel*dt
+		shot.pos+=shot.vel*dt;shot.t=float(shot.get("t",0))+dt
 		if shot.pos.x < -50 or shot.pos.x>530 or shot.pos.y < -50 or shot.pos.y>910:hostile.erase(shot);continue
 		if player.alive and shot.pos.distance_squared_to(player.pos)<pow(shot.r*0.7+6*0.8,2):hit_player();hostile.erase(shot)
+
+	_graze_check()
 
 func hit_player() -> void:
 	if not player.alive or player.inv>0:return
@@ -315,34 +328,111 @@ func bomb() -> bool:
 	_explode(player.pos,60)
 	return true
 
+func multiplier() -> float:
+	return 1+mini(combo,60)*0.05
+
 func _damage_prop(p: Dictionary, amount: float) -> void:
+	if not props.has(p):return
 	p.hp-=amount
 	if p.hp>0:return
-	props.erase(p);score+=130 if p.kind=="barrel" else 220 if p.kind=="pod" else 90;_explode(p.pos,16)
+	props.erase(p);kills+=1
+	score+=int(round((130 if p.kind=="barrel" else 220 if p.kind=="pod" else 90)*multiplier()))
+	_explode(p.pos,16)
 	if p.kind=="barrel":
 		for e in enemies.duplicate():
-			if p.pos.distance_to(e.pos)<135:damage(e,30)
-	else:_drop(p.pos,"power" if p.kind=="pod" else "credit",25)
+			if p.pos.distance_to(e.pos)<135*0.8+e.r:damage(e,30)
+		for q in props.duplicate():
+			if p.pos.distance_to(q.pos)<170:_damage_prop(q,2)
+	if p.kind=="pod":
+		_drop(p.pos,"power" if rng.randf()<0.5 else "shield" if rng.randf()<0.5 else "bomb")
+		_drop(p.pos+Vector2(18,0),"credit",40)
+	else:
+		_drop(p.pos,"credit",int(round(rng.randf_range(10,22)*1.3)))
+		if rng.randf()<0.22:_drop(p.pos-Vector2(16,0),["hull","shield","power"][rng.randi_range(0,2)])
 
 func _update_props(dt: float) -> void:
 	for p in props:p.pos+=p.vel*dt;p.t+=dt
 	props=props.filter(func(p):return p.pos.y<950)
 
-func _drop(pos: Vector2, kind: String, value: int = 1) -> void:
-	pickups.append({"pos":pos,"kind":kind,"value":value,"t":0.0})
+func _drop(pos: Vector2, kind: String, value: int = 0) -> void:
+	pickups.append({"pos":pos,"vel":Vector2(rng.randf_range(-50,50),rng.randf_range(30,70)),"kind":kind,"value":value,"t":0.0,"mag":false})
+
+func collect(p: Dictionary) -> void:
+	match p.kind:
+		"credit":coins+=int(round((p.value if p.value!=0 else 25)*float(diff.credit)))
+		"power":
+			if player.power<5:player.power+=1
+			else:score+=250
+		"shield":
+			if player.shield<player.shield_max+1:player.shield+=1
+			else:score+=200
+		"hull":
+			if player.hp<player.max_hp:player.hp+=1
+			else:score+=150
+		"bomb":
+			if player.bombs<5:player.bombs+=1
+			else:score+=300
+		"scrap","crystal","circuit":
+			var amount := maxi(1,int(p.value))
+			materials[p.kind]+=amount
+			material_collected.emit(p.kind,amount)
+	cue.emit("coin")
 
 func _update_pickups(dt: float) -> void:
 	for p in pickups.duplicate():
-		p.t+=dt;p.pos.y+=60*dt
-		if player.alive and p.pos.distance_to(player.pos)<92:p.pos=p.pos.move_toward(player.pos,370*dt)
-		if player.alive and p.pos.distance_to(player.pos)<26:
-			match p.kind:
-				"credit":coins+=int(round(p.value*float(diff.credit)))
-				"power":player.power=mini(5,player.power+1)
-				"hull":player.hp=mini(3,player.hp+1)
-				"bomb":player.bombs=mini(5,player.bombs+1)
-			cue.emit("coin");pickups.erase(p)
-		elif p.pos.y>920:pickups.erase(p)
+		p.t+=dt
+		var delta: Vector2=player.pos-p.pos
+		var distance := delta.length()
+		var direction := delta/maxf(distance,0.0001)
+		if not harvest.is_empty():
+			p.mag=true;p.vel=p.vel.lerp(direction*560,minf(1,dt*7))
+		elif player.alive and distance<92:
+			p.mag=true;p.vel=p.vel.lerp(direction*420,minf(1,dt*6))
+		else:
+			p.vel.x*=pow(0.4,dt);p.vel.y=lerpf(p.vel.y,52,minf(1,dt*2))
+		p.pos+=p.vel*dt
+		if not harvest.is_empty():p.pos=p.pos.clamp(Vector2(12,12),Vector2(468,848))
+		if p.pos.y>890 or ((p.pos.x< -30 or p.pos.x>510) and not p.mag):pickups.erase(p);continue
+		if player.alive and distance<34:collect(p);pickups.erase(p)
+
+func _start_harvest() -> void:
+	harvest={"t":0.0,"duration":6.4}
+	var shots := clampi(int(round(hostile.size()/8.0)),1,4)
+	hostile.clear()
+	for i in shots:_drop(Vector2(rng.randf_range(70,410),rng.randf_range(120,340)),"credit",35)
+	for e in enemies:
+		_explode(e.pos,12);_drop(e.pos,"credit",42)
+	enemies.clear()
+	for i in 4:_drop(Vector2(rng.randf_range(60,420),-20-i*60),"credit",56)
+	for i in 4:_drop(boss.pos+Vector2(rng.randf_range(-70,70),rng.randf_range(-30,30)),"bomb" if i==0 else "credit",104)
+
+func _update_harvest(dt: float) -> void:
+	if harvest.is_empty():return
+	harvest.t+=dt
+	for p in pickups:
+		var delta: Vector2=player.pos-p.pos
+		p.mag=true;p.vel=p.vel.lerp(delta/maxf(delta.length(),1)*(620 if harvest.t>1.6 else 380),minf(1,dt*7))
+		p.pos=p.pos.clamp(Vector2(10,10),Vector2(470,846))
+	if (harvest.t>2.4 and pickups.is_empty()) or harvest.t>harvest.duration:
+		for p in pickups:collect(p)
+		pickups.clear();harvest={}
+		coins+=int(round(190*float(diff.credit)))+(40 if no_death else 0)
+		phase="clear";finished=true;completed.emit()
+
+func _graze_check() -> void:
+	if not player.alive or player.inv>0:return
+	for shot in hostile.duplicate():
+		if shot.get("grazed",false):continue
+		var distance:float=player.pos.distance_squared_to(shot.pos)
+		if distance>26*26 or distance<pow(shot.r+6,2):continue
+		shot.grazed=true;graze+=1;gauge+=1.0/90;score+=int(round(3*multiplier()))
+		if gauge>=1-0.000001:_supercharge();break
+
+func _supercharge() -> void:
+	gauge=0;supers+=1;score+=hostile.size()*2;hostile.clear();cue.emit("bomb")
+	for e in enemies.duplicate():damage(e,80)
+	if not boss.is_empty():damage(boss,160)
+	player.inv=maxf(player.inv,2.2);bomb_time=0.6;bomb_center=player.pos
 
 func _explode(pos: Vector2, count: int) -> void:
 	for i in mini(count,70-particles.size()):

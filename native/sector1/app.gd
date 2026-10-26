@@ -84,8 +84,12 @@ func _ready() -> void:
 	_reset();_layout();_show_menu()
 	if "--smoke" in OS.get_cmdline_user_args():session.transition(&"briefing");_primary()
 	if "--capture" in OS.get_cmdline_user_args():capture_frames=120;mission.player.inv=0
+	if "--capture-loot" in OS.get_cmdline_user_args():
+		for i in 8:mission._drop(Vector2(75+(i%4)*105,500+(i/4)*85),["credit","power","shield","hull","bomb","scrap","crystal","circuit"][i])
 	if "--capture-boss" in OS.get_cmdline_user_args():
 		mission.start_boss();mission.boss.pos=Vector2(240,265);mission.boss.enter=false;mission.player.inv=999
+	if "--capture-loot" in OS.get_cmdline_user_args():
+		for i in 3:mission._hostile(Vector2(90+i*150,410),PI/4+i*PI/4,20,[11,12,15][i])
 
 func _reset() -> void:
 	mission=Mission.new(20261026,int(store.data.opts.diff));banked=false
@@ -93,11 +97,14 @@ func _reset() -> void:
 	mission.completed.connect(func():_bank();session.transition(&"clear"))
 	mission.game_over.connect(func():_bank();session.transition(&"game_over"))
 	mission.cue.connect(_cue)
+	mission.material_collected.connect(_material)
 
 func _bank() -> void:
 	if banked:return
 	banked=true;store.data.credits+=mission.coins;store.data.kills+=mission.kills
 	store.data.best=maxi(store.data.best,mission.score)
+	store.data.comboBest=maxi(store.data.comboBest,mission.combo_max)
+	store.data.grazeTotal+=mission.graze
 	if mission.phase=="clear":store.data.maxLevel=maxi(2,store.data.maxLevel)
 	store.persist()
 
@@ -292,3 +299,7 @@ func _armor(rect: Rect2) -> void:
 			var pos:=Vector2(col*96,row*96)
 			var dim:=Vector2(minf(96,rect.size.x-pos.x),minf(96,rect.size.y-pos.y))
 			draw_texture_rect_region(shell,Rect2(rect.position+pos,dim),Rect2(Vector2(390,1260),dim))
+
+func _material(kind: String, amount: int) -> void:
+	store.data.materials[kind]+=amount
+	store.persist()

@@ -38,11 +38,12 @@ Ceci n'est ni un APK ni un test sur téléphone. Quest/OpenXR n'est pas impléme
 
 ## Source des ressources
 
-`baked/atlas.png` regroupe sans rééchantillonnage 190 poses issues des images et
+`baked/atlas.png` regroupe sans rééchantillonnage 726 poses issues des images et
 dessins procéduraux de la source : Falcon, ennemis, mini-gardien, objets, décor et
 22 poses du boss. `sector.json` conserve leurs régions et ancrages explicites.
-Le décor est pour l'instant un ensemble de variantes cuites à dimensions fixes,
-et non la reconstruction de toutes les tailles et animations procédurales.
+Le décor utilise 96 variantes de taille/graine avec quatre images d’animation chacune.
+Ces échantillons viennent des fonctions source, mais ne couvrent pas toutes les tailles
+continues et animations procédurales. Les tirs sont échantillonnés sur 16 directions.
 
 Les deux boucles musicales ont les notes et la composition de la puce FanBoy du
 module 24. Les WAV sont calculés hors ligne à partir de ces événements. Le filtrage,
@@ -50,7 +51,10 @@ les enveloppes et le bruit sont une approximation native à comparer à l'écout
 Le son du secteur 1 ne se résume pas aux MP3 importés : la source utilise une puce.
 
 Les sauvegardes utilisent le magasin natif du socle, séparé de localStorage.
-Les gains sont crédités une fois à la victoire ou à la fin de partie. L'accueil
+Les COINS sont crédités une fois à la victoire ou à la fin de partie. Les matériaux
+sont sauvegardés dès la collecte, comme dans la source, sans double comptage final.
+La récolte commence à la mort du boss et récupère les objets restants après 6,4 s.
+Les frôlements chargent une surcharge automatique après 90 tirs frôlés. L'accueil
 interrompt une partie sans créditer les gains non terminés ; cet écran provisoire
 n'est pas une validation de la politique d'abandon finale du jeu source.
 
@@ -68,6 +72,7 @@ godot --headless --editor --path . --import
 godot --headless --path . --script native/tests/core.gd
 godot --headless --path . --script native/tests/sector1.gd
 godot --headless --path . --script native/tests/presentation.gd
+godot --headless --path . --script native/tests/rewards.gd
 ```
 
 L'extracteur vérifie les empreintes SHA-256 des modules utilisés avant de cuire
