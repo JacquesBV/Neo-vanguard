@@ -17,6 +17,8 @@ var tr: TextureRect
 var crt: Node2D
 var shell: CanvasItem = null
 var current_screen: Control
+var pause_screen: Control = null   # (C10) menu pause ouvert (bouton START)
+var shell_press := {}              # (C10) gâchettes coque appuyées -> msec
 var banked := 0                 # crédits déjà versés pour la mission en cours
 var campaign_level := 1
 var daily_mode := false
@@ -69,6 +71,8 @@ func _ready() -> void:
 		_run_fix_test()
 	if OS.get_environment("NV_TEST") == "15":
 		_run_bar_test()
+	if OS.get_environment("NV_TEST") == "16":
+		_run_shell_test()
 	if OS.get_environment("NV_TEST") == "9":
 		_run_vorax_test()
 	if OS.get_environment("NV_TEST") == "10":
@@ -358,6 +362,34 @@ const TOUCH_BTNS: Array[Rect2] = [
 	Rect2(392, 756, 74, 90),   # PAUSE
 ]
 
+# (C10) gâchettes matérielles de la coque NV-01 (secteurs FanBoy, ère 0) :
+# SELECT gèle/reprend la partie, START ouvre le menu en pause.
+const SHELL_SELECT := Rect2(120, 634, 104, 48)
+const SHELL_START := Rect2(256, 634, 104, 48)
+
+func _shell_btn_at(pos: Vector2) -> String:
+	if game == null or game.state != "play":
+		return ""
+	if game.era_idx != 0 or not bool(Save.S.opts.get("frame", true)):
+		return ""   # les gâchettes n'existent que sur la coque NV-01
+	if SHELL_SELECT.has_point(pos):
+		return "select"
+	if SHELL_START.has_point(pos):
+		return "start"
+	return ""
+
+func _shell_button(id: String) -> void:
+	shell_press[id] = Time.get_ticks_msec()   # feedback visuel (coque)
+	Audio2.sfx("uiclick")
+	if id == "select":
+		if pause_screen != null:
+			_resume_game()                 # SELECT : reprendre depuis le menu
+		else:
+			game.paused = not game.paused  # SELECT : geler / dégeler
+	elif id == "start":
+		if pause_screen == null:
+			_on_pause()                    # START : le menu, jeu en pause
+
 func _touch_button_at(pos: Vector2) -> int:
 	# (correctif) la barre existe dans toutes les ères (#touchui du web)
 	if not bool(Save.S.opts.get("frame", true)):
@@ -377,6 +409,12 @@ func _touch_button(i: int) -> void:
 func _touch_unhandled(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var st: InputEventScreenTouch = event
+		# (C10) gâchettes SELECT/START de la coque, en priorité (ère 0)
+		var sb: String = _shell_btn_at(st.position)
+		if sb != "":
+			if st.pressed:
+				_shell_button(sb)
+			return
 		if game.state == "play" and current_screen == null and not game.paused:
 			var btn := _touch_button_at(st.position)
 			if btn != -1:
@@ -472,6 +510,7 @@ func _attach_hud() -> void:
 	# HUD pleine résolution par-dessus le champ rétro (comme le HUD HTML d'origine)
 	var hud := preload("res://scripts/ui/hud_overlay.gd").new()
 	hud.game = game
+	hud.main = self
 	add_child(hud)
 	# scanlines CRT (option)
 	crt = preload("res://scripts/ui/scanlines.gd").new()
@@ -562,6 +601,8 @@ func try_daily() -> bool:
 # =========================================================================
 func _clear_screen() -> void:
 	if current_screen:
+		if current_screen == pause_screen:
+			pause_screen = null   # (C10) le menu pause se ferme avec l'écran
 		current_screen.queue_free()
 		current_screen = null
 
@@ -777,27 +818,47 @@ func _on_pause() -> void:
 		return
 	game.paused = true
 	var scr := Control.new()
+	scr.set_meta("nv_pause", true)
+	pause_screen = scr   # (C10) SELECT/START savent retrouver ce menu
 	var ui := preload("res://scripts/ui/ui_kit.gd")
 	ui.dark_bg(scr, 0.75)
 	var v := ui.vbox(scr, 14)
 	ui.title_label(v, "PAUSE")
 	ui.label(v, "Secteur %d · %s" % [game.level, Data.ERAS[Data.era_of_level(game.level)].name], 13, Color("#9fb0c2"))
+	ui.label(v, NVLang.t("START · menu — SELECT · reprendre"), 10, Color("#6d7f94"))
 	ui.spacer(v, 12)
-	ui.button(v, "▶ Reprendre", func():
-		game.paused = false
-		_clear_screen())
-	ui.button(v, "⌁ Musique : %s" % ("OUI" if not Audio2.muted else "NON"), func():
+	ui.button(v, "▶ " + NVLang.t("Reprendre"), func(): _resume_game())
+	ui.button(v, "⌁ " + NVLang.t("Musique") + " : %s" % ("OUI" if not Audio2.muted else "NON"), func():
 		Audio2.set_muted(not Audio2.muted)
 		_on_pause()
 		_clear_screen()
 		_on_pause())
-	ui.button(v, "✖ Abandonner la mission", func():
+	ui.button(v, "✖ " + NVLang.t("Abandonner la mission"), func():
+		pause_screen = null
 		game.paused = false
 		var st := { "level": game.level, "score": game.score, "credits": game.credits_run,
 			"kills": game.kills, "combo_max": game.combo_max, "graze": game.graze_total }
 		bank_run(st)
 		show_title())
+	# (C10) les gâchettes SELECT/START de la coque restent cliquables sous le
+	# menu : seul le fond devient traversant, les boutons captent leurs clics
+	_passthrough(scr)
 	_set_screen(scr)
+
+## (C10) rend un écran traversant hors de ses boutons : les touchers qui ne
+## tombent pas sur un bouton descendent jusqu'aux gâchettes de la coque.
+func _passthrough(c: Node) -> void:
+	if c is Control and not (c is Button):
+		(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for ch in c.get_children():
+		_passthrough(ch)
+
+## (C10) reprise propre : dégèle + fermeture du menu (bouton Reprendre,
+## gâchette SELECT de la coque)
+func _resume_game() -> void:
+	game.paused = false
+	_clear_screen()
+	pause_screen = null
 
 # --------------------------------------------------------------- game over
 func _on_run_over(st: Dictionary) -> void:
@@ -1334,3 +1395,112 @@ func _run_bar_test() -> void:
 	print("BAR RESULT: bombe_ere1=", bomb_ok, " hit=", hit, " selecteur=", btns == 24)
 	print("=== BAR TEST TERMINE ===")
 	get_tree().quit(0)
+
+# test 16 : coque NV-01 (secteurs FanBoy) — gâchettes SELECT/START, instruments
+# sur la coque, cadre LED de progression, dissipation des textes rouges de
+# dégât même gelé, titre à sections dépliantes
+func _run_shell_test() -> void:
+	var dir := "/tmp/shots16"
+	DirAccess.make_dir_recursive_absolute(dir)
+	await get_tree().process_frame
+	var spath := ProjectSettings.globalize_path("user://neovanguard.save.v3.json")
+	if FileAccess.file_exists(spath):
+		DirAccess.remove_absolute(spath)
+	Save.S.max_level = 1
+	# -- 1) coque ère 0 : verre en place, gâchettes SELECT/START -------------
+	begin_campaign(1)
+	await get_tree().create_timer(0.3).timeout
+	await _advance_to_play()
+	await get_tree().create_timer(1.4).timeout   # laisser l'intro se lever
+	await _snap(dir + "/1_coque_nv01_secteur1.png")
+	print("SHELL: verre tr=", tr.position, " x ", tr.size, " (attendu 32,196 / 416x312)")
+	var hit_sel: String = _shell_btn_at(Vector2(172, 655))
+	var hit_sta: String = _shell_btn_at(Vector2(308, 655))
+	var hit_glass: String = _shell_btn_at(Vector2(240, 400))
+	print("SHELL: hit-test SELECT(172,655)=", hit_sel, " START(308,655)=", hit_sta,
+		" verre(240,400)=", hit_glass, " (attendu select/start/)")
+	# SELECT gèle la partie (sans menu)
+	_touch_synthetic(Vector2(172, 655), true, 0)
+	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(Vector2(172, 655), false, 0)
+	await get_tree().create_timer(0.25).timeout
+	var frozen: bool = game.paused and current_screen == null and pause_screen == null
+	print("SHELL: SELECT fige paused=", game.paused, " menu=", pause_screen != null, " (attendu true/false)")
+	await _snap(dir + "/2_select_gele.png")
+	# SELECT dégèle
+	_touch_synthetic(Vector2(172, 655), true, 0)
+	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(Vector2(172, 655), false, 0)
+	await get_tree().create_timer(0.25).timeout
+	print("SHELL: SELECT reprend paused=", game.paused, " (attendu false)")
+	# START ouvre le menu, jeu en pause
+	_touch_synthetic(Vector2(308, 655), true, 0)
+	await get_tree().create_timer(0.3).timeout
+	_touch_synthetic(Vector2(308, 655), false, 0)
+	await get_tree().create_timer(0.3).timeout
+	var menu_ok: bool = pause_screen != null and game.paused
+	print("SHELL: START ouvre le menu menu=", pause_screen != null, " paused=", game.paused, " (attendu true/true)")
+	await _snap(dir + "/3_start_menu.png")
+	# SELECT depuis le menu = reprendre
+	_touch_synthetic(Vector2(172, 655), true, 0)
+	await get_tree().create_timer(0.3).timeout
+	_touch_synthetic(Vector2(172, 655), false, 0)
+	await get_tree().create_timer(0.3).timeout
+	var resumed: bool = not game.paused and current_screen == null and pause_screen == null
+	print("SHELL: SELECT reprend depuis le menu paused=", game.paused, " screen=", current_screen != null, " (attendu false/false)")
+	# -- 2) texte rouge de dégât dissipé MÊME gelé (correctif C10) -----------
+	var P: Dictionary = game.first_player()
+	P.shield = 0
+	P.inv = 0.0
+	var hp0: int = int(P.hp)
+	game.hit_player(P, 1.0, true)
+	await get_tree().process_frame
+	var had_pop: bool = game.pops.size() > 0
+	_on_pause()   # geler immédiatement : les pops ne devaient plus se dissiper
+	await get_tree().create_timer(1.5).timeout
+	var pops_left: int = game.pops.size()
+	_resume_game()
+	print("SHELL: pop dégât apparu=", had_pop, " hp ", hp0, "->", int(P.hp),
+		" ; après 1,5 s GELÉ pops=", pops_left, " (attendu 0)")
+	# -- 3) cadre LED de progression -----------------------------------------
+	var pr: float = game.sector_progress()
+	print("SHELL: progression=%.2f (0..1) couleur(0)=%s couleur(1)=%s" % [pr, Data.progress_color(0.0), Data.progress_color(1.0)])
+	var pr_ok: bool = pr >= 0.0 and pr <= 1.0
+	# -- 4) titre à sections dépliantes ---------------------------------------
+	show_title()
+	await get_tree().create_timer(0.4).timeout
+	await _snap(dir + "/4_titre_accordeon.png")
+	var n_sec := 0
+	if current_screen != null and current_screen.get("sections") != null:
+		n_sec = (current_screen.sections as Array).size()
+		current_screen.call("toggle_section", 1)
+		current_screen.call("toggle_section", 2)
+		await get_tree().create_timer(0.3).timeout
+	await _snap(dir + "/5_titre_sections.png")
+	print("SHELL: sections titre=", n_sec, " (attendu 3)")
+	# -- 5) ère 1 : cadre LED sur la vue plein écran --------------------------
+	Save.S.max_level = 5
+	begin_campaign(5)
+	await get_tree().create_timer(0.3).timeout
+	await _advance_to_play()
+	await get_tree().create_timer(1.4).timeout
+	await _snap(dir + "/6_ere1_cadre.png")
+	print("SHELL RESULT: gel=%s menu=%s reprise=%s pop_fix=%s/%d progression=%s sections=%s" % [
+		frozen, menu_ok, resumed, had_pop, pops_left, pr_ok, n_sec == 3])
+	print("=== SHELL TEST TERMINE ===")
+	if FileAccess.file_exists(spath):
+		DirAccess.remove_absolute(spath)
+	get_tree().quit(0)
+
+## (C10) assistant de test : avance à travers le prologue (deck → _next()),
+## le brief et l'intro jusqu'à l'état « play »
+func _advance_to_play() -> void:
+	var waited := 0
+	while game.state != "play" and waited < 20000:
+		if current_screen != null:
+			if current_screen.has_method("_next"):
+				current_screen.call("_next")
+			else:
+				_tap("fire")
+		await get_tree().create_timer(0.12).timeout
+		waited += 120

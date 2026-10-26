@@ -134,6 +134,51 @@ Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
    au record, éclairci position courante) : rejouer 2-4 GameBoy ou n'importe
    quel secteur atteint. TEST15 : 24 boutons, verrou au-delà de max_level.
 
+## Coque NV-01 FANBOY + menus pro (C10) — demandes utilisateur
+1. **Image de fond du titre recentrée** : l'affiche media-033 était cadrée sur
+   le bord gauche du poster (le vaisseau partait hors écran à droite —
+   impression « déportée à droite »). Cadre corrigé (offsets −227/+253/−20) :
+   le vaisseau est amené au centre, fuselage et cockpit visibles derrière le
+   logo. TEST16 capture 4/5.
+2. **Menus interactifs** : acquittement sonore « uiclick » (recette puce
+   sonore ajoutée à audio_chip) branché sur TOUS les boutons (ui.button,
+   tuiles de grille, sélecteur de secteur, entêtes de sections, langue,
+   quitter). On sait désormais que le clic est parti.
+3. **Titre à sections dépliantes** : 15 entrées visibles d'un coup → 3
+   sections (JOUER / ESCALES & MULTIJOUEUR / SYSTÈME) qui se déplient au
+   toucher (construction à la demande, fondu 0,22 s, une seule ouverte) ;
+   JOUER ouverte par défaut. Design pro, pièces détachées, compatible tous
+   téléphones (mise en page fluide 480×860, cibles tactiles ≥ 40 px).
+4. **Écritures rouges persistantes corrigé** : les textes flottants
+   (pops, dont « COQUE x/y » rouge) ne se dissipaient que dans la boucle
+   active — un dégât juste avant une pause ou une fin de secteur restait
+   figé à l'écran pour toujours. La dissipation (et le flash) tourne
+   désormais même quand le jeu est gelé. TEST16 : pop présent puis 0 après
+   1,5 s GELÉ.
+5. **Coque NV-01 FANBOY (ère 0, secteurs 1-4)** : réécriture complète de
+   shell_layer d'après l'art officiel du dépôt (assets/fanboy/nv01-shell,
+   module 51 « coque FX en panneaux, commandes réactives, cadrage épinglé ») :
+   boîtier gunmetal modelé, vis étrier ×4, bandeau « /// FANBOY — NV-01 »,
+   LED POWER pulsante, chevron NEO-VANGUARD, gâchettes SELECT/START à liseré
+   cyan, artwork étoiles + planète, ouïes, gravure de série. **Le verre reste
+   EXACTEMENT GLASS (32,196,416,312)** : la taille d'écran ne bouge pas.
+6. **HUD intégré à la coque** : jauge COQUE segmentée, pips BOUCLIER, BOMBES,
+   PUISSANCE + arme descendent sur le panneau LCD de la coque (le verre ne
+   garde que score/vies/boss) ; inversion LCD clignotante « PAUSE » sur le
+   bandeau quand le jeu est gelé sans menu.
+7. **SELECT = pause, START = menu** : nouvelles gâchettes matérielles
+   tactiles (ères FanBoy uniquement). SELECT gèle/reprend la partie (voile
+   givré + rappel sur l'écran) ; START ouvre le menu pause (jeu en pause) ;
+   SELECT depuis le menu = Reprendre. Fond du menu rendu traversant hors
+   boutons pour que les gâchettes restent cliquables. TEST16 : 6/6.
+8. **Cadre LED de progression** : le bord d'écran passe vert → jaune →
+   orange → rouge selon l'avancement du secteur (Data.progress_color piloté
+   par NVGame.sector_progress : vagues 0→75 %, alerte 78 %, boss 80→100 %),
+   pulsant au-delà de 75 %. Ère 0 : autour de la visière (coque) ; ères 1+ :
+   lisière plein écran (hud_overlay), sans grignoter une pixel de jeu.
+9. **HUD ères 1+ compacté** : vies/coque/boucliers/bombes remontés sous
+   l'étête (la bande 742-860 appartient à la barre tactile), chaîne remontée.
+
 ## Reste (après corrections)
 - écoute audio humaine (pilote dummy en sandbox) ;
 - confirmation du multitouch sur appareil physique (pipeline validé TEST12) et exécution du .exe sur Windows réels ;

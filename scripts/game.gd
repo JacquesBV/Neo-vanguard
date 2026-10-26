@@ -258,6 +258,19 @@ func set_era(e: int) -> void:
 func _process(delta: float) -> void:
 	touch_t += delta
 	if state != "play" or paused:
+		# (correctif C10) les textes flottants et le flash s'estompent MÊME
+		# gelés : auparavant, un « COQUE 2/3 » rouge affiché juste avant une
+		# pause (ou une fin de secteur) restait figé à l'écran pour toujours.
+		if pops.size() > 0:
+			for i in range(pops.size() - 1, -1, -1):
+				var pz: Dictionary = pops[i]
+				pz.t += delta
+				pz.y -= 26.0 * delta
+				if pz.t > pz.life: pops.remove_at(i)
+			queue_redraw()
+		if flash > 0.0:
+			flash = maxf(0.0, flash - delta * 2.4)
+			queue_redraw()
 		queue_redraw()
 		return
 	# ralenti (bombe / code MATRIX)
@@ -1946,6 +1959,26 @@ func update_parts(dt: float) -> void:
 
 func pop_text(x: float, y: float, text: String, col: Color, size: float) -> void:
 	pops.append({ "x": x, "y": y, "text": text, "col": col, "size": size, "t": 0.0, "life": 0.9 })
+
+## (C10) progression du secteur 0..1 — vagues puis boss. Pilote le cadre
+## lumineux de la coque NV-01 (vert au départ → rouge au moment du boss).
+func sector_progress() -> float:
+	if plan.is_empty():
+		return 0.0
+	match phase:
+		Phase.INTRO:
+			return 0.0
+		Phase.WAVES:
+			return 0.75 * clampf(float(wave_idx) / float(plan.size()), 0.0, 1.0)
+		Phase.BOSS_WARN:
+			return 0.78
+		Phase.BOSS:
+			var f := 1.0
+			if not boss.is_empty() and float(boss.max_hp) > 0.0:
+				f = clampf(float(boss.hp) / float(boss.max_hp), 0.0, 1.0)
+			return 0.8 + 0.2 * (1.0 - f)
+		_:
+			return 1.0   # HARVEST / CLEAR : secteur bouclé
 
 func add_shake(v: float) -> void:
 	shake = minf(30.0, shake + v * float(Save.S.opts.shake) / 100.0)

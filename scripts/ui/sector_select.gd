@@ -35,6 +35,7 @@ func _ready() -> void:
 		else:
 			var picked := lv
 			b.pressed.connect(func():
+				Audio2.sfx("uiclick")
 				main.begin_campaign(picked))
 		grid.add_child(b)
 	var era: Dictionary = Data.ERAS[Data.era_of_level(clampi(mx, 1, Data.MAX_LEVEL))]

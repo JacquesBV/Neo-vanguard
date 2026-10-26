@@ -177,6 +177,8 @@ static func button(v: VBoxContainer, text: String, cb: Callable, primary := fals
 	b.add_theme_stylebox_override("hover", h)
 	b.add_theme_stylebox_override("pressed", pr)
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	# (C10) acquittement sonore : on sait que le clic est parti
+	b.pressed.connect(func(): Audio2.sfx("uiclick"))
 	b.pressed.connect(cb)
 	v.add_child(b)
 	return b

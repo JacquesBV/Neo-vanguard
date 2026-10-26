@@ -10,8 +10,17 @@ const L_W := 480.0
 # Terrain de jeu (ère 0 : monde 4:3 paysage dans la coque ; sinon portrait)
 var FW := 480.0
 var FH := 860.0
-# Rect fenêtre du verre LCD FanBoy (ère 0)
+# Rect fenêtre du verre LCD FanBoy (ère 0) — (C10) INCHANGÉE : la coque NV-01
+# se dessine autour, la taille d'écran reste strictement identique.
 const GLASS := Rect2(32, 196, 416, 312)
+
+## (C10) rampe d'alerte du cadre lumineux : vert → jaune → orange → rouge.
+## p = progression du secteur (0..1, NVGame.sector_progress).
+static func progress_color(p: float) -> Color:
+	var stops: Array[Color] = [Color("#3adf6c"), Color("#ffd166"), Color("#ff9a3c"), Color("#ff4040")]
+	var t: float = clampf(p, 0.0, 1.0) * 3.0
+	var i: int = mini(int(t), 2)
+	return stops[i].lerp(stops[i + 1], t - float(i))
 # Encres LCD de la console (fond sauge, structures olive — module 51)
 const INKS := ["#2f3329", "#595c4c", "#7d8267", "#9ea483"]
 const L_H := 860.0

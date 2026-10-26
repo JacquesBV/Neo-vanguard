@@ -6,6 +6,7 @@ extends Node2D
 ## =========================================================================
 
 var game: NVGame
+var main: Node = null   # (C10) pour savoir si un écran (menu pause) est ouvert
 const PixelUi := preload("res://scripts/ui/pixel_ui.gd")
 
 func _process(_delta: float) -> void:
@@ -37,6 +38,31 @@ func _draw() -> void:
 		# barre tactile des ères 1+ (#touchui du web : AU-DESSUS du canvas)
 		if bool(Save.S.opts.get("frame", true)):
 			_draw_touch_bar(game)
+		# (C10) cadre de progression : bord d'écran vert → jaune → orange → rouge
+		_draw_progress_frame()
+	# (C10) voile PAUSE givré quand le jeu est gelé hors menu (touche SELECT)
+	if game.paused:
+		_draw_pause_veil()
+
+## (C10) cadre lumineux de progression du secteur (ères 1+ ; en ère 0 c'est
+## le cadre LED de la visière, dessiné par la coque). Fin lisière 3 px +
+## halo : ne grignote aucune pixel de jeu.
+func _draw_progress_frame() -> void:
+	var p: float = game.sector_progress()
+	var col: Color = Data.progress_color(p)
+	var pulse: float = 1.0
+	if p > 0.75:
+		pulse = 0.72 + 0.28 * sin(Time.get_ticks_msec() / 110.0)
+	draw_rect(Rect2(1, 1, Data.L_W - 2, Data.L_H - 2), Color(col.r, col.g, col.b, 0.14 * pulse), false, 7.0)
+	draw_rect(Rect2(3, 3, Data.L_W - 6, Data.L_H - 6), Color(col.r, col.g, col.b, 0.5 + 0.5 * pulse), false, 2.5)
+
+## (C10) quand SELECT gèle le jeu sans ouvrir le menu : voile + rappel.
+func _draw_pause_veil() -> void:
+	draw_rect(Rect2(0, 0, Data.L_W, Data.L_H), Color(0.01, 0.02, 0.05, 0.30))
+	var c := Vector2(Data.L_W / 2.0, Data.L_H / 2.0)
+	_txt(Vector2(c.x, c.y - 8), "❚❚", 30, Color(1, 1, 1, 0.85), HORIZONTAL_ALIGNMENT_CENTER)
+	_txt(Vector2(c.x, c.y + 22), "PAUSE", 14, Color(1, 1, 1, 0.85), HORIZONTAL_ALIGNMENT_CENTER)
+	_txt(Vector2(c.x, c.y + 44), NVLang.t("SELECT · reprendre"), 10, Color(1, 1, 1, 0.55), HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_hud_std() -> void:
 	var TH: Dictionary = game.TH
@@ -59,37 +85,38 @@ func _draw_hud_std() -> void:
 		draw_rect(Rect2(40, 56, (Data.L_W - 80) * f, 10), TH.e_boss if f > 0.33 else TH.danger)
 		draw_rect(Rect2(40, 56, Data.L_W - 80, 10), Color(1, 1, 1, 0.4), false, 1.0)
 		_txt(Vector2(Data.L_W / 2.0, 80), b.name, 12, TH.e_boss_lite if game.era_idx > 0 else TH.livery[3], HORIZONTAL_ALIGNMENT_CENTER)
-	# --- bandeau bas ----------------------------------------------------------
-	draw_rect(Rect2(0, Data.L_H - 26, Data.L_W, 26), dim)
+	# --- bandeau bas — (C10) COMPACTÉ SOUS L'ÉTÊTE : la bande 742-860 est
+	# occupée par la barre de commandes tactile ; vies, coque, boucliers,
+	# bombes, puissance et chaîne vivent désormais en haut (lisibles sur tous
+	# les téléphones, même les 16:10)
 	var P: Dictionary = game.first_player()
 	if not P.is_empty():
-		# vies (petits vaisseaux)
+		# vies (petits vaisseaux) + coque + boucliers, sur une seule ligne
+		var iy := 94.0
 		for i in maxi(int(P.lives) + 1, 0):
 			var vx := 14.0 + i * 18.0
-			draw_colored_polygon(PackedVector2Array([Vector2(vx, Data.L_H - 20), Vector2(vx - 6, Data.L_H - 8), Vector2(vx + 6, Data.L_H - 8)]), ink)
-		# coque
-		var hx := 110.0
+			draw_colored_polygon(PackedVector2Array([Vector2(vx, iy - 4), Vector2(vx - 6, iy + 8), Vector2(vx + 6, iy + 8)]), ink)
+		var hx := 14.0 + (int(P.lives) + 1) * 18.0 + 12.0
 		for i in int(P.max_hp):
 			var c: Color = TH.hull if i < int(P.hp) else Color(1, 1, 1, 0.15)
-			draw_rect(Rect2(hx + i * 12, Data.L_H - 18, 9, 9), c)
-		# boucliers
+			draw_rect(Rect2(hx + i * 12, iy - 2, 9, 9), c)
 		var sx: float = hx + P.max_hp * 12 + 10
 		for i in int(P.sh_max):
 			var c2: Color = TH.shield if i < int(P.shield) else Color(1, 1, 1, 0.15)
-			draw_rect(Rect2(sx + i * 12, Data.L_H - 18, 9, 9), c2)
-		# bombes
-		_txt(Vector2(Data.L_W - 150, Data.L_H - 8), "BOMBES ×%d" % int(P.bombs), 11,
-			(game.TH.livery[3] if game.era_idx == 0 else Color("#ff7ad9")))
-		# puissance + arme
-		_txt(Vector2(10, Data.L_H - 33), "PWR %d/5 · %s" % [int(P.power), game.stats.weapon.name], 10, ink)
+			draw_rect(Rect2(sx + i * 12, iy - 2, 9, 9), c2)
+		# bombes, à droite de la même ligne
+		_txt(Vector2(Data.L_W - 10, iy + 8), "BOMBES ×%d" % int(P.bombs), 11,
+			(game.TH.livery[3] if game.era_idx == 0 else Color("#ff7ad9")), HORIZONTAL_ALIGNMENT_RIGHT)
+		# puissance + arme, ligne suivante
+		_txt(Vector2(10, iy + 26), "PWR %d/5 · %s" % [int(P.power), game.stats.weapon.name], 10, ink)
 	# compteur de performances (option FPS)
 	if Save.S.opts.get("fps", false):
 		_txt(Vector2(10, 62), "FPS %d" % Engine.get_frames_per_second(), 10, TH.gold)
-	# --- combo ----------------------------------------------------------------
+	# --- combo — (C10) remonté : la bande basse appartient à la barre tactile
 	if game.combo > 1:
-		_txt(Vector2(Data.L_W - 10, Data.L_H - 33), "CHAÎNE ×%.2f" % game.score_mult(), 12, TH.gold, HORIZONTAL_ALIGNMENT_RIGHT)
+		_txt(Vector2(Data.L_W - 10, 120), "CHAÎNE ×%.2f" % game.score_mult(), 12, TH.gold, HORIZONTAL_ALIGNMENT_RIGHT)
 		var bw := 90.0
-		draw_rect(Rect2(Data.L_W - 10 - bw, Data.L_H - 29, bw * clampf(game.combo_t / Data.COMBO_WINDOW, 0, 1), 3), TH.gold)
+		draw_rect(Rect2(Data.L_W - 10 - bw, 124, bw * clampf(game.combo_t / Data.COMBO_WINDOW, 0, 1), 3), TH.gold)
 
 # ---------------------------------------------------------------------
 # HUD « LCD » du secteur Pocket : pixel-texte encre DANS le verre 4:3,
@@ -118,21 +145,24 @@ func _draw_hud_lcd() -> void:
 	_txtp(Vector2(sx, top + 15), "SC %s" % fmt_space(game.score), 8, ink)
 	_txtp(Vector2(glass.position.x + W / 2.0, top + 15), "VIES ×%d" % (int(game.first_player().get("lives", 0)) + 1), 8, ink, HORIZONTAL_ALIGNMENT_CENTER)
 	_txtp(Vector2(rx, top + 15), "COINS %s" % fmt_space(game.credits_run), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
-	# rangée 2 : coque + jauge
+	# rangée 2 : coque + jauge — (C10) DESCENDUE SUR LA COQUE quand le cadre
+	# console est actif : le verre ne garde que le score, les vies, le boss.
+	var frame_on: bool = bool(Save.S.opts.get("frame", true))
 	var P: Dictionary = game.first_player()
-	var frac: float = 1.0 if P.is_empty() else clampf(float(P.hp) / float(P.max_hp), 0, 1)
-	_txtp(Vector2(sx, top + 35), "COQUE", 8, ink)
-	var bx := sx + 56.0
-	var bw2 := rx - 44.0 - bx
-	draw_rect(Rect2(bx, top + 27, bw2, 10), Color(mid.r, mid.g, mid.b, 0.25))
-	draw_rect(Rect2(bx, top + 27, bw2 * frac, 10), mid)
-	draw_rect(Rect2(bx, top + 27, bw2, 10), ink, false, 1.0)
-	# échelle segmentée par-dessus la jauge (tirets de l'original)
-	var seg := bx + 5.0
-	while seg < bx + bw2 - 2.0:
-		draw_line(Vector2(seg, top + 28), Vector2(seg, top + 36), Color(ink.r, ink.g, ink.b, 0.55), 1.0)
-		seg += 10.0
-	_txtp(Vector2(rx, top + 35), "%d %%" % int(round(frac * 100)), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
+	if not frame_on:
+		var frac: float = 1.0 if P.is_empty() else clampf(float(P.hp) / float(P.max_hp), 0, 1)
+		_txtp(Vector2(sx, top + 35), "COQUE", 8, ink)
+		var bx := sx + 56.0
+		var bw2 := rx - 44.0 - bx
+		draw_rect(Rect2(bx, top + 27, bw2, 10), Color(mid.r, mid.g, mid.b, 0.25))
+		draw_rect(Rect2(bx, top + 27, bw2 * frac, 10), mid)
+		draw_rect(Rect2(bx, top + 27, bw2, 10), ink, false, 1.0)
+		# échelle segmentée par-dessus la jauge (tirets de l'original)
+		var seg := bx + 5.0
+		while seg < bx + bw2 - 2.0:
+			draw_line(Vector2(seg, top + 28), Vector2(seg, top + 36), Color(ink.r, ink.g, ink.b, 0.55), 1.0)
+			seg += 10.0
+		_txtp(Vector2(rx, top + 35), "%d %%" % int(round(frac * 100)), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
 	# l'épais trait qui ferme le HUD, comme sur la console
 	draw_rect(Rect2(sx - 2.0, top + 43, W - 16.0, 3.0), Color(ink.r, ink.g, ink.b, 0.8))
 	# barre de l'amiral, encre LCD
@@ -144,8 +174,9 @@ func _draw_hud_lcd() -> void:
 		draw_rect(Rect2(glass.position.x + 30, top + 54, bw3 * f, 7), ink)
 		draw_rect(Rect2(glass.position.x + 30, top + 54, bw3, 7), ink, false, 1.0)
 		_txtp(Vector2(glass.position.x + W / 2.0, top + 76), b.name, 8, ink, HORIZONTAL_ALIGNMENT_CENTER)
-	# pied du verre : puissance, arme, bombes, chaîne
-	if not P.is_empty():
+	# pied du verre : puissance, arme, bombes — (C10) sur la coque si le
+	# cadre console est actif (le verre reste dégagé pour le jeu)
+	if not frame_on and not P.is_empty():
 		_txtp(Vector2(sx, glass.end.y - 10.0), "PWR %d/5 · %s" % [int(P.power), String(game.stats.weapon.name).to_upper()], 8, ink)
 		_txtp(Vector2(rx, glass.end.y - 10.0), "BOMBES ×%d" % int(P.bombs), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
 	if game.combo > 1:

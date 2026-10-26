@@ -47,3 +47,4 @@ Les preuves « TESTn » sont les harnais `NV_TEST=n` (voir RAPPORT-TESTS.md) ; c
 | Scanlines/halos/modes fusion | 07/10 | `ui/scanlines.gd`, blend `add` sur parts | CONFORME | captures |
 
 <!-- C8 : collisions tirs/ennemis ajoutées (update_bullet_hits), sprites POCKET ×1,31, boss positionnels (FH×0,31), alerte module 21 répliquée, ère 0 verrouillée INKS, vagues secteurs 5+ ralenties, ghosting LCD 48×32. -->
+<!-- C10 : coque NV-01 FANBOY réaliste (art officiel assets/fanboy + module 51) remplaçant le cadre olive dessiné — à la demande utilisateur (SELECT=pause, START=menu, HUD intégré, cadre LED de progression vert→rouge) ; verre GLASS inchangé ; titre à sections dépliantes + affiche recentrée + clics sonores ; P2 « coque » réorientée par cette demande (le brief pleine page reste ouvert). -->

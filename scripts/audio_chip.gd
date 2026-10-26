@@ -230,6 +230,10 @@ static func recipe(name: String, e: int, big := false) -> Array:
 				out.append(_v(0.0, 1560.0, 0.0, 0.09, "square", 0.07))
 			else:
 				out.append(_v(0.0, 2400.0 if e >= 2 else 1900.0, 900.0, 0.11, "sawtooth", 0.06, _flt("bandpass", 2400.0, 0.0, 3.4)))
+		# (C10) clic d'interface : menus, boutons SELECT/START de la coque
+		"uiclick":
+			out.append(_v(0.0, 1350.0, 620.0, 0.045, "square", 0.055))
+			out.append(_v(0.0, 2250.0, 1000.0, 0.028, "square", 0.03))
 		"ehit":
 			if e == 0:
 				out.append(_n(0.0, 0.04, 0.08, _flt("bandpass", 2600.0, 1600.0, 1.1)))
