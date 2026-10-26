@@ -38,6 +38,19 @@ var wave_music: AudioStream
 var boss_music: AudioStream
 var banked := false
 var capture_frames := -1
+# ---- (artpack S01) dialogue : cadres VIDES du pack, texte Godot localisable --
+## (C2-arch) même commutation que field.gd : le pack est remplaçable sans
+## toucher à la présentation — voir native/sector1/ARTPACK_CONTRACT.md
+const PACK_ID := "artpack_s01"
+var artpack: String = "res://native/sector1/%s/" % PACK_ID
+var DialoguePanel: GDScript = load("res://native/sector1/%s/godot/dialogue_panel.gd" % PACK_ID)
+var dialog: Control = null
+var dialog_slot: RichTextLabel = null
+var dialog_portrait: TextureRect = null
+var dialog_queue: Array[Dictionary] = []
+var dialog_seen := {}
+var dialog_silence := 0.0
+var seek_time := 0.0
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -88,6 +101,15 @@ func _ready() -> void:
 		for i in 8:mission._drop(Vector2(75+(i%4)*105,500+(i/4)*85),["credit","power","shield","hull","bomb","scrap","crystal","circuit"][i])
 	if "--capture-boss" in OS.get_cmdline_user_args():
 		mission.start_boss();mission.boss.pos=Vector2(240,265);mission.boss.enter=false;mission.player.inv=999
+	# (artpack) avancée rapide pour prouver la progression des décors
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--seek="):seek_time=float(arg.get_slice("=",1))
+	_build_dialog()
+	if "--capture-dialog" in OS.get_cmdline_user_args():
+		session.transition(&"briefing");_primary()   # entrer en jeu d'abord
+		_open_dialog([{"who":"vesta","text":"Ici Vesta, mémoire de bord. Ton Falcon répond, pilote — ce silo cache les cartouches que Vorax veut effacer."},
+			{"who":"guardian","text":"CARTOUCHES CONFISQUÉES. AUCUN DÉPART."}])
+		capture_frames=70
 	if "--capture-loot" in OS.get_cmdline_user_args():
 		for i in 3:mission._hostile(Vector2(90+i*150,410),PI/4+i*PI/4,20,[11,12,15][i])
 
@@ -111,7 +133,11 @@ func _bank() -> void:
 func _primary() -> void:
 	match session.state:
 		&"title":_reset();session.transition(&"briefing")
-		&"briefing":session.elapsed=0;session.transition(&"play");_music(wave_music)
+		&"briefing":
+			session.elapsed=0;session.transition(&"play");_music(wave_music)
+			if seek_time>0.0:
+				for i in int(seek_time*60):mission.step(1.0/60.0)
+				print("SEEK: mission à t=%.1fs phase=%s" % [mission.time, mission.phase])
 		&"pause":session.transition(&"play")
 		&"clear",&"game_over":_reset();session.transition(&"briefing")
 
@@ -120,6 +146,7 @@ func _pause() -> void:
 	elif session.state==&"pause":session.transition(&"play")
 
 func _bomb() -> void:
+	if dialog!=null and dialog.visible:_advance_dialog();return
 	if session.state==&"play":mission.bomb()
 
 func _state_changed(_previous: StringName, current: StringName) -> void:
@@ -154,6 +181,10 @@ func _layout() -> void:
 	deck=Rect2(device.position.x,device.end.y-minf(device.end.y-aperture.end.y-26,dw*346/1024),dw,minf(device.end.y-aperture.end.y-26,dw*346/1024))
 	screen.position=aperture.position;screen.size=aperture.size
 	overlay.position=Vector2(maxf(12,w/2-180),maxf(70,h/2-170));overlay.size=Vector2(minf(w-24,360),340)
+	if dialog!=null:
+		var ps := aperture.size.x/160.0
+		dialog.position=aperture.position+Vector2(4,231)*ps
+		dialog.size=Vector2(152,48)*ps
 	var positions := [Vector2(.7,.28),Vector2(.88,.28),Vector2(.7,.73),Vector2(.88,.73)]
 	var i := 0
 	for key in buttons:
@@ -165,7 +196,7 @@ func _layout() -> void:
 
 func _step(dt: float) -> void:
 	var ax := Vector2(float(Input.is_physical_key_pressed(KEY_RIGHT) or Input.is_physical_key_pressed(KEY_D))-float(Input.is_physical_key_pressed(KEY_LEFT) or Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_Q)),float(Input.is_physical_key_pressed(KEY_DOWN) or Input.is_physical_key_pressed(KEY_S))-float(Input.is_physical_key_pressed(KEY_UP) or Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_Z)))
-	var pads := Input.get_connected_joypads();var shoot: bool = fire or mouse_down or pilot.pilot_id>=0 or stick_id>=0 or Input.is_physical_key_pressed(KEY_SPACE) or Input.is_physical_key_pressed(KEY_ENTER) or Input.is_physical_key_pressed(KEY_CTRL)
+	var pads := Input.get_connected_joypads();var shoot: bool = (fire or mouse_down or pilot.pilot_id>=0 or stick_id>=0 or Input.is_physical_key_pressed(KEY_SPACE) or Input.is_physical_key_pressed(KEY_ENTER) or Input.is_physical_key_pressed(KEY_CTRL)) and not (dialog!=null and dialog.visible)
 	if not pads.is_empty():
 		var id := pads[0];var px := Input.get_joy_axis(id,JOY_AXIS_LEFT_X);var py := Input.get_joy_axis(id,JOY_AXIS_LEFT_Y)
 		ax+=Vector2(px if absf(px)>.24 else 0.0,py if absf(py)>.24 else 0.0)
@@ -175,8 +206,62 @@ func _step(dt: float) -> void:
 		var target := (mouse_point-aperture.position)/(aperture.size.x/480)
 		var delta: Vector2=target-mission.player.pos
 		ax=delta/maxf(delta.length(),40) if delta.length()>2 else Vector2.ZERO
-	mission.step(dt,ax,shoot,Input.is_physical_key_pressed(KEY_SHIFT))
+	_check_dialog_triggers()
+	if dialog!=null and dialog.visible:
+		dialog_silence=0.12
+		field.queue_redraw();queue_redraw()
+		return   # (prompt) fenêtre bloquante : simulation, ennemis, tirs, bombes ET horloges gelés
+	mission.step(dt,ax if dialog_silence<=0.0 else Vector2.ZERO,shoot and dialog_silence<=0.0,Input.is_physical_key_pressed(KEY_SHIFT))
+	dialog_silence=maxf(0.0,dialog_silence-dt)
 	field.queue_redraw();queue_redraw()
+
+## (artpack) emplacements prévus par le prompt : accueil Vesta, avertissement
+## zone de sécurité, échange Vesta/Gardien avant l'activation, mot après victoire
+func _check_dialog_triggers() -> void:
+	if mission==null or session.state!=&"play":return
+	if mission.time>2.6 and mission.phase=="waves":_once("entry",[{"who":"vesta","text":"Ici Vesta, mémoire de bord. Ton Falcon répond, pilote — ce silo cache les cartouches que Vorax veut effacer."}])
+	if mission.phase=="warning":_once("warn",[{"who":"vesta","text":"Zone de sécurité devant. Le Gardien du Silo tenait ce sas… Vorax l'a retourné contre nous."}])
+	if mission.phase=="boss" and not mission.boss.is_empty() and not mission.boss.enter:
+		_once("boss",[{"who":"vesta","text":"L'iris charge ! Écarte-toi des rayons et frappe entre ses épaules."},
+			{"who":"guardian","text":"CARTOUCHES CONFISQUÉES. AUCUN DÉPART."}])
+	if mission.phase=="harvest":_once("win",[{"who":"vesta","text":"Gardien neutralisé. Ramasse les cartouches épargnées — vite, avant la patrouille."}])
+
+func _once(key: String, lines: Array) -> void:
+	if dialog_seen.has(key):return
+	dialog_seen[key]=true
+	_open_dialog(lines)
+
+func _build_dialog() -> void:
+	dialog=DialoguePanel.new()
+	dialog.visible=false
+	add_child(dialog)
+	dialog_slot=dialog.get_node("LocalizedTextSlot")
+	dialog_portrait=TextureRect.new()
+	dialog_portrait.texture=load(artpack+"assets/ui/portrait_frame.png")
+	dialog_portrait.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	add_child(dialog_portrait)
+
+func _open_dialog(lines: Array) -> void:
+	for l in lines:dialog_queue.append(l)
+	_next_line()
+
+func _next_line() -> void:
+	if dialog_queue.is_empty():
+		dialog.visible=false;dialog_portrait.visible=false
+		return
+	var line: Dictionary=dialog_queue[0];dialog_queue.remove_at(0)
+	var who: String=line.who
+	dialog.set_speaker(who)
+	dialog_slot.text=line.text
+	dialog_portrait.texture=load(artpack+"assets/ui/%s_portrait.png"%who)
+	dialog_portrait.visible=true
+	dialog.visible=true
+	_layout()
+
+func _advance_dialog() -> bool:
+	if dialog==null or not dialog.visible:return false
+	_next_line()
+	return true
 
 func _process(_dt: float) -> void:
 	if capture_frames>=0:
@@ -190,6 +275,14 @@ func _process(_dt: float) -> void:
 	for key in buttons:buttons[key].visible=session.state==&"play"
 
 func _input(event: InputEvent) -> void:
+	if dialog!=null and dialog.visible:
+		# (prompt) la touche qui ferme ne doit ni tirer ni bomber au même instant
+		var advance := false
+		if event is InputEventKey and event.pressed and not event.echo:
+			advance=event.keycode in [KEY_SPACE,KEY_ENTER,KEY_E,KEY_B,KEY_X,KEY_G]
+		elif (event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed):
+			advance=true
+		if advance:_advance_dialog();get_viewport().set_input_as_handled();return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode==KEY_ESCAPE or event.keycode==KEY_P:_pause();get_viewport().set_input_as_handled()
 		elif event.keycode==KEY_ENTER and session.state!=&"play":_primary()

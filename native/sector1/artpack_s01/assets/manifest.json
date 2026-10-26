@@ -1,0 +1,2480 @@
+{
+  "version": "1.0",
+  "palette": [
+    "#9ea483",
+    "#7d8267",
+    "#595c4c",
+    "#2f3329"
+  ],
+  "raster": [
+    160,
+    287
+  ],
+  "logical": [
+    480,
+    860
+  ],
+  "boss_anchor": [
+    48,
+    64
+  ],
+  "files": {
+    "art_sources/guardian_original_clean_neutral.png": {
+      "size": [
+        298,
+        377
+      ],
+      "sha256": "49c834d6ad73e2ac89661ffff3cb26e5e8bca0bb93ec5df34feccb1e1c7305b1"
+    },
+    "assets/boss/guardian_neutral.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "aad7e13fb4fbb281090b3480e1e28326660d9382fe6b08c2697662e0552a0016"
+    },
+    "previews/guardian_original_preserved.png": {
+      "size": [
+        576,
+        768
+      ],
+      "sha256": "d4515b157b36e14e4373c47d75bd2206f2c6b6ce768d3b16568506c3caf04695"
+    },
+    "assets/boss/parts/torso.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "37572a1e115af3881c1f2c925f3924992d72a8a8be07b021a2a8f1cb4f7153ab"
+    },
+    "assets/boss/parts/crown.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "5e11731ea0befb4cf59512e97629e7b242315b448cde3b11c366a4259ca26f92"
+    },
+    "assets/boss/parts/shoulder_l.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "e11f50f251ce80401613dd148b9935dc3eec0fdb5cd0a643652c7af386737c5b"
+    },
+    "assets/boss/parts/shoulder_r.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "39504009b16f704e434176f0c99bf373bf881f34e6e44d9b3517444f335126e9"
+    },
+    "assets/boss/parts/forearm_l.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "67b9505db864a4dcc2ec13eba645f0c123d82d1e02048a2df8a7416da1cf2259"
+    },
+    "assets/boss/parts/forearm_r.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "1e73fc9d261b757c0cb57a422bcf6167c980828f5d295c70249b8976fea47e06"
+    },
+    "assets/boss/parts/iris.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "0b1f376358065bd879de35dd28c69c994ad00c1655cf3dfa67ca9b877ae227c9"
+    },
+    "assets/boss/parts/jaw.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "81dd31c4f798e8ab19a2e05ee18a90ae0c3f78424fa55faca2d86015d390036a"
+    },
+    "assets/boss/parts/iris_open.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "8b566ed29454324858f0c564170d53a7b0e8e2d04da76dfdbe188e678c55e356"
+    },
+    "assets/boss/parts/iris_stage_0.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "0b1f376358065bd879de35dd28c69c994ad00c1655cf3dfa67ca9b877ae227c9"
+    },
+    "assets/boss/parts/iris_stage_1.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "7cfbb59b8da170856806b8591fed814adf0c91abb45d13a41885dbf693b7810a"
+    },
+    "assets/boss/parts/iris_stage_2.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "cb000fe7a3a4636bf0a480dc6c300d19627ba7a7049692234dd1d10a02e558b2"
+    },
+    "assets/boss/parts/iris_stage_3.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "8b566ed29454324858f0c564170d53a7b0e8e2d04da76dfdbe188e678c55e356"
+    },
+    "assets/boss/parts/damage_0.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "58d736ceb7b41236ef27bceba10c71a3a5bb2b3cba057514cc20dfcec796ebbd"
+    },
+    "assets/boss/parts/damage_1.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "07bd6aa83b6f28001b470c342102e14155509c095b32aae13326a1f6dd9aa4bb"
+    },
+    "assets/boss/parts/damage_2.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "cf56b206a7b0e0a2e4f9c062ee1ac4231ee1ed4af78f483c9fe9d905fe2e8d7c"
+    },
+    "assets/boss/frames/idle_00.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "aad7e13fb4fbb281090b3480e1e28326660d9382fe6b08c2697662e0552a0016"
+    },
+    "assets/boss/frames/idle_01.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "f6f152e5d08b991f2bfd61f7f674f3e8606c6b034000f983f34198012b6f6e12"
+    },
+    "assets/boss/frames/idle_02.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "95e94682b8898600dd4aa757619fc5a0ab865a5f0087848d375f33c731e454c5"
+    },
+    "assets/boss/frames/idle_03.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "f6f152e5d08b991f2bfd61f7f674f3e8606c6b034000f983f34198012b6f6e12"
+    },
+    "assets/boss/frames/idle_04.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "aad7e13fb4fbb281090b3480e1e28326660d9382fe6b08c2697662e0552a0016"
+    },
+    "assets/boss/frames/idle_05.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "d299414fdcf3424481258d8ed198a266611d84dae5cbf3fbe8e5e7b27e65e01a"
+    },
+    "assets/boss/frames/idle_06.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "9bbc4908bfed776635b1c7171f27fd5a5644a9496265c73ee0ec4f4699855491"
+    },
+    "assets/boss/frames/idle_07.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "d299414fdcf3424481258d8ed198a266611d84dae5cbf3fbe8e5e7b27e65e01a"
+    },
+    "assets/boss/idle_sheet.png": {
+      "size": [
+        768,
+        128
+      ],
+      "sha256": "333d2fe8a3d9e6a3108b488078a401de125f49778ea6dff9ed83374cc12c2319"
+    },
+    "assets/boss/frames/open_00.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "aad7e13fb4fbb281090b3480e1e28326660d9382fe6b08c2697662e0552a0016"
+    },
+    "assets/boss/frames/open_01.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "f6f152e5d08b991f2bfd61f7f674f3e8606c6b034000f983f34198012b6f6e12"
+    },
+    "assets/boss/frames/open_02.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "d87adefd7e475344d1384effcbfafe777905a3defe2cf2e927b1362dbb159b18"
+    },
+    "assets/boss/frames/open_03.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "23c8a6a64d7153bc8041e995726a040e37832b3035c73d75a05ce40fd9c400e5"
+    },
+    "assets/boss/frames/open_04.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "81f3c8d1f3bfa0914c12a5e324427fefe7ad277e6e7b0065ff6e34815f49cb2a"
+    },
+    "assets/boss/frames/open_05.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "ebf5f248fc5146660e57ff2daaf8f667057ce0cb92790d4f3146b8f791301946"
+    },
+    "assets/boss/frames/open_06.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "1e3643b2ab75a7cc889a2b3bc7f0ee0028cb0ef914b19be563e080680c0faa7a"
+    },
+    "assets/boss/frames/open_07.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "19d90db04bcd012ae6dd2c7821595049ad9020079d6774333e077bbfa219a097"
+    },
+    "assets/boss/open_sheet.png": {
+      "size": [
+        768,
+        128
+      ],
+      "sha256": "dab6bca191a0720ae97f4cec9554188de4594f865029abfe4cb557e484fc5510"
+    },
+    "assets/boss/frames/charge_00.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "3d5685d3a1fb903f9facb167aeb68597481411ce5a6105a50381c9028f29d796"
+    },
+    "assets/boss/frames/charge_01.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "8ef7f474f9d8c3657a7e508a1034c78e487cac21fd4942e3c8d5969928248c43"
+    },
+    "assets/boss/frames/charge_02.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "ba2fb12c1d26744cdf4291c50c0c4adcef750388041008967d2a6b45057f7f07"
+    },
+    "assets/boss/frames/charge_03.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "8ef7f474f9d8c3657a7e508a1034c78e487cac21fd4942e3c8d5969928248c43"
+    },
+    "assets/boss/frames/charge_04.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "3d5685d3a1fb903f9facb167aeb68597481411ce5a6105a50381c9028f29d796"
+    },
+    "assets/boss/frames/charge_05.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "19d90db04bcd012ae6dd2c7821595049ad9020079d6774333e077bbfa219a097"
+    },
+    "assets/boss/frames/charge_06.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "1e3643b2ab75a7cc889a2b3bc7f0ee0028cb0ef914b19be563e080680c0faa7a"
+    },
+    "assets/boss/frames/charge_07.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "19d90db04bcd012ae6dd2c7821595049ad9020079d6774333e077bbfa219a097"
+    },
+    "assets/boss/charge_sheet.png": {
+      "size": [
+        768,
+        128
+      ],
+      "sha256": "e7b9cc0f3ee11ed725b817e1db6ba225cc54e50fa73db31100d47eb4f26badaa"
+    },
+    "assets/boss/frames/fire_00.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "3d5685d3a1fb903f9facb167aeb68597481411ce5a6105a50381c9028f29d796"
+    },
+    "assets/boss/frames/fire_01.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "8ef7f474f9d8c3657a7e508a1034c78e487cac21fd4942e3c8d5969928248c43"
+    },
+    "assets/boss/frames/fire_02.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "ff6ea39192bafec3416af551d280dc427b2b5874af89dc184cb8290072487889"
+    },
+    "assets/boss/frames/fire_03.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "d391b1c7e9e1951291c9a80e0ea75fe0781ef1952bfa0b7b7ba28561b7dc9d19"
+    },
+    "assets/boss/frames/fire_04.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "7d0bbdac81a0befad93eeb9a0422acee8932f1b5a2fd6151fc6d2bf0c5f3de18"
+    },
+    "assets/boss/frames/fire_05.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "3717f00ff7c9eefdfc76e7768612367463ba3a62a212e3d42230c893ff0df0e7"
+    },
+    "assets/boss/frames/fire_06.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "4250dcb7e815f562f1ab3910b011b8590e1f2da36230207868445486f341efdc"
+    },
+    "assets/boss/frames/fire_07.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "19d90db04bcd012ae6dd2c7821595049ad9020079d6774333e077bbfa219a097"
+    },
+    "assets/boss/fire_sheet.png": {
+      "size": [
+        768,
+        128
+      ],
+      "sha256": "460842114caba66650209f67517bc49724c02e998ba715cbd380834fc74d35e0"
+    },
+    "assets/boss/frames/recoil_00.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "3d5685d3a1fb903f9facb167aeb68597481411ce5a6105a50381c9028f29d796"
+    },
+    "assets/boss/frames/recoil_01.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "8ef7f474f9d8c3657a7e508a1034c78e487cac21fd4942e3c8d5969928248c43"
+    },
+    "assets/boss/frames/recoil_02.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "2dbfe888259a3f921bf96a4e6913b8213fdce2e30e6af65034e918390fed99ec"
+    },
+    "assets/boss/frames/recoil_03.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "b9232c1a5250f0f78d21586f711216c83cf4ec1f1910fa139949a1904bb12e8a"
+    },
+    "assets/boss/frames/recoil_04.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "c8eaed07e34a05b3196ae7e3cb156d381132df5be2c7b8c594596922b49f571e"
+    },
+    "assets/boss/frames/recoil_05.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "6296db7f85fdf68b846249bd28ef3eff4cb283d675356ced73ca0f6571597f80"
+    },
+    "assets/boss/frames/recoil_06.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "7afb2587f8926f4bef57128f384b65fb8afc68a29896543610d03f79c408cce6"
+    },
+    "assets/boss/frames/recoil_07.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "d299414fdcf3424481258d8ed198a266611d84dae5cbf3fbe8e5e7b27e65e01a"
+    },
+    "assets/boss/recoil_sheet.png": {
+      "size": [
+        768,
+        128
+      ],
+      "sha256": "2abc7cb357f58ab648c66ecf270d6cbb4538bb474e1c730bfcf7b113b139af16"
+    },
+    "assets/boss/frames/damaged_00.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "33ca74bd462e21b7fbca13201efa004337ee5ff73e269b4d305c601002a973ae"
+    },
+    "assets/boss/frames/damaged_01.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "0a50ffcb837f942df89dfb850114c3d7dd9ec821376a09b0288e52e52e565301"
+    },
+    "assets/boss/frames/damaged_02.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "97bff371fa63eec3a0f2a428ae9e565d71352dbe9b73ea167381afad8ddbd9c2"
+    },
+    "assets/boss/frames/damaged_03.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "0a50ffcb837f942df89dfb850114c3d7dd9ec821376a09b0288e52e52e565301"
+    },
+    "assets/boss/frames/damaged_04.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "33ca74bd462e21b7fbca13201efa004337ee5ff73e269b4d305c601002a973ae"
+    },
+    "assets/boss/frames/damaged_05.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "4d2fbbccb7fe0ac84f71eafe910fd931b4e8c67c7905500590918e0c1f1f1767"
+    },
+    "assets/boss/frames/damaged_06.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "5f29219201bbc3be5f75ce87395dc8d7cc437ef5aca85bb5ee0222b2efc89031"
+    },
+    "assets/boss/frames/damaged_07.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "4d2fbbccb7fe0ac84f71eafe910fd931b4e8c67c7905500590918e0c1f1f1767"
+    },
+    "assets/boss/damaged_sheet.png": {
+      "size": [
+        768,
+        128
+      ],
+      "sha256": "4d9e3ef67e889edd7a2971b292dc0ca1c069ffdf586888d0fa5a4a656c5929c7"
+    },
+    "assets/boss/frames/defeat_00.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "572064e398c041b95f8684070a9a5eb15d8239d1d7cc0c666fd443f66e1774cb"
+    },
+    "assets/boss/frames/defeat_01.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "572064e398c041b95f8684070a9a5eb15d8239d1d7cc0c666fd443f66e1774cb"
+    },
+    "assets/boss/frames/defeat_02.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "bfa76bc7e1a98ebff2b8374cc9653ca6cfa39d3c63154552f316f3e30bf321df"
+    },
+    "assets/boss/frames/defeat_03.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "3848425f422cc87653643237cc3fd073b3cda18cb47c900c2845c6a1f27cf6ee"
+    },
+    "assets/boss/frames/defeat_04.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "c8ab4ac3e3811ab8f657cce7a44dfdd9f19c065e5147445d140069b41c51d53c"
+    },
+    "assets/boss/frames/defeat_05.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "97b808efd3c80a20a2442db383a4681dfb92d1e1410b8ef281ea715d13599ef6"
+    },
+    "assets/boss/frames/defeat_06.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "7c54b7d15b4cdac03cced4edad55420c5ffb8c6ed488ff651d140d3adee0b19c"
+    },
+    "assets/boss/frames/defeat_07.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "9d5edcd0efc38f53e7be0a64004a8d988beb6a7e07382d376e5cff5e8008a50e"
+    },
+    "assets/boss/frames/defeat_08.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "562f98a61f24dc11195104901cd5b9f0097e7fe41623fa75ac2adc298405605b"
+    },
+    "assets/boss/frames/defeat_09.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "b375d12f59dd9faf1249166ef0e7fa2c9d9eb80ac45d269405c8ee087ea81b07"
+    },
+    "assets/boss/frames/defeat_10.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "b982894f0e9d650549cd696e6115d4008386932c37024aa8c2c9ae3a57376332"
+    },
+    "assets/boss/frames/defeat_11.png": {
+      "size": [
+        96,
+        128
+      ],
+      "sha256": "6d17f602e688729de1f5ad83e6276bce70b7ef025d0e4c2ea1126158cda7099d"
+    },
+    "assets/boss/defeat_sheet.png": {
+      "size": [
+        768,
+        256
+      ],
+      "sha256": "1767baaf582f17370f014afe09a0240e87afdc38c08efe70d95c16b8845041a4"
+    },
+    "assets/enemies/radar_drone_00.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "81380cd864bdcbe9090f77358fd40d27a875c3335623bac927ef95615af52582"
+    },
+    "assets/enemies/radar_drone_01.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "eb44e71dea8a56277e9ae32940264b98a602997eb8cf946940c26ff790f29360"
+    },
+    "assets/enemies/radar_drone_02.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "a5d78669bde5471be979bc1aca999a49d5ddd5584c2c8cae56dba67aa1e13bde"
+    },
+    "assets/enemies/radar_drone_03.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "df2c2450e7452f807f5a45b449e3646d55c9cfe90b119ad65431f95039850793"
+    },
+    "assets/enemies/radar_drone_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "d91f24d51d54a9f6ac9efbf5d758132f8b1114aab4e256e221204d180b6f1154"
+    },
+    "assets/enemies/patrol_interceptor_00.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "75003182f7a738dd5d5f472690c3c5ce68661d5688fd00f0403c8a83d5688ee2"
+    },
+    "assets/enemies/patrol_interceptor_01.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "157a03075775a945720f026f0d7875aa3407fe8b28e46ae27c2ccab1514fe2a5"
+    },
+    "assets/enemies/patrol_interceptor_02.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "424d9f748e58393d80bd6988b8543beb55b2151cc7e7ad50b30048f329a52308"
+    },
+    "assets/enemies/patrol_interceptor_03.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "b135d9f06ffaf467941be7cc9a33e2ac2874c166a8121f9641043c18a86245d0"
+    },
+    "assets/enemies/patrol_interceptor_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "01beb15bc98c48501db5d81114d4ee5a07a3674e773ae762a45b9cbed871a167"
+    },
+    "assets/enemies/mine_layer_00.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "9f3d0d702656c2dd23c6cbd0775980780b9c41a89fbe448d836d071fcce9047c"
+    },
+    "assets/enemies/mine_layer_01.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "e7bfd65c408a1bb95fc9751ff1b1525c872e0bf531d24fd8d02431e8192042f4"
+    },
+    "assets/enemies/mine_layer_02.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "32f1c60395a35f30fc7316a86d4b5118035af3fe383a63da5e92067336f6abe2"
+    },
+    "assets/enemies/mine_layer_03.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "ec1782f96c40986f50c571ef7ddb0c2d8fc73233a19d9bc8e52e91839509f037"
+    },
+    "assets/enemies/mine_layer_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "fba85799625c9d6560a894661464b096c37e432b94abc1b3a16510c05ee99cc3"
+    },
+    "assets/enemies/armored_transport_00.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "1ad90f1fc36d131fef6e98a21ee4cf4eee7f8eac741774bcf3a8870b906a4c14"
+    },
+    "assets/enemies/armored_transport_01.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "91019c8707094ba4b030b9060b0cbda4f43693692746c7dc0e7325ef1a95a5c8"
+    },
+    "assets/enemies/armored_transport_02.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "2b2d1ba7b2b860088da1a723d1e5e1ee93621887b9170ab9d84a894927fe549c"
+    },
+    "assets/enemies/armored_transport_03.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "40c60310ce2bc1723bcffaade2cfc440945ba4d1dd995e6cb321a7d1dd2e0d05"
+    },
+    "assets/enemies/armored_transport_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "9813fb3226d53c002910f0b30971bf2ed0638612af4cd01bdc7ea585cc9b21d6"
+    },
+    "assets/enemies/drone_original_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "93417dc1e7324b86f4ef72b5d5cdf869bee9b964b63fd8f0345dd898941ef65e"
+    },
+    "assets/enemies/stinger_original_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "aada95bca8e6dc32dfdc74b138d3c95d53c29dcaf4d4da2714fc55884058e2d4"
+    },
+    "assets/player/falcon_0_original_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "b4a9ad18d6bc025ba213f9ca54efcb889d5c3f9b34433b03069e5130472be289"
+    },
+    "assets/fx/charge_00.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "e19b53a0178e32fd0b957175a7bd7ff39066ac44af5b0b3d3226ef9bf5e35dad"
+    },
+    "assets/fx/charge_01.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "e9841ab6b0aef1164ebdd5cfc1f3d1acfef9b3c481b8a0184988708434eb2650"
+    },
+    "assets/fx/charge_02.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "3eb317fe3e63bab134db3756c28ce9f34533242e5def17685678056c70a6892c"
+    },
+    "assets/fx/charge_03.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "0a43a070fe201866ddaa5bb78ba68eb93aa825defd134718c0552f3b32c67fee"
+    },
+    "assets/fx/charge_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "5169321c2332513813ee34a9b8e4d431308a310828ca64842b3df818a19dc3d3"
+    },
+    "assets/fx/beam_00.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "4f59aee13a176c28899fa04ddcb6888ae5ff3c16992d644c8df8afe4bc2a96ad"
+    },
+    "assets/fx/beam_01.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "7555a10d6c8894961bcd286a1510216659ed8fc5892467cb05474b726ba8bb4e"
+    },
+    "assets/fx/beam_02.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "a2ee11e7cec371c6b744ba3b1cea26b57161df616aab1fbce68d285c08ffcd33"
+    },
+    "assets/fx/beam_03.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "166eabdbb49c2e79f03fcf67c25a1d6974d1374d5d04f48abdc9648f02865e61"
+    },
+    "assets/fx/beam_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "d4c18c45bc0baa6ad6ba9fa82f630fe33ed890dd9fae32c56fb78d75f66ff818"
+    },
+    "assets/fx/flame_00.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "3c451c1166a6093d1b74132948a3f469b247ca9c57049a9336091433ce9263c8"
+    },
+    "assets/fx/flame_01.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "e01fca95eec11d40656bfa2d53ce56c053aa1c7f929d3b0eddf24909c2362b24"
+    },
+    "assets/fx/flame_02.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "d3b8a42833326e13df7b8c220da9969ee17c23b5e51da650530c5b921661f22e"
+    },
+    "assets/fx/flame_03.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "bef01f9d01eebc7a922878a335cc0df802bbd257007e8d3bd99f37966ea5e2cb"
+    },
+    "assets/fx/flame_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "8b1c49d9bf9ea809636b81834618aa8c724b28ea572bb92fd7ab2f9c42350772"
+    },
+    "assets/fx/impact_00.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "e6c10d9de525f5af4606f87d8cc059b62ab956d688cf4fe5387554ae9f9bf78d"
+    },
+    "assets/fx/impact_01.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "e9d68eb6c9c6aff518560144877d20d607714f8beb9ab8e2f045aef0b3290c84"
+    },
+    "assets/fx/impact_02.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "12c73acfa91da0c0113efa35402ed1bf8f21577cd92e87e308690b5b1fd09e61"
+    },
+    "assets/fx/impact_03.png": {
+      "size": [
+        48,
+        48
+      ],
+      "sha256": "3013fd53435d7e7c1a6711e5be2a08922e5b0db3408225ecef742427fa2090cd"
+    },
+    "assets/fx/impact_sheet.png": {
+      "size": [
+        192,
+        48
+      ],
+      "sha256": "5d6fd74b5ed6f601a4c3d06c20e0f98ab62a25e60ee1f24a329517d6df22dec8"
+    },
+    "assets/fx/bullet_00.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "e142c81fcee6f83b96bc2dfd812996841d009eb14bae5817b44d40c09d806b04"
+    },
+    "assets/fx/bullet_01.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "e142c81fcee6f83b96bc2dfd812996841d009eb14bae5817b44d40c09d806b04"
+    },
+    "assets/fx/bullet_02.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "e142c81fcee6f83b96bc2dfd812996841d009eb14bae5817b44d40c09d806b04"
+    },
+    "assets/fx/bullet_03.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "e142c81fcee6f83b96bc2dfd812996841d009eb14bae5817b44d40c09d806b04"
+    },
+    "assets/fx/bullet_sheet.png": {
+      "size": [
+        64,
+        16
+      ],
+      "sha256": "53b37f77661a030c1818f0e6b805a0b3c6849518baab5b1b66bff6c8a6cafc3c"
+    },
+    "assets/fx/aimed_bullet_00.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "9ef389696f8bdd4948102eeee4b5d8e0d4694d3ce5c42d1c9df85c4077d33711"
+    },
+    "assets/fx/aimed_bullet_01.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "9ef389696f8bdd4948102eeee4b5d8e0d4694d3ce5c42d1c9df85c4077d33711"
+    },
+    "assets/fx/aimed_bullet_02.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "9ef389696f8bdd4948102eeee4b5d8e0d4694d3ce5c42d1c9df85c4077d33711"
+    },
+    "assets/fx/aimed_bullet_03.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "9ef389696f8bdd4948102eeee4b5d8e0d4694d3ce5c42d1c9df85c4077d33711"
+    },
+    "assets/fx/aimed_bullet_sheet.png": {
+      "size": [
+        64,
+        16
+      ],
+      "sha256": "df9e998439c3312dfbe8ac76d6f50a938fa9db0d7ac100bf2701a034c2f1c857"
+    },
+    "assets/fx/muzzle_00.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "a1aed51c6d7d2d44d6ebe408930fd739a76c92378421249441eb2f2bcf30a0e7"
+    },
+    "assets/fx/muzzle_01.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "db3a98c06e225a6f6cfacbcbe0afec390dd7c3b48161e6f90989717cc3ca8601"
+    },
+    "assets/fx/muzzle_02.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "e3a8680d104d7eb5c9f93f4b544b6b0ec5c4929537e84ccab7fe85c29cfa8a36"
+    },
+    "assets/fx/muzzle_03.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "169aeba00ac4a2342edbcda140fce5ce04e5a2f6e88e7502e222e76bf942c424"
+    },
+    "assets/fx/muzzle_sheet.png": {
+      "size": [
+        64,
+        16
+      ],
+      "sha256": "6b8f8615d524dc7d606b661c27e7775040ccea544f1f875d599f3311527c0f14"
+    },
+    "assets/fx/telegraph_00.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "85c4a448ee3def62d81c3fa43336b55a458094d1a7f6708e82f80495faa3523b"
+    },
+    "assets/fx/telegraph_01.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "f06f4b49eea45cdde2ecf5d1da8fa5717b7258d8e35a135b01183aece0e0965c"
+    },
+    "assets/fx/telegraph_02.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "85c4a448ee3def62d81c3fa43336b55a458094d1a7f6708e82f80495faa3523b"
+    },
+    "assets/fx/telegraph_03.png": {
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "f06f4b49eea45cdde2ecf5d1da8fa5717b7258d8e35a135b01183aece0e0965c"
+    },
+    "assets/fx/telegraph_sheet.png": {
+      "size": [
+        64,
+        16
+      ],
+      "sha256": "671f303d0c72ef931e7193560ca9fde8885b4b40da31de948182d1844f07e982"
+    },
+    "assets/environment/backgrounds/00_maintenance_floor.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "0f5baa2c9ac7274b1ca18ec0ed658f3fa1a9c67f6f64538e8acb075c74fab1fc"
+    },
+    "assets/environment/layers/00_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/00_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "61dba1b82ccf3e94498f0bca68214ae0234fa3eea01593585a0b922c5f8fa8f8"
+    },
+    "assets/environment/layers/00_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "34d3f5e756153458cf1532a584909fb0c758f0f2b5475870f82532ddf3bc0d8b"
+    },
+    "assets/environment/backgrounds/01_maintenance_cables.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "b8bfe4642baa86ba54b74cc736503012bd85368a07166a5001a9be8d655699cc"
+    },
+    "assets/environment/layers/01_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/01_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "43d55cb104fde36ff9c68772cc5a23633ce25dcd3d9b26e5924c9a9fe8a388dd"
+    },
+    "assets/environment/layers/01_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "52266a4083410810044e4abdde34a71663dd81ed2e6e740f078c18b1322b9cf0"
+    },
+    "assets/environment/backgrounds/02_maintenance_vents.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "e6ed44bc9eafd55c2a2f8d24439177e780d11df3a67634be3c246afcc1b501da"
+    },
+    "assets/environment/layers/02_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/02_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "c1d3cba17ee092cefaed394afaff83d6956e9f082a38e2809a297198eede9a9f"
+    },
+    "assets/environment/layers/02_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "1703c5539abbc59f453ec077eec57105443478db34bb52196860dc2279a7e640"
+    },
+    "assets/environment/props/maintenance_vents_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "67254f4101240365f318af7e24070438f076fbbab9cc72d36c13d0a092dadfe4"
+    },
+    "assets/environment/props/maintenance_vents_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "d1ba233eb6afd63bb5ea34d00738d0b004129475e6a84bea521528234aa32872"
+    },
+    "assets/environment/backgrounds/03_maintenance_lockers.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "54444f1596fd34135e112f754f19a6aa875f6ed97284eeab2462000831fdc655"
+    },
+    "assets/environment/layers/03_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/03_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "70b62e5063a02f52bc04b95c20ca4c6bc66f7dc7db850902bf262aea03256040"
+    },
+    "assets/environment/layers/03_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "ff2f800c4a9c4be75220684431b925807f984c0831eb1e4c854bd8674438e06a"
+    },
+    "assets/environment/props/maintenance_lockers_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "9666c4b0cdd25473043a0f1007001a8c3d784718068cc878cab3becf3346dfdd"
+    },
+    "assets/environment/props/maintenance_lockers_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "17e5c92195a1859ce2db85fb7738f1f5288105a54d99527e91fb1e9bd63603bd"
+    },
+    "assets/environment/backgrounds/04_archive_shelves.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "bb6fcfb80720b595b3d4ad1e5f68543cc25e241d5e5baec6686f2f3cd867d436"
+    },
+    "assets/environment/layers/04_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/04_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "e34f5815311fda608a922300f67787f7d2422293e335add242008157d9a3aba6"
+    },
+    "assets/environment/layers/04_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "43cfd95de2eca966db98063a4007e2cce5e52c90f41c8642e860ca578fe098a0"
+    },
+    "assets/environment/props/archive_shelves_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "daf6cd877c42f2f5bce8e4d62399afdcb5db0dece38e2eb9943cccaddd30d07e"
+    },
+    "assets/environment/props/archive_shelves_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "6b2d73180d2b926511abe5470cd78ccc848000be4587c8c48e03281e6e46629d"
+    },
+    "assets/environment/backgrounds/05_archive_cartridges.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "b0936946eaa1515d51133f15b1ec8ad8f455907197e5ab6676393cae91274b29"
+    },
+    "assets/environment/layers/05_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/05_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "359966d1a89de9fb9bdeeb1974f21b30c6f11260688dae2189090d23791c56d7"
+    },
+    "assets/environment/layers/05_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "8113a8056945bac4578e0e74e51238e288492475a6aac5c6fa4c78980074ae66"
+    },
+    "assets/environment/props/archive_cartridges_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "13f152eceb9df4a7ad22caeadfcb38099a39203b9bdad4b706a20b29cf44cd25"
+    },
+    "assets/environment/props/archive_cartridges_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "f7bf6cb1a7f1ac0a8022537c6be54d39a7de89fc75f0c52219f4e73b95627e01"
+    },
+    "assets/environment/backgrounds/06_archive_terminals.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "9a46138555ba7e1a6409f93ca6e470edf63f20a8ea831c40beb234aadbe884f8"
+    },
+    "assets/environment/layers/06_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/06_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "615485560a41edeb52c12d56e09b440a88144f2bd3018a9fef558893ef501c84"
+    },
+    "assets/environment/layers/06_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "8323fff38867b56103c6cd4729e484b2880fb78e4da1ae23d5c18cc44efe6c85"
+    },
+    "assets/environment/props/archive_terminals_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "0a885353f921a03978231208eb969de29e9d282fa30aab190d73f610c2feb9c7"
+    },
+    "assets/environment/props/archive_terminals_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "08f6c2ffa98b3fe4c6aae06e5b6dee83e6b02ede1f61d8469f2171d4504f6b34"
+    },
+    "assets/environment/backgrounds/07_archive_sabotage.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "22dbf2e6231fd14666cd928fba6f191c5b229395df0e961ba67cc0c6609ad729"
+    },
+    "assets/environment/layers/07_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/07_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "78b333ccc7ffa74a7e26eb49702b68e7b2cb7b900d6409e8e77e36b2579a0082"
+    },
+    "assets/environment/layers/07_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "df063632eea752587a445b1270ebd315a06cc8d57e05be5fe127cc73c8151ec9"
+    },
+    "assets/environment/props/archive_sabotage_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "08dcf9c719350f521dde32f3e5d918edfb05768d237d3cc9b2c069ed616ec38e"
+    },
+    "assets/environment/props/archive_sabotage_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "5271d9558d2a68e3672bd2d5e52c18610b590162a2ae98c7d3ec1d1138a64264"
+    },
+    "assets/environment/backgrounds/08_security_checkpoint.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "ad38b6862d585e41cd609e96b83bdf61d5aa6ddfd14410e39bd43cb276b34037"
+    },
+    "assets/environment/layers/08_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/08_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "aa10e942ce48988d081dd1182ddfe41486db5d06c6054c73f41911ce5d228b12"
+    },
+    "assets/environment/layers/08_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "c05f1ff4ac7746bfaa42b976c96249f7d4b31759f3a5a1aec3d4da4334cc5948"
+    },
+    "assets/environment/backgrounds/09_security_cooling.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "19ec8f5f9981589a46d3a0b126e6400aa7fad61776322a84813b6293bf0b4d51"
+    },
+    "assets/environment/layers/09_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/09_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "11c74aec54761d9affc98578bb1c3b3ed0cd7f9ecd42de3f0dfae516c2bef969"
+    },
+    "assets/environment/layers/09_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "1b6ac930d8fc8cd5fb380b0dc8753c9b40865788d8ba02507b66ecbb351a8050"
+    },
+    "assets/environment/props/security_cooling_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "26d6625948a47fef224f5fc21ac018d169d3e9bfc311c2ef12a3692a1c67f22d"
+    },
+    "assets/environment/props/security_cooling_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "ace3d4d791ee995535e5eab224bdf31cb40f49a21bc416a527a3077a2589b45f"
+    },
+    "assets/environment/backgrounds/10_security_vault.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "c265668c99b6849d52c371b9ae36be32a862dd797d3096695a46ffe30c3e362f"
+    },
+    "assets/environment/layers/10_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/10_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "99fb21dc721ce92b7d35e6afc1945d2ddbec622d432bf0c53163b3a8a4a766c3"
+    },
+    "assets/environment/layers/10_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "21139c004d1a02aafa92a23e0df97ca16f523198e1a029b1307d8bf1a4b69649"
+    },
+    "assets/environment/props/security_vault_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "ff44e7966b053173dfb7dddb975e0e3aa771c2e18b01d873a49b0a559b826177"
+    },
+    "assets/environment/props/security_vault_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "b2ce12d59f61c24909439996c15b03ed9b6cfcaf0a1d9d503d098695138f5675"
+    },
+    "assets/environment/backgrounds/11_security_antechamber.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "d21ffd81f349847f634b40cca16208f2fccbc7cae4eee1cecc4c92368e9c921f"
+    },
+    "assets/environment/layers/11_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/11_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "b58ded52241d915cd4b37eed39e6cf60779ef27b78361e7648e65072cabed72a"
+    },
+    "assets/environment/layers/11_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "4992e707e8f6f6cd150d6d4a8e6c77246031b93987e314aca63c3fe4a9463810"
+    },
+    "assets/environment/props/security_antechamber_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "610fc174acbf8e22a459f7c6e25a8461eb1ce9c3fa2b291cdfcb5761a10f10cd"
+    },
+    "assets/environment/props/security_antechamber_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "1f94b6e29f93fe79c74dffbaa588af6b612c57a74032db088c34596e17db2673"
+    },
+    "assets/environment/backgrounds/12_boss_silo.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "064aabb51212a18e32a33b5521cbcbfec22a4f54c91e4c050ec9804b79a39ba7"
+    },
+    "assets/environment/layers/12_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/12_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "a77cb497a0980fce191a819a4d3bf9a9e4cd9470532361f88ba14dc8947e2c9c"
+    },
+    "assets/environment/layers/12_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "4f6061a47ab2521c8553d95cc01fb60851343a93c772001a7b35a6f4d9ab4015"
+    },
+    "assets/environment/backgrounds/13_boss_sockets.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "00151c34359d348fc21d4ef800ae9875b4004bb096b4006a146f9010fcba9e61"
+    },
+    "assets/environment/layers/13_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/13_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2f42247be1c2f9bfa3b5c9951d9234d7a6732097424d02bb52ac39f07746bdc2"
+    },
+    "assets/environment/layers/13_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "673d799d17cf6979db8114695b56f01210c18585422fe7e68cbdf1da4bc2b20f"
+    },
+    "assets/environment/props/boss_sockets_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "33127f884b428761a991eb11dcea5cff0ba40c5befc583ac4ae7b9d64987ff34"
+    },
+    "assets/environment/props/boss_sockets_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "9f1cca9c80a719faa6d82012ab57fa49f4037d71f3fdf8d50ec9c560570fc71f"
+    },
+    "assets/environment/backgrounds/14_boss_aftermath.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "4950bfcb776e70d9d4de584587102554044d98c534840b8b62bffc259b147d5f"
+    },
+    "assets/environment/layers/14_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/14_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "ee25d2c68749d38c420e2179fec332bc04da4c5df24ea69db5e823fc7dd29fcb"
+    },
+    "assets/environment/layers/14_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "550c6a630dea26a171dccfb48ab7a136a129d4c8095f5f268e297f8b7b76a97f"
+    },
+    "assets/environment/props/boss_aftermath_left.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "1d7b2ab0d445d425114f79a22147ad4402e71a530fa99a7d41972c9680e8e066"
+    },
+    "assets/environment/props/boss_aftermath_right.png": {
+      "size": [
+        28,
+        128
+      ],
+      "sha256": "840f9005f1f8e20678c9de77f366f61bd41db40384085f2ac742b037192defef"
+    },
+    "assets/environment/backgrounds/15_quiet_floor.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "ded7fc50fdb3cd2bb4fb07482f77e43f52a7b9c77ff3f98e7e6b40c117fc6bf1"
+    },
+    "assets/environment/layers/15_far.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "2d876bc066f3456885b0ac1979bcc75f97259046325451411cff235681e5550d"
+    },
+    "assets/environment/layers/15_structure.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "e5b66240dba9a3aac671a0abc7987ed18d27f12c3387e1d1f9576f3863d10ddd"
+    },
+    "assets/environment/layers/15_walls.png": {
+      "size": [
+        160,
+        160
+      ],
+      "sha256": "bb999651f6808911299b4e8a2d592f2ec3050dd72dd83684bb1747d8ae793a09"
+    },
+    "assets/environment/tiles/industrial_16.png": {
+      "size": [
+        640,
+        640
+      ],
+      "sha256": "25cf302f64c283de7a75cd6a964ea1f5f87ad515f32daf1505c0c2c29e503096"
+    },
+    "previews/environment_contact_sheet.png": {
+      "size": [
+        640,
+        640
+      ],
+      "sha256": "5f70795e97a9c7993dadffc4df07642f6fa95fda5032a1a77804ff0224c4c5a0"
+    },
+    "assets/ui/vesta_portrait_box.png": {
+      "size": [
+        152,
+        48
+      ],
+      "sha256": "be93e2652f45f15601981f7dd5ff19c4421a31a6d7b9c658b519c8b7e6803564"
+    },
+    "assets/ui/guardian_portrait_box.png": {
+      "size": [
+        152,
+        48
+      ],
+      "sha256": "58bb7cbd7aa0d9714b21ac075658babc7d37e72c6263c67ebf045d5f4c8836ec"
+    },
+    "assets/ui/vesta_plain_box.png": {
+      "size": [
+        152,
+        48
+      ],
+      "sha256": "e4135b5397a15bbba8d5ca7a94f69efdc53c542e6aa78b77223664fb122bad59"
+    },
+    "assets/ui/guardian_plain_box.png": {
+      "size": [
+        152,
+        48
+      ],
+      "sha256": "5fb0b3ad353a01f7f88f03c5cf9393f8919e95ddaab6b49118347e336ce9b2b9"
+    },
+    "assets/ui/vesta_portrait.png": {
+      "size": [
+        40,
+        40
+      ],
+      "sha256": "d60ad4dc9127c60e68b6a4002b55fe5189c62ce036ac08ff952e9d84f2c07f02"
+    },
+    "assets/ui/guardian_portrait.png": {
+      "size": [
+        40,
+        40
+      ],
+      "sha256": "9f467c8608c1889c634fa914db4729d9e7e697009825d7d1496ac9ab7b1a2983"
+    },
+    "assets/ui/anonymous_pilot.png": {
+      "size": [
+        40,
+        40
+      ],
+      "sha256": "19b604517d6de582eaa87d10c080cac2b7ca8321ccba5cdf53e85671dd240f0a"
+    },
+    "assets/ui/portrait_frame.png": {
+      "size": [
+        40,
+        40
+      ],
+      "sha256": "eda4272157367b9dcfbd11bdd0231e36a1295eb0e9efe4e3a5e26d3da587c74f"
+    },
+    "assets/ui/vesta_ninepatch.png": {
+      "size": [
+        152,
+        48
+      ],
+      "sha256": "3283a7767a313c909fca0b1ca36272b17f0fc3e1e8c4874bfd60baa160189a03"
+    },
+    "assets/ui/guardian_ninepatch.png": {
+      "size": [
+        152,
+        48
+      ],
+      "sha256": "3adb4285eea1ca15f347d7b00c46bf7ee4131bd3e5cb3eb5277ef382571de697"
+    }
+  },
+  "animations": {
+    "boss/idle": {
+      "sheet": "assets/boss/idle_sheet.png",
+      "frame_size": [
+        96,
+        128
+      ],
+      "frames": 8,
+      "fps": 10,
+      "loop": true,
+      "anchor": [
+        48,
+        64
+      ]
+    },
+    "boss/open": {
+      "sheet": "assets/boss/open_sheet.png",
+      "frame_size": [
+        96,
+        128
+      ],
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "anchor": [
+        48,
+        64
+      ]
+    },
+    "boss/charge": {
+      "sheet": "assets/boss/charge_sheet.png",
+      "frame_size": [
+        96,
+        128
+      ],
+      "frames": 8,
+      "fps": 10,
+      "loop": true,
+      "anchor": [
+        48,
+        64
+      ]
+    },
+    "boss/fire": {
+      "sheet": "assets/boss/fire_sheet.png",
+      "frame_size": [
+        96,
+        128
+      ],
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "anchor": [
+        48,
+        64
+      ]
+    },
+    "boss/recoil": {
+      "sheet": "assets/boss/recoil_sheet.png",
+      "frame_size": [
+        96,
+        128
+      ],
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "anchor": [
+        48,
+        64
+      ]
+    },
+    "boss/damaged": {
+      "sheet": "assets/boss/damaged_sheet.png",
+      "frame_size": [
+        96,
+        128
+      ],
+      "frames": 8,
+      "fps": 10,
+      "loop": true,
+      "anchor": [
+        48,
+        64
+      ]
+    },
+    "boss/defeat": {
+      "sheet": "assets/boss/defeat_sheet.png",
+      "frame_size": [
+        96,
+        128
+      ],
+      "frames": 12,
+      "fps": 12,
+      "loop": false,
+      "anchor": [
+        48,
+        64
+      ]
+    },
+    "enemy/radar_drone": {
+      "sheet": "assets/enemies/radar_drone_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 6,
+      "loop": true,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "enemy/patrol_interceptor": {
+      "sheet": "assets/enemies/patrol_interceptor_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 6,
+      "loop": true,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "enemy/mine_layer": {
+      "sheet": "assets/enemies/mine_layer_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 6,
+      "loop": true,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "enemy/armored_transport": {
+      "sheet": "assets/enemies/armored_transport_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 6,
+      "loop": true,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "source/drone": {
+      "sheet": "assets/enemies/drone_original_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "source/stinger": {
+      "sheet": "assets/enemies/stinger_original_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "source/falcon_0": {
+      "sheet": "assets/player/falcon_0_original_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "fx/charge": {
+      "sheet": "assets/fx/charge_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 12,
+      "loop": false,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "fx/beam": {
+      "sheet": "assets/fx/beam_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 12,
+      "loop": true,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "fx/flame": {
+      "sheet": "assets/fx/flame_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 12,
+      "loop": true,
+      "anchor": [
+        24,
+        8
+      ]
+    },
+    "fx/impact": {
+      "sheet": "assets/fx/impact_sheet.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 12,
+      "loop": false,
+      "anchor": [
+        24,
+        24
+      ]
+    },
+    "fx/bullet": {
+      "sheet": "assets/fx/bullet_sheet.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 12,
+      "loop": true,
+      "anchor": [
+        8,
+        8
+      ]
+    },
+    "fx/aimed_bullet": {
+      "sheet": "assets/fx/aimed_bullet_sheet.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 12,
+      "loop": true,
+      "anchor": [
+        8,
+        8
+      ]
+    },
+    "fx/muzzle": {
+      "sheet": "assets/fx/muzzle_sheet.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 12,
+      "loop": false,
+      "anchor": [
+        8,
+        8
+      ]
+    },
+    "fx/telegraph": {
+      "sheet": "assets/fx/telegraph_sheet.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 12,
+      "loop": true,
+      "anchor": [
+        8,
+        8
+      ]
+    }
+  },
+  "rig": {
+    "canvas": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      64
+    ],
+    "parts": {
+      "torso": {
+        "pivot": [
+          48,
+          64
+        ],
+        "texture": "assets/boss/parts/torso.png",
+        "parent": "root"
+      },
+      "crown": {
+        "pivot": [
+          48,
+          36
+        ],
+        "texture": "assets/boss/parts/crown.png",
+        "parent": "root"
+      },
+      "shoulder_l": {
+        "pivot": [
+          26,
+          53
+        ],
+        "texture": "assets/boss/parts/shoulder_l.png",
+        "parent": "root"
+      },
+      "shoulder_r": {
+        "pivot": [
+          70,
+          53
+        ],
+        "texture": "assets/boss/parts/shoulder_r.png",
+        "parent": "root"
+      },
+      "forearm_l": {
+        "pivot": [
+          22,
+          82
+        ],
+        "texture": "assets/boss/parts/forearm_l.png",
+        "parent": "shoulder_l"
+      },
+      "forearm_r": {
+        "pivot": [
+          74,
+          82
+        ],
+        "texture": "assets/boss/parts/forearm_r.png",
+        "parent": "shoulder_r"
+      },
+      "iris": {
+        "pivot": [
+          48,
+          63
+        ],
+        "texture": "assets/boss/parts/iris.png",
+        "parent": "root"
+      },
+      "jaw": {
+        "pivot": [
+          48,
+          88
+        ],
+        "texture": "assets/boss/parts/jaw.png",
+        "parent": "root"
+      }
+    },
+    "sockets": {
+      "eye": [
+        48,
+        63
+      ],
+      "muzzle_l": [
+        22,
+        103
+      ],
+      "muzzle_r": [
+        74,
+        103
+      ],
+      "core": [
+        48,
+        88
+      ],
+      "exhaust_l": [
+        39,
+        97
+      ],
+      "exhaust_r": [
+        57,
+        97
+      ]
+    },
+    "rest_reconstruction_exact": true
+  },
+  "environment": [
+    {
+      "id": 0,
+      "name": "maintenance_floor",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/00_maintenance_floor.png",
+      "layers": [
+        "assets/environment/layers/00_far.png",
+        "assets/environment/layers/00_structure.png",
+        "assets/environment/layers/00_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 0
+    },
+    {
+      "id": 1,
+      "name": "maintenance_cables",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/01_maintenance_cables.png",
+      "layers": [
+        "assets/environment/layers/01_far.png",
+        "assets/environment/layers/01_structure.png",
+        "assets/environment/layers/01_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 0
+    },
+    {
+      "id": 2,
+      "name": "maintenance_vents",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/02_maintenance_vents.png",
+      "layers": [
+        "assets/environment/layers/02_far.png",
+        "assets/environment/layers/02_structure.png",
+        "assets/environment/layers/02_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 0
+    },
+    {
+      "id": 3,
+      "name": "maintenance_lockers",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/03_maintenance_lockers.png",
+      "layers": [
+        "assets/environment/layers/03_far.png",
+        "assets/environment/layers/03_structure.png",
+        "assets/environment/layers/03_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 0
+    },
+    {
+      "id": 4,
+      "name": "archive_shelves",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/04_archive_shelves.png",
+      "layers": [
+        "assets/environment/layers/04_far.png",
+        "assets/environment/layers/04_structure.png",
+        "assets/environment/layers/04_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 1
+    },
+    {
+      "id": 5,
+      "name": "archive_cartridges",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/05_archive_cartridges.png",
+      "layers": [
+        "assets/environment/layers/05_far.png",
+        "assets/environment/layers/05_structure.png",
+        "assets/environment/layers/05_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 1
+    },
+    {
+      "id": 6,
+      "name": "archive_terminals",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/06_archive_terminals.png",
+      "layers": [
+        "assets/environment/layers/06_far.png",
+        "assets/environment/layers/06_structure.png",
+        "assets/environment/layers/06_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 1
+    },
+    {
+      "id": 7,
+      "name": "archive_sabotage",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/07_archive_sabotage.png",
+      "layers": [
+        "assets/environment/layers/07_far.png",
+        "assets/environment/layers/07_structure.png",
+        "assets/environment/layers/07_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 1
+    },
+    {
+      "id": 8,
+      "name": "security_checkpoint",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/08_security_checkpoint.png",
+      "layers": [
+        "assets/environment/layers/08_far.png",
+        "assets/environment/layers/08_structure.png",
+        "assets/environment/layers/08_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 2
+    },
+    {
+      "id": 9,
+      "name": "security_cooling",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/09_security_cooling.png",
+      "layers": [
+        "assets/environment/layers/09_far.png",
+        "assets/environment/layers/09_structure.png",
+        "assets/environment/layers/09_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 2
+    },
+    {
+      "id": 10,
+      "name": "security_vault",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/10_security_vault.png",
+      "layers": [
+        "assets/environment/layers/10_far.png",
+        "assets/environment/layers/10_structure.png",
+        "assets/environment/layers/10_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 2
+    },
+    {
+      "id": 11,
+      "name": "security_antechamber",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/11_security_antechamber.png",
+      "layers": [
+        "assets/environment/layers/11_far.png",
+        "assets/environment/layers/11_structure.png",
+        "assets/environment/layers/11_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 2
+    },
+    {
+      "id": 12,
+      "name": "boss_silo",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/12_boss_silo.png",
+      "layers": [
+        "assets/environment/layers/12_far.png",
+        "assets/environment/layers/12_structure.png",
+        "assets/environment/layers/12_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 3
+    },
+    {
+      "id": 13,
+      "name": "boss_sockets",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/13_boss_sockets.png",
+      "layers": [
+        "assets/environment/layers/13_far.png",
+        "assets/environment/layers/13_structure.png",
+        "assets/environment/layers/13_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 3
+    },
+    {
+      "id": 14,
+      "name": "boss_aftermath",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/14_boss_aftermath.png",
+      "layers": [
+        "assets/environment/layers/14_far.png",
+        "assets/environment/layers/14_structure.png",
+        "assets/environment/layers/14_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 3
+    },
+    {
+      "id": 15,
+      "name": "quiet_floor",
+      "size": [
+        160,
+        160
+      ],
+      "background": "assets/environment/backgrounds/15_quiet_floor.png",
+      "layers": [
+        "assets/environment/layers/15_far.png",
+        "assets/environment/layers/15_structure.png",
+        "assets/environment/layers/15_walls.png"
+      ],
+      "north_south_equal": true,
+      "collision": false,
+      "group": 3
+    }
+  ],
+  "route": {
+    "modules": [
+      0,
+      1,
+      2,
+      3,
+      1,
+      4,
+      5,
+      6,
+      5,
+      7,
+      8,
+      9,
+      10,
+      9,
+      11,
+      12,
+      13
+    ],
+    "height": 2720,
+    "scroll_native_pixels_s": 22,
+    "arena_modules": [
+      12,
+      13
+    ],
+    "entry_to_boss": "maintenance > archives > security > antechamber > silo",
+    "note": "Art direction sequence; retain gameplay timing of native mission unless explicitly tuned."
+  },
+  "polarity": {
+    "mode": "positive_LCD",
+    "outline": "#2f3329",
+    "armor_surfaces": [
+      "#9ea483",
+      "#7d8267"
+    ],
+    "recess": "#595c4c",
+    "floor": "light",
+    "effects": "bright_independent",
+    "warning": "Production PNGs already corrected; NEVER invert them again in a shader."
+  }
+}

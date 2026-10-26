@@ -1,0 +1,27 @@
+{
+  "repository": "https://github.com/JacquesBV/Neo-vanguard",
+  "inspected_branch": "godot/native-recreation",
+  "inspected_commit": "b598537056bfe3df1870843084cd0497f2fb6f71",
+  "historical_reference_commit": "ccd7e82087afc8a993fbb5e3a5dcf2d3f6dbf057",
+  "original_boss_pose": {
+    "frame": 0,
+    "region": [
+      1194,
+      0,
+      298,
+      377
+    ]
+  },
+  "source_sha256": {
+    "assets/bosses/boss-01.webp": "57ad9f34881632e83b1ad54412e7d34eb2f9729fe6e7b471d703165dca85d304",
+    "native/sector1/baked/atlas.png": "2885b91fd86cbe8618f33c128ac8676119abf8980b107db4270d9ce7662ad567",
+    "native/sector1/sector.json": "babbe50da59182421477f617db419c2fdbff93ab8c92f821d09bae28283c3916",
+    "js/51-nv-fanboy-reference.js": "1ef3601d9a244b62c5427d423f2146be78b4ecdd2aa0db083bb51c60c9191c27"
+  },
+  "authorship": {
+    "boss_identity": "existing repository mecha, neutral pose separated into a native visual rig; positive LCD color correction requested by the creator",
+    "new_art": "imagegen environment, four new enemy families, VFX and blank UI; cropped and calibrated to a fixed four-tone native raster",
+    "original_control_assets": "Falcon, drone and stinger from native atlas"
+  },
+  "important": "Raw art sources can use earlier polarity. Production assets and final native captures are authoritative."
+}

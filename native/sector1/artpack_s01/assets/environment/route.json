@@ -1,0 +1,29 @@
+{
+  "modules": [
+    0,
+    1,
+    2,
+    3,
+    1,
+    4,
+    5,
+    6,
+    5,
+    7,
+    8,
+    9,
+    10,
+    9,
+    11,
+    12,
+    13
+  ],
+  "height": 2720,
+  "scroll_native_pixels_s": 22,
+  "arena_modules": [
+    12,
+    13
+  ],
+  "entry_to_boss": "maintenance > archives > security > antechamber > silo",
+  "note": "Art direction sequence; retain gameplay timing of native mission unless explicitly tuned."
+}

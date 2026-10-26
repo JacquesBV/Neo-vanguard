@@ -1,0 +1,9 @@
+{
+  "checks": 1791,
+  "failures": 0,
+  "pngs_in_manifest": 247,
+  "animation_sets": 22,
+  "background_modules": 16,
+  "north_south_pairs": 256,
+  "source_rest_reconstruction_exact": true
+}

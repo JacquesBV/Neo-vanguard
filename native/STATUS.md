@@ -7,6 +7,34 @@ Les 23 autres secteurs, les menus définitifs et les systèmes de campagne reste
 à recréer. La parité visuelle, sonore et ludique intégrale n'est pas validée.
 Ce n'est pas une version commercialisable, un APK ou un candidat Meta Store.
 
+## Pack visuel S01 (provisoire) intégré — 26 octobre 2026
+
+- `native/sector1/artpack_s01/` installé par l'outil officiel du pack, puis
+  **raccordé** : décors 3 couches suivant `route.json` (17 slots, arène 12/13,
+  aftermath en récolte), 4 familles d'ennemis mappées explicitement sur les
+  kinds existants (visuel seul : vagues/PV/timings source inchangés), boss
+  GARDIEN DU SILO rendu par le **rig articulé** (8 pièces, 6 sockets,
+  `showcase_cycle=false`, fissures pilotées par les PV, recul après tir,
+  désarticulation à la mort), rayons/flammes/charge = effets séparés aux
+  sockets, aucun projectile de gameplay côté présentation.
+- Dialogues Vesta/Gardien : cadres VIDES du pack + texte Godot localisable ;
+  4 déclencheurs (accueil, avertissement, échange d'activation, après-victoire) ;
+  fenêtre bloquante gèle simulation/ennemis/tirs/bombes/horloges, la touche
+  de fermeture ne tire ni ne bombe.
+- **Ce pack est une BASE PROVISOIRE** : un pack graphique définitif remplacera
+  sprites, animations, décors et boss. L'architecture est commutable par
+  `PACK_ID` (contrat : `native/sector1/ARTPACK_CONTRACT.md`), avec repli
+  automatique sur l'atlas cuit si le pack manque.
+- Validation : pack `tests/validate.gd` **562 contrôles / 0 échec** ;
+  raccordement `native/tests/artpack_s01.gd` **22 contrôles / 0 échec**
+  (dont reconstruction du rig au repos identique au master pixel près) ;
+  suites projet inchangées : core 40, sector1 39, presentation 37,
+  rewards 29 — **145 contrôles / 0 échec**. Total **729 contrôles**.
+- Limites : captures écran à produire (GPU logiciel du bac à sable trop lent,
+  à rejouer sur poste GPU) ; « family mapping » visuelle à affiner quand le
+  pack définitif précisera les familles attendues par vague ; aucune parité
+  visuelle navigateur/native annoncée.
+
 ## Fidélité du secteur 1 — reprise après a70ff92
 
 - Collecte : puissances, boucliers, soins, bombes, COINS et trois matériaux,

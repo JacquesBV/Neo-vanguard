@@ -1,0 +1,103 @@
+{
+  "canvas": [
+    96,
+    128
+  ],
+  "anchor": [
+    48,
+    64
+  ],
+  "parts": {
+    "torso": {
+      "pivot": [
+        48,
+        64
+      ],
+      "texture": "assets/boss/parts/torso.png",
+      "parent": "root"
+    },
+    "crown": {
+      "pivot": [
+        48,
+        36
+      ],
+      "texture": "assets/boss/parts/crown.png",
+      "parent": "root"
+    },
+    "shoulder_l": {
+      "pivot": [
+        26,
+        53
+      ],
+      "texture": "assets/boss/parts/shoulder_l.png",
+      "parent": "root"
+    },
+    "shoulder_r": {
+      "pivot": [
+        70,
+        53
+      ],
+      "texture": "assets/boss/parts/shoulder_r.png",
+      "parent": "root"
+    },
+    "forearm_l": {
+      "pivot": [
+        22,
+        82
+      ],
+      "texture": "assets/boss/parts/forearm_l.png",
+      "parent": "shoulder_l"
+    },
+    "forearm_r": {
+      "pivot": [
+        74,
+        82
+      ],
+      "texture": "assets/boss/parts/forearm_r.png",
+      "parent": "shoulder_r"
+    },
+    "iris": {
+      "pivot": [
+        48,
+        63
+      ],
+      "texture": "assets/boss/parts/iris.png",
+      "parent": "root"
+    },
+    "jaw": {
+      "pivot": [
+        48,
+        88
+      ],
+      "texture": "assets/boss/parts/jaw.png",
+      "parent": "root"
+    }
+  },
+  "sockets": {
+    "eye": [
+      48,
+      63
+    ],
+    "muzzle_l": [
+      22,
+      103
+    ],
+    "muzzle_r": [
+      74,
+      103
+    ],
+    "core": [
+      48,
+      88
+    ],
+    "exhaust_l": [
+      39,
+      97
+    ],
+    "exhaust_r": [
+      57,
+      97
+    ]
+  },
+  "rest_reconstruction_exact": true
+}
