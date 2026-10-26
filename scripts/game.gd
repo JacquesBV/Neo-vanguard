@@ -242,6 +242,14 @@ func set_era(e: int) -> void:
 	t["livery"] = [Color(gb[0]), Color(gb[1]), Color(gb[2]), Color(gb[3])]
 	for k in t:
 		if t[k] is String: t[k] = Color(t[k])
+	if era_idx == 0:
+		# correctif : secteurs 1 à 4 (ère POCKET) — aucune couleur hors console.
+		# danger/gold/shield/hull génériques (#ff405f/#ffd166/…) s'invitaient
+		# dans les pop-ups, jauges et bannières de l'écran LCD.
+		t["danger"] = Color(Data.INKS[3])
+		t["gold"] = Color(Data.INKS[3])
+		t["shield"] = Color(Data.INKS[2])
+		t["hull"] = Color(Data.INKS[2])
 	TH = t
 
 # =========================================================================
@@ -333,6 +341,7 @@ func _process(delta: float) -> void:
 		apply_scheduled(dt)
 	update_players(dt)
 	update_enemies(dt)
+	update_bullet_hits()
 	update_bullets(dt)
 	update_ebullets(dt)
 	update_pickups(dt)
@@ -709,6 +718,28 @@ func update_bullets(dt: float) -> void:
 
 func enemies_or_boss_on_field() -> bool:
 	return true
+
+# impact des tirs du joueur contre les ennemis standards (correctif : seuls
+# boss / sas / props / mains encaissaient les bullets, jamais les ennemis —
+# un tir traversait un satellite sans dégât). Un tir = un impact par frame.
+func update_bullet_hits() -> void:
+	for i in range(bullets.size() - 1, -1, -1):
+		var bu: Dictionary = bullets[i]
+		var hit: Dictionary = {}
+		for e in enemies:
+			if e.dead or e.hp <= 0 or e.y < -20.0:
+				continue
+			var rr: float = e.r * 0.9 + bu.r
+			if (bu.x - e.x) * (bu.x - e.x) + (bu.y - e.y) * (bu.y - e.y) < rr * rr:
+				hit = e
+				break
+		if hit.is_empty():
+			continue
+		hit.flash = 0.09
+		hit.hit_fx_t = 0.12
+		damage_enemy(hit, bu.dmg)
+		if not bool(bu.get("pierce", false)):
+			bullets.remove_at(i)
 
 # =========================================================================
 #  ENNEMIS
@@ -1149,7 +1180,7 @@ func build_plan(lv: int) -> Array:
 	var mini: String = Data.MINI_OF_ERA[era]
 	var plan: Array = []
 	var t := 2.2
-	var dens: float = 1.0 + st * 0.18 + era * 0.06
+	var dens: float = 1.0 + st * 0.10 + era * 0.04   # (correctif) vagues moins denses dès la zone 2 : le boss arrivait trop vite
 	dens = minf(dens, 1.18) if lv == 12 else dens
 	var n := func(k: float) -> int:
 		return int(round(k * dens))
@@ -1178,18 +1209,18 @@ func build_plan(lv: int) -> Array:
 	W.call(4.5, "line_mix", "pool", 2, 0)
 	# 4. zones 2 à 4 : le rythme se resserre
 	if st >= 1:
-		W.call(4.0, "for", "pool", n.call(5), 0)
-		W.call(3.5, "double_for", "pool", n.call(4), n.call(3))
-		W.call(4.0, "for", "pool", n.call(5), 0)
-	if st >= 2:
-		W.call(4.0, "elite_for", "pool", n.call(4), 0)
 		W.call(5.0, "for", "pool", n.call(5), 0)
-		W.call(4.0, "for", "pool", n.call(6), 0)
+		W.call(4.5, "double_for", "pool", n.call(4), n.call(3))
+		W.call(5.0, "for", "pool", n.call(5), 0)
+	if st >= 2:
+		W.call(5.0, "elite_for", "pool", n.call(4), 0)
+		W.call(6.0, "for", "pool", n.call(5), 0)
+		W.call(5.5, "for", "pool", n.call(6), 0)
 	if st == 3:
-		W.call(4.0, "for_cross_bomber", "pool", n.call(5), 0)
-		W.call(4.0, "mini_sides", mini, 3 if lv != 12 else 2, 0)
-		W.call(8.0, "double_for", "pool", n.call(6), n.call(4))
-		W.call(4.0, "for", "pool", n.call(6), 0)
+		W.call(5.0, "for_cross_bomber", "pool", n.call(5), 0)
+		W.call(4.5, "mini_sides", mini, 3 if lv != 12 else 2, 0)
+		W.call(9.0, "double_for", "pool", n.call(6), n.call(4))
+		W.call(5.0, "for", "pool", n.call(6), 0)
 	if lv == 12:
 		for ev in plan:
 			ev.t *= 1.16
@@ -1340,7 +1371,7 @@ func _update_props(dt: float) -> void:
 	prop_t -= dt
 	if prop_t <= 0.0:
 		prop_t = randf_range(6.5, 11.0) - Data.lv_eq(level) * 0.4
-		props.append({ "x": randf_range(70, Data.FW - 70), "y": -40, "hp": 6, "r": 30, "t": 0.0 })
+		props.append({ "x": randf_range(70, Data.FW - 70), "y": -40, "hp": 6, "r": 24, "t": 0.0 })   # (correctif) 30 : décor trop large face à l'original
 	for i in range(props.size() - 1, -1, -1):
 		var p: Dictionary = props[i]
 		p.t += dt
@@ -1375,7 +1406,7 @@ func spawn_boss() -> Dictionary:
 		"hp": hp, "max_hp": hp, "t": 0.0, "ph": 0, "atk_idx": 0, "atk_t": 1.2,
 		"flash": 0.0, "dead": false, "dead_t": 0.0, "enter": true,
 		"sc": base.sc, "cr": int(round(base.cr * s.credit * stats.credit_mul)),
-		"tele": 0.0, "tx": Data.FW / 2.0, "ty": 140.0, "seed": randf() * TAU,
+		"tele": 0.0, "tx": Data.FW / 2.0, "ty": Data.FH * 0.31, "seed": randf() * TAU,
 		"parts": [], "by": 1, "hue": [350, 22, 278, 190][base.color],
 	}
 	if b24.get("parts", 0) > 0:
@@ -1467,10 +1498,11 @@ func update_boss(dt: float) -> void:
 		p.t += dt
 		if p.flash > 0.0: p.flash -= dt
 		if not p.dead: p.oa += dt * 0.5
-	# entrée du boss
+	# entrée du boss (correctif : cap en pixels = position erronée en ère 0
+	# où le champ ne fait que 360 px de haut ; l'original vise 31 % de la hauteur)
 	if b.enter:
-		b.y = lerpf(b.y, 265.0, clampf(dt * 1.15, 0.0, 1.0))
-		if b.y > 256.0:
+		b.y = lerpf(b.y, Data.FH * 0.31, clampf(dt * 1.15, 0.0, 1.0))
+		if b.y > Data.FH * 0.30:
 			b.enter = false
 			add_shake(16)
 			add_flash(0.22, Color("#ff405f") if era_idx > 0 else TH.livery[2])
@@ -1497,13 +1529,13 @@ func update_boss(dt: float) -> void:
 		b.tele -= dt
 		if b.tele <= 0.0:
 			b.tele = randf_range(2.6, 4.6)
-			b.tx = randf_range(230, Data.FW - 230)
-			b.ty = randf_range(190, 330)
+			b.tx = randf_range(Data.FW * 0.28, Data.FW * 0.72)
+			b.ty = randf_range(Data.FH * 0.24, Data.FH * 0.36)
 		b.x = lerpf(b.x, b.tx, clampf(dt * 1.6, 0.0, 1.0))
 		b.y = lerpf(b.y, b.ty, clampf(dt * 1.2, 0.0, 1.0))
 	else:
 		b.x = Data.FW / 2.0 + sin(b.t * 0.5 + b.seed) * (Data.FW * 0.2)
-		b.y = 265.0 + sin(b.t * 0.9) * 34.0
+		b.y = Data.FH * 0.31 + sin(b.t * 0.9) * Data.FH * 0.04
 	for p in b.parts:
 		p.x = b.x + cos(p.oa) * p.or
 		p.y = b.y + sin(p.oa) * p.or * 0.7
@@ -2184,7 +2216,7 @@ func _draw_enemies() -> void:
 			if bt != null:
 				# TOUCH_ACTOR_SCALE = 1.22 : tous les acteurs du tactile
 				var ds: float = e.get("dscale", 1.0)
-				var bh2: float = maxi(6, int(round(float(PocketBaker.SPRITE_H.get(eid, 60)) * 0.305))) * ds
+				var bh2: float = maxi(8, int(round(float(PocketBaker.SPRITE_H.get(eid, 60)) * 0.40))) * ds   # (correctif) 0.305 : ennemis trop petits face à l'original
 				var bw4: float = maxi(5, int(round(float(bh2) * PocketBaker.SIL[eid].w)))
 				draw_texture_rect(bt, Rect2(e.x - bw4 / 2.0, e.y - bh2 / 2.0, bw4, bh2), false)
 				_draw_enemy_extra(e)
@@ -2557,12 +2589,8 @@ func _draw_banners() -> void:
 		Phase.BOSS_WARN:
 			if level == Data.MAX_LEVEL and not sas.is_empty():
 				_draw_sas()
-			elif fmod(boss_warn_t, 0.5) < 0.3:
-				draw_rect(Rect2(0, Data.FH * 0.3, Data.FW, 90), Color(0.6, 0.02, 0.12, 0.55))
-			var idx := Data.boss_music_idx(level)
-			var bname: String = Data.BOSS24[idx].name
-			_txt(Vector2(Data.FW / 2, Data.FH * 0.3 + 36), "!! ALERTE VAISSEAU AMIRAL !!", 20, Color(1, 0.9, 0.9), HORIZONTAL_ALIGNMENT_CENTER)
-			_txt(Vector2(Data.FW / 2, Data.FH * 0.3 + 64), bname, 26, TH.e_boss if era_idx > 0 else TH.livery[3], HORIZONTAL_ALIGNMENT_CENTER)
+			else:
+				_draw_alert_banner()   # réplique du redesign web (module 21)
 		Phase.HARVEST:
 			var a := 1.0
 			draw_rect(Rect2(0, 0, Data.FW, Data.FH), Color(TH.gold.r, TH.gold.g, TH.gold.b, 0.06 * a), false, 20.0)
@@ -4144,6 +4172,115 @@ func touch_bomb() -> void:
 	if P.bomb_cd <= 0.0 and not nv24_no_fire():
 		P.bomb_cd = 0.4
 		use_bomb(P)
+		# correctif « téléportation » : l'écart doigt→vaisseau mémorisé avant la
+		# bombe survivait au ralenti et sautait au prochain geste ; on recale
+		# le point de prise sur la position actuelle du vaisseau et du doigt.
+		touch_grab = Vector2(P.x, P.y)
+		touch_base0 = touch_finger
 
 func touch_weapon(dir: int) -> void:
 	cycle_weapon(dir)
+
+# =========================================================================
+#  ALERTE VAISSEAU AMIRAL — réplique de 21-nv-alert-redesign.js : bande
+#  centrale qui s'ouvre, hachures de danger défilant en sens inverse, titre
+#  clignotant avec triangles, nom du boss tapé lettre à lettre, consigne et
+#  jauge d'approche, coins d'encadrement. Teintes console en ère 0.
+# =========================================================================
+func _alert_sm(x: float) -> float:
+	var c := clampf(x, 0.0, 1.0)
+	return c * c * (3.0 - 2.0 * c)
+
+func _alert_txt(key: String) -> String:
+	if str(Save.S.opts.get("lang", "fr")) == "en":
+		return { "title": "WARNING", "sub": "FLAGSHIP APPROACHING · KEEP MOVING" }[key]
+	return { "title": "ALERTE", "sub": "VAISSEAU AMIRAL EN APPROCHE · RESTE MOBILE" }[key]
+
+func _hazard_strip(x0: float, y: float, t: float, dir: float, hh: float, col: Color, inkc: Color) -> void:
+	var step := hh * 2.2
+	var off := fmod(fmod(t * 70.0 * dir, step) + step, step)
+	# fond de bande (le hors-champ est rogné par le viewport, comme le clip web)
+	draw_rect(Rect2(x0, y, Data.FW + step * 3.0, hh), col, true)
+	var sx := x0 - step * 2.0 + off
+	while sx < Data.FW + step:
+		var p1 := Vector2(sx, y + hh)
+		var p2 := Vector2(sx + step * 0.5, y + hh)
+		var p3 := Vector2(sx + step * 0.5 + hh, y)
+		var p4 := Vector2(sx + hh, y)
+		draw_colored_polygon(PackedVector2Array([p1, p2, p3, p4]), inkc)
+		sx += step
+
+func _draw_alert_banner() -> void:
+	var t := boss_warn_t
+	var total: float = Data.BOSS_WARN_DUR
+	var gb := era_idx == 0
+	var red: Color = Color(Data.INKS[3]) if gb else Color("#ff2b45")
+	var amber: Color = Color(Data.INKS[2]) if gb else Color("#ffd166")
+	var white: Color = Color(Data.INKS[3]) if gb else Color.WHITE
+	var stripe_ink: Color = Color(Data.INKS[0]) if gb else Color("#12040a")
+	var ink0: Color = Color(Data.INKS[0])
+	var band_col: Color = Color(ink0.r, ink0.g, ink0.b, 0.97) if gb else Color(0.18, 0.016, 0.055, 0.93)
+	var pulse := 0.5 + 0.5 * sin(t * 13.0)
+	var blink_on: bool = fmod(t * 6.0, 2.0) < 1.0
+	var kout: float = _alert_sm((total - t) / 0.35)
+	var k: float = minf(_alert_sm(t / 0.4), kout)
+	if k <= 0.0:
+		return
+	var cy: float = Data.FH * 0.38
+	var band_h: float = maxf(108.0, Data.FH * 0.155)
+	var sh: float = maxf(12.0, Data.FH * 0.02)
+	var bh: float = band_h * _alert_sm(t / 0.5) * kout
+	var slide: float = (1.0 - _alert_sm(t / 0.35)) * Data.FW + (1.0 - kout) * Data.FW
+	# vignette d'alerte (écrans couleur seulement : la console reste sobre)
+	if not gb:
+		draw_rect(Rect2(0, 0, Data.FW, Data.FH), Color(0.8, 0.08, 0.16, (0.10 + 0.16 * pulse) * k), true)
+	_hazard_strip(-slide, cy - bh / 2.0 - sh, t, 1.0, sh, red, stripe_ink)
+	_hazard_strip(slide, cy + bh / 2.0, t, -1.0, sh, red, stripe_ink)
+	if bh <= 4.0:
+		return
+	var top: float = cy - band_h / 2.0
+	var bot: float = cy + band_h / 2.0
+	draw_rect(Rect2(0, top, Data.FW, band_h), band_col, true)
+	# titre (ajusté à la largeur) + triangles de danger
+	var title: String = _alert_txt("title")
+	var f: Font = ThemeDB.fallback_font
+	var tsize := 21.0
+	while tsize > 13.0 and f.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(tsize)).x > Data.FW * 0.58:
+		tsize -= 0.5
+	var ty: float = top + band_h * 0.16
+	var tcol: Color = white if (blink_on or t > 1.2) else red
+	_txt(Vector2(Data.FW / 2.0, ty + tsize), title, int(tsize), tcol, HORIZONTAL_ALIGNMENT_CENTER)
+	var tw: float = f.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(tsize)).x
+	var ts: float = minf(tsize * 0.7, 24.0)
+	for sgn in [-1.0, 1.0]:
+		var tx: float = Data.FW / 2.0 + sgn * (tw / 2.0 + ts * 1.2)
+		var cyT: float = ty + tsize * 0.5
+		var p1 := Vector2(tx, cyT - ts * 0.55)
+		var p2 := Vector2(tx + ts * 0.52, cyT + ts * 0.4)
+		var p3 := Vector2(tx - ts * 0.52, cyT + ts * 0.4)
+		draw_colored_polygon(PackedVector2Array([p1, p2, p3]), red if blink_on else amber)
+		draw_rect(Rect2(tx - ts * 0.06, cyT - ts * 0.2, ts * 0.12, ts * 0.36), stripe_ink, true)
+	# nom du boss tapé lettre à lettre
+	var idx := Data.boss_music_idx(level)
+	var bname: String = String(Data.BOSS24[idx].name).to_upper()
+	var rev: float = clampf((t - 0.45) / 0.7, 0.0, 1.0)
+	var shown: String = bname.substr(0, int(ceil(bname.length() * rev)))
+	if shown != "":
+		var nsize := 18.0
+		while nsize > 10.0 and f.get_string_size(shown + "_", HORIZONTAL_ALIGNMENT_LEFT, -1, int(nsize)).x > Data.FW * 0.86:
+			nsize -= 0.5
+		var caret: String = "_" if (rev < 1.0 and blink_on) else ""
+		_txt(Vector2(Data.FW / 2.0, ty + tsize + 26.0), shown + caret, int(nsize), amber, HORIZONTAL_ALIGNMENT_CENTER)
+	# consigne + jauge d'approche
+	var sub: String = _alert_txt("sub")
+	_txt(Vector2(Data.FW / 2.0, bot - 16.0), sub, 10,
+		Color(white.r, white.g, white.b, 0.55 + 0.45 * pulse), HORIZONTAL_ALIGNMENT_CENTER)
+	draw_rect(Rect2(Data.FW * 0.1, bot - 6.0, Data.FW * 0.8, 2.0), Color(white.r, white.g, white.b, 0.14), true)
+	draw_rect(Rect2(Data.FW * 0.1, bot - 6.0, Data.FW * 0.8 * clampf(t / total, 0.0, 1.0), 2.0), red, true)
+	# coins d'encadrement
+	for c in [[Vector2(8, top + 8), Vector2(1, 1)], [Vector2(Data.FW - 8, top + 8), Vector2(-1, 1)],
+			[Vector2(8, bot - 8), Vector2(1, -1)], [Vector2(Data.FW - 8, bot - 8), Vector2(-1, -1)]]:
+		var o: Vector2 = c[0]
+		var d: Vector2 = c[1]
+		draw_line(o + Vector2(16.0 * d.x, 0), o, amber, 2.0)
+		draw_line(o, o + Vector2(0, 16.0 * d.y), amber, 2.0)

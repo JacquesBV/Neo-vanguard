@@ -16,6 +16,11 @@ func _ready() -> void:
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# (correctif) ancrage : un cadre 140 px plus haut que l'écran + couverture
+	# centrée — l'affiche (1600x893) recadre SANS zone morte ni étirement, le
+	# vaisseau reste visible à droite comme sur l'écran d'origine
+	art.offset_top = -140.0
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.modulate = Color(0.55, 0.58, 0.68)
 	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(art)

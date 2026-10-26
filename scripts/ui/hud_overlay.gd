@@ -75,7 +75,8 @@ func _draw_hud_std() -> void:
 			var c2: Color = TH.shield if i < int(P.shield) else Color(1, 1, 1, 0.15)
 			draw_rect(Rect2(sx + i * 12, Data.L_H - 18, 9, 9), c2)
 		# bombes
-		_txt(Vector2(Data.L_W - 150, Data.L_H - 8), "BOMBES ×%d" % int(P.bombs), 11, Color("#ff7ad9"))
+		_txt(Vector2(Data.L_W - 150, Data.L_H - 8), "BOMBES ×%d" % int(P.bombs), 11,
+			(game.TH.livery[3] if game.era_idx == 0 else Color("#ff7ad9")))
 		# puissance + arme
 		_txt(Vector2(10, Data.L_H - 33), "PWR %d/5 · %s" % [int(P.power), game.stats.weapon.name], 10, ink)
 	# compteur de performances (option FPS)

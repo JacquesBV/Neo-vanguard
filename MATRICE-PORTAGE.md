@@ -45,3 +45,5 @@ Les preuves « TESTn » sont les harnais `NV_TEST=n` (voir RAPPORT-TESTS.md) ; c
 | Manette | — (non liée dans le commit) | actions Godot par défaut | À PORTER | mapping dédié à ajouter |
 | Effets procéduraux (Canvas : explosions, greebles, dégradés, particules) | 02/07 | `game.gd`/`pocket_baker.gd` (ports des formules) | CONFORME | TEST7 (det/greeble hash `h2s`) |
 | Scanlines/halos/modes fusion | 07/10 | `ui/scanlines.gd`, blend `add` sur parts | CONFORME | captures |
+
+<!-- C8 : collisions tirs/ennemis ajoutées (update_bullet_hits), sprites POCKET ×1,31, boss positionnels (FH×0,31), alerte module 21 répliquée, ère 0 verrouillée INKS, vagues secteurs 5+ ralenties, ghosting LCD 48×32. -->

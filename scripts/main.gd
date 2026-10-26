@@ -65,6 +65,8 @@ func _ready() -> void:
 		_run_touch_test()
 	if OS.get_environment("NV_TEST") == "13":
 		_run_flow_test()
+	if OS.get_environment("NV_TEST") == "14":
+		_run_fix_test()
 	if OS.get_environment("NV_TEST") == "9":
 		_run_vorax_test()
 	if OS.get_environment("NV_TEST") == "10":
@@ -472,6 +474,7 @@ func _attach_hud() -> void:
 	# scanlines CRT (option)
 	crt = preload("res://scripts/ui/scanlines.gd").new()
 	crt.game = game
+	crt.main_node = self
 	add_child(crt)
 	_apply_smooth()
 
@@ -1192,4 +1195,78 @@ func _run_flow_test() -> void:
 	await _snap(dir + "/6_load_fade.png")
 	print("FLOW: overlay libéré = ", load_overlay == null or not is_instance_valid(load_overlay))
 	print("=== FLOW TEST TERMINE ===")
+	get_tree().quit(0)
+
+# test 14 : lot de corrections — collisions tirs/ennemis, position boss,
+# bombe tactile (anti-saut), bannière d'alerte redessinée
+func _run_fix_test() -> void:
+	var dir := "/tmp/shots14"
+	DirAccess.make_dir_recursive_absolute(dir)
+	await get_tree().process_frame
+	begin_campaign(1)
+	await get_tree().create_timer(0.3).timeout
+	for i in range(14):
+		if current_screen == null or not ("page_i" in current_screen):
+			break
+		current_screen._next()
+		await get_tree().create_timer(0.1).timeout
+	var waited := 0
+	while game.state != "play" and waited < 12000:
+		await get_tree().create_timer(0.1).timeout
+		waited += 100
+	if game.players.is_empty():
+		print("FIX RESULT: echec installation (state=", game.state, ")")
+		get_tree().quit(1)
+		return
+	var g := game
+	var P: Dictionary = g.players[0]
+	await get_tree().create_timer(0.5).timeout
+	# -- 1) un tir du joueur blesse un ennemi standard ------------------------
+	var e: Dictionary = g.spawn_enemy("drone", P.x, P.y - 150.0, { "ty": P.y - 150.0 })
+	e.mv = "patrol"
+	e.dir = 0
+	e.ty = e.y
+	e.fire = null
+	var hp0: int = int(e.hp)
+	g.pb(P.x, P.y - 60.0, 0.0, -260.0, 5.0, "pulse", false, false, 0)
+	# le tir monte vers l'ennemi via update_bullets, puis update_bullet_hits frappe
+	await get_tree().create_timer(0.35).timeout
+	var hp_after: int = int(e.hp) if g.enemies.has(e) else 0
+	var hit_ok: bool = hp_after < hp0
+	print("FIX1 collisions: hp ", hp0, " -> ", hp_after, " touché=", hit_ok)
+	# -- 2) position du boss (ère 0 : 31 % de la hauteur, plus 73 %) ----------
+	g.boss = g.spawn_boss()
+	g.boss.enter = false
+	g.phase = 3   # Phase.BOSS
+	await get_tree().create_timer(0.4).timeout
+	var fy: float = float(g.boss.y) / Data.FH
+	var boss_ok: bool = fy > 0.22 and fy < 0.42
+	print("FIX2 boss: y=%.0f (%.0f%% de FH, attendu ~31%%) ok=" % [g.boss.y, fy * 100.0], boss_ok)
+	g.boss = {}
+	g.phase = 1   # Phase.WAVES
+	await get_tree().create_timer(0.2).timeout
+	# -- 3) bombe tactile : plus de saut (téléportation) ----------------------
+	g.touch_press(Vector2(P.x, P.y + 80.0))
+	await get_tree().create_timer(0.05).timeout
+	g.touch_drag(Vector2(P.x + 30.0, P.y + 60.0))
+	await get_tree().create_timer(0.1).timeout
+	var px1: float = P.x
+	g.touch_bomb()
+	await get_tree().create_timer(0.15).timeout
+	g.touch_drag(Vector2(P.x + 6.0, P.y + 60.0))
+	await get_tree().create_timer(0.1).timeout
+	var ddx: float = P.x - px1
+	var bomb_ok: bool = absf(ddx - 6.0) < 4.0
+	print("FIX3 bombe tactile: déplacement après bombe = %.1f (attendu ~6, saut si ≫) ok=" % ddx, bomb_ok)
+	g.touch_release()
+	# -- 4) bannière d'alerte (capture) ---------------------------------------
+	g.phase = 2   # Phase.BOSS_WARN
+	g.boss_warn_t = 1.2
+	await get_tree().create_timer(0.3).timeout
+	await _snap(dir + "/1_alerte.png")
+	g.phase = 1   # Phase.WAVES
+	await get_tree().create_timer(3.2).timeout
+	await _snap(dir + "/2_jeu_lcd.png")
+	print("FIX RESULT: collisions=", hit_ok, " boss_pos=", boss_ok, " bombe_tactile=", bomb_ok)
+	print("=== FIX TEST TERMINE ===")
 	get_tree().quit(0)

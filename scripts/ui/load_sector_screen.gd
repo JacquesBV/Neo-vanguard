@@ -16,6 +16,12 @@ const CYAN := Color("4cf4ff")
 const VIOLET := Color("a98bff")
 const PINK := Color("ff5ea8")
 
+# couleurs résolues (secteurs 1-4 = encres LCD de la console, correctif :
+# le cyan/rose du web s'affichait par-dessus l'écran Game Boy)
+var c1: Color
+var c2: Color
+var c3: Color
+
 const TIPS := [
 	["Astuce : frôler les tirs ennemis remplit la jauge de GRAZE.", "Tip: grazing enemy shots fills the GRAZE gauge."],
 	["Astuce : la bombe efface tous les tirs à l'écran.", "Tip: the bomb wipes every bullet on screen."],
@@ -31,6 +37,14 @@ func _tx(i: int) -> String:
 	return TIPS[(level + int(Time.get_unix_time_from_system() * 0.2)) % TIPS.size()][i]
 
 func _ready() -> void:
+	if Data.era_of_level(level) == 0:
+		c1 = Color(Data.INKS[3])   # accent clair
+		c2 = Color(Data.INKS[2])   # intermédiaire
+		c3 = Color(Data.INKS[3])
+	else:
+		c1 = CYAN
+		c2 = VIOLET
+		c3 = PINK
 	var bg := ColorRect.new()
 	bg.color = Color(0.012, 0.02, 0.05, 0.97)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -39,10 +53,10 @@ func _ready() -> void:
 	var v := ui.vbox(self, 10, 30.0)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	ui.spacer(v, 240)
-	var sec := ui.label(v, NVLang.t("SECTEUR") + "  %02d  ·  %s" % [level, machine], 15, ui.INK)
+	var sec := ui.label(v, NVLang.t("SECTEUR") + "  %02d  ·  %s" % [level, machine], 15, c1)
 	sec.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ui.spacer(v, 26)
-	status_l = ui.label(v, "", 13, ui.ACC)
+	status_l = ui.label(v, "", 13, c1)
 	status_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	# barre de progression dessinée dans _draw
 	tip_l = ui.label(v, "", 11, ui.DIM)
@@ -96,7 +110,7 @@ func _draw() -> void:
 		var a: Vector2 = hex[i]
 		var b: Vector2 = hex[(i + 1) % 6]
 		var u := float(i) / 6.0
-		var col := CYAN.lerp(VIOLET, u * 2.0) if u < 0.5 else VIOLET.lerp(PINK, (u - 0.5) * 2.0)
+		var col: Color = c1.lerp(c2, u * 2.0) if u < 0.5 else c2.lerp(c3, (u - 0.5) * 2.0)
 		draw_line(a, b, col, 2.4)
 	# barre de progression : piste + remplissage dégradé
 	var bar := Rect2(60, 470, 360, 8)
@@ -109,6 +123,6 @@ func _draw() -> void:
 			var u := float(i) / float(steps - 1)
 			var seg := Rect2(bar.position.x + bar.size.x * p * u, bar.position.y, bar.size.x * p / float(steps) + 1.0, bar.size.y)
 			var col: Color
-			if u < 0.5: col = CYAN.lerp(VIOLET, u * 2.0)
-			else: col = VIOLET.lerp(PINK, (u - 0.5) * 2.0)
+			if u < 0.5: col = c1.lerp(c2, u * 2.0)
+			else: col = c2.lerp(c3, (u - 0.5) * 2.0)
 			draw_rect(seg, col)

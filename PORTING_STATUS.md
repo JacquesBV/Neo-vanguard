@@ -90,6 +90,34 @@ redessiné : **corrigés** (répliques, réutilisation des assets d'origine) :
   + astuce de tir ; purement visuel (ne bloque pas les entrées), se libère seul.
 Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
 
+## Lot fidélité gameplay/rendu (C8) — demandes utilisateur corrigées
+1. **Collisions tirs↔ennemis** : BUG MAJEUR corrigé — les tirs du joueur ne
+   touchaient JAMAIS les ennemis standards (seuls boss/sas/décor/mains
+   encaissaient) ; `update_bullet_hits()` ajoute la boucle manquante
+   (rayon e.r×0.9+b.r, un tir = un impact/frame, respect des perfo).
+2. **Taille des ennemis** : sprites POCKET ×1,31 (0,305→0,40 du gabarit du
+   moteur) ; cargaisons de décor 30→24 (vérifié par recadrage comparé).
+3. **Position des boss** : entrée/errance en PIXELS (y=265/190-330) →
+   FRACTIONNELS (0,31/0,24-0,36 de FH) : en secteurs 1-4 le boss rôdait à
+   73-83 % de l'écran, il joue désormais à 31 % (TEST14 : 32 %).
+4. **Alerte amirale** : bandeau rouge plein écran → réplique du redesign web
+   (module 21) : hachures de danger défilantes en sens inverse, WARNING
+   clignotant + triangles, nom tapé lettre à lettre, consigne, jauge
+   d'approche, coins ; encres console en secteurs 1-4.
+5. **Secteurs 1-4 = encres LCD uniquement** : danger/gold/shield/hull
+   génériques (#ff405f/#ffd166/…) remplacés par INKS[2]/INKS[3] en ère 0
+   (pop-ups, jauges, bannières, HUD BOMBES, hexagone/barre de chargement).
+6. **Vagues à partir du secteur 5** : densité 0,18/0,06→0,10/0,04 par
+   stade/ère + écarts entre vagues élargis (+15 à +25 %) : le boss n'arrive
+   plus « trop vite ».
+7. **Bombe tactile** : le saut du vaisseau après une bombe (écart doigt
+   mémorisé périmé) est corrigé — recalage grab/base après `use_bomb`
+   (TEST14 : +6,0 px exact, aucun saut).
+8. **Écran Game Boy authentique** : rémanence (ghosting 1,5 px @ 0,16),
+   grille de la matrice 48×32, ombre intérieure du verre, micro-flicker
+   rétroéclairage — teintes INKS inchangées.
+9. **Titre** : ancrage de l'affiche (cadre -140 px + couverture centrée).
+
 ## Reste (après corrections)
 - écoute audio humaine (pilote dummy en sandbox) ;
 - confirmation du multitouch sur appareil physique (pipeline validé TEST12) et exécution du .exe sur Windows réels ;
