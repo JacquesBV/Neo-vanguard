@@ -98,7 +98,7 @@ func _seq_status() -> String:
 		return ("Calibrage matrice LCD · 60 i/s" if (in_fanboy and lang == "fr")
 			else ("Calibrating LCD matrix · 60 fps" if in_fanboy
 			else ("Mesure du rendu · Balanced" if lang == "fr" else "Measuring rendering · Balanced")))
-	var chips := ("Appareil : FanBoy · Matrice : OK · 60 i/s" if (in_fanboy and lang == "fr")
+	var chips: String = ("Appareil : FanBoy · Matrice : OK · 60 i/s" if (in_fanboy and lang == "fr")
 		else ("Device : FanBoy · Matrix : OK · 60 fps" if in_fanboy
 		else ("Appareil : Balanced · Réglage : Balanced · 60 i/s visés" if lang == "fr"
 		else "Device : Balanced · Setting : Balanced · 60 fps target")))

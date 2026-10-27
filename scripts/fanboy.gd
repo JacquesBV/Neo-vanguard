@@ -1,4 +1,5 @@
 extends Control
+class_name NVFanBoy
 ## =========================================================================
 ## FANBOY INTERACTIVE CONSOLE • Neo-Vanguard, Secteurs 1–3 (Monde 1)
 ## Coordonnées maîtresses 937×1679 faisant foi ; toutes les entrées passent
@@ -46,7 +47,7 @@ var tweens: Dictionary = {}
 var canvas: Node2D
 var game_viewport: SubViewport
 var screen_sprite: Sprite2D
-var layout: Dictionary
+var layout: Dictionary = {}
 var sounds: Dictionary = {}
 var players: Array[AudioStreamPlayer] = []
 var voice := 0
@@ -73,17 +74,17 @@ static func _load_layer_tex(res_path: String) -> Texture2D:
 		return _tex_cache[res_path]
 	var out: Texture2D = null
 	if ResourceLoader.exists(res_path):
-		var raw := load(res_path)
+		var raw: Resource = load(res_path)
 		if raw is Texture2D:
 			var img_r: Image = (raw as Texture2D).get_image()
 			if img_r != null and not img_r.is_empty():
 				out = ImageTexture.create_from_image(img_r)
 			else:
-				out = raw
+				out = raw as Texture2D
 	if out == null:
-		var abs_p := ProjectSettings.globalize_path(res_path)
+		var abs_p: String = ProjectSettings.globalize_path(res_path)
 		if FileAccess.file_exists(abs_p):
-			var img := Image.load_from_file(abs_p)
+			var img: Image = Image.load_from_file(abs_p)
 			if img != null and not img.is_empty():
 				out = ImageTexture.create_from_image(img)
 	_tex_cache[res_path] = out
@@ -94,13 +95,13 @@ static func _load_led_shader() -> Shader:
 		return _shader_cache
 	var res_path := "res://scripts/led.gdshader"
 	if ResourceLoader.exists(res_path):
-		var loaded := load(res_path)
+		var loaded: Resource = load(res_path)
 		if loaded is Shader:
-			_shader_cache = loaded
+			_shader_cache = loaded as Shader
 			return _shader_cache
-	var abs_p := ProjectSettings.globalize_path(res_path)
+	var abs_p: String = ProjectSettings.globalize_path(res_path)
 	if FileAccess.file_exists(abs_p):
-		var code := FileAccess.get_file_as_string(abs_p)
+		var code: String = FileAccess.get_file_as_string(abs_p)
 		if not code.is_empty():
 			var sh := Shader.new()
 			sh.code = code
@@ -112,11 +113,11 @@ static func _load_sfx_wav(res_path: String) -> AudioStream:
 		return _wav_cache[res_path]
 	var stream: AudioStream = null
 	if ResourceLoader.exists(res_path):
-		var loaded := load(res_path)
+		var loaded: Resource = load(res_path)
 		if loaded is AudioStream:
-			stream = loaded
+			stream = loaded as AudioStream
 	if stream == null:
-		var abs_p := ProjectSettings.globalize_path(res_path)
+		var abs_p: String = ProjectSettings.globalize_path(res_path)
 		if FileAccess.file_exists(abs_p):
 			stream = _parse_pcm_wav(abs_p)
 	_wav_cache[res_path] = stream
@@ -158,10 +159,11 @@ static func _parse_pcm_wav(abs_path: String) -> AudioStreamWAV:
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var layout_txt := FileAccess.get_file_as_string("res://assets/layout.json")
+	var layout_txt: String = FileAccess.get_file_as_string("res://assets/layout.json")
 	if layout_txt.is_empty():
 		layout_txt = FileAccess.get_file_as_string(ProjectSettings.globalize_path("res://assets/layout.json"))
-	layout = JSON.parse_string(layout_txt)
+	var parsed_layout: Variant = JSON.parse_string(layout_txt)
+	layout = parsed_layout if parsed_layout is Dictionary else {}
 	canvas = Node2D.new()
 	# Filtrage linéaire sur les couches haute définition 937×1679 (métal brossé,
 	# capuchons, rails lumineux), même si project.godot force NEAREST par défaut.
@@ -190,12 +192,12 @@ func _ready() -> void:
 	for key in ["a", "b", "select", "start", "stick", "power", "led"]:
 		var c: Dictionary = layout.controls[key]
 		_sprite(key, Vector2(c.center[0], c.center[1]), true)
-	var shader := _load_led_shader()
+	var shader: Shader = _load_led_shader()
 	for s in [sprites.led, threat_lights]:
-		var material := ShaderMaterial.new()
-		material.shader = shader
-		s.material = material
-		light_materials.append(material)
+		var mat := ShaderMaterial.new()
+		mat.shader = shader
+		(s as Sprite2D).material = mat
+		light_materials.append(mat)
 	for key in ["press", "release", "switch_on", "switch_off", "stick_return"]:
 		sounds[key] = _load_sfx_wav("res://assets/audio/%s.wav" % key)
 	for i in range(12):
@@ -451,11 +453,11 @@ func _process(delta: float) -> void:
 	var c: Dictionary = layout.controls.led
 	sprites.led.position = Vector2(c.center[0], c.center[1] + power_y)
 	led_energy = move_toward(led_energy, 1.0 if powered else 0.08, delta * 9.0)
-	var target := Color("48e4a1") if threat < 0.33 else (Color("ffae32") if threat < 0.67 else Color("ff343a"))
+	var target: Color = Color("48e4a1") if threat < 0.33 else (Color("ffae32") if threat < 0.67 else Color("ff343a"))
 	light_color = light_color.lerp(target, 1.0 - exp(-delta * 12.0))
-	for material in light_materials:
-		material.set_shader_parameter("light_color", light_color)
-		material.set_shader_parameter("energy", led_energy if powered else 0.0)
+	for mat in light_materials:
+		mat.set_shader_parameter("light_color", light_color)
+		mat.set_shader_parameter("energy", led_energy if powered else 0.0)
 
 func _effective_volume_db() -> float:
 	var save_singleton := get_node_or_null("/root/Save")

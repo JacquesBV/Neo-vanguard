@@ -1034,7 +1034,7 @@ func _draw_dialogue_box(font: Font, en: bool, sc: Dictionary, sc_u: float, accen
 	var full_text := "\n\n".join(lines)
 	var total_chars := full_text.length()
 	var reveal_ratio := clampf(sc_u / 0.65, 0.0, 1.0)
-	var shown_chars := clampi(int(ceil(float(total_chars) * reveal_ratio)), 1, max(1, total_chars))
+		var shown_chars: int = clampi(int(ceil(float(total_chars) * reveal_ratio)), 1, maxi(1, total_chars))
 	var visible_text := full_text.substr(0, shown_chars)
 	if shown_chars < total_chars and fmod(_t * 5.0, 1.0) < 0.65:
 		visible_text += " ▍"

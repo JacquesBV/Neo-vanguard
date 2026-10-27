@@ -85,9 +85,9 @@ func _draw_progress_frame() -> void:
 
 ## Voile PAUSE (touche SELECT gelant la partie sans ouvrir le menu)
 func _draw_pause_veil_rect(r: Rect2, lcd_style: bool) -> void:
-	var veil_col := Color(0.08, 0.11, 0.07, 0.42) if lcd_style else Color(0.01, 0.02, 0.05, 0.30)
-	var txt_col := Color(Data.INKS[0], 0.92) if lcd_style else Color(1, 1, 1, 0.85)
-	var sub_col := Color(Data.INKS[0], 0.72) if lcd_style else Color(1, 1, 1, 0.55)
+	var veil_col: Color = Color(0.08, 0.11, 0.07, 0.42) if lcd_style else Color(0.01, 0.02, 0.05, 0.30)
+	var txt_col: Color = Color(Data.INKS[0], 0.92) if lcd_style else Color(1, 1, 1, 0.85)
+	var sub_col: Color = Color(Data.INKS[0], 0.72) if lcd_style else Color(1, 1, 1, 0.55)
 	draw_rect(r, veil_col)
 	var c := r.get_center()
 	_txt(Vector2(c.x, c.y - 8.0), "❚❚", 30, txt_col, HORIZONTAL_ALIGNMENT_CENTER)

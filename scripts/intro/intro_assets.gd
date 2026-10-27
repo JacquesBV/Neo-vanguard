@@ -20,13 +20,13 @@ static func tex(res_path: String) -> Texture2D:
 		return _tex_cache[res_path]
 	var out: Texture2D = null
 	if ResourceLoader.exists(res_path):
-		var loaded := load(res_path)
+		var loaded: Resource = load(res_path)
 		if loaded is Texture2D:
-			out = loaded
+			out = loaded as Texture2D
 	if out == null:
-		var abs_p := ProjectSettings.globalize_path(res_path)
+		var abs_p: String = ProjectSettings.globalize_path(res_path)
 		if FileAccess.file_exists(abs_p):
-			var img := Image.load_from_file(abs_p)
+			var img: Image = Image.load_from_file(abs_p)
 			if img != null and not img.is_empty():
 				out = ImageTexture.create_from_image(img)
 	_tex_cache[res_path] = out
@@ -37,13 +37,13 @@ static func shader(res_path: String) -> Shader:
 		return _shader_cache[res_path]
 	var sh: Shader = null
 	if ResourceLoader.exists(res_path):
-		var loaded := load(res_path)
+		var loaded: Resource = load(res_path)
 		if loaded is Shader:
-			sh = loaded
+			sh = loaded as Shader
 	if sh == null:
-		var abs_p := ProjectSettings.globalize_path(res_path)
+		var abs_p: String = ProjectSettings.globalize_path(res_path)
 		if FileAccess.file_exists(abs_p):
-			var code := FileAccess.get_file_as_string(abs_p)
+			var code: String = FileAccess.get_file_as_string(abs_p)
 			if not code.is_empty():
 				sh = Shader.new()
 				sh.code = code
@@ -56,11 +56,11 @@ static func sfx(sfx_name: String) -> AudioStream:
 	var res_path := "res://assets/intro/audio/sfx/%s.wav" % sfx_name
 	var stream: AudioStream = null
 	if ResourceLoader.exists(res_path):
-		var loaded := load(res_path)
+		var loaded: Resource = load(res_path)
 		if loaded is AudioStream:
-			stream = loaded
+			stream = loaded as AudioStream
 	if stream == null:
-		var abs_p := ProjectSettings.globalize_path(res_path)
+		var abs_p: String = ProjectSettings.globalize_path(res_path)
 		if FileAccess.file_exists(abs_p):
 			stream = _load_wav_raw(abs_p)
 	_sfx_cache[sfx_name] = stream

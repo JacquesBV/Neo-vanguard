@@ -21,11 +21,11 @@ var _boot_backdrop: ColorRect = null
 var tr: TextureRect
 var crt: Node2D
 var shell: CanvasItem = null
-var fanboy: Control = null
+var fanboy: NVFanBoy = null
 var fanboy_stage: Node2D = null
 var fanboy_lcd_hud: Node2D = null
 var fanboy_lcd_crt: Node2D = null
-var fanboy_booted_once := false
+var fanboy_booted_once: bool = false
 const NVUi := preload("res://scripts/ui/hud_overlay.gd")
 var current_screen: Control
 var pause_screen: Control = null   # menu pause ouvert (bouton START)
@@ -529,8 +529,8 @@ func _sync_fanboy_telemetry() -> void:
 		fanboy.set_boss_health(0.0, 0.0)
 		if game.phase == NVGame.Phase.BOSS_WARN:
 			boss_name_str = "ALERTE"
-	var lv_count := maxi(int(P.get("lives", 0)) + 1, 0) if not P.is_empty() else 0
-	var bm_count := maxi(int(P.get("bombs", 0)), 0) if not P.is_empty() else 0
+	var lv_count: int = maxi(int(P.get("lives", 0)) + 1, 0) if not P.is_empty() else 0
+	var bm_count: int = maxi(int(P.get("bombs", 0)), 0) if not P.is_empty() else 0
 	fanboy.set_telemetry(lv_count, bm_count, boss_name_str)
 	fanboy.set_threat(_compute_fanboy_threat())
 
@@ -644,7 +644,7 @@ func _build_game() -> void:
 
 func _attach_hud() -> void:
 	# Console interactive animée FanBoy (Monde 1 : secteurs 1, 2 et 3)
-	fanboy = FanBoyScene.instantiate()
+	fanboy = FanBoyScene.instantiate() as NVFanBoy
 	fanboy.position = Vector2.ZERO
 	fanboy.size = Vector2(Data.L_W, Data.L_H)
 	shell = fanboy
@@ -690,7 +690,7 @@ func _attach_hud() -> void:
 	_apply_smooth()
 
 func _apply_smooth() -> void:
-	var sm := bool(Save.S.opts.get("smooth", false))
+	var sm: bool = bool(Save.S.opts.get("smooth", false))
 	if tr:
 		tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR if sm else CanvasItem.TEXTURE_FILTER_NEAREST
 	if fanboy != null:
@@ -710,11 +710,11 @@ func _deactivate_fanboy() -> void:
 	if tr != null:
 		tr.visible = (_boot_backdrop == null or not _boot_backdrop.visible)
 
-func _apply_era_viewport(lv: int = -1, force_play_mount := false) -> void:
+func _apply_era_viewport(lv: int = -1, force_play_mount: bool = false) -> void:
 	var target_lv: int = lv if lv > 0 else (game.level if game != null else 1)
 	var ei: int = Data.era_of_level(target_lv)
 	Data.FW = 480.0
-	var mount_fanboy := _is_fanboy_mode_for_level(target_lv) and (force_play_mount or (game != null and game.state == "play"))
+	var mount_fanboy: bool = _is_fanboy_mode_for_level(target_lv) and (force_play_mount or (game != null and game.state == "play"))
 	if mount_fanboy and fanboy != null and fanboy_stage != null:
 		Data.FH = Data.FANBOY_FH
 		fanboy_stage.scale = Vector2(620.0 / Data.FW, 890.0 / Data.FH)
@@ -803,7 +803,7 @@ func _clear_screen() -> void:
 		current_screen = null
 
 func _set_screen(c: Control) -> void:
-	var keep_fanboy := (c == pause_screen and pause_screen != null)
+	var keep_fanboy: bool = (c == pause_screen and pause_screen != null)
 	_clear_screen()
 	if keep_fanboy:
 		pause_screen = c
@@ -958,11 +958,11 @@ func launch_level() -> void:
 	_clear_screen()
 	_clear_load_overlay()
 	Audio2.music_player.stream_paused = false
-	var use_fb := _is_fanboy_mode_for_level(campaign_level)
+	var use_fb: bool = _is_fanboy_mode_for_level(campaign_level)
 	_apply_era_viewport(campaign_level, true)
 	game.begin_level(campaign_level, daily_mode, daily_mods)
 	if use_fb and fanboy != null:
-		var play_boot_click := not fanboy_booted_once and OS.get_environment("NV_TEST") == ""
+		var play_boot_click: bool = not fanboy_booted_once and OS.get_environment("NV_TEST") == ""
 		fanboy_booted_once = true
 		fanboy.trigger_boot_glow(play_boot_click)
 		power_state = "on" if fanboy.powered else "off"
@@ -1672,20 +1672,20 @@ func _run_shell_test() -> void:
 	Save.S.max_level = 4
 
 	# -- 1) lancement des secteurs 1, 2 et 3 sur la console FanBoy ------------
-	var levels_ok := true
+	var levels_ok: bool = true
 	for lv_fb in [1, 2, 3]:
 		begin_campaign(lv_fb)
 		await get_tree().create_timer(0.25).timeout
 		await _advance_to_play()
 		await get_tree().create_timer(0.8).timeout
-		var ok_lv := fanboy.console_active and fanboy.visible and game.get_parent() == fanboy_stage and not tr.visible
+		var ok_lv: bool = fanboy.console_active and fanboy.visible and game.get_parent() == fanboy_stage and not tr.visible
 		levels_ok = levels_ok and ok_lv
 		print("FANBOY S%d: active=%s in_viewport=%s FH=%.0f" % [lv_fb, fanboy.console_active, game.get_parent() == fanboy_stage, Data.FH])
 		await _snap("%s/1_fanboy_secteur_%d.png" % [dir, lv_fb])
 
-	var pt_sel := _fanboy_screen_pt(fanboy.CENTERS.select)
-	var pt_sta := _fanboy_screen_pt(fanboy.CENTERS.start)
-	var pt_scr := _fanboy_screen_pt(Vector2(468.0, 732.0))
+	var pt_sel: Vector2 = _fanboy_screen_pt(fanboy.CENTERS["select"] as Vector2)
+	var pt_sta: Vector2 = _fanboy_screen_pt(fanboy.CENTERS["start"] as Vector2)
+	var pt_scr: Vector2 = _fanboy_screen_pt(Vector2(468.0, 732.0))
 	var hit_sel: String = _shell_btn_at(pt_sel)
 	var hit_sta: String = _shell_btn_at(pt_sta)
 	var hit_glass: String = _shell_btn_at(pt_scr)
@@ -1725,7 +1725,7 @@ func _run_shell_test() -> void:
 	await get_tree().create_timer(0.25).timeout
 	await _advance_to_play()
 	await get_tree().create_timer(0.8).timeout
-	var s4_ok := (not fanboy.console_active) and tr.visible and game.get_parent() == viewport and game.era_idx == 1
+	var s4_ok: bool = (not fanboy.console_active) and tr.visible and game.get_parent() == viewport and game.era_idx == 1
 	await _snap(dir + "/4_secteur4_plein_ecran.png")
 	print("SHELL RESULT: s1_3=%s gel=%s menu=%s reprise=%s s4_fullscreen=%s" % [levels_ok, frozen, menu_ok, resumed, s4_ok])
 	print("=== SHELL TEST TERMINE ===")
@@ -1764,11 +1764,11 @@ func _run_console_test() -> void:
 	var g := game
 	var P: Dictionary = g.first_player()
 	P.shield = 0
-	var pt_stick := _fanboy_screen_pt(fanboy.CENTERS.stick + Vector2(64.0, 0.0))
-	var pt_a := _fanboy_screen_pt(fanboy.CENTERS.a)
-	var pt_b := _fanboy_screen_pt(fanboy.CENTERS.b)
-	var pt_pwr := _fanboy_screen_pt(fanboy.CENTERS.power)
-	var pt_pwr_down := _fanboy_screen_pt(fanboy.CENTERS.power + Vector2(0.0, 18.0))
+	var pt_stick: Vector2 = _fanboy_screen_pt((fanboy.CENTERS["stick"] as Vector2) + Vector2(64.0, 0.0))
+	var pt_a: Vector2 = _fanboy_screen_pt(fanboy.CENTERS["a"] as Vector2)
+	var pt_b: Vector2 = _fanboy_screen_pt(fanboy.CENTERS["b"] as Vector2)
+	var pt_pwr: Vector2 = _fanboy_screen_pt(fanboy.CENTERS["power"] as Vector2)
+	var pt_pwr_down: Vector2 = _fanboy_screen_pt((fanboy.CENTERS["power"] as Vector2) + Vector2(0.0, 18.0))
 
 	# -- 1) stick 360° analogique ---------------------------------------------
 	var x0: float = P.x
