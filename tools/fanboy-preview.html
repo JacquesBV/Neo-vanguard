@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FAN BOY NV-01 — maquette interactive C14</title>
+<style>
+ body{margin:0;background:#05070c;color:#cfe3ff;font-family:system-ui;display:flex;gap:24px;justify-content:center;align-items:flex-start;padding:20px;flex-wrap:wrap}
+ #stage{position:relative;width:480px;height:860px;flex:0 0 auto;box-shadow:0 20px 80px #000}
+ #stage img{width:480px;height:860px;display:block}
+ .abs{position:absolute}
+ #glass{left:79px;top:146px;width:318px;height:455px;border-radius:10px;overflow:hidden;pointer-events:none}
+ #neon{left:74px;top:141px;width:328px;height:465px;border-radius:14px;border:3px solid #3adf6c;box-shadow:0 0 22px #3adf6c88,inset 0 0 14px #3adf6c44;pointer-events:none;opacity:0;transition:opacity .3s}
+ #lcdTop{left:89px;top:152px;width:298px;color:#dff3ff;font:700 11px monospace;text-shadow:0 0 6px #7fd4ff}
+ #lcdBot{left:89px;top:572px;width:298px;text-align:center;color:#ffd166;font:700 12px monospace}
+ #gamebox{left:79px;top:254px;width:318px;height:239px;background:linear-gradient(#0a1440,#123);display:flex;align-items:center;justify-content:center;color:#9fd8ff;font:700 13px monospace;opacity:.25}
+ /* stick cap */
+ #cap{left:99px;top:634px;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a3c5c,#0a111f 70%);border:2px solid #5a6f8f;cursor:grab;touch-action:none}
+ /* boutons */
+ .face{border-radius:50%;cursor:pointer;touch-action:none;transition:transform .06s, box-shadow .06s}
+ #btnA{left:273px;top:673px;width:62px;height:62px;background:radial-gradient(circle at 35% 30%,#e33,#600);box-shadow:0 5px 0 #300}
+ #btnB{left:348px;top:632px;width:60px;height:60px;background:radial-gradient(circle at 35% 30%,#fc3,#840);box-shadow:0 5px 0 #420}
+ .face.down{transform:translateY(4px) scale(.94);box-shadow:0 1px 0 #000 !important}
+ .pill{left:242px;width:48px;height:15px;border-radius:8px;background:#12283e;border:1px solid #3a7ca8;cursor:pointer}
+ .pill.down{background:#2a6a94}
+ #sel{top:630px} #sta{top:662px}
+ /* power */
+ #power{left:40px;top:84px;width:28px;height:50px;cursor:grab;touch-action:none}
+ #knob{left:44px;width:20px;height:20px;border-radius:50%;background:#22262e;border:1px solid #556;pointer-events:none;transition:top .18s}
+ /* HUD strip LED */
+ .seg{width:6.5px;height:9px;background:#081018;display:inline-block;margin-right:1.7px}
+ #hud{left:113px;top:773px;width:340px;height:31px;pointer-events:none;font-family:monospace}
+ #hudBoss{position:absolute;left:240px;top:-2px;width:190px;text-align:center;color:#7fe7ff;font-size:10px}
+ panel{display:block;background:#0b1424;border:1px solid #234;padding:16px;border-radius:10px;width:300px}
+ label{display:block;margin:12px 0 4px;font-size:13px} input[type=range]{width:100%}
+ button{background:#173a5e;color:#dff;border:1px solid #3a7ca8;padding:8px 10px;border-radius:6px;cursor:pointer;margin:3px}
+ .off{filter:grayscale(.6) brightness(.55)}
+</style></head><body>
+<div id="stage">
+ <img id="shell" src="../assets/coque/nv01-shell.png" alt="Fan Boy NV-01">
+ <div id="neon" class="abs"></div>
+ <div id="glass" class="abs">
+   <div id="lcdTop" class="abs">SC 0&nbsp;&nbsp;VIES ×3&nbsp;&nbsp;COINS 0</div>
+   <div id="gamebox" class="abs">ZONE DE JEU 4:3<br>(480×360 du moteur)</div>
+   <div id="lcdBot" class="abs"></div>
+ </div>
+ <div id="hud" class="abs"><span id="hudHull"></span><span id="hudBoss"></span><br><span id="hudBossHp"></span></div>
+ <div id="cap" class="abs" title="Stick : glisser"></div>
+ <div id="btnB" class="face abs"></div><div id="btnA" class="face abs"></div>
+ <div id="sel" class="pill abs"></div><div id="sta" class="pill abs"></div>
+ <div id="power" class="abs" title="Glisser ON/OFF"></div><div id="knob" class="abs" style="top:114px"></div>
+</div>
+<panel>
+ <h3 style="margin-top:0">FAN BOY — démo des animations C14</h3>
+ <p>Glisse le <b>curseur ON/OFF</b> (haut-gauche) pour allumer/éteindre, le <b>stick</b> (il reste incliné), appuie/maintient <b>A</b>, <b>B</b>, <b>SELECT</b>, <b>START</b>.</p>
+ <label>Progression du secteur (LED vert→rouge)</label>
+ <input id="prog" type="range" min="0" max="100" value="10">
+ <label>Vie joueur / coque</label><input id="hp" type="range" min="0" max="100" value="100">
+ <label>Vie du boss</label><input id="bhp" type="range" min="0" max="100" value="80">
+ <div><button id="comboBtn">Combo +1</button><button id="bombBtn">Bombe −1</button><button id="bossBtn">Boss : VORAX</button></div>
+ <p id="state" style="font-family:monospace;font-size:12px;color:#9fd8ff">État : éteinte</p>
+ <p style="font-size:12px;color:#789">Maquette de contrôle visuel (mêmes coordonnées/animations que le GDScript). La preuve d'exécution Godot (NV_TEST=16/17 + capture) reste à produire sur une machine avec Godot 4.3.</p>
+</panel>
+<script>
+const $=id=>document.getElementById(id), neon=$('neon'), knob=$('knob'), state=$('state');
+let on=false, combo=0, bombs=3, boss='— — —';
+const lerp=(a,b,t)=>a+(b-a)*t;
+function ramp(p){const s=[[58,223,108],[255,209,102],[255,154,60],[255,64,64]];const t=Math.min(p,1)*3,i=Math.min(t|0,2),f=t-i;return s[i].map((v,j)=>Math.round(lerp(v,s[i+1][j],f)))}
+function render(){
+ const p=+$('prog').value/100, hp=+$('hp').value/100, bhp=+$('bhp').value/100;
+ let c=ramp(p), danger=Math.max(hp<.35?1-hp/.35:0, bhp<.25?1-bhp/.25:0);
+ if(danger>0) c=c.map((v,j)=>Math.round(lerp(v,[255,20,20][j],danger*.85)));
+ const col=`rgb(${c})`; neon.style.borderColor=col; neon.style.boxShadow=`0 0 22px ${col}88, inset 0 0 14px ${col}44`; neon.style.opacity=on?1:0;
+ $('shell').className=on?'':'off';
+ const seg=(n,f,col)=>Array.from({length:n},(_,i)=>`<span class="seg" style="background:${i<Math.round(f*n)?col:'#081018'}"></span>`).join('');
+ $('hudHull').innerHTML=on?seg(8,hp,col):seg(8,0,col);
+ $('hudBossHp').innerHTML=on?seg(28,boss==='— — —'?0:bhp,'#ff352a'):'';
+ $('hudBoss').textContent=on?boss:''; $('hudBoss').style.left='65px'; $('hudBoss').style.top='-2px';
+ $('lcdBot').textContent=on&&combo>1?`COMBO ×${combo} ·×${(1+Math.min(combo,60)*.05).toFixed(2)}`:'';
+ $('lcdTop').style.opacity=on?1:.15;
+ state.textContent=`État : ${on?'allumée':'éteinte'} · progression ${$('prog').value}% · coque ${$('hp').value}% · bombes ${bombs} · LED ${col}`;
+}
+function press(el){const d=e=>{e.preventDefault();el.classList.add('down')},u=()=>el.classList.remove('down');
+ el.addEventListener('pointerdown',d); addEventListener('pointerup',u); el.addEventListener('pointerleave',u)}
+press($('btnA')); press($('btnB')); press($('sel')); press($('sta'));
+$('comboBtn').onclick=()=>{combo++;render()}; $('bombBtn').onclick=()=>{bombs=Math.max(0,bombs-1);render()};
+$('bossBtn').onclick=()=>{boss=boss==='— — —'?'VORAX':'— — —';render()};
+['prog','hp','bhp'].forEach(i=>$(i).oninput=render);
+/* stick : glisser = incliné et maintenu, relâcher = retour centre */
+const cap=$('cap'); let stickDrag=false;
+cap.addEventListener('pointerdown',e=>{stickDrag=true;cap.setPointerCapture(e.pointerId)});
+cap.addEventListener('pointermove',e=>{if(!stickDrag)return;const r=cap.parentElement.getBoundingClientRect();
+ const dx=Math.max(-11,Math.min(11,e.clientX-r.left-147)), dy=Math.max(-11,Math.min(11,e.clientY-r.top-682));
+ cap.style.transform=`translate(${dx}px,${dy+2}px)`});
+addEventListener('pointerup',()=>{stickDrag=false;cap.style.transform='translate(0,0)'});
+/* power vertical : ON haut, OFF bas */
+const pw=$('power'); let pwDrag=false;
+function pwMove(e){const r=pw.parentElement.getBoundingClientRect(), y=e.clientY-r.top;
+ const k=Math.max(0,Math.min(1,(124-y)/32)); knob.style.top=(114-k*20)+'px';
+ if(k>=.99&&!on){on=true} if(k<=.01&&on){on=false} render()}
+pw.addEventListener('pointerdown',e=>{pwDrag=true;pw.setPointerCapture(e.pointerId);pwMove(e)});
+pw.addEventListener('pointermove',e=>pwDrag&&pwMove(e));
+addEventListener('pointerup',()=>{if(pwDrag){pwDrag=false;knob.style.top=on?'94px':'114px'}});
+render();
+</script></body></html>
