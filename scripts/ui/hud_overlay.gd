@@ -167,7 +167,7 @@ func _draw_fanboy_screen_lcd(glass: Rect2, shell_has_gauges: bool) -> void:
 	if not shell_has_gauges and not P.is_empty():
 		var frac: float = clampf(float(P.hp) / maxf(1.0, float(P.max_hp)), 0.0, 1.0)
 		_txtp(Vector2(sx, top + 35.0), "COQUE", 8, ink)
-		var bx := sx + 56.0
+		var bx := sx + 64.0
 		var bw2 := rx - 44.0 - bx
 		draw_rect(Rect2(bx, top + 27.0, bw2, 10.0), Color(mid.r, mid.g, mid.b, 0.25))
 		draw_rect(Rect2(bx, top + 27.0, bw2 * frac, 10.0), mid)

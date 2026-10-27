@@ -1053,7 +1053,18 @@ const CENTERS = {
 };
 const LAYER_KEYS = ["hidden_sockets","shell","threat_lights","a","b","select","start","stick","power","led"];
 const imgs = {};
-LAYER_KEYS.forEach(k => { const im = new Image(); im.src = `assets/layers/${k}.png`; imgs[k] = im; });
+LAYER_KEYS.forEach(k => { const im = new Image(); im.src = `assets/layers/${k}.png?v=2`; imgs[k] = im; });
+const HULL_CELLS = [
+  [221,1522,9,17],[234,1522,10,17],[249,1522,10,17],[264,1522,10,17],
+  [280,1522,10,17],[294,1522,10,17],[308,1522,10,17],[322,1522,14,17]
+];
+const BOSS_CELLS = [
+  [221,1563,12,18],[236,1563,12,18],[252,1563,12,18],[267,1563,12,18],[283,1563,12,18],[298,1563,12,18],
+  [314,1563,12,18],[329,1563,12,18],[345,1563,12,18],[360,1563,12,18],[376,1563,12,18],[391,1563,12,18],
+  [406,1563,12,18],[422,1563,12,18],[437,1563,12,18],[453,1563,12,18],[468,1563,12,18],[484,1563,12,18],
+  [499,1563,12,18],[515,1563,12,18],[530,1563,12,18],[546,1563,12,18],[561,1563,12,18],[577,1563,12,18],
+  [592,1563,12,18],[608,1563,12,18],[623,1563,12,18],[638,1563,12,18],[654,1563,12,18],[667,1563,7,18]
+];
 const sfx = {};
 ["press","release","switch_on","switch_off","stick_return"].forEach(k => { sfx[k] = new Audio(`assets/audio/${k}.wav`); sfx[k].volume = 0.45; });
 function playSfx(k){ try { const a = sfx[k].cloneNode(); a.volume = 0.45; a.play().catch(()=>{}); } catch(e){} }
@@ -1292,17 +1303,25 @@ function tick(now){
       ctx.restore();
     }
 
-    // Jauges COQUE (8 cellules) et BOSS (30 cellules)
+    // Jauges COQUE (8 cellules) et BOSS (30 cellules) — coordonnées exactes de assets/layout.json
     if (powered) {
       ctx.fillStyle = "#72b9e8";
-      const hullCells = Math.ceil((ship.hp / ship.maxHp) * 8);
-      for (let i = 0; i < hullCells; i++) ctx.fillRect(191 + i * 19, 1522, 16, 17);
-      const bossCells = boss ? Math.ceil((boss.hp / boss.maxHp) * 30) : 0;
-      for (let i = 0; i < bossCells; i++) ctx.fillRect(223 + i * 20, 1563, 17, 16);
-      ctx.font = "bold 15px monospace";
-      ctx.fillText(`×${ship.lives}`, 420, 1536);
-      ctx.fillText(`×${ship.bombs}`, 570, 1536);
-      if (boss) { ctx.font = "bold 12px monospace"; ctx.fillText(boss.name.slice(0, 14), 695, 1535); }
+      const hullCells = Math.min(HULL_CELLS.length, Math.ceil((ship.hp / ship.maxHp) * HULL_CELLS.length));
+      for (let i = 0; i < hullCells; i++) {
+        const [cx, cy, cw, ch] = HULL_CELLS[i];
+        ctx.fillRect(cx, cy, cw, ch);
+      }
+      const bossCells = boss ? Math.min(BOSS_CELLS.length, Math.ceil((boss.hp / boss.maxHp) * BOSS_CELLS.length)) : 0;
+      for (let i = 0; i < bossCells; i++) {
+        const [cx, cy, cw, ch] = BOSS_CELLS[i];
+        ctx.fillRect(cx, cy, cw, ch);
+      }
+      ctx.font = "bold 14px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`${ship.lives}`, 414 + 18.5, 1536);
+      ctx.fillText(`${ship.bombs}`, 564 + 18.0, 1536);
+      if (boss) { ctx.font = "bold 11px monospace"; ctx.fillText(boss.name.slice(0, 13), 691 + 64.0, 1535.5); }
+      ctx.textAlign = "left";
     }
 
     // Contrôles mobiles
