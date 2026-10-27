@@ -118,10 +118,11 @@ INDEX_HTML = r"""<!DOCTYPE html>
   }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   button, a.btn {
-    cursor: pointer; font-size: 12px; font-weight: 700; padding: 8px 13px;
+    cursor: pointer; font-size: 12px; font-weight: 700; padding: 9px 13px;
     border-radius: 8px; border: 1px solid var(--border); background: #101b37;
     color: var(--ink); text-decoration: none; transition: 0.15s ease;
     display: inline-flex; align-items: center; gap: 6px;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   }
   button:hover, a.btn:hover { border-color: var(--cyan); background: #172952; }
   .btn-gold {
@@ -133,24 +134,25 @@ INDEX_HTML = r"""<!DOCTYPE html>
     border-color: var(--cyan); color: #fff;
   }
   main {
-    flex: 1; display: grid; grid-template-columns: minmax(320px, 500px) 1fr;
-    gap: 18px; padding: 16px 18px; max-width: 1380px; width: 100%; margin: 0 auto;
+    flex: 1; display: grid; grid-template-columns: minmax(300px, 460px) 1fr;
+    gap: 16px; padding: 12px 14px; max-width: 1380px; width: 100%; margin: 0 auto;
   }
-  @media (max-width: 920px) { main { grid-template-columns: 1fr; justify-items: center; } }
-  .stage-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  @media (max-width: 920px) { main { grid-template-columns: 1fr; justify-items: stretch; padding: 10px; } }
+  .stage-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .canvas-frame {
-    position: relative; width: min(100%, 432px); aspect-ratio: 480 / 860;
+    position: relative; width: min(92vw, 420px); aspect-ratio: 480 / 860;
     border-radius: 14px; overflow: hidden;
     border: 2px solid rgba(76, 244, 255, 0.55);
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7), 0 0 28px rgba(76, 244, 255, 0.18);
-    background: #04060e;
+    background: #04060e; touch-action: manipulation; -webkit-user-select: none; user-select: none;
   }
-  canvas { width: 100%; height: 100%; display: block; }
+  canvas { width: 100%; height: 100%; display: block; touch-action: manipulation; }
   .start-overlay {
-    position: absolute; inset: 0;
+    position: absolute; inset: 0; cursor: pointer;
     background: radial-gradient(circle at 50% 40%, #0a132b 0%, #04060e 78%);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; padding: 24px; gap: 14px; z-index: 5;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   }
   .start-overlay.hidden { display: none; }
   .start-big {
@@ -198,12 +200,11 @@ INDEX_HTML = r"""<!DOCTYPE html>
     </div>
   </div>
   <div class="actions">
-    <a class="btn btn-gold" href="Neo-Vanguard-Godot-Complet.zip">⬇ Pack Godot Complet (.zip)</a>
-    <a class="btn btn-play" href="fanboy">🎮 Console FanBoy (Secteurs 1–3)</a>
-    <button class="btn-play" id="btnReplay">▶ Rejouer depuis 00:00</button>
-    <button id="btnPrev">◀ Scène préc.</button>
-    <button id="btnNext">Scène suiv. ▶</button>
-    <a class="btn" href="download-pack.zip">⬇ Patch seul (.zip)</a>
+    <a class="btn btn-play" href="./">🎮 Console FanBoy (Secteurs 1–3)</a>
+    <button class="btn-play" id="btnReplay">▶ Rejouer 00:00</button>
+    <button id="btnPrev">◀ Préc.</button>
+    <button id="btnNext">Suiv. ▶</button>
+    <a class="btn btn-gold" href="https://github.com/JacquesBV/Neo-vanguard/archive/refs/heads/arena/38f5f5c5-neo-vanguard.zip" target="_blank" rel="noopener">⬇ ZIP Complet (GitHub)</a>
   </div>
 </header>
 
@@ -337,7 +338,9 @@ ALL_IMAGES.forEach(p => {
 });
 
 const music = new Audio("assets/music/title.mp3");
-music.preload = "auto";
+music.preload = "none";
+
+function okImg(im) { return Boolean(im && im.complete && im.naturalWidth > 0); }
 
 function playSfx(name, vol=0.8) {
   const a = new Audio(`assets/intro/audio/sfx/${name}.wav`);
@@ -428,25 +431,49 @@ function startFrom(sec) {
   lastTs = performance.now();
 }
 
-document.getElementById("btnStart").onclick = () => startFrom(0);
+const overlayEl = document.getElementById("overlay");
+let lastIntroTapMs = 0;
+function startOrTriggerOverlay(ev) {
+  const nowMs = performance.now();
+  if (nowMs - lastIntroTapMs < 220) return;
+  lastIntroTapMs = nowMs;
+  if (ev && ev.cancelable) ev.preventDefault();
+  startFrom(0);
+}
+document.getElementById("btnStart").addEventListener("click", startOrTriggerOverlay);
+overlayEl.addEventListener("click", startOrTriggerOverlay);
+overlayEl.addEventListener("touchend", startOrTriggerOverlay, {passive: false});
 document.getElementById("btnReplay").onclick = () => startFrom(0);
 document.getElementById("btnNext").onclick = () => {
   const i = sceneIndexAt(t);
   if (i + 1 < SCENES.length) { playSfx("sfx_manga_slash", 0.7); startFrom(SCENES[i+1].t0); flash = 0.45; }
+  else { window.location.href = "./"; }
 };
 document.getElementById("btnPrev").onclick = () => {
   const i = sceneIndexAt(t);
   startFrom(SCENES[Math.max(0, i-1)].t0);
 };
-cv.addEventListener("click", (e) => {
+function onStageTap(clientX, clientY, ev) {
+  const nowMs = performance.now();
+  if (nowMs - lastIntroTapMs < 220) return;
+  lastIntroTapMs = nowMs;
+  if (ev && ev.cancelable) ev.preventDefault();
   if (!running) { startFrom(0); return; }
   const r = cv.getBoundingClientRect();
-  const x = (e.clientX - r.left) * (480 / r.width);
-  const y = (e.clientY - r.top) * (860 / r.height);
+  if (!r.width || !r.height) return;
+  const x = (clientX - r.left) * (480 / r.width);
+  const y = (clientY - r.top) * (860 / r.height);
   if (x > 360 && y < 48) { startFrom(63.58); return; }
   const i = sceneIndexAt(t);
   if (i + 1 < SCENES.length) { playSfx("sfx_manga_slash", 0.7); startFrom(SCENES[i+1].t0); flash = 0.45; }
-});
+  else { window.location.href = "./"; }
+}
+cv.addEventListener("click", (e) => onStageTap(e.clientX, e.clientY, e));
+cv.addEventListener("touchend", (e) => {
+  if (e.changedTouches && e.changedTouches.length > 0) {
+    onStageTap(e.changedTouches[0].clientX, e.changedTouches[0].clientY, e);
+  }
+}, {passive: false});
 
 function lerp(a, b, u) { return a + (b - a) * u; }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -482,12 +509,12 @@ function drawPoseSeq(prefix, keyframes, u, x, y, w, h, fadeSpan=0.12) {
   }
   const imA = imgs[`${prefix}${idxA}.png`];
   if (idxA === idxB || blend <= 0.001) {
-    if (imA && imA.complete) ctx.drawImage(imA, x, y, w, h);
+    if (okImg(imA)) ctx.drawImage(imA, x, y, w, h);
   } else {
     const imB = imgs[`${prefix}${idxB}.png`];
     ctx.save();
-    if (imA && imA.complete) { ctx.globalAlpha = 1 - blend; ctx.drawImage(imA, x, y, w, h); }
-    if (imB && imB.complete) { ctx.globalAlpha = blend; ctx.drawImage(imB, x, y, w, h); }
+    if (okImg(imA)) { ctx.globalAlpha = 1 - blend; ctx.drawImage(imA, x, y, w, h); }
+    if (okImg(imB)) { ctx.globalAlpha = blend; ctx.drawImage(imB, x, y, w, h); }
     ctx.restore();
   }
 }
@@ -584,7 +611,7 @@ function render(now) {
       const vh = vw * (927 / 1200);
       const vy = TOP_BAR_H + (STAGE_H + 22) - vh * 0.929;
       const vxIm = imgs["assets/intro/characters/vorax/vorax_mecha.png"];
-      if (vxIm && vxIm.complete) ctx.drawImage(vxIm, (480 - vw)*0.5 + shkX, vy + shkY, vw, vh);
+      if (okImg(vxIm)) ctx.drawImage(vxIm, (480 - vw)*0.5 + shkX, vy + shkY, vw, vh);
     }
   } else if (si === 2) {
     if (u < 0.56) {
@@ -731,7 +758,7 @@ function render(now) {
     ctx.beginPath(); ctx.arc(52, 497, 22, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(20,34,64,0.85)"; ctx.fill();
     ctx.strokeStyle = w.color; ctx.lineWidth = 1.4; ctx.stroke();
-    if (hIm && hIm.complete) ctx.drawImage(hIm, 26, 471, 52, 52);
+    if (okImg(hIm)) ctx.drawImage(hIm, 26, 471, 52, 52);
 
     ctx.textAlign = "left";
     const cTitle = `MONDE ${w.world} / 8 — ${w.console.toUpperCase()}`;
@@ -759,7 +786,7 @@ function render(now) {
       ctx.lineWidth = active ? 1.7 : 1.0;
       ctx.strokeRect(gx, gy, 105, 23);
       const mh = imgs[WORLDS[m].holo];
-      if (mh && mh.complete) ctx.drawImage(mh, gx + 2, gy + 1.5, 20, 20);
+      if (okImg(mh)) ctx.drawImage(mh, gx + 2, gy + 1.5, 20, 20);
       ctx.textAlign = "center";
       ctx.fillStyle = active ? "#fff" : "rgba(205,224,246,0.88)";
       ctx.font = WORLDS[m].console.length > 12 ? "bold 8px sans-serif" : "bold 9px sans-serif";
@@ -775,7 +802,7 @@ function render(now) {
     drawCoverRegion("assets/intro/panels/panel_10_clash_energie.png", 18, 56, 444, 188, 1.35, -0.15, -0.22, "rgba(20,4,10,0.52)");
     const vw5 = lerp(404, 428, u), vh5 = vw5 * (927 / 1200);
     const vxIm = imgs["assets/intro/characters/vorax/vorax_mecha.png"];
-    if (vxIm && vxIm.complete) ctx.drawImage(vxIm, 18 + (444 - vw5)*0.5, 48, vw5, vh5);
+    if (okImg(vxIm)) ctx.drawImage(vxIm, 18 + (444 - vw5)*0.5, 48, vw5, vh5);
     ctx.restore();
     drawMangaFrame(18, 56, 444, 188, "#ff4055", 2.4);
 
@@ -948,61 +975,74 @@ FANBOY_HTML = r"""<!DOCTYPE html>
   }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   button, a.btn {
-    cursor: pointer; font-size: 12px; font-weight: 700; padding: 8px 13px;
+    cursor: pointer; font-size: 12px; font-weight: 700; padding: 9px 13px;
     border-radius: 8px; border: 1px solid var(--border); background: #101b37;
     color: var(--ink); text-decoration: none; transition: 0.15s ease;
     display: inline-flex; align-items: center; gap: 6px;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   }
   button:hover, a.btn:hover, button.active { border-color: var(--cyan); background: #1c3568; }
   .btn-gold {
     background: linear-gradient(135deg, rgba(255, 209, 102, 0.24), rgba(255, 145, 56, 0.22));
     border-color: var(--gold); color: var(--gold);
   }
-  main {
-    flex: 1; display: grid; grid-template-columns: minmax(320px, 470px) 1fr;
-    gap: 18px; padding: 16px 18px; max-width: 1380px; width: 100%; margin: 0 auto;
+  .btn-play {
+    background: linear-gradient(135deg, rgba(76, 244, 255, 0.26), rgba(90, 120, 255, 0.28));
+    border-color: var(--cyan); color: #fff;
   }
-  @media (max-width: 920px) { main { grid-template-columns: 1fr; justify-items: center; } }
+  main {
+    flex: 1; display: grid; grid-template-columns: minmax(300px, 450px) 1fr;
+    gap: 16px; padding: 12px 14px; max-width: 1380px; width: 100%; margin: 0 auto;
+  }
+  @media (max-width: 920px) {
+    header { padding: 8px 10px; gap: 8px; }
+    .brand-sub { display: none; }
+    main { grid-template-columns: 1fr; justify-items: stretch; padding: 8px 10px; gap: 12px; }
+  }
+  .stage-col { width: 100%; display: flex; flex-direction: column; align-items: center; }
   .canvas-frame {
-    position: relative; width: min(100%, 432px); aspect-ratio: 480 / 860;
+    position: relative; width: min(92vw, 415px); aspect-ratio: 937 / 1679;
     border-radius: 14px; overflow: hidden;
     border: 2px solid rgba(76, 244, 255, 0.55);
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.72), 0 0 28px rgba(76, 244, 255, 0.18);
-    background: #04060e; touch-action: none; user-select: none;
+    background: #04060e;
+    touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   }
-  canvas { width: 100%; height: 100%; display: block; }
+  canvas { width: 100%; height: 100%; display: block; touch-action: none; }
   .card {
     background: rgba(11, 18, 38, 0.88); border: 1px solid rgba(76, 244, 255, 0.22);
-    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; width: 100%;
   }
-  .card h3 { font-size: 13px; letter-spacing: 0.06em; color: var(--cyan); margin-bottom: 8px; }
+  .card h3 { font-size: 12px; letter-spacing: 0.06em; color: var(--cyan); margin-bottom: 6px; }
   .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
-  .kv { font-size: 12px; color: var(--dim); line-height: 1.6; }
+  .kv { font-size: 12px; color: var(--dim); line-height: 1.55; }
   .kv code { color: var(--gold); background: rgba(255, 209, 102, 0.1); padding: 1px 5px; border-radius: 4px; }
 </style>
 </head>
 <body>
 <header>
   <div class="brand">
-    <span class="badge">SCENES/FANBOY.TSCN · 937×1679 → 480×860</span>
+    <span class="badge">FANBOY · SECTEURS 1–3</span>
     <div>
-      <div style="font-weight:800;font-size:15px;letter-spacing:0.04em;">CONSOLE FANBOY ANIMÉE — MONDE 1 (SECTEURS 1, 2 ET 3 INCLUS)</div>
-      <div style="font-size:11px;color:var(--dim);">11 calques matériels · 5 SFX WAV · Stick 360° · A/B/SELECT/START · Interrupteur ON/OFF · Shaders menace</div>
+      <div style="font-weight:800;font-size:14px;letter-spacing:0.04em;">CONSOLE FANBOY INTERACTIVE (TACTILE MOBILE & SOURIS)</div>
+      <div class="brand-sub" style="font-size:11px;color:var(--dim);">Boutons A/B corrigés sur coque · Jauge COQUE 8 crans alignée · Multi-touch</div>
     </div>
   </div>
   <div class="actions">
-    <a class="btn btn-gold" href="Neo-Vanguard-Godot-Complet.zip">⬇ Pack Godot Complet (.zip)</a>
-    <a class="btn" href="./">🎬 Cinématique d'Intro</a>
-    <a class="btn" href="download-pack.zip">⬇ Patch seul (.zip)</a>
+    <a class="btn btn-play" href="intro">🎬 Cinématique d'Intro</a>
+    <a class="btn btn-gold" href="https://github.com/JacquesBV/Neo-vanguard/archive/refs/heads/arena/38f5f5c5-neo-vanguard.zip" target="_blank" rel="noopener">⬇ ZIP Complet (GitHub)</a>
   </div>
 </header>
 <main>
-  <div>
+  <div class="stage-col">
     <div class="canvas-frame">
       <canvas id="cv" width="937" height="1679"></canvas>
     </div>
+    <div style="font-size:11px;color:var(--dim);text-align:center;margin-top:6px;">
+      📱 Touchez le <b>stick</b>, les boutons <b>A</b> (tir) / <b>B</b> (bombe), <b>SELECT/START</b>, l'interrupteur <b>ON/OFF</b> ou directement l'écran LCD.
+    </div>
   </div>
-  <div>
+  <div style="width:100%;">
     <div class="card">
       <h3>LANCER UN SECTEUR (NIVEAUX 1, 2, 3 INCLUS → BASCULE NIVEAU 4)</h3>
       <div class="kv">Cliquez pour tester le lancement de chaque secteur dans le <code>GameViewport (620×890)</code> de la FanBoy, puis la bascule plein écran au Secteur 4 (<i>FanBoy Adventure</i>) :</div>
@@ -1071,11 +1111,14 @@ function playSfx(k){ try { const a = sfx[k].cloneNode(); a.volume = 0.45; a.play
 
 let sector = 1, powered = true, powerY = 0, ledEnergy = 1.0;
 let stickVec = {x:0, y:0}, stickVis = {x:0, y:0};
-let held = {a:false, b:false, select:false, start:false};
+let held = {a:false, b:false, select:false, start:false, screenFire:false};
 let loadT = 0, paused = false, pauseMenu = false;
 let ship = {x: 310, y: 700, hp: 8, maxHp: 8, lives: 3, bombs: 3, score: 0};
 let bullets = [], enemies = [], shocks = [], boss = null, simThreatOverride = -1;
-let activePtr = null;
+const captures = new Map();
+let lastTouchMs = 0;
+
+function okImg(im){ return Boolean(im && im.complete && im.naturalWidth > 0); }
 
 function launchSector(lv) {
   sector = lv;
@@ -1098,62 +1141,126 @@ function togglePower(forceOn){
   powered = (typeof forceOn === "boolean") ? forceOn : !powered;
   powerY = powered ? 0 : 18;
   playSfx(powered ? "switch_on" : "switch_off");
-  if (!powered) { held = {a:false,b:false,select:false,start:false}; stickVec = {x:0,y:0}; }
+  if (!powered) { held = {a:false,b:false,select:false,start:false,screenFire:false}; stickVec = {x:0,y:0}; captures.clear(); }
 }
 launchSector(1);
 
-function toMaster(ev){
+function clientToMaster(clientX, clientY){
   const r = cv.getBoundingClientRect();
-  return { x: (ev.clientX - r.left) * (937 / r.width), y: (ev.clientY - r.top) * (1679 / r.height) };
+  if (!r.width || !r.height) return {x: 0, y: 0};
+  return { x: (clientX - r.left) * (937 / r.width), y: (clientY - r.top) * (1679 / r.height) };
 }
 function hitTest(p){
-  if (Math.abs(p.x - CENTERS.power.x) <= 28 && Math.abs(p.y - (CENTERS.power.y + powerY)) <= 57) return "power";
+  if (Math.abs(p.x - CENTERS.power.x) <= 42 && Math.abs(p.y - (CENTERS.power.y + powerY)) <= 68) return "power";
   if (!powered) return "";
-  if (Math.hypot(p.x - CENTERS.stick.x, p.y - CENTERS.stick.y) <= 103) return "stick";
-  if (Math.hypot(p.x - CENTERS.a.x, p.y - CENTERS.a.y) <= 58) return "a";
-  if (Math.hypot(p.x - CENTERS.b.x, p.y - CENTERS.b.y) <= 51) return "b";
-  if (Math.abs(p.x - CENTERS.select.x) <= 44 && Math.abs(p.y - CENTERS.select.y) <= 22) return "select";
-  if (Math.abs(p.x - CENTERS.start.x) <= 44 && Math.abs(p.y - CENTERS.start.y) <= 22) return "start";
+  if (Math.hypot(p.x - CENTERS.stick.x, p.y - CENTERS.stick.y) <= 122) return "stick";
+  if (Math.hypot(p.x - CENTERS.a.x, p.y - CENTERS.a.y) <= 68) return "a";
+  if (Math.hypot(p.x - CENTERS.b.x, p.y - CENTERS.b.y) <= 62) return "b";
+  if (Math.abs(p.x - CENTERS.select.x) <= 52 && Math.abs(p.y - CENTERS.select.y) <= 28) return "select";
+  if (Math.abs(p.x - CENTERS.start.x) <= 52 && Math.abs(p.y - CENTERS.start.y) <= 28) return "start";
   if (p.x >= 158 && p.x <= 778 && p.y >= 287 && p.y <= 1177) return "screen";
   return "";
 }
-cv.addEventListener("pointerdown", ev => {
-  if (sector >= 4) return;
-  cv.setPointerCapture(ev.pointerId);
-  const p = toMaster(ev);
+function handleDown(id, clientX, clientY){
+  if (sector >= 4) {
+    const p = clientToMaster(clientX, clientY);
+    captures.set(id, {target: "full", lastP: p});
+    ship.x = Math.max(48, Math.min(572, p.x * (620 / 937)));
+    ship.y = Math.max(120, Math.min(820, p.y * (890 / 1679)));
+    return;
+  }
+  const p = clientToMaster(clientX, clientY);
   const t = hitTest(p);
-  activePtr = {id: ev.pointerId, target: t, startY: p.y};
+  if (!t) return;
+  captures.set(id, {target: t, startY: p.y, dragged: false});
   if (t === "power") return;
   if (t === "stick") updateStick(p);
-  else if (t in held) {
+  else if (t === "screen") {
+    held.screenFire = true;
+    ship.x = Math.max(48, Math.min(572, p.x - 158));
+    ship.y = Math.max(120, Math.min(820, p.y - 287 - 48));
+  } else if (t in held) {
     held[t] = true; playSfx("press");
     if (t === "b" && ship.bombs > 0 && !paused) { ship.bombs--; shocks.push({x: ship.x, y: ship.y, r: 16}); }
     if (t === "select") { if (pauseMenu) { pauseMenu = false; paused = false; } else paused = !paused; }
     if (t === "start") { pauseMenu = !pauseMenu; paused = pauseMenu; }
   }
-});
-cv.addEventListener("pointermove", ev => {
-  if (!activePtr || activePtr.id !== ev.pointerId) return;
-  const p = toMaster(ev);
-  if (activePtr.target === "stick") updateStick(p);
-  else if (activePtr.target === "power") {
-    const dy = p.y - activePtr.startY;
-    if (Math.abs(dy) > 7) activePtr.dragged = true;
+}
+function handleMove(id, clientX, clientY){
+  const cap = captures.get(id);
+  if (!cap) return;
+  const p = clientToMaster(clientX, clientY);
+  if (cap.target === "full") {
+    ship.x = Math.max(48, Math.min(572, p.x * (620 / 937)));
+    ship.y = Math.max(120, Math.min(820, p.y * (890 / 1679)));
+  } else if (cap.target === "stick") {
+    updateStick(p);
+  } else if (cap.target === "screen" && powered && !paused) {
+    ship.x = Math.max(48, Math.min(572, p.x - 158));
+    ship.y = Math.max(120, Math.min(820, p.y - 287 - 48));
+  } else if (cap.target === "power") {
+    const dy = p.y - cap.startY;
+    if (Math.abs(dy) > 7) cap.dragged = true;
     powerY = Math.max(0, Math.min(18, (powered ? 0 : 18) + dy));
   }
-});
-function endPtr(ev){
-  if (!activePtr || activePtr.id !== ev.pointerId) return;
-  if (activePtr.target === "power") {
-    if (activePtr.dragged) togglePower(powerY < 9);
+}
+function handleUp(id){
+  const cap = captures.get(id);
+  if (!cap) return;
+  captures.delete(id);
+  if (cap.target === "power") {
+    if (cap.dragged) togglePower(powerY < 9);
     else togglePower(!powered);
-  } else if (activePtr.target === "stick") {
+  } else if (cap.target === "stick") {
     if (Math.hypot(stickVec.x, stickVec.y) > 0.2) playSfx("stick_return");
     stickVec = {x:0, y:0};
-  } else if (activePtr.target in held && held[activePtr.target]) {
-    held[activePtr.target] = false; playSfx("release");
+  } else if (cap.target === "screen") {
+    held.screenFire = false;
+  } else if (cap.target in held && held[cap.target]) {
+    held[cap.target] = false; playSfx("release");
   }
-  activePtr = null;
+}
+
+// Multi-touch natif mobile (prioritaire dans les iframes mobiles Safari/Chrome)
+cv.addEventListener("touchstart", ev => {
+  lastTouchMs = performance.now();
+  if (ev.cancelable) ev.preventDefault();
+  for (let i = 0; i < ev.changedTouches.length; i++) {
+    const t = ev.changedTouches[i];
+    handleDown("t" + t.identifier, t.clientX, t.clientY);
+  }
+}, {passive: false});
+cv.addEventListener("touchmove", ev => {
+  lastTouchMs = performance.now();
+  if (ev.cancelable) ev.preventDefault();
+  for (let i = 0; i < ev.changedTouches.length; i++) {
+    const t = ev.changedTouches[i];
+    handleMove("t" + t.identifier, t.clientX, t.clientY);
+  }
+}, {passive: false});
+function onTouchEnd(ev){
+  lastTouchMs = performance.now();
+  if (ev.cancelable) ev.preventDefault();
+  for (let i = 0; i < ev.changedTouches.length; i++) {
+    handleUp("t" + ev.changedTouches[i].identifier);
+  }
+}
+cv.addEventListener("touchend", onTouchEnd, {passive: false});
+cv.addEventListener("touchcancel", onTouchEnd, {passive: false});
+
+// Souris / stylet bureau (ignoré si événement synthétique post-tactile)
+cv.addEventListener("pointerdown", ev => {
+  if (ev.pointerType === "touch" || performance.now() - lastTouchMs < 500) return;
+  try { cv.setPointerCapture(ev.pointerId); } catch(e) {}
+  handleDown("p" + ev.pointerId, ev.clientX, ev.clientY);
+});
+cv.addEventListener("pointermove", ev => {
+  if (ev.pointerType === "touch" || performance.now() - lastTouchMs < 500) return;
+  handleMove("p" + ev.pointerId, ev.clientX, ev.clientY);
+});
+function endPtr(ev){
+  if (ev.pointerType === "touch") return;
+  handleUp("p" + ev.pointerId);
 }
 cv.addEventListener("pointerup", endPtr);
 cv.addEventListener("pointercancel", endPtr);
@@ -1179,7 +1286,7 @@ function tick(now){
     ship.x = Math.max(48, Math.min(572, ship.x + stickVec.x * 320 * dt));
     ship.y = Math.max(120, Math.min(820, ship.y + stickVec.y * 320 * dt));
     fireCd -= dt;
-    if ((held.a || sector >= 4) && fireCd <= 0) {
+    if ((held.a || held.screenFire || sector >= 4) && fireCd <= 0) {
       fireCd = 0.14;
       bullets.push({x: ship.x - 14, y: ship.y - 22}, {x: ship.x + 14, y: ship.y - 22});
     }
@@ -1284,13 +1391,13 @@ function tick(now){
     }
 
     ctx.clearRect(0, 0, 937, 1679);
-    if (imgs.hidden_sockets.complete) ctx.drawImage(imgs.hidden_sockets, 0, 0);
+    if (okImg(imgs.hidden_sockets)) ctx.drawImage(imgs.hidden_sockets, 0, 0);
     if (powered) ctx.drawImage(lcd, 158, 287);
     else { ctx.fillStyle = "#010101"; ctx.fillRect(158, 287, 620, 890); }
-    if (imgs.shell.complete) ctx.drawImage(imgs.shell, 0, 0);
+    if (okImg(imgs.shell)) ctx.drawImage(imgs.shell, 0, 0);
 
     // Rails lumineux de menace (simulation led.gdshader)
-    if (imgs.threat_lights.complete && ledEnergy > 0.01) {
+    if (okImg(imgs.threat_lights) && ledEnergy > 0.01) {
       gctx.clearRect(0, 0, 937, 1679);
       gctx.drawImage(imgs.threat_lights, 0, 0);
       gctx.globalCompositeOperation = "source-atop";
@@ -1326,7 +1433,7 @@ function tick(now){
 
     // Contrôles mobiles
     function drawCentered(im, cx, cy, sc=1){
-      if (!im || !im.complete) return;
+      if (!okImg(im)) return;
       const w = im.width * sc, h = im.height * sc;
       ctx.drawImage(im, cx - w/2, cy - h/2, w, h);
     }
@@ -1336,7 +1443,7 @@ function tick(now){
     drawCentered(imgs.start, CENTERS.start.x, CENTERS.start.y + (held.start?2:0), held.start?0.96:1);
     drawCentered(imgs.stick, CENTERS.stick.x + stickVis.x, CENTERS.stick.y + stickVis.y, 1);
     drawCentered(imgs.power, CENTERS.power.x, CENTERS.power.y + powerY, 1);
-    if (imgs.led.complete) {
+    if (okImg(imgs.led)) {
       drawCentered(imgs.led, CENTERS.led.x, CENTERS.led.y + powerY, 1);
       if (ledEnergy > 0.02) {
         ctx.save();
@@ -1368,7 +1475,16 @@ class IntroPreviewHandler(BaseHTTPRequestHandler):
 
     def _send_cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "*")
+        self.send_header("Cross-Origin-Resource-Policy", "cross-origin")
+        self.send_header("Content-Security-Policy", "frame-ancestors *")
         self.send_header("Cache-Control", "no-store")
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self._send_cors()
+        self.end_headers()
 
     def do_HEAD(self):
         raw_path = unquote(self.path.split("?", 1)[0]).lstrip("/")
@@ -1389,8 +1505,8 @@ class IntroPreviewHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         raw_path = unquote(self.path.split("?", 1)[0]).lstrip("/")
-        if raw_path in ("", "index.html"):
-            body = INDEX_HTML.encode("utf-8")
+        if raw_path in ("", "index.html", "fanboy", "fanboy.html"):
+            body = FANBOY_HTML.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
@@ -1399,8 +1515,8 @@ class IntroPreviewHandler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
 
-        if raw_path in ("fanboy", "fanboy.html"):
-            body = FANBOY_HTML.encode("utf-8")
+        if raw_path in ("intro", "intro.html"):
+            body = INDEX_HTML.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
