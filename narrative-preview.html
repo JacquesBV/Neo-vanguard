@@ -3,24 +3,7 @@
 </style></head><body><main class="scene" id="scene" data-scene="0"><div class="stars"></div><div class="planet"></div><div class="sector-art" aria-hidden="true"></div><div class="vorax-art" role="img" aria-label="Vorax, antagoniste mécanique rouge"></div><div class="eyes"><i></i><i></i></div><div class="cockpit"></div><div class="veil"></div><div class="card" aria-live="polite"><div class="speaker" id="speaker"></div><p class="line" id="line"></p></div></main><header>NEO-VANGUARD<strong>L'ÉVEIL</strong></header><nav class="controls"><button id="back" aria-label="Scène précédente">◀</button><button id="toggle">Lecture ▶</button><button id="next" aria-label="Scène suivante">▶</button><button id="restart" aria-label="Recommencer la cinématique">↺ Rejouer</button><button id="sound" aria-pressed="false" title="Musique du récit">♫ Musique : non</button><span class="counter" id="count"></span></nav><script>
 "use strict";
 // Prototype narratif indépendant : aucune simulation de gameplay, aucun état global modifié.
-const beats=[
-[0,"VESTA","Est-ce que tu m'entends ?"],
-[0,"VESTA","Ouvre les yeux… Je t'en prie."],
-[1,"LE PILOTE","Où suis-je ?"],
-[1,"VESTA","Tu es enfin revenu à toi."],
-[1,"LE PILOTE","Qui êtes-vous ? Et moi… qui suis-je ?"],
-[1,"VESTA","Je suis Vesta. Nous allons devoir commencer par l'essentiel."],
-[2,"VESTA","Six générations de consoles sacrées préservent les couleurs et la vie de nos mondes."],
-[2,"VESTA","Aujourd'hui, cet héritage est menacé."],
-[3,"VESTA","Son nom est Vorax. Il veut effacer tout ce qui rend cet univers vivant."],
-[3,"VESTA","Plus de couleurs. Plus de créations. Plus de souvenirs."],
-[4,"LE PILOTE","Pourquoi moi ? Je ne sais même pas qui je suis."],
-[4,"VESTA","Parce que tu peux encore les sauver. Certaines choses ne s'oublient jamais."],
-[5,"LE PILOTE","Je ne vais pas rester là à regarder ces mondes disparaître."],
-[5,"VESTA","Alors nous avons encore une chance."],
-[6,"VESTA","Vingt-quatre secteurs nous séparent de Vorax. Je reste avec toi."],
-[6,"LE PILOTE","Alors commençons."]
-];let index=0,timer=null,transition=null;
+const beats=[[0,"VESTA","Est-ce que tu m'entends ?"],[0,"VESTA","Ouvre les yeux… Je t'en prie."],[1,"LE PILOTE","Où suis-je ?"],[1,"VESTA","Tu es enfin revenu à toi."],[1,"LE PILOTE","Qui êtes-vous ? Et moi… qui suis-je ?"],[1,"VESTA","Je suis Vesta. Nous allons devoir commencer par l'essentiel."],[2,"VESTA","Huit générations préservent les couleurs, les créations et la vie de nos mondes."],[2,"VESTA","FanBoy, secteurs 1 à 3. FanBoy Adventure, secteurs 4 à 6."],[2,"VESTA","NEXUS 8, secteurs 7 à 9. Masterion 8, secteurs 10 à 12."],[2,"VESTA","NEXUS 16, secteurs 13 à 15. MegaStorm 16, secteurs 16 à 18."],[2,"VESTA","Arcadion AES, secteurs 19 à 21. Polytron 32, secteurs 22 à 24."],[2,"VESTA","Chaque génération est un monde à part entière. Et chacune est menacée."],[3,"VESTA","Son nom est Vorax. Il veut effacer tout ce qui rend cet univers vivant."],[3,"VESTA","Plus de couleurs. Plus de créations. Plus de souvenirs."],[4,"LE PILOTE","Pourquoi moi ? Je ne sais même pas qui je suis."],[4,"VESTA","Parce que tu peux encore les sauver. Certaines choses ne s'oublient jamais."],[5,"LE PILOTE","Je ne vais pas rester là à regarder ces mondes disparaître."],[5,"VESTA","Alors nous avons encore une chance."],[6,"VESTA","Premier objectif : FanBoy, secteur 1. Je reste avec toi."],[6,"LE PILOTE","Alors commençons."]];let index=0,timer=null,transition=null;
 const soundtrack=new Audio("music/story.mp3");soundtrack.loop=true;soundtrack.volume=.24;
 const soundButton=document.getElementById("sound");
 const scene=document.getElementById("scene"),speaker=document.getElementById("speaker"),line=document.getElementById("line"),count=document.getElementById("count"),toggle=document.getElementById("toggle"),card=document.querySelector(".card");
