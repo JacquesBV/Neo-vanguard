@@ -9,8 +9,9 @@ var game: NVGame
 var main: Node = null   # (C10) pour savoir si un écran (menu pause) est ouvert
 const PixelUi := preload("res://scripts/ui/pixel_ui.gd")
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if game != null and game.state == "play":
+		_ease_press(delta)
 		queue_redraw()
 
 func _fontp() -> Font:
@@ -284,15 +285,54 @@ func _weapon_count() -> int:
 ##  (stick Ø134 · croix 169 · TIR Ø74 · BOMBE Ø64 · SELECT/START 85×35).
 ## =========================================================================
 
-const STICK_C := Vector2(95, 660)
-const STICK_R := 80.0            # zone doigt (cap dessiné Ø134, anneau Ø160)
-const DPAD_C := Vector2(270, 658)
-const DPAD_R := 76.0                # (C13) n'empiète plus sur BOMBE
-const FIRE_C := Vector2(402, 588)     # (C13) paire diagonale comme une manette
-const FIRE_R := 42.0
-const BOMB_C := Vector2(354, 672)
-const BOMB_R := 40.0
-const STRIP := Rect2(16, 473, 448, 28)   # bandeau HUD LED (sur la photo verte)
+# (C14) géométrie mesurée sur la nouvelle coque de référence (480×860)
+const STICK_C := Vector2(147, 682)
+const STICK_R := 62.0            # zone doigt du stick photo
+const DPAD_C := Vector2(-200, -200)   # (C14) plus de croix sur la v2 (compat)
+const DPAD_R := 1.0
+const FIRE_C := Vector2(304, 704)     # bouton A rouge (photo)
+const FIRE_R := 31.0
+const BOMB_C := Vector2(378, 662)     # bouton B ambré (photo)
+const BOMB_R := 30.0
+const SELECT_R := Rect2(242, 630, 48, 15)
+const START_R := Rect2(242, 662, 48, 15)
+const STRIP := Rect2(37, 753, 406, 67)   # panneau DATA FIELD imprimé (photo)
+
+## (C14) profondeur d'enfoncement lissée par contrôle (0 relâché, 1 enfoncé)
+var _press_k := { "stick": 0.0, "fire": 0.0, "bomb": 0.0, "select": 0.0, "start": 0.0, "power": 0.0 }
+
+func _ease_press(delta: float) -> void:
+	if game == null or main == null:
+		return
+	var ms := Time.get_ticks_msec()
+	var flash: Dictionary = main.shell_press
+	var targets := {
+		"stick": 1.0 if int(main.get("shell_stick_id")) != -1 else (1.0 if flash.has("stick") and ms - int(flash["stick"]) < 150 else 0.0),
+		"fire": 1.0 if bool(game.touch_fire_btn) else (1.0 if flash.has("fire") and ms - int(flash["fire"]) < 180 else 0.0),
+		"bomb": 1.0 if flash.has("bomb") and ms - int(flash["bomb"]) < 220 else 0.0,
+		"select": 1.0 if flash.has("select") and ms - int(flash["select"]) < 200 else 0.0,
+		"start": 1.0 if flash.has("start") and ms - int(flash["start"]) < 200 else 0.0,
+		"power": 1.0 if int(main.get("power_drag_id")) != -1 else 0.0,
+	}
+	var k: float = clampf(delta * 18.0, 0.0, 1.0)
+	for id in targets:
+		_press_k[id] = lerpf(float(_press_k[id]), float(targets[id]), k)
+
+## (C14) couleur LED adaptative : progression du secteur (vert→rouge,
+## Data.progress_color) + danger immédiat (coque joueur < 35 % ou boss
+## en phase finale = rouge pulsant, quel que soit le niveau).
+func _led_color(ms: int) -> Color:
+	var col: Color = Data.progress_color(game.sector_progress())
+	var P: Dictionary = game.first_player()
+	var danger := 0.0
+	if not P.is_empty() and int(P.max_hp) > 0:
+		danger = clampf(1.0 - float(P.hp) / float(P.max_hp) / 0.35, 0.0, 1.0)
+	if not game.boss.is_empty() and float(game.boss.get("max_hp", 0)) > 0.0:
+		danger = maxf(danger, clampf(1.0 - float(game.boss.hp) / float(game.boss.max_hp) / 0.25, 0.0, 1.0))
+	if danger > 0.0:
+		var pulse: float = 0.75 + 0.25 * sin(ms / lerpf(220.0, 90.0, danger))
+		col = col.lerp(Color(1, 0.12, 0.12), danger * pulse)
+	return col
 
 func _draw_era0() -> void:
 	var ms := Time.get_ticks_msec()
@@ -357,7 +397,7 @@ func _draw_neon_frame(ms: int, ps: String, led: float) -> void:
 		"boot":
 			col = Color(0.3, 0.9, 1.0)
 		_:
-			col = Data.progress_color(game.sector_progress())
+			col = _led_color(ms)
 	var pulse: float = 1.0
 	if ps == "on" and game.sector_progress() > 0.75:
 		pulse = 0.72 + 0.28 * sin(ms / 110.0)
@@ -370,7 +410,7 @@ func _draw_neon_frame(ms: int, ps: String, led: float) -> void:
 		Color(minf(1.0, col.r + 0.25), minf(1.0, col.g + 0.25), minf(1.0, col.b + 0.25), 0.95 * led), false, 2.0)
 	if ps == "on":
 		var p: int = int(round(game.sector_progress() * 100.0))
-		_txtp(Vector2(STRIP.end.x - 2, STRIP.position.y + 19), "%d %%" % p, 8,
+		_txtp(Vector2(Data.GLASS.end.x - 2, Data.GLASS.position.y - 8), "%d %%" % p, 8,
 			Color(col.r, col.g, col.b, 0.9), HORIZONTAL_ALIGNMENT_RIGHT)
 
 ## écran éteint : verre noir + reflet + matrice LCD fantôme + consigne
@@ -436,198 +476,130 @@ func _draw_shutdown(ms: int) -> void:
 	_txtp(Vector2(g.get_center().x, g.get_center().y),
 		NVLang.t("⏻ GLISSER POUR ALLUMER"), 9, Color(0.4, 0.55, 0.62, 0.7), HORIZONTAL_ALIGNMENT_CENTER)
 
-## le curseur POWER (bas de coque) : I/O magnétique
+## (C14) curseur POWER vertical (haut de coque, photo) : ON en haut,
+## OFF en bas — le pouce glisse, le bouton suit le doigt puis aimante.
 func _draw_power_slider(ms: int, led_knob: float) -> void:
-	# (C11) la piste vit à GAUCHE du cul de console : le centre accueille le
-	# sticker logo (photo, intouchable). Symbole ⏻ vectoriel (jamais en tofu).
-	var track := Rect2(28, 792, 130, 32)
+	var track := Rect2(44, 88, 20, 42)
 	var ps: String = "on"
 	if main != null:
 		ps = str(main.get("power_state"))
 	var knob: float = 1.0 if (ps == "on" or ps == "boot") else 0.0
 	if main != null and int(main.get("power_drag_id")) != -1:
 		knob = float(main.get("power_knob"))
-	var tb := StyleBoxFlat.new()
-	tb.bg_color = Color(0.05, 0.07, 0.10)
-	tb.set_corner_radius_all(17)
-	tb.border_color = Color(0.30, 0.38, 0.46)
-	tb.set_border_width_all(2)
-	draw_style_box(tb, track)
-	var cy: float = track.get_center().y
-	_txtp(Vector2(track.position.x + 18, cy + 5), "I", 11, Color(0.45, 0.55, 0.65), HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(track.end.x - 18, cy + 5), "O", 11, Color(0.45, 0.55, 0.65), HORIZONTAL_ALIGNMENT_CENTER)
-	var kx: float = lerp(track.position.x + 20, track.end.x - 20, knob)
 	var on: bool = ps == "on" or ps == "boot"
-	# (C12) le bouton I/O n'est rétroéclairé QUE console allumée : éteinte,
-	# c'est du plastique sombre — l'éclairage cyan monte en fin de boot
 	var kc: Color = _mix_led(Color(0.17, 0.18, 0.21),
 		Color(0.3, 0.9, 1.0) if on else Color(0.85, 0.3, 0.32), led_knob)
-	draw_circle(Vector2(kx, cy), 15, Color(kc.r, kc.g, kc.b, 0.20 * led_knob))
-	draw_circle(Vector2(kx, cy), 12, kc.darkened(0.25))
-	draw_circle(Vector2(kx, cy), 11, kc)
-	draw_circle(Vector2(kx - 3, cy - 3), 3.4, Color(1, 1, 1, 0.5 * led_knob + 0.08))
-	# ⏻ vectoriel sur le bouton : cercle ouvert + trait vertical
-	draw_arc(Vector2(kx, cy + 1.5), 5.0, -PI * 0.28, PI * 1.28, 14, Color(0.05, 0.08, 0.12), 1.7)
-	draw_line(Vector2(kx, cy - 6.5), Vector2(kx, cy + 1.0), Color(0.05, 0.08, 0.12), 1.7)
-	# rappel permanent : ALLUMER (éteint) / ÉTEINDRE (allumé)
+	var kx: float = track.get_center().x
+	var ky: float = lerpf(track.end.y - 10.0, track.position.y + 10.0, knob)
+	var pk: float = float(_press_k.get("power", 0.0))
+	draw_circle(Vector2(kx, ky), 11.0 - 1.5 * pk, Color(kc.r, kc.g, kc.b, 0.22 * led_knob))
+	draw_circle(Vector2(kx, ky + 1.0), 8.5 - 1.0 * pk, kc.darkened(0.3))
+	draw_circle(Vector2(kx, ky), 7.5 - 1.0 * pk, kc)
+	draw_circle(Vector2(kx - 2, ky - 2), 2.2, Color(1, 1, 1, 0.45 * led_knob + 0.08))
 	if ps == "on":
-		_txtp(Vector2(112, 780), NVLang.t("⏻ GLISSER POUR ÉTEINDRE").substr(2), 6,
-			Color(0.5, 0.58, 0.66, 0.55 + 0.2 * sin(ms / 400.0)), HORIZONTAL_ALIGNMENT_CENTER)
-		_power_glyph(Vector2(24, 778), Color(0.5, 0.58, 0.66, 0.7))
+		_txtp(Vector2(54, 142), NVLang.t("GLISSER POUR ÉTEINDRE").replace("⏻ ", ""), 5,
+			Color(0.5, 0.58, 0.66, 0.45 + 0.15 * sin(ms / 400.0)), HORIZONTAL_ALIGNMENT_CENTER)
 
 ## symbole puissance universel dessiné (sûr avec toutes les polices)
 func _power_glyph(c: Vector2, col: Color, w := 1.5, r := 4.5) -> void:
 	draw_arc(c, r, -PI * 0.28, PI * 1.28, 12, col, w)
 	draw_line(Vector2(c.x, c.y - r - 1.5), Vector2(c.x, c.y + 0.5), col, w)
 
-## bandeau HUD LED hors écran (la « LED HUD STRIP » de la coque)
+## (C14) panneau DATA FIELD imprimé en bas de coque : COQUE (segments),
+## VIES, BOMBES, nom + vie du BOSS, COMBO — remplis par-dessus la photo.
 func _draw_hud_strip(led: float) -> void:
-	# (C12) LED éteintes = segments invisibles, légende à peine imprimée
-	var ink := _mix_led(Color(0.30, 0.31, 0.27, 0.16), Color(Data.INKS[3]), led)
-	var mid := _mix_led(Color(0.28, 0.29, 0.25, 0.12), Color(Data.INKS[2]), led)
-	draw_rect(STRIP, Color(0.045, 0.06, 0.04))
-	draw_rect(Rect2(STRIP.position.x, STRIP.position.y, STRIP.size.x, 2), Color(0.62, 0.64, 0.55, 0.12))
+	var ms := Time.get_ticks_msec()
+	var col: Color = _led_color(ms)
+	var ink := _mix_led(Color(0.30, 0.31, 0.27, 0.16), col, led)
+	var dim := Color(0.05, 0.09, 0.13, 0.85)
 	var P: Dictionary = game.first_player()
 	if P.is_empty():
 		return
-	var y: float = STRIP.position.y + 19
-	# vies
-	var n_lives: int = maxi(int(P.lives) + 1, 0)
-	for i in n_lives:
-		var vx: float = STRIP.position.x + 12 + i * 13
-		draw_colored_polygon(PackedVector2Array([Vector2(vx, y - 9), Vector2(vx - 5, y), Vector2(vx + 5, y)]), ink)
-	_txtp(Vector2(STRIP.position.x + 12 + n_lives * 13 + 6, y + 3), NVLang.t("VIES"), 8, Color(ink.r, ink.g, ink.b, 0.75))
-	# coque (jauge segmentée)
-	_txtp(Vector2(STRIP.position.x + 108, y + 3), NVLang.t("COQUE"), 8, Color(ink.r, ink.g, ink.b, 0.75))
+	# COQUE : barre segmentée imprimée (x 112→177, rangée 1)
 	var frac: float = clampf(float(P.hp) / float(P.max_hp), 0, 1)
-	var bx: float = STRIP.position.x + 152
-	var bw: float = 100.0
-	draw_rect(Rect2(bx, y - 6, bw, 11), Color(mid.r, mid.g, mid.b, 0.20 * led + 0.04))
-	if led > 0.02:
-		draw_rect(Rect2(bx, y - 6, bw * frac, 11), ink if frac > 0.35 else Color(Data.INKS[3]))
-	var inkk: Color = ink
-	draw_rect(Rect2(bx, y - 6, bw, 11), Color(inkk.r, inkk.g, inkk.b, inkk.a * (0.3 + 0.7 * led)), false, 1.0)
-	var seg := bx + 6.0
-	while seg < bx + bw - 2.0:
-		draw_line(Vector2(seg, y - 5), Vector2(seg, y + 4), Color(0.09, 0.11, 0.07, 0.8), 1.0)
-		seg += 12.0
-	# bombes
-	_txtp(Vector2(STRIP.position.x + 272, y + 3), "%s ×%d" % [NVLang.t("BOMBES"), int(P.bombs)], 8, ink)
-	# nom d'arme en LED (or), section droite
-	var wname: String = String(game.stats.weapon.name).to_upper()
-	if wname.length() > 12:
-		wname = wname.substr(0, 11) + "·"
-	var glow: float = 0.75 + 0.25 * sin(Time.get_ticks_msec() / 400.0)
-	_txtp(Vector2(STRIP.end.x - 36, y + 3), wname, 9, Color(1.0, 0.82, 0.42, glow * led), HORIZONTAL_ALIGNMENT_RIGHT)
+	var seg_n := 8
+	for i in seg_n:
+		var r := Rect2(113 + i * 8.2, 773, 6.5, 9)
+		draw_rect(r, ink if i < int(round(frac * seg_n)) else dim)
+	# VIES (boîte imprimée x 213→238) et BOMBES (x 289→315) : compteurs LED
+	_txtp(Vector2(226, 782), "%d" % maxi(int(P.lives) + 1, 0), 10, ink, HORIZONTAL_ALIGNMENT_CENTER)
+	_txtp(Vector2(302, 782), "%d" % int(P.bombs), 10, ink, HORIZONTAL_ALIGNMENT_CENTER)
+	# BOSS : nom dans la boîte rangée 1 (x 353→428), vie rangée 2 (x 112→341)
+	var bname := "— — —"
+	var bfrac := 0.0
+	if not game.boss.is_empty() and not game.boss.enter:
+		bname = String(game.boss.name).to_upper()
+		bfrac = clampf(float(game.boss.hp) / float(game.boss.max_hp), 0, 1)
+	if bname.length() > 13:
+		bname = bname.substr(0, 12) + "·"
+	_txtp(Vector2(390, 782), bname, 7, ink, HORIZONTAL_ALIGNMENT_CENTER)
+	for i in 28:
+		var r2 := Rect2(113 + i * 8.2, 795, 6.5, 9)
+		draw_rect(r2, Color(1, 0.25, 0.2, led) if i < int(round(bfrac * 28.0)) else dim)
+	# COMBO : à droite de DATA FIELD (rangée 2)
+	if game.combo > 1:
+		var glow: float = 0.7 + 0.3 * sin(ms / 160.0)
+		_txtp(Vector2(438, 804), "COMBO ×%d ·×%.2f" % [game.combo, game.score_mult()], 7,
+			Color(1.0, 0.82, 0.42, glow * led), HORIZONTAL_ALIGNMENT_RIGHT)
+	elif led > 0.02:
+		_txtp(Vector2(438, 804), String(game.stats.weapon.name).to_upper(), 7,
+			Color(1.0, 0.82, 0.42, 0.65 * led), HORIZONTAL_ALIGNMENT_RIGHT)
 
-## contrôles dessinés — tailles DualShock 4 réelles ; (C13) boutons « vrais »
-## (cuvette, dôme bombé, spéculaire, ombre portée) qui S'ENFONCENT à l'appui
+## (C14) contrôles ANIMÉS par-dessus la photo : le cap du stick s'incline
+## (et reste incliné tant que maintenu), A/B et SELECT/START s'enfoncent
+## à l'appui et remontent au relâché (profondeur lissée _press_k).
 func _draw_controls(ms: int, led: Dictionary) -> void:
 	var ps: String = "on"
 	if main != null:
 		ps = str(main.get("power_state"))
-	var flash: Dictionary = main.shell_press if main != null else {}
-	var ink: Color = Color(Data.INKS[3])
 	var bk: float = float(led.btn)
-	# ---- stick analogique (cap Ø134) : le cap S'INCLINE selon l'axe --------
-	var s: Vector2 = STICK_C
+	var col: Color = _led_color(ms)
+	# ---- stick : anneau LED adaptatif + cap incliné ----------------------
 	var axis: Vector2 = game.touch_axis if "touch_axis" in game else Vector2.ZERO
 	var rk: float = float(led.ring)
 	if rk > 0.01:
-		var ring: Color = Data.progress_color(game.sector_progress()) if ps != "off" else Color(0.3, 0.35, 0.4)
-		draw_circle(s, STICK_R, Color(ring.r, ring.g, ring.b, 0.08 * rk))
-		draw_arc(s, 74, 0, TAU, 40, Color(ring.r, ring.g, ring.b, 0.5 * rk), 4.0)
-	var pressed_s: bool = flash.has("stick") and ms - int(flash["stick"]) < 150
-	var cap: Vector2 = s + Vector2(axis.x, axis.y) * 12.0 + Vector2(0.0, 2.0 if (pressed_s or axis.length() > 0.6) else 0.0)
-	draw_circle(Vector2(s.x, s.y + 3), 68, Color(0, 0, 0, 0.30))      # puits ombré
-	draw_circle(Vector2(s.x, s.y), 67, Color(0.05, 0.06, 0.08))
-	draw_circle(cap, 61, Color(0.13, 0.15, 0.19))
-	draw_arc(cap, 61, 0, TAU, 40, Color(0.45, 0.52, 0.60), 2.0)
-	draw_circle(cap, 50, Color(0.07, 0.08, 0.11))
-	draw_arc(cap, 50, 0, TAU, 40, Color(0.17, 0.19, 0.23), 2.0)
-	draw_arc(cap + Vector2(0, -3), 38, PI, TAU, 30, Color(1, 1, 1, 0.10), 6.0)
-	# ---- croix directionnelle (169, bras 57) — ARME haut/bas ---------------
-	var dp: Vector2 = DPAD_C
-	var arm: float = 28.5
-	var ln: float = 84.0
-	var dp_base := StyleBoxFlat.new()
-	dp_base.bg_color = Color(0.10, 0.11, 0.14)
-	dp_base.set_corner_radius_all(10)
-	dp_base.border_color = _mix_led(Color(0.30, 0.22, 0.14), Color(0.85, 0.45, 0.10), float(led.btn))
-	dp_base.set_border_width_all(3)
-	draw_style_box(dp_base, Rect2(dp.x - arm, dp.y - ln, arm * 2, ln * 2))
-	var up: bool = flash.has("wup") and ms - int(flash["wup"]) < 150
-	var dn: bool = flash.has("wdn") and ms - int(flash["wdn"]) < 150
-	for half in 2:
-		var lit: bool = (half == 0 and up) or (half == 1 and dn)
-		var yy: float = dp.y - ln + (0 if half == 0 else ln) + (2.0 if lit else 0.0)
-		var hh2: float = ln - (2.0 if lit else 0.0)
-		if lit:
-			draw_rect(Rect2(dp.x - arm + 3, yy + 3, arm * 2 - 6, hh2 - 6), Color(1.0, 0.62, 0.2, 0.30))
-		var cy2: float = yy + hh2 / 2.0
-		var tri: Array[Vector2] = []
-		if half == 0:
-			tri = [Vector2(dp.x, cy2 - 8), Vector2(dp.x - 9, cy2 + 6), Vector2(dp.x + 9, cy2 + 6)]
-		else:
-			tri = [Vector2(dp.x, cy2 + 8), Vector2(dp.x - 9, cy2 - 6), Vector2(dp.x + 9, cy2 - 6)]
-		draw_colored_polygon(PackedVector2Array(tri), _mix_led(Color(0.16, 0.15, 0.13),
-			Color(0.9, 0.55, 0.16) if lit else Color(0.32, 0.34, 0.38), float(led.btn)))
-	_txtp(Vector2(dp.x, dp.y - ln - 8), NVLang.t("ARME") + " ⇕", 8,
-		Color(ink.r, ink.g, ink.b, 0.18 + 0.52 * float(led.btn)), HORIZONTAL_ALIGNMENT_CENTER)
-	# ---- TIR / BOMBE : boutons bombés (paire diagonale manette) -------------
-	_face_button(FIRE_C, FIRE_R, flash, "fire", bk,
-		Color(0.30, 0.15, 0.14), Color(0.80, 0.10, 0.14), Color(0.93, 0.17, 0.21),
-		bool(game.touch_fire_btn))   # (C13) reste enfoncé tant que maintenu
-	_txtp(Vector2(FIRE_C.x, FIRE_C.y - FIRE_R - 14), NVLang.t("TIR"), 9,
-		Color(0.95, 0.5, 0.5, 0.35 + 0.55 * bk), HORIZONTAL_ALIGNMENT_CENTER)
-	_face_button(BOMB_C, BOMB_R, flash, "bomb", bk,
-		Color(0.33, 0.24, 0.13), Color(0.86, 0.44, 0.06), Color(0.98, 0.56, 0.13),
-		not game.first_player().is_empty() and float(game.first_player().get("bomb_cd", 0.0)) > 0.2)
-	_txtp(Vector2(BOMB_C.x, BOMB_C.y + 4), "✹", 15,
-		Color(0.30, 0.14, 0.02, 0.25 + 0.75 * bk), HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(BOMB_C.x, BOMB_C.y + BOMB_R + 16), NVLang.t("BOMBE"), 8,
-		Color(0.95, 0.7, 0.35, 0.25 + 0.65 * bk), HORIZONTAL_ALIGNMENT_CENTER)
-	# ---- SELECT / START : pills sur la barre lumineuse ----------------------
-	var sub_sel: PackedStringArray = NVLang.t("SELECT · PAUSE").split(" · ", false)
-	var sub_sta: PackedStringArray = NVLang.t("START · MENU").split(" · ", false)
-	_pill(Rect2(60, 828, 85, 32), "SELECT",
-		sub_sel[sub_sel.size() - 1] if sub_sel.size() > 1 else "PAUSE", "select", flash, ms)
-	_pill(Rect2(320, 828, 85, 32), "START",
-		sub_sta[sub_sta.size() - 1] if sub_sta.size() > 1 else "MENU", "start", flash, ms)
+		draw_arc(STICK_C, 55, 0, TAU, 40, Color(col.r, col.g, col.b, 0.55 * rk), 3.0)
+	var sk: float = float(_press_k.get("stick", 0.0))
+	var cap: Vector2 = STICK_C + axis * 11.0 + Vector2(0, 2.0 * sk)
+	draw_circle(cap + Vector2(0, 2), 49, Color(0, 0, 0, 0.22))
+	draw_circle(cap, 48, Color(0.10, 0.14, 0.22, 0.92))
+	draw_arc(cap, 48, 0, TAU, 40, Color(0.55, 0.65, 0.80, 0.8), 2.0)
+	draw_circle(cap, 36, Color(0.06, 0.09, 0.15, 0.95))
+	draw_arc(cap + Vector2(-axis.x * 6.0, -6), 26, PI, TAU, 24, Color(1, 1, 1, 0.13), 5.0)
+	# ---- A (TIR, maintenu = enfoncé) / B (BOMBE) ---------------------------
+	_face_button(FIRE_C, FIRE_R, "fire", bk,
+		Color(0.30, 0.15, 0.14), Color(0.80, 0.10, 0.14), Color(0.93, 0.17, 0.21), "A")
+	_face_button(BOMB_C, BOMB_R, "bomb", bk,
+		Color(0.33, 0.24, 0.13), Color(0.86, 0.44, 0.06), Color(0.98, 0.56, 0.13), "B")
+	# ---- SELECT / START : pills photo qui s'enfoncent ----------------------
+	_pill(SELECT_R, "select")
+	_pill(START_R, "start")
 
-## bouton de face réaliste : ombre, cuvette plastique, dôme bombé qui
-## s'enfonce de 4 px à l'appui, spéculaire qui se resserre
-func _face_button(c: Vector2, r: float, flash: Dictionary, id: String, bk: float,
-		unlit: Color, base: Color, dome: Color, held := false) -> void:
-	var pressed: bool = held or (flash.has(id) and Time.get_ticks_msec() - int(flash[id]) < 200)
-	var dy: float = 4.0 if pressed else 0.0
-	draw_circle(c + Vector2(0, 5), r + 2, Color(0, 0, 0, 0.30))          # ombre portée
-	draw_circle(c, r + 5, _mix_led(Color(0.055, 0.06, 0.075), Color(0.07, 0.075, 0.09), 1.0))
-	draw_circle(c, r + 2, Color(0.15, 0.15, 0.18))                        # charmette
+## bouton de face : dôme qui s'enfonce selon _press_k (appui ET relâché
+## animés), spéculaire qui se resserre quand il est au fond de sa cuvette.
+func _face_button(c: Vector2, r: float, id: String, bk: float,
+		unlit: Color, base: Color, dome: Color, letter: String) -> void:
+	var pk: float = float(_press_k.get(id, 0.0))
+	var dy: float = 3.5 * pk
+	draw_circle(c + Vector2(0, 4), r + 1, Color(0, 0, 0, 0.28))
 	var cc: Vector2 = c + Vector2(0, dy)
-	var b1: Color = _mix_led(unlit, base.darkened(0.35), bk)
-	var b2: Color = _mix_led(unlit, base, bk)
-	var b3: Color = _mix_led(unlit.lightened(0.05), dome, bk)
-	draw_circle(cc, r - 1, b1)
-	draw_circle(cc + Vector2(0, -1.5), r - 2, b2)
-	draw_circle(cc + Vector2(0, -3), r - 4, b3)
-	draw_circle(cc + Vector2(-r * 0.30, -r * 0.34), r * (0.22 if pressed else 0.27),
-		Color(1, 1, 1, (0.36 if not pressed else 0.22) * (0.25 + 0.75 * bk)))
-	draw_arc(cc, r - 4, PI * 0.2, PI * 0.8, 16, Color(1, 1, 1, 0.10 * bk), 3.0)
+	var shrink: float = 1.0 - 0.10 * pk
+	draw_circle(cc, r * shrink, _mix_led(unlit, base.darkened(0.35), bk))
+	draw_circle(cc + Vector2(0, -1.5), (r - 2) * shrink, _mix_led(unlit, base, bk))
+	draw_circle(cc + Vector2(0, -3), (r - 4) * shrink, _mix_led(unlit.lightened(0.05), dome, bk))
+	draw_circle(cc + Vector2(-r * 0.30, -r * 0.34), r * lerpf(0.27, 0.20, pk),
+		Color(1, 1, 1, lerpf(0.34, 0.20, pk) * (0.25 + 0.75 * bk)))
+	_txtp(cc + Vector2(0, 5), letter, 13, Color(1, 1, 1, 0.55 * bk), HORIZONTAL_ALIGNMENT_CENTER)
 
-func _pill(r: Rect2, label: String, sub: String, id: String, flash: Dictionary, ms: int) -> void:
-	var pressed: bool = flash.has(id) and ms - int(flash[id]) < 170
-	var y: float = r.position.y + (3.0 if pressed else 0.0)   # (C13) ça s'enfonce
-	draw_rect(Rect2(r.position.x + 2, r.end.y + 1, r.size.x, 5), Color(0, 0, 0, 0.5))
+func _pill(r: Rect2, id: String) -> void:
+	var pk: float = float(_press_k.get(id, 0.0))
+	var rr := Rect2(r.position + Vector2(0, 2.5 * pk), r.size)
 	var pb := StyleBoxFlat.new()
-	pb.bg_color = Color(0.32, 0.38, 0.45) if pressed else Color(0.55, 0.64, 0.72)
+	pb.bg_color = Color(0.10, 0.16, 0.24).lerp(Color(0.20, 0.45, 0.60), pk)
 	pb.set_corner_radius_all(r.size.y / 2.0)
-	pb.border_color = Color(0.30, 0.88, 1.0)
-	pb.set_border_width_all(2)
-	draw_style_box(pb, Rect2(r.position.x, y, r.size.x, r.size.y))
-	draw_rect(Rect2(r.position.x + 9, y + 4, r.size.x - 18, 4), Color(1, 1, 1, 0.45 if not pressed else 0.15))
-	_txtp(Vector2(r.get_center().x, y + r.size.y / 2.0 - 1), label, 8, Color(0.08, 0.11, 0.14), HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(r.get_center().x, y + r.size.y / 2.0 + 10), sub, 6, Color(0.10, 0.16, 0.20, 0.8), HORIZONTAL_ALIGNMENT_CENTER)
+	pb.border_color = Color(0.35, 0.75, 0.95, 0.35 + 0.45 * pk)
+	pb.set_border_width_all(1)
+	draw_style_box(pb, rr)
 
 ## l'intérieur du verre (console allumée) : score, vies, boss, chaîne —
 ## les jauges de survie (coque/bombes/arme) vivent sur le bandeau LED coque

@@ -375,11 +375,11 @@ const TOUCH_BTNS: Array[Rect2] = [
 
 # (C10) gâchettes matérielles de la coque NV-01 (secteurs FanBoy, ère 0) :
 # SELECT gèle/reprend la partie, START ouvre le menu en pause.
-const SHELL_SELECT := Rect2(60, 828, 85, 32)    # (C11) barre lumineuse
-const SHELL_START := Rect2(320, 828, 85, 32)
-const SHELL_POWER := Rect2(28, 792, 130, 32)     # curseur I/O (gauche)
-const POWER_TRACK_L := 48.0
-const POWER_TRACK_R := 138.0
+const SHELL_SELECT := Rect2(242, 630, 48, 15)   # (C14) pills photo v2
+const SHELL_START := Rect2(242, 662, 48, 15)
+const SHELL_POWER := Rect2(40, 84, 28, 50)       # curseur I/O vertical (photo)
+const POWER_TRACK_T := 92.0                      # ON (haut)
+const POWER_TRACK_B := 124.0                     # OFF (bas)
 
 ## (C11) la console NV-01 : stick, croix ARME, TIR, BOMBE, SELECT, START,
 ## curseur POWER — tailles DualShock 4 (constantes dans hud_overlay.gd)
@@ -396,12 +396,12 @@ func _shell_btn_at(pos: Vector2) -> String:
 		return "power"
 	if pos.distance_to(NVUi.STICK_C) <= NVUi.STICK_R:
 		return "stick"
-	if pos.distance_to(NVUi.DPAD_C) <= NVUi.DPAD_R:
-		return "wup" if pos.y < NVUi.DPAD_C.y else "wdn"
 	if pos.distance_to(NVUi.FIRE_C) <= NVUi.FIRE_R + 6.0:
 		return "fire"
 	if pos.distance_to(NVUi.BOMB_C) <= NVUi.BOMB_R + 6.0:
 		return "bomb"
+	if Rect2(340, 753, 103, 67).has_point(pos):
+		return "wnext"   # (C14) taper DATA FIELD = arme suivante
 	return ""
 
 func _shell_button(id: String) -> void:
@@ -416,17 +416,16 @@ func _shell_button(id: String) -> void:
 		Audio2.sfx("uiclick")
 		if pause_screen == null:
 			_on_pause()                    # START : le menu, jeu en pause
-	elif id == "wup":
-		game.touch_weapon(-1)
-	elif id == "wdn":
+	elif id == "wnext":
 		game.touch_weapon(1)
 	elif id == "bomb":
 		game.touch_bomb()
 	# "fire" est maintenu : géré par press/release (ci-dessous)
 
 ## (C11) POWER : glisser I/O — allume (boot) ou éteint (retour titre)
-func _power_slide_to(x: float) -> void:
-	power_knob = clampf((x - POWER_TRACK_L) / (POWER_TRACK_R - POWER_TRACK_L), 0.0, 1.0)
+func _power_slide_to(y: float) -> void:
+	# (C14) piste verticale : ON en haut (knob=1), OFF en bas (knob=0)
+	power_knob = clampf((POWER_TRACK_B - y) / (POWER_TRACK_B - POWER_TRACK_T), 0.0, 1.0)
 	if power_state == "off" and power_knob >= 0.99:
 		_power_switch_on()
 	elif power_state == "on" and power_knob <= 0.01 and pause_screen == null:
@@ -519,7 +518,7 @@ func _touch_unhandled(event: InputEvent) -> void:
 						# viser le bouton au pixel près)
 						if power_drag_id == -1 and (power_state == "off" or power_state == "on"):
 							power_drag_id = st.index
-							_power_slide_to(st.position.x)
+							_power_slide_to(st.position.y)
 					_:
 						if power_state == "on" or sb == "select" or sb == "start":
 							_shell_button(sb)
@@ -573,7 +572,7 @@ func _touch_unhandled(event: InputEvent) -> void:
 		# (C13) le curseur I/O se glisse MÊME console éteinte (jeu en pause) :
 		# c'était la cause du « on galère pour le glisser »
 		if dg.index == power_drag_id:
-			_power_slide_to(dg.position.x)
+			_power_slide_to(dg.position.y)
 		elif game.state == "play" and current_screen == null and not game.paused:
 			if dg.index == shell_stick_id:
 				game.touch_axis_set((dg.position - NVUi.STICK_C) / NVUi.STICK_R)
@@ -675,8 +674,8 @@ func _apply_era_viewport(lv: int = -1) -> void:
 		Data.FH = 360.0
 		viewport.size = Vector2i(480, 360)
 		game.scale = Vector2.ONE
-		tr.position = Data.GLASS.position
-		tr.size = Data.GLASS.size
+		tr.position = Data.VIEW0.position
+		tr.size = Data.VIEW0.size
 	else:
 		Data.FH = 860.0
 		var K: float = Data.ERAS[ei].K
@@ -1384,11 +1383,11 @@ func _show_load_overlay() -> void:
 		# (C11) l'écran de la console = le verre : l'overlay de chargement
 		# est clippé dedans — rien ne déborde sur la coque
 		var clip := Control.new()
-		clip.position = Data.GLASS.position
-		clip.size = Data.GLASS.size
+		clip.position = Data.VIEW0.position
+		clip.size = Data.VIEW0.size
 		clip.clip_contents = true
 		clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		load_overlay.position = -Data.GLASS.position   # contenu en repère plein écran
+		load_overlay.position = -Data.VIEW0.position   # contenu en repère plein écran
 		clip.add_child(load_overlay)
 		screen_layer.add_child(clip)
 	else:
@@ -1582,38 +1581,38 @@ func _run_shell_test() -> void:
 	await _advance_to_play()
 	await get_tree().create_timer(1.4).timeout   # laisser l'intro se lever
 	await _snap(dir + "/1_coque_nv01_secteur1.png")
-	print("SHELL: verre tr=", tr.position, " x ", tr.size, " (attendu 20,122 / 440x330)")
-	var hit_sel: String = _shell_btn_at(Vector2(102, 843))
-	var hit_sta: String = _shell_btn_at(Vector2(362, 843))
-	var hit_glass: String = _shell_btn_at(Vector2(240, 400))
-	print("SHELL: hit-test SELECT(102,843)=", hit_sel, " START(362,843)=", hit_sta,
+	print("SHELL: verre tr=", tr.position, " x ", tr.size, " (attendu 79,254 / 318x239 = VIEW0 dans GLASS)")
+	var hit_sel: String = _shell_btn_at(Vector2(266, 638))
+	var hit_sta: String = _shell_btn_at(Vector2(266, 670))
+	var hit_glass: String = _shell_btn_at(Vector2(238, 370))
+	print("SHELL: hit-test SELECT(266,638)=", hit_sel, " START(266,670)=", hit_sta,
 		" verre(240,400)=", hit_glass, " (attendu select/start/)")
 	# SELECT gèle la partie (sans menu)
-	_touch_synthetic(Vector2(102, 843), true, 0)
+	_touch_synthetic(Vector2(266, 638), true, 0)
 	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(102, 843), false, 0)
+	_touch_synthetic(Vector2(266, 638), false, 0)
 	await get_tree().create_timer(0.25).timeout
 	var frozen: bool = game.paused and current_screen == null and pause_screen == null
 	print("SHELL: SELECT fige paused=", game.paused, " menu=", pause_screen != null, " (attendu true/false)")
 	await _snap(dir + "/2_select_gele.png")
 	# SELECT dégèle
-	_touch_synthetic(Vector2(102, 843), true, 0)
+	_touch_synthetic(Vector2(266, 638), true, 0)
 	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(102, 843), false, 0)
+	_touch_synthetic(Vector2(266, 638), false, 0)
 	await get_tree().create_timer(0.25).timeout
 	print("SHELL: SELECT reprend paused=", game.paused, " (attendu false)")
 	# START ouvre le menu, jeu en pause
-	_touch_synthetic(Vector2(362, 843), true, 0)
+	_touch_synthetic(Vector2(266, 670), true, 0)
 	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(362, 843), false, 0)
+	_touch_synthetic(Vector2(266, 670), false, 0)
 	await get_tree().create_timer(0.3).timeout
 	var menu_ok: bool = pause_screen != null and game.paused
 	print("SHELL: START ouvre le menu menu=", pause_screen != null, " paused=", game.paused, " (attendu true/true)")
 	await _snap(dir + "/3_start_menu.png")
 	# SELECT depuis le menu = reprendre
-	_touch_synthetic(Vector2(102, 843), true, 0)
+	_touch_synthetic(Vector2(266, 638), true, 0)
 	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(102, 843), false, 0)
+	_touch_synthetic(Vector2(266, 638), false, 0)
 	await get_tree().create_timer(0.3).timeout
 	var resumed: bool = not game.paused and current_screen == null and pause_screen == null
 	print("SHELL: SELECT reprend depuis le menu paused=", game.paused, " screen=", current_screen != null, " (attendu false/false)")
@@ -1694,12 +1693,12 @@ func _run_console_test() -> void:
 	print("CONSOLE: état=", power_state, " paused=", game.paused, " (attendu off/true)")
 	await _snap(dir + "/1_etegal_extinct.png")
 	# -- 2) glisser I/O → boot : saisi N'IMPORTE OÙ sur la piste -------------
-	_touch_synthetic(Vector2(60, 808), true, 0)     # piste gauche (pas le bouton)
+	_touch_synthetic(Vector2(54, 120), true, 0)     # piste verticale (pas le bouton)
 	await get_tree().create_timer(0.1).timeout
-	_touch_synthetic(Vector2(60, 808), true, 0, true)
+	_touch_synthetic(Vector2(54, 120), true, 0, true)
 	await get_tree().create_timer(0.15).timeout
-	_touch_synthetic(Vector2(292, 808), true, 0, true)   # drag vers la droite
-	_touch_synthetic(Vector2(140, 808), true, 0, true)   # relâche dans la piste
+	_touch_synthetic(Vector2(54, 90), true, 0, true)   # drag vers le haut = ON
+	_touch_synthetic(Vector2(54, 90), true, 0, true)   # relâche dans la piste
 	await get_tree().create_timer(0.1).timeout
 	print("CONSOLE: après glisser=", power_state, " (attendu boot)")
 	# (C12) preuve de la montée PROGRESSIVE des LED : capture à 35 % puis 75 %
@@ -1721,70 +1720,70 @@ func _run_console_test() -> void:
 	var P: Dictionary = g.first_player()
 	P.shield = 0
 	var x0: float = P.x
-	_touch_synthetic(Vector2(135, 660), true, 0)   # doigt à droite du centre
+	_touch_synthetic(Vector2(190, 682), true, 0)   # doigt à droite du centre
 	await get_tree().create_timer(0.15).timeout
 	var dx_mid: float = P.x - x0
 	await get_tree().create_timer(0.75).timeout
 	var dx_full: float = P.x - x0
-	_touch_synthetic(Vector2(135, 660), false, 0)
+	_touch_synthetic(Vector2(190, 682), false, 0)
 	await get_tree().create_timer(0.5).timeout
 	var dx_after: float = P.x - x0
 	print("CONSOLE: stick dérive 0,15s=%.1f 0,9s=%.1f (attendu croissant > 40) après=%.1f (stable)" % [dx_mid, dx_full, dx_after])
 	# -- 3b) TIR seul : le vaisseau ne bouge PAS (plus de secousse perçue) ----
 	var fx0: float = P.x
-	_touch_synthetic(Vector2(402, 588), true, 1)
+	_touch_synthetic(Vector2(304, 704), true, 1)
 	await get_tree().create_timer(0.5).timeout
 	var fdx: float = absf(P.x - fx0)
-	_touch_synthetic(Vector2(402, 588), false, 1)
+	_touch_synthetic(Vector2(304, 704), false, 1)
 	print("CONSOLE: dérive sur TIR =%.1f px (attendu < 4)" % fdx)
 	# -- 4) TIR maintenu : balles émises -------------------------------------
 	var b0: int = g.bullets.size()
-	_touch_synthetic(Vector2(402, 588), true, 1)
+	_touch_synthetic(Vector2(304, 704), true, 1)
 	await get_tree().create_timer(0.5).timeout
 	var fired: bool = g.touch_fire_btn and g.bullets.size() >= b0
-	_touch_synthetic(Vector2(402, 588), false, 1)
+	_touch_synthetic(Vector2(304, 704), false, 1)
 	print("CONSOLE: TIR maintenu=", fired, " balles ", b0, "->", g.bullets.size())
 	# -- 5) croix ARME bas : l'arme change ------------------------------------
 	if not (Save.S.owned.weapons as Array).has("spread"):
 		(Save.S.owned.weapons as Array).append("spread")   # 2e arme pour le cycle
 	var w0: String = String(g.stats.weapon.id)
-	_touch_synthetic(Vector2(270, 715), true, 1)
+	_touch_synthetic(Vector2(390, 786), true, 1)
 	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(270, 715), false, 1)
+	_touch_synthetic(Vector2(390, 786), false, 1)
 	await get_tree().create_timer(0.25).timeout
 	var w1: String = String(g.stats.weapon.id)
-	print("CONSOLE: croix bas ", w0, " -> ", w1, " (attendu différent)")
+	print("CONSOLE: DATA FIELD arme ", w0, " -> ", w1, " (attendu différent)")
 	# -- 6) BOMBE : compteur -1 ------------------------------------------------
 	P.bombs = 5
 	var nb0: int = int(P.bombs)
-	_touch_synthetic(Vector2(354, 672), true, 1)
+	_touch_synthetic(Vector2(378, 662), true, 1)
 	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(354, 672), false, 1)
+	_touch_synthetic(Vector2(378, 662), false, 1)
 	await get_tree().create_timer(0.3).timeout
 	print("CONSOLE: bombe ", nb0, " -> ", int(P.bombs), " (attendu -1)")
 	await _snap(dir + "/4_controles_ps4.png")
 	# -- 7) SELECT gelé / START menu (recap C10, nouvelles positions) ---------
-	_touch_synthetic(Vector2(102, 843), true, 1)
+	_touch_synthetic(Vector2(266, 638), true, 1)
 	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(102, 843), false, 1)
+	_touch_synthetic(Vector2(266, 638), false, 1)
 	await get_tree().create_timer(0.25).timeout
 	print("CONSOLE: SELECT fige paused=", game.paused, " menu=", pause_screen != null)
-	_touch_synthetic(Vector2(362, 843), true, 1)
+	_touch_synthetic(Vector2(266, 670), true, 1)
 	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(362, 843), false, 1)
+	_touch_synthetic(Vector2(266, 670), false, 1)
 	await get_tree().create_timer(0.25).timeout
 	print("CONSOLE: START menu=", pause_screen != null, " paused=", game.paused)
-	_touch_synthetic(Vector2(102, 843), true, 1)
+	_touch_synthetic(Vector2(266, 638), true, 1)
 	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(102, 843), false, 1)
+	_touch_synthetic(Vector2(266, 638), false, 1)
 	await get_tree().create_timer(0.25).timeout
 	print("CONSOLE: SELECT reprend paused=", game.paused)
 	# -- 8) extinction : saisir le bouton (à droite de la piste) et glisser ---
-	_touch_synthetic(Vector2(138, 808), true, 1)
+	_touch_synthetic(Vector2(54, 95), true, 1)
 	await get_tree().create_timer(0.15).timeout
-	_touch_synthetic(Vector2(44, 808), true, 1, true)   # drag vers la gauche
+	_touch_synthetic(Vector2(54, 126), true, 1, true)   # drag vers le bas = OFF
 	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(44, 808), false, 1)
+	_touch_synthetic(Vector2(54, 126), false, 1)
 	await get_tree().create_timer(0.1).timeout
 	print("CONSOLE: après glisser O=", power_state, " (attendu shutdown)")
 	waited = 0

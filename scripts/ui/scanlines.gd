@@ -38,7 +38,7 @@ func _draw() -> void:
 # 48 x 32 cellules (comme les tuiles du moteur), soit ~8,7 x 9,8 px par
 # « pixel » console : c'est la trame qu'on devine sur les vraies dalles.
 func _draw_lcd_effect() -> void:
-	var glass: Rect2 = Data.GLASS
+	var glass: Rect2 = Data.VIEW0   # (C14) matrice LCD sur la fenêtre de jeu 4:3
 	var ink := Color(Data.INKS[0])
 	# 1) rémanence : la frame courante, redessinée 1,5 px plus bas, en fondu —
 	#    imite la persistance des cristaux liquides (le pixel « traîne »).

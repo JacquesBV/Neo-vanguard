@@ -10,10 +10,14 @@ const L_W := 480.0
 # Terrain de jeu (ère 0 : monde 4:3 paysage dans la coque ; sinon portrait)
 var FW := 480.0
 var FH := 860.0
-# Rect fenêtre du verre LCD FanBoy (ère 0) — (C11) écran XXL 432×324 (4:3
-# pile) dans la coque néon photo assets/coque/nv01-shell.png : +30 % de
-# surface vs l'ancien verre, le néon EST le cadre de l'écran.
-const GLASS := Rect2(20, 122, 440, 330)   # (C13) fenêtre réelle de la photo (440×330 = 4:3 pile)
+# Rect fenêtre du verre LCD FanBoy (ère 0) — (C14) nouvelle coque de
+# référence assets/coque/nv01-shell.png (master fanboy-v2-master.png,
+# 960×1720 = 480×860 ×2) : écran portrait réel mesuré sur l'image
+# (x 155→775, y 285→1173 dans le master 937×1679).
+const GLASS := Rect2(79, 146, 318, 455)
+# Fenêtre de JEU 4:3 (480×360 du monde ère 0) centrée dans l'écran
+# portrait : bandes LCD libres en haut (score/boss) et en bas (combo).
+const VIEW0 := Rect2(79, 254, 318, 239)
 
 ## (C10) rampe d'alerte du cadre lumineux : vert → jaune → orange → rouge.
 ## p = progression du secteur (0..1, NVGame.sector_progress).
