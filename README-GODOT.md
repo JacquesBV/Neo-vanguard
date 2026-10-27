@@ -63,9 +63,9 @@ Aucune dépendance externe. Aucun plugin. Tout est en GDScript.
 | `tools/gen_sfx.py` | — | régénère les SFX (`python3 tools/gen_sfx.py`) |
 
 ### La direction artistique (calée sur les captures officielles du dépôt)
-- **Secteur 1 — Pocket** : écran Game Boy **vert clair**, plaques de circuits
+- **Secteurs 1 à 3 — FanBoy** : écran LCD monochrome **vert sauge**, plaques de circuits
   à pistes et pastilles défilantes, ennemis et vaisseau en **silhouettes vert
-  foncé** (le vaisseau passe par le remap 4 teintes, comme `GB_MAP` du JS).
+  foncé**, logés dans la console interactive animée `scenes/FanBoy.tscn` (`scripts/fanboy.gd`).
 - **Ères 8/16 bits** : fond bleu profond, plateformes-charpentes à lumières.
 - **HD** : planète géante annelée façon « HD ANIMÉ » + nébuleuses.
 - Références utilisées : `pack-graphique-4-eres.png`, `comparatif-decor.png`,
@@ -284,16 +284,12 @@ gameplay citées dans ce fichier sont celles du code d'origine.*
 - **Boot console** : à l'intro du secteur 1, « NEO VANGUARD » descend vers 44 % de hauteur puis « 24 SECTEURS · 6 GÉNÉRATIONS » apparaît.
 - Palette par défaut **GB4 authentique** `#0F2E1C / #2f5c27 / #6f8a1f / #a3ad35` (js/02 l.5413).
 
-## Présentation FanBoy v2 — réplique exacte de la version mobile (KFM-01)
-Architecture conforme au moteur d'origine (drawMachineFrame / nvFanboyMarks / module 51) :
-- **Monde 4:3 paysage** (480×360) encastré dans le verre de la console (`Data.FW/FH`, `Data.GLASS`) ; les ères 1+ restent en 480×860 plein écran.
-- **Encres LCD officielles** (`Data.INKS`) : fond sauge `#9ea483`, structures olive `#2f3329/#595c4c/#7d8267` — mesuré identique à la capture (±3 nuances).
-- **Coque KFM-01** (`shell_layer.gd`) : boîtier olive `#535a53`, bandeau « KFM-01 / DOT DISPLAY » + LED rouge pulsante, visière noire arrondie, voyant latéral gauche, menton clair `#bdc1b8` avec « FANBOY » italique bleu marine `#272c74` (cisaillement par glyphe) et ouïes ; page claire `#efece4`, ombre portée.
-- **Barre de commandes tactile** : BOMBE / − PRÉC / ARMEMENT ⌂ PULSE (1 DISPONIBLES) / + SUIV / PAUSE sur bandeau `#0d1526`.
-- **HUD pixel dans le verre** (`_draw_hud_lcd`) : SC / VIES / COINS, jauge COQUE %, barre de l'amiral (ex. « GARDIEN DU SILO »), PWR·ARME, BOMBES.
-- **Vitre** : modelé officiel (ombres 12/2.5/10 % + reflet diagonal 8→17 %), pas de scanlines sur l'ère 0 (LCD lisse).
-- **Polarité positive** : sprites et décor en coques claires / contours sombres sur le fond sauge (règle `artPalette` du module 51).
-- Correction d'ordre : `_apply_era_viewport(niveau_cible)` est appelée AVANT `begin_level` (les ères 1+ retrouvent leur plein écran).
+## Console FanBoy animée — Monde 1 (secteurs 1, 2 et 3 inclus)
+Architecture intégrée depuis le pack Godot officiel (`scenes/FanBoy.tscn`, `scripts/fanboy.gd`, `scripts/led.gdshader`, `assets/layers/*.png`, `assets/audio/*.wav`) :
+- **Écran LCD portrait** (`620×890` sur le gabarit `937×1679`, champ logique `480×689`) encastré sous la découpe alpha de `shell.png` (`GameViewport`) pour les **secteurs 1, 2 et 3** ; dès le **secteur 4** (*FanBoy Adventure*), le jeu bascule en `480×860` plein écran.
+- **Encres LCD officielles** (`Data.INKS`) : fond sauge `#9ea483`, structures olive `#2f3329/#595c4c/#7d8267`.
+- **Commandes matérielles animées** : stick analogique 360° (`stick.png`, course 17 px, retour ressort 0,12 s), bouton **A** rouge (`a.png`, tir), bouton **B** doré (`b.png`, bombe), **SELECT** (`select.png`, pause gel), **START** (`start.png`, menu pause), interrupteur vertical **ON/OFF** (`power.png` + `led.png`), bruitages mécaniques 12 voix (`assets/audio/*.wav`).
+- **Jauges & éclairage dynamique** : jauges **COQUE** (8 cellules) et **BOSS** (30 cellules) en cyan `#72b9e8`, compteurs **VIES** et **BOMBES** dans les fenêtres de façade, et rails lumineux `threat_lights.png` (`led.gdshader`) pilotés par la menace réelle (`#48e4a1` calme, `#ffae32` attention, `#ff343a` critique).
 
 ## Sprites & décor du silo (secteur 1) — calqués sur le moteur
 - **Chunks du décor** (`_draw_chunk` dans `game.gd`) : `galerie` (mur encre profonde + briquettes 12×12 claires, points blancs au pas de 56), `sas` (bevel + bandes hazard + rivets), `cuve` (bevel + niveau flottant blanc), `megatour` (fenêtres 5×4 au pas 9/26 + mât + gyrophare), `anneau` (double anneau à rayons tournants), `plateforme` (LED + tapis roulant défilant), `paroi`, `rouage` (la grande roue dentée du silo), `panneau` (« FROLE LES » / « KODAMA »…), `char` (blindé à chenilles).

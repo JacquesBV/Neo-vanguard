@@ -1,12 +1,17 @@
 extends Node2D
 ## =========================================================================
-## HUD OVERLAY — le tableau de bord est dessiné PLEINE RÉSOLUTION au-dessus
-## du champ de jeu basse résolution, exactement comme le HUD HTML du jeu
-## d'origine (le canvas rétro reste chunky, le HUD reste lisible).
+## HUD OVERLAY — tableau de bord dessiné au-dessus du champ de jeu :
+##  • Secteurs 1–3 avec console FanBoy active (`in_fanboy_viewport = true`) :
+##    HUD dot-matrix LCD directement dans le GameViewport de la FanBoy
+##    (encadré par les bords arrondis de `shell.png`), tandis que les jauges
+##    COQUE / BOSS, VIES, BOMBES et les rails lumineux de menace sont pilotés
+##    par `scenes/FanBoy.tscn` (`scripts/fanboy.gd`).
+##  • Secteurs 4–24 (ou option PC sans cadre) : HUD standard + barre tactile.
 ## =========================================================================
 
 var game: NVGame
-var main: Node = null   # (C10) pour savoir si un écran (menu pause) est ouvert
+var main: Node = null
+var in_fanboy_viewport := false
 const PixelUi := preload("res://scripts/ui/pixel_ui.gd")
 
 func _process(_delta: float) -> void:
@@ -27,28 +32,48 @@ func _txt(pos: Vector2, text: String, size: int, col: Color, align := HORIZONTAL
 	else:
 		draw_string(_font(), pos, text, align, -1, size, col)
 
+func _txtp(pos: Vector2, text: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT) -> void:
+	var f: Font = _fontp()
+	if f == null:
+		f = _font()
+	if align == HORIZONTAL_ALIGNMENT_RIGHT:
+		draw_string(f, Vector2(0, pos.y), text, align, pos.x, size, col)
+	elif align == HORIZONTAL_ALIGNMENT_CENTER:
+		draw_string(f, Vector2(pos.x - 200.0, pos.y), text, align, 400.0, size, col)
+	else:
+		draw_string(f, pos, text, align, -1, size, col)
+
+func _is_fanboy_console_active() -> bool:
+	return game != null and Data.is_fanboy_level(game.level) and bool(Save.S.opts.get("frame", true))
+
 func _draw() -> void:
 	if game == null or game.state != "play":
 		return
-	var TH: Dictionary = game.TH
+	if in_fanboy_viewport:
+		if _is_fanboy_console_active():
+			_draw_fanboy_screen_lcd(Rect2(0.0, 0.0, Data.FW, Data.FH), true)
+			if game.paused and (main == null or main.current_screen == null) \
+					and (main == null or str(main.get("power_state")) == "on"):
+				_draw_pause_veil_rect(Rect2(0.0, 0.0, Data.FW, Data.FH), true)
+		return
+
+	# Couche racine 480×860 : silencieuse lorsque la console FanBoy gère l'affichage
+	if _is_fanboy_console_active():
+		return
+
 	if game.era_idx == 0:
-		_draw_era0()
+		_draw_fanboy_screen_lcd(Rect2(0.0, 0.0, Data.L_W, Data.L_H), false)
 	else:
 		_draw_hud_std()
-		# barre tactile des ères 1+ (#touchui du web : AU-DESSUS du canvas)
 		if bool(Save.S.opts.get("frame", true)):
 			_draw_touch_bar(game)
-		# (C10) cadre de progression : bord d'écran vert → jaune → orange → rouge
 		_draw_progress_frame()
-	# (C10/C11) voile PAUSE givré uniquement quand le jeu est gelé SANS menu
-	# (gel SELECT) et console allumée — le menu pause a déjà ses informations
+
 	if game.paused and (main == null or main.current_screen == null) \
 			and (main == null or str(main.get("power_state")) == "on"):
-		_draw_pause_veil()
+		_draw_pause_veil_rect(Rect2(0.0, 0.0, Data.L_W, Data.L_H), game.era_idx == 0)
 
-## (C10) cadre lumineux de progression du secteur (ères 1+ ; en ère 0 c'est
-## le cadre LED de la visière, dessiné par la coque). Fin lisière 3 px +
-## halo : ne grignote aucune pixel de jeu.
+## Cadre lumineux de progression du secteur (secteurs 4–24 plein écran)
 func _draw_progress_frame() -> void:
 	var p: float = game.sector_progress()
 	var col: Color = Data.progress_color(p)
@@ -58,13 +83,16 @@ func _draw_progress_frame() -> void:
 	draw_rect(Rect2(1, 1, Data.L_W - 2, Data.L_H - 2), Color(col.r, col.g, col.b, 0.14 * pulse), false, 7.0)
 	draw_rect(Rect2(3, 3, Data.L_W - 6, Data.L_H - 6), Color(col.r, col.g, col.b, 0.5 + 0.5 * pulse), false, 2.5)
 
-## (C10) quand SELECT gèle le jeu sans ouvrir le menu : voile + rappel.
-func _draw_pause_veil() -> void:
-	draw_rect(Rect2(0, 0, Data.L_W, Data.L_H), Color(0.01, 0.02, 0.05, 0.30))
-	var c := Vector2(Data.L_W / 2.0, Data.L_H / 2.0)
-	_txt(Vector2(c.x, c.y - 8), "❚❚", 30, Color(1, 1, 1, 0.85), HORIZONTAL_ALIGNMENT_CENTER)
-	_txt(Vector2(c.x, c.y + 22), "PAUSE", 14, Color(1, 1, 1, 0.85), HORIZONTAL_ALIGNMENT_CENTER)
-	_txt(Vector2(c.x, c.y + 44), NVLang.t("SELECT · reprendre"), 10, Color(1, 1, 1, 0.55), HORIZONTAL_ALIGNMENT_CENTER)
+## Voile PAUSE (touche SELECT gelant la partie sans ouvrir le menu)
+func _draw_pause_veil_rect(r: Rect2, lcd_style: bool) -> void:
+	var veil_col := Color(0.08, 0.11, 0.07, 0.42) if lcd_style else Color(0.01, 0.02, 0.05, 0.30)
+	var txt_col := Color(Data.INKS[0], 0.92) if lcd_style else Color(1, 1, 1, 0.85)
+	var sub_col := Color(Data.INKS[0], 0.72) if lcd_style else Color(1, 1, 1, 0.55)
+	draw_rect(r, veil_col)
+	var c := r.get_center()
+	_txt(Vector2(c.x, c.y - 8.0), "❚❚", 30, txt_col, HORIZONTAL_ALIGNMENT_CENTER)
+	_txt(Vector2(c.x, c.y + 22.0), "PAUSE", 14, txt_col, HORIZONTAL_ALIGNMENT_CENTER)
+	_txt(Vector2(c.x, c.y + 44.0), NVLang.t("SELECT · reprendre"), 11, sub_col, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_hud_std() -> void:
 	var TH: Dictionary = game.TH
@@ -75,11 +103,9 @@ func _draw_hud_std() -> void:
 	_txt(Vector2(Data.L_W - 10, 15), "RECORD %s" % fmt(maxi(int(Save.S.best), game.score)), 11,
 		Color(ink.r, ink.g, ink.b, 0.7), HORIZONTAL_ALIGNMENT_RIGHT)
 	_txt(Vector2(Data.L_W - 10, 29), "CR %s" % fmt(game.credits_run), 11, TH.gold, HORIZONTAL_ALIGNMENT_RIGHT)
-	# étiquette du secteur / de l'ère
-	var era: Dictionary = Data.ERAS[game.era_idx]
-	_txt(Vector2(10, 48), "SECTEUR %d/24 · %s" % [game.level, era.name], 10, Color(ink.r, ink.g, ink.b, 0.85))
-	_txt(Vector2(Data.L_W - 10, 48), era.tag, 10, Color(ink.r, ink.g, ink.b, 0.6), HORIZONTAL_ALIGNMENT_RIGHT)
-	# --- barre de vie du boss ------------------------------------------------
+	var con: Dictionary = Data.console_of_level(game.level)
+	_txt(Vector2(10, 48), "SECTEUR %d/24 · %s" % [game.level, str(con.name)], 10, Color(ink.r, ink.g, ink.b, 0.85))
+	_txt(Vector2(Data.L_W - 10, 48), "M%d/8 · %s" % [int(con.world), str(con.tag)], 10, Color(ink.r, ink.g, ink.b, 0.6), HORIZONTAL_ALIGNMENT_RIGHT)
 	if not game.boss.is_empty() and not game.boss.enter:
 		var b: Dictionary = game.boss
 		var f: float = clampf(float(b.hp) / float(b.max_hp), 0, 1)
@@ -87,13 +113,8 @@ func _draw_hud_std() -> void:
 		draw_rect(Rect2(40, 56, (Data.L_W - 80) * f, 10), TH.e_boss if f > 0.33 else TH.danger)
 		draw_rect(Rect2(40, 56, Data.L_W - 80, 10), Color(1, 1, 1, 0.4), false, 1.0)
 		_txt(Vector2(Data.L_W / 2.0, 80), b.name, 12, TH.e_boss_lite if game.era_idx > 0 else TH.livery[3], HORIZONTAL_ALIGNMENT_CENTER)
-	# --- bandeau bas — (C10) COMPACTÉ SOUS L'ÉTÊTE : la bande 742-860 est
-	# occupée par la barre de commandes tactile ; vies, coque, boucliers,
-	# bombes, puissance et chaîne vivent désormais en haut (lisibles sur tous
-	# les téléphones, même les 16:10)
 	var P: Dictionary = game.first_player()
 	if not P.is_empty():
-		# vies (petits vaisseaux) + coque + boucliers, sur une seule ligne
 		var iy := 94.0
 		for i in maxi(int(P.lives) + 1, 0):
 			var vx := 14.0 + i * 18.0
@@ -106,83 +127,78 @@ func _draw_hud_std() -> void:
 		for i in int(P.sh_max):
 			var c2: Color = TH.shield if i < int(P.shield) else Color(1, 1, 1, 0.15)
 			draw_rect(Rect2(sx + i * 12, iy - 2, 9, 9), c2)
-		# bombes, à droite de la même ligne
 		_txt(Vector2(Data.L_W - 10, iy + 8), "BOMBES ×%d" % int(P.bombs), 11,
 			(game.TH.livery[3] if game.era_idx == 0 else Color("#ff7ad9")), HORIZONTAL_ALIGNMENT_RIGHT)
-		# puissance + arme, ligne suivante
 		_txt(Vector2(10, iy + 26), "PWR %d/5 · %s" % [int(P.power), game.stats.weapon.name], 10, ink)
-	# compteur de performances (option FPS)
 	if Save.S.opts.get("fps", false):
 		_txt(Vector2(10, 62), "FPS %d" % Engine.get_frames_per_second(), 10, TH.gold)
-	# --- combo — (C10) remonté : la bande basse appartient à la barre tactile
 	if game.combo > 1:
 		_txt(Vector2(Data.L_W - 10, 120), "CHAÎNE ×%.2f" % game.score_mult(), 12, TH.gold, HORIZONTAL_ALIGNMENT_RIGHT)
 		var bw := 90.0
 		draw_rect(Rect2(Data.L_W - 10 - bw, 124, bw * clampf(game.combo_t / Data.COMBO_WINDOW, 0, 1), 3), TH.gold)
 
-# ---------------------------------------------------------------------
-# HUD « LCD » du secteur Pocket : pixel-texte encre DANS le verre 4:3,
-# sous la visière (rangée SC / VIES / COINS, puis COQUE et sa jauge).
-func _draw_hud_lcd() -> void:
+## HUD dot-matrix LCD du sous-écran FanBoy (secteurs 1, 2 et 3)
+func _draw_fanboy_screen_lcd(glass: Rect2, shell_has_gauges: bool) -> void:
 	var TH: Dictionary = game.TH
-	var glass: Rect2 = Data.GLASS
 	var ink: Color = TH.livery[0]
 	var mid: Color = TH.livery[1]
-	var top: float = glass.position.y + 6.0
-	var sx: float = glass.position.x + 10.0
-	var rx: float = glass.end.x - 10.0
+	var top: float = glass.position.y + 8.0
+	var sx: float = glass.position.x + 12.0
+	var rx: float = glass.end.x - 12.0
 	var W: float = glass.size.x
-	# modelé de la vitre (drawScreenGlass) : ombre haute/basse + reflet diagonal
-	var sh: Color = Color(0.098, 0.133, 0.071)
-	var y_a: float = glass.position.y + glass.size.y * 0.12
-	var y_b: float = glass.position.y + glass.size.y * 0.72
-	_quad(glass.position, Vector2(glass.end.x, y_a), Color(sh.r, sh.g, sh.b, 0.12), Color(sh.r, sh.g, sh.b, 0.0))
-	_quad(Vector2(glass.position.x, y_a), Vector2(glass.end.x, y_b), Color(sh.r, sh.g, sh.b, 0.0), Color(sh.r, sh.g, sh.b, 0.025))
-	_quad(Vector2(glass.position.x, y_b), glass.end, Color(sh.r, sh.g, sh.b, 0.025), Color(sh.r, sh.g, sh.b, 0.10))
-	var rf: Color = Color(0.957, 0.969, 0.875)
-	_quad(glass.position, Vector2(glass.end.x, glass.end.y), Color(rf.r, rf.g, rf.b, 0.08), Color(rf.r, rf.g, rf.b, 0.17), true)
-	# liseré lumineux : la lumière de l'écran qui bave sur la visière
-	draw_rect(glass, Color(TH.livery[3].r, TH.livery[3].g, TH.livery[3].b, 0.9), false, 2.0)
-	# rangée 1 — dot-matrix, chiffres groupés comme l'original
-	_txtp(Vector2(sx, top + 15), "SC %s" % fmt_space(game.score), 8, ink)
-	_txtp(Vector2(glass.position.x + W / 2.0, top + 15), "VIES ×%d" % (int(game.first_player().get("lives", 0)) + 1), 8, ink, HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(rx, top + 15), "COINS %s" % fmt_space(game.credits_run), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
-	# rangée 2 : coque + jauge — (C10) DESCENDUE SUR LA COQUE quand le cadre
-	# console est actif : le verre ne garde que le score, les vies, le boss.
-	var frame_on: bool = bool(Save.S.opts.get("frame", true))
+
+	# Modelé subtil de la dalle LCD (ombre douce + reflet diagonal)
+	var sh := Color(0.098, 0.133, 0.071)
+	var y_a: float = glass.position.y + glass.size.y * 0.10
+	var y_b: float = glass.position.y + glass.size.y * 0.78
+	_quad(glass.position, Vector2(glass.end.x, y_a), Color(sh.r, sh.g, sh.b, 0.11), Color(sh.r, sh.g, sh.b, 0.0))
+	_quad(Vector2(glass.position.x, y_a), Vector2(glass.end.x, y_b), Color(sh.r, sh.g, sh.b, 0.0), Color(sh.r, sh.g, sh.b, 0.02))
+	_quad(Vector2(glass.position.x, y_b), glass.end, Color(sh.r, sh.g, sh.b, 0.02), Color(sh.r, sh.g, sh.b, 0.09))
+	var rf := Color(0.957, 0.969, 0.875)
+	_quad(glass.position, glass.end, Color(rf.r, rf.g, rf.b, 0.06), Color(rf.r, rf.g, rf.b, 0.13), true)
+
+	# Rangée 1 : SC · SECTEUR 01..03 · COINS
+	_txtp(Vector2(sx, top + 15.0), "SC %s" % fmt_space(game.score), 9, ink)
+	_txtp(Vector2(glass.position.x + W * 0.5, top + 15.0), "SEC %02d" % game.level, 9, ink, HORIZONTAL_ALIGNMENT_CENTER)
+	_txtp(Vector2(rx, top + 15.0), "CR %s" % fmt_space(game.credits_run), 9, ink, HORIZONTAL_ALIGNMENT_RIGHT)
+
 	var P: Dictionary = game.first_player()
-	if not frame_on:
-		var frac: float = 1.0 if P.is_empty() else clampf(float(P.hp) / float(P.max_hp), 0, 1)
-		_txtp(Vector2(sx, top + 35), "COQUE", 8, ink)
+	var line_y := top + 25.0
+	if not shell_has_gauges and not P.is_empty():
+		var frac: float = clampf(float(P.hp) / maxf(1.0, float(P.max_hp)), 0.0, 1.0)
+		_txtp(Vector2(sx, top + 35.0), "COQUE", 8, ink)
 		var bx := sx + 56.0
 		var bw2 := rx - 44.0 - bx
-		draw_rect(Rect2(bx, top + 27, bw2, 10), Color(mid.r, mid.g, mid.b, 0.25))
-		draw_rect(Rect2(bx, top + 27, bw2 * frac, 10), mid)
-		draw_rect(Rect2(bx, top + 27, bw2, 10), ink, false, 1.0)
-		# échelle segmentée par-dessus la jauge (tirets de l'original)
-		var seg := bx + 5.0
-		while seg < bx + bw2 - 2.0:
-			draw_line(Vector2(seg, top + 28), Vector2(seg, top + 36), Color(ink.r, ink.g, ink.b, 0.55), 1.0)
-			seg += 10.0
-		_txtp(Vector2(rx, top + 35), "%d %%" % int(round(frac * 100)), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
-	# l'épais trait qui ferme le HUD, comme sur la console
-	draw_rect(Rect2(sx - 2.0, top + 43, W - 16.0, 3.0), Color(ink.r, ink.g, ink.b, 0.8))
-	# barre de l'amiral, encre LCD
+		draw_rect(Rect2(bx, top + 27.0, bw2, 10.0), Color(mid.r, mid.g, mid.b, 0.25))
+		draw_rect(Rect2(bx, top + 27.0, bw2 * frac, 10.0), mid)
+		draw_rect(Rect2(bx, top + 27.0, bw2, 10.0), ink, false, 1.0)
+		_txtp(Vector2(rx, top + 35.0), "×%d" % (int(P.get("lives", 0)) + 1), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
+		line_y = top + 43.0
+
+	draw_rect(Rect2(sx - 2.0, line_y, W - 20.0, 2.5), Color(ink.r, ink.g, ink.b, 0.8))
+
+	# Nom du boss en encre LCD dans le haut du sous-écran (la jauge 30 crans vit sur la coque FanBoy)
 	if not game.boss.is_empty() and not game.boss.enter:
 		var b: Dictionary = game.boss
-		var f: float = clampf(float(b.hp) / float(b.max_hp), 0, 1)
-		var bw3 := W - 60.0
-		draw_rect(Rect2(glass.position.x + 30, top + 54, bw3, 7), Color(mid.r, mid.g, mid.b, 0.30))
-		draw_rect(Rect2(glass.position.x + 30, top + 54, bw3 * f, 7), ink)
-		draw_rect(Rect2(glass.position.x + 30, top + 54, bw3, 7), ink, false, 1.0)
-		_txtp(Vector2(glass.position.x + W / 2.0, top + 76), b.name, 8, ink, HORIZONTAL_ALIGNMENT_CENTER)
-	# pied du verre : puissance, arme, bombes — (C10) sur la coque si le
-	# cadre console est actif (le verre reste dégagé pour le jeu)
-	if not frame_on and not P.is_empty():
+		if not shell_has_gauges:
+			var f: float = clampf(float(b.hp) / maxf(1.0, float(b.max_hp)), 0.0, 1.0)
+			var bw3 := W - 60.0
+			draw_rect(Rect2(glass.position.x + 30.0, line_y + 10.0, bw3, 7.0), Color(mid.r, mid.g, mid.b, 0.30))
+			draw_rect(Rect2(glass.position.x + 30.0, line_y + 10.0, bw3 * f, 7.0), ink)
+			draw_rect(Rect2(glass.position.x + 30.0, line_y + 10.0, bw3, 7.0), ink, false, 1.0)
+			_txtp(Vector2(glass.position.x + W * 0.5, line_y + 30.0), str(b.name), 8, ink, HORIZONTAL_ALIGNMENT_CENTER)
+		else:
+			_txtp(Vector2(glass.position.x + W * 0.5, line_y + 16.0), "⬥ %s ⬥" % str(b.name), 8, ink, HORIZONTAL_ALIGNMENT_CENTER)
+
+	if not shell_has_gauges and not P.is_empty():
 		_txtp(Vector2(sx, glass.end.y - 10.0), "PWR %d/5 · %s" % [int(P.power), String(game.stats.weapon.name).to_upper()], 8, ink)
 		_txtp(Vector2(rx, glass.end.y - 10.0), "BOMBES ×%d" % int(P.bombs), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
+
+	if Save.S.opts.get("fps", false):
+		_txtp(Vector2(sx, line_y + 16.0), "%d FPS" % Engine.get_frames_per_second(), 7, ink)
+
 	if game.combo > 1:
-		_txt(Vector2(glass.position.x + W / 2.0, glass.end.y - 28.0), "CHAÎNE ×%.2f" % game.score_mult(), 11, mid, HORIZONTAL_ALIGNMENT_CENTER)
+		_txt(Vector2(glass.position.x + W * 0.5, glass.end.y - 14.0), "CHAÎNE ×%.2f" % game.score_mult(), 11, ink, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _quad(a: Vector2, b: Vector2, c_top: Color, c_bot: Color, diag := false) -> void:
 	var pts := PackedVector2Array([a, Vector2(b.x, a.y), b, Vector2(a.x, b.y)])
@@ -193,20 +209,7 @@ func _quad(a: Vector2, b: Vector2, c_top: Color, c_bot: Color, diag := false) ->
 		cols = [c_top, c_top, c_bot, c_bot]
 	draw_polygon(pts, cols)
 
-func _txtp(pos: Vector2, text: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT) -> void:
-	# texte dot-matrix : dessiné dans la police pixel de la console
-	var f: Font = _fontp()
-	if f == null:
-		f = _font()
-	if align == HORIZONTAL_ALIGNMENT_RIGHT:
-		draw_string(f, Vector2(0, pos.y), text, align, pos.x, size, col)
-	elif align == HORIZONTAL_ALIGNMENT_CENTER:
-		draw_string(f, Vector2(pos.x - 200.0, pos.y), text, align, 400.0, size, col)
-	else:
-		draw_string(f, pos, text, align, -1, size, col)
-
 func fmt_space(n: int) -> String:
-	# « 2 296 » : groupes de trois, séparés par une espace fine
 	var s := str(n)
 	var out := ""
 	while s.length() > 3:
@@ -221,11 +224,11 @@ func fmt(n: int) -> String:
 	for i in range(s.length() - 1, -1, -1):
 		out = s[i] + out
 		c += 1
-		if c % 3 == 0 and i > 0: out = " " + out
+		if c % 3 == 0 and i > 0:
+			out = " " + out
 	return out
 
-# ---- barre tactile des ères 1+ (#touchui du web : bande fixe en bas,
-# AU-DESSUS du canvas — dessinée ici car hud_overlay est au-dessus de la vue)
+## Barre tactile des secteurs 4–24 (#touchui)
 func _draw_touch_bar(g: Node) -> void:
 	var acc: Color = g.TH.acc if g.TH.has("acc") else Color("#38e0ff")
 	var bg := StyleBoxFlat.new()
@@ -276,393 +279,3 @@ func _weapon_count() -> int:
 		if w.price == 0 or (Save.S.owned.weapons as Array).has(w.id):
 			n += 1
 	return n
-
-## =========================================================================
-##  (C11) ÈRE 0 — LA CONSOLE NÉON. Photo de coque (shell_layer, sous la vue)
-##  + couche dynamique ici : allumage/extinction (curseur POWER), cadre néon
-##  de progression, bandeau HUD LED hors écran, contrôles taille DualShock 4
-##  (stick Ø134 · croix 169 · TIR Ø74 · BOMBE Ø64 · SELECT/START 85×35).
-## =========================================================================
-
-const STICK_C := Vector2(95, 660)
-const STICK_R := 80.0            # zone doigt (cap dessiné Ø134, anneau Ø160)
-const DPAD_C := Vector2(270, 658)
-const DPAD_R := 76.0                # (C13) n'empiète plus sur BOMBE
-const FIRE_C := Vector2(402, 588)     # (C13) paire diagonale comme une manette
-const FIRE_R := 42.0
-const BOMB_C := Vector2(354, 672)
-const BOMB_R := 40.0
-const STRIP := Rect2(16, 473, 448, 28)   # bandeau HUD LED (sur la photo verte)
-
-func _draw_era0() -> void:
-	var ms := Time.get_ticks_msec()
-	var ps: String = "on"
-	if main != null:
-		ps = str(main.get("power_state"))
-	var led: Dictionary = _led_levels(ps)
-	_draw_neon_frame(ms, ps, led.frame)
-	_draw_hud_strip(led.strip)
-	if ps == "on":
-		_draw_glass_lcd()
-	_draw_controls(ms, led)
-	if ps == "off":
-		_draw_screen_off()
-		_draw_power_slider(ms, led.knob)
-	elif ps == "boot":
-		_draw_boot(ms)
-	elif ps == "shutdown":
-		_draw_shutdown(ms)
-		_draw_power_slider(ms, led.knob)
-	else:
-		_draw_power_slider(ms, led.knob)
-
-## (C12) montée PROGRESSIVE des LED, comme une vraie console portable :
-## éteinte → tout est éteint (plastique nu) ; curseur sur ON → le néon du
-## cadre s'attaque d'abord, puis le bandeau HUD, puis l'anneau du stick et
-## les boutons, le bouton I/O s'illumine en fin de boot. Extinction : tout
-## retombe ensemble, très vite (décharge).
-func _led_levels(ps: String) -> Dictionary:
-	var t: float = 0.0
-	if main != null:
-		t = float(main.get("boot_t"))
-	var r := { "frame": 0.0, "strip": 0.0, "ring": 0.0, "btn": 0.0, "knob": 0.0 }
-	match ps:
-		"boot":
-			r.frame = _sstep(clampf((t - 0.05) / 0.50, 0.0, 1.0))
-			r.strip = _sstep(clampf((t - 0.25) / 0.55, 0.0, 1.0))
-			r.ring = _sstep(clampf((t - 0.45) / 0.60, 0.0, 1.0))
-			r.btn = _sstep(clampf((t - 0.45) / 0.60, 0.0, 1.0))
-			r.knob = _sstep(clampf((t - 0.85) / 0.30, 0.0, 1.0))
-		"on":
-			r = { "frame": 1.0, "strip": 1.0, "ring": 1.0, "btn": 1.0, "knob": 1.0 }
-		"shutdown":
-			var k: float = 1.0 - _sstep(clampf(t / 0.55, 0.0, 1.0))
-			r = { "frame": k, "strip": k, "ring": k, "btn": k, "knob": k }
-	return r
-
-## interpolateur lisse 0..1 (hermite)
-func _sstep(x: float) -> float:
-	return x * x * (3.0 - 2.0 * x)
-
-func _mix_led(unlit: Color, lit: Color, k: float) -> Color:
-	return Color(lerpf(unlit.r, lit.r, k), lerpf(unlit.g, lit.g, k),
-		lerpf(unlit.b, lit.b, k), lerpf(unlit.a, lit.a, k))
-
-## le néon EST le cadre de l'écran : couleur = progression du secteur
-func _draw_neon_frame(ms: int, ps: String, led: float) -> void:
-	if led <= 0.01:
-		return   # (C12) console éteinte : AUCUNE LED allumée
-	var col: Color
-	match ps:
-		"boot":
-			col = Color(0.3, 0.9, 1.0)
-		_:
-			col = Data.progress_color(game.sector_progress())
-	var pulse: float = 1.0
-	if ps == "on" and game.sector_progress() > 0.75:
-		pulse = 0.72 + 0.28 * sin(ms / 110.0)
-	var g: Rect2 = Data.GLASS
-	draw_rect(Rect2(g.position.x - 12, g.position.y - 12, g.size.x + 24, g.size.y + 24),
-		Color(col.r, col.g, col.b, 0.16 * pulse * led), false, 26.0)   # bloom
-	draw_rect(Rect2(g.position.x - 5, g.position.y - 5, g.size.x + 10, g.size.y + 10),
-		Color(col.r, col.g, col.b, (0.55 + 0.45 * pulse) * led), false, 7.0)
-	draw_rect(Rect2(g.position.x - 2, g.position.y - 2, g.size.x + 4, g.size.y + 4),
-		Color(minf(1.0, col.r + 0.25), minf(1.0, col.g + 0.25), minf(1.0, col.b + 0.25), 0.95 * led), false, 2.0)
-	if ps == "on":
-		var p: int = int(round(game.sector_progress() * 100.0))
-		_txtp(Vector2(STRIP.end.x - 2, STRIP.position.y + 19), "%d %%" % p, 8,
-			Color(col.r, col.g, col.b, 0.9), HORIZONTAL_ALIGNMENT_RIGHT)
-
-## écran éteint : verre noir + reflet + matrice LCD fantôme + consigne
-func _draw_screen_off() -> void:
-	var g: Rect2 = Data.GLASS
-	# (C13) la console éteinte n'a AUCUNE led : le néon IMPRIMÉ sur la photo
-	# est masqué par une bande de plastique éteint autour de la vitre
-	var band := 16.0
-	draw_rect(Rect2(g.position.x - band, g.position.y - band,
-		g.size.x + 2.0 * band, g.size.y + 2.0 * band), Color(0.048, 0.052, 0.062))
-	draw_rect(Rect2(g.position.x - band, g.position.y - band,
-		g.size.x + 2.0 * band, 3.0), Color(0.10, 0.11, 0.13))
-	draw_rect(g, Color(0.012, 0.016, 0.022))
-	draw_polygon(PackedVector2Array([g.position, Vector2(g.position.x + 190, g.position.y),
-		g.position, Vector2(g.position.x, g.position.y + 140)]),
-		PackedColorArray([Color(0.5, 0.7, 0.9, 0.05), Color(0.5, 0.7, 0.9, 0.02),
-		Color(0.5, 0.7, 0.9, 0.0), Color(0.5, 0.7, 0.9, 0.0)]))
-	var c := 0.014
-	var y := g.position.y + 4.0
-	while y < g.end.y:
-		var x := g.position.x + 4.0
-		while x < g.end.x:
-			draw_rect(Rect2(x, y, 1, 1), Color(c, c + 0.002, c + 0.004))
-			x += 3.0
-		y += 3.0
-	# glyphe vectoriel au-dessus du texte (le ⏻ peut manquer dans la fonte)
-	_power_glyph(Vector2(g.get_center().x, g.get_center().y - 26), Color(0.55, 0.75, 0.85, 0.9), 2.0, 6.5)
-	_txtp(Vector2(g.get_center().x, g.get_center().y - 6),
-		NVLang.t("⏻ GLISSER POUR ALLUMER").substr(2), 9, Color(0.55, 0.75, 0.85, 0.85), HORIZONTAL_ALIGNMENT_CENTER)
-
-## séquence d'allumage : lignes LCD qui montent, logo, flash
-func _draw_boot(ms: int) -> void:
-	var g: Rect2 = Data.GLASS
-	var t: float = float(main.get("boot_t")) / 1.15
-	draw_rect(g, Color(0.012, 0.016, 0.022))
-	var ink: Color = Color(Data.INKS[3])
-	var rows := 16
-	var shown := int(ceil(clampf(t, 0, 1) * rows))
-	for i in shown:
-		var yy: float = g.position.y + 8 + i * (g.size.y - 16) / float(rows)
-		draw_rect(Rect2(g.position.x + 8, yy, (g.size.x - 16) * clampf(t * 2.2, 0.25, 1.0), 3),
-			Color(ink.r, ink.g, ink.b, 0.14 + 0.10 * (i % 2)))
-	if t > 0.55:
-		var a: float = clampf((t - 0.55) / 0.3, 0, 1)
-		_txtp(Vector2(g.get_center().x, g.get_center().y), "FAN BOY", 22,
-			Color(ink.r, ink.g, ink.b, a * 0.9), HORIZONTAL_ALIGNMENT_CENTER)
-		_txtp(Vector2(g.get_center().x, g.get_center().y + 26), "NEO VANGUARD", 9,
-			Color(ink.r, ink.g, ink.b, a * 0.6), HORIZONTAL_ALIGNMENT_CENTER)
-	if t >= 1.0:
-		draw_rect(g, Color(0.62, 0.98, 1.0, clampf(1.0 - (t - 1.0) * 8.0, 0, 1) * 0.8))
-
-## extinction : lignes qui retombent puis noir
-func _draw_shutdown(ms: int) -> void:
-	var g: Rect2 = Data.GLASS
-	var t: float = float(main.get("boot_t")) / 0.55
-	draw_rect(g, Color(0.012, 0.016, 0.022))
-	var ink: Color = Color(Data.INKS[3])
-	var rows := 16
-	var shown := maxi(0, int((1.0 - clampf(t, 0, 1)) * rows))
-	for i in shown:
-		var yy: float = g.position.y + 8 + i * (g.size.y - 16) / float(rows)
-		draw_rect(Rect2(g.position.x + 8, yy, g.size.x - 16, 3), Color(ink.r, ink.g, ink.b, 0.16))
-	_txtp(Vector2(g.get_center().x, g.get_center().y),
-		NVLang.t("⏻ GLISSER POUR ALLUMER"), 9, Color(0.4, 0.55, 0.62, 0.7), HORIZONTAL_ALIGNMENT_CENTER)
-
-## le curseur POWER (bas de coque) : I/O magnétique
-func _draw_power_slider(ms: int, led_knob: float) -> void:
-	# (C11) la piste vit à GAUCHE du cul de console : le centre accueille le
-	# sticker logo (photo, intouchable). Symbole ⏻ vectoriel (jamais en tofu).
-	var track := Rect2(28, 792, 130, 32)
-	var ps: String = "on"
-	if main != null:
-		ps = str(main.get("power_state"))
-	var knob: float = 1.0 if (ps == "on" or ps == "boot") else 0.0
-	if main != null and int(main.get("power_drag_id")) != -1:
-		knob = float(main.get("power_knob"))
-	var tb := StyleBoxFlat.new()
-	tb.bg_color = Color(0.05, 0.07, 0.10)
-	tb.set_corner_radius_all(17)
-	tb.border_color = Color(0.30, 0.38, 0.46)
-	tb.set_border_width_all(2)
-	draw_style_box(tb, track)
-	var cy: float = track.get_center().y
-	_txtp(Vector2(track.position.x + 18, cy + 5), "I", 11, Color(0.45, 0.55, 0.65), HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(track.end.x - 18, cy + 5), "O", 11, Color(0.45, 0.55, 0.65), HORIZONTAL_ALIGNMENT_CENTER)
-	var kx: float = lerp(track.position.x + 20, track.end.x - 20, knob)
-	var on: bool = ps == "on" or ps == "boot"
-	# (C12) le bouton I/O n'est rétroéclairé QUE console allumée : éteinte,
-	# c'est du plastique sombre — l'éclairage cyan monte en fin de boot
-	var kc: Color = _mix_led(Color(0.17, 0.18, 0.21),
-		Color(0.3, 0.9, 1.0) if on else Color(0.85, 0.3, 0.32), led_knob)
-	draw_circle(Vector2(kx, cy), 15, Color(kc.r, kc.g, kc.b, 0.20 * led_knob))
-	draw_circle(Vector2(kx, cy), 12, kc.darkened(0.25))
-	draw_circle(Vector2(kx, cy), 11, kc)
-	draw_circle(Vector2(kx - 3, cy - 3), 3.4, Color(1, 1, 1, 0.5 * led_knob + 0.08))
-	# ⏻ vectoriel sur le bouton : cercle ouvert + trait vertical
-	draw_arc(Vector2(kx, cy + 1.5), 5.0, -PI * 0.28, PI * 1.28, 14, Color(0.05, 0.08, 0.12), 1.7)
-	draw_line(Vector2(kx, cy - 6.5), Vector2(kx, cy + 1.0), Color(0.05, 0.08, 0.12), 1.7)
-	# rappel permanent : ALLUMER (éteint) / ÉTEINDRE (allumé)
-	if ps == "on":
-		_txtp(Vector2(112, 780), NVLang.t("⏻ GLISSER POUR ÉTEINDRE").substr(2), 6,
-			Color(0.5, 0.58, 0.66, 0.55 + 0.2 * sin(ms / 400.0)), HORIZONTAL_ALIGNMENT_CENTER)
-		_power_glyph(Vector2(24, 778), Color(0.5, 0.58, 0.66, 0.7))
-
-## symbole puissance universel dessiné (sûr avec toutes les polices)
-func _power_glyph(c: Vector2, col: Color, w := 1.5, r := 4.5) -> void:
-	draw_arc(c, r, -PI * 0.28, PI * 1.28, 12, col, w)
-	draw_line(Vector2(c.x, c.y - r - 1.5), Vector2(c.x, c.y + 0.5), col, w)
-
-## bandeau HUD LED hors écran (la « LED HUD STRIP » de la coque)
-func _draw_hud_strip(led: float) -> void:
-	# (C12) LED éteintes = segments invisibles, légende à peine imprimée
-	var ink := _mix_led(Color(0.30, 0.31, 0.27, 0.16), Color(Data.INKS[3]), led)
-	var mid := _mix_led(Color(0.28, 0.29, 0.25, 0.12), Color(Data.INKS[2]), led)
-	draw_rect(STRIP, Color(0.045, 0.06, 0.04))
-	draw_rect(Rect2(STRIP.position.x, STRIP.position.y, STRIP.size.x, 2), Color(0.62, 0.64, 0.55, 0.12))
-	var P: Dictionary = game.first_player()
-	if P.is_empty():
-		return
-	var y: float = STRIP.position.y + 19
-	# vies
-	var n_lives: int = maxi(int(P.lives) + 1, 0)
-	for i in n_lives:
-		var vx: float = STRIP.position.x + 12 + i * 13
-		draw_colored_polygon(PackedVector2Array([Vector2(vx, y - 9), Vector2(vx - 5, y), Vector2(vx + 5, y)]), ink)
-	_txtp(Vector2(STRIP.position.x + 12 + n_lives * 13 + 6, y + 3), NVLang.t("VIES"), 8, Color(ink.r, ink.g, ink.b, 0.75))
-	# coque (jauge segmentée)
-	_txtp(Vector2(STRIP.position.x + 108, y + 3), NVLang.t("COQUE"), 8, Color(ink.r, ink.g, ink.b, 0.75))
-	var frac: float = clampf(float(P.hp) / float(P.max_hp), 0, 1)
-	var bx: float = STRIP.position.x + 152
-	var bw: float = 100.0
-	draw_rect(Rect2(bx, y - 6, bw, 11), Color(mid.r, mid.g, mid.b, 0.20 * led + 0.04))
-	if led > 0.02:
-		draw_rect(Rect2(bx, y - 6, bw * frac, 11), ink if frac > 0.35 else Color(Data.INKS[3]))
-	var inkk: Color = ink
-	draw_rect(Rect2(bx, y - 6, bw, 11), Color(inkk.r, inkk.g, inkk.b, inkk.a * (0.3 + 0.7 * led)), false, 1.0)
-	var seg := bx + 6.0
-	while seg < bx + bw - 2.0:
-		draw_line(Vector2(seg, y - 5), Vector2(seg, y + 4), Color(0.09, 0.11, 0.07, 0.8), 1.0)
-		seg += 12.0
-	# bombes
-	_txtp(Vector2(STRIP.position.x + 272, y + 3), "%s ×%d" % [NVLang.t("BOMBES"), int(P.bombs)], 8, ink)
-	# nom d'arme en LED (or), section droite
-	var wname: String = String(game.stats.weapon.name).to_upper()
-	if wname.length() > 12:
-		wname = wname.substr(0, 11) + "·"
-	var glow: float = 0.75 + 0.25 * sin(Time.get_ticks_msec() / 400.0)
-	_txtp(Vector2(STRIP.end.x - 36, y + 3), wname, 9, Color(1.0, 0.82, 0.42, glow * led), HORIZONTAL_ALIGNMENT_RIGHT)
-
-## contrôles dessinés — tailles DualShock 4 réelles ; (C13) boutons « vrais »
-## (cuvette, dôme bombé, spéculaire, ombre portée) qui S'ENFONCENT à l'appui
-func _draw_controls(ms: int, led: Dictionary) -> void:
-	var ps: String = "on"
-	if main != null:
-		ps = str(main.get("power_state"))
-	var flash: Dictionary = main.shell_press if main != null else {}
-	var ink: Color = Color(Data.INKS[3])
-	var bk: float = float(led.btn)
-	# ---- stick analogique (cap Ø134) : le cap S'INCLINE selon l'axe --------
-	var s: Vector2 = STICK_C
-	var axis: Vector2 = game.touch_axis if "touch_axis" in game else Vector2.ZERO
-	var rk: float = float(led.ring)
-	if rk > 0.01:
-		var ring: Color = Data.progress_color(game.sector_progress()) if ps != "off" else Color(0.3, 0.35, 0.4)
-		draw_circle(s, STICK_R, Color(ring.r, ring.g, ring.b, 0.08 * rk))
-		draw_arc(s, 74, 0, TAU, 40, Color(ring.r, ring.g, ring.b, 0.5 * rk), 4.0)
-	var pressed_s: bool = flash.has("stick") and ms - int(flash["stick"]) < 150
-	var cap: Vector2 = s + Vector2(axis.x, axis.y) * 12.0 + Vector2(0.0, 2.0 if (pressed_s or axis.length() > 0.6) else 0.0)
-	draw_circle(Vector2(s.x, s.y + 3), 68, Color(0, 0, 0, 0.30))      # puits ombré
-	draw_circle(Vector2(s.x, s.y), 67, Color(0.05, 0.06, 0.08))
-	draw_circle(cap, 61, Color(0.13, 0.15, 0.19))
-	draw_arc(cap, 61, 0, TAU, 40, Color(0.45, 0.52, 0.60), 2.0)
-	draw_circle(cap, 50, Color(0.07, 0.08, 0.11))
-	draw_arc(cap, 50, 0, TAU, 40, Color(0.17, 0.19, 0.23), 2.0)
-	draw_arc(cap + Vector2(0, -3), 38, PI, TAU, 30, Color(1, 1, 1, 0.10), 6.0)
-	# ---- croix directionnelle (169, bras 57) — ARME haut/bas ---------------
-	var dp: Vector2 = DPAD_C
-	var arm: float = 28.5
-	var ln: float = 84.0
-	var dp_base := StyleBoxFlat.new()
-	dp_base.bg_color = Color(0.10, 0.11, 0.14)
-	dp_base.set_corner_radius_all(10)
-	dp_base.border_color = _mix_led(Color(0.30, 0.22, 0.14), Color(0.85, 0.45, 0.10), float(led.btn))
-	dp_base.set_border_width_all(3)
-	draw_style_box(dp_base, Rect2(dp.x - arm, dp.y - ln, arm * 2, ln * 2))
-	var up: bool = flash.has("wup") and ms - int(flash["wup"]) < 150
-	var dn: bool = flash.has("wdn") and ms - int(flash["wdn"]) < 150
-	for half in 2:
-		var lit: bool = (half == 0 and up) or (half == 1 and dn)
-		var yy: float = dp.y - ln + (0 if half == 0 else ln) + (2.0 if lit else 0.0)
-		var hh2: float = ln - (2.0 if lit else 0.0)
-		if lit:
-			draw_rect(Rect2(dp.x - arm + 3, yy + 3, arm * 2 - 6, hh2 - 6), Color(1.0, 0.62, 0.2, 0.30))
-		var cy2: float = yy + hh2 / 2.0
-		var tri: Array[Vector2] = []
-		if half == 0:
-			tri = [Vector2(dp.x, cy2 - 8), Vector2(dp.x - 9, cy2 + 6), Vector2(dp.x + 9, cy2 + 6)]
-		else:
-			tri = [Vector2(dp.x, cy2 + 8), Vector2(dp.x - 9, cy2 - 6), Vector2(dp.x + 9, cy2 - 6)]
-		draw_colored_polygon(PackedVector2Array(tri), _mix_led(Color(0.16, 0.15, 0.13),
-			Color(0.9, 0.55, 0.16) if lit else Color(0.32, 0.34, 0.38), float(led.btn)))
-	_txtp(Vector2(dp.x, dp.y - ln - 8), NVLang.t("ARME") + " ⇕", 8,
-		Color(ink.r, ink.g, ink.b, 0.18 + 0.52 * float(led.btn)), HORIZONTAL_ALIGNMENT_CENTER)
-	# ---- TIR / BOMBE : boutons bombés (paire diagonale manette) -------------
-	_face_button(FIRE_C, FIRE_R, flash, "fire", bk,
-		Color(0.30, 0.15, 0.14), Color(0.80, 0.10, 0.14), Color(0.93, 0.17, 0.21),
-		bool(game.touch_fire_btn))   # (C13) reste enfoncé tant que maintenu
-	_txtp(Vector2(FIRE_C.x, FIRE_C.y - FIRE_R - 14), NVLang.t("TIR"), 9,
-		Color(0.95, 0.5, 0.5, 0.35 + 0.55 * bk), HORIZONTAL_ALIGNMENT_CENTER)
-	_face_button(BOMB_C, BOMB_R, flash, "bomb", bk,
-		Color(0.33, 0.24, 0.13), Color(0.86, 0.44, 0.06), Color(0.98, 0.56, 0.13),
-		not game.first_player().is_empty() and float(game.first_player().get("bomb_cd", 0.0)) > 0.2)
-	_txtp(Vector2(BOMB_C.x, BOMB_C.y + 4), "✹", 15,
-		Color(0.30, 0.14, 0.02, 0.25 + 0.75 * bk), HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(BOMB_C.x, BOMB_C.y + BOMB_R + 16), NVLang.t("BOMBE"), 8,
-		Color(0.95, 0.7, 0.35, 0.25 + 0.65 * bk), HORIZONTAL_ALIGNMENT_CENTER)
-	# ---- SELECT / START : pills sur la barre lumineuse ----------------------
-	var sub_sel: PackedStringArray = NVLang.t("SELECT · PAUSE").split(" · ", false)
-	var sub_sta: PackedStringArray = NVLang.t("START · MENU").split(" · ", false)
-	_pill(Rect2(60, 828, 85, 32), "SELECT",
-		sub_sel[sub_sel.size() - 1] if sub_sel.size() > 1 else "PAUSE", "select", flash, ms)
-	_pill(Rect2(320, 828, 85, 32), "START",
-		sub_sta[sub_sta.size() - 1] if sub_sta.size() > 1 else "MENU", "start", flash, ms)
-
-## bouton de face réaliste : ombre, cuvette plastique, dôme bombé qui
-## s'enfonce de 4 px à l'appui, spéculaire qui se resserre
-func _face_button(c: Vector2, r: float, flash: Dictionary, id: String, bk: float,
-		unlit: Color, base: Color, dome: Color, held := false) -> void:
-	var pressed: bool = held or (flash.has(id) and Time.get_ticks_msec() - int(flash[id]) < 200)
-	var dy: float = 4.0 if pressed else 0.0
-	draw_circle(c + Vector2(0, 5), r + 2, Color(0, 0, 0, 0.30))          # ombre portée
-	draw_circle(c, r + 5, _mix_led(Color(0.055, 0.06, 0.075), Color(0.07, 0.075, 0.09), 1.0))
-	draw_circle(c, r + 2, Color(0.15, 0.15, 0.18))                        # charmette
-	var cc: Vector2 = c + Vector2(0, dy)
-	var b1: Color = _mix_led(unlit, base.darkened(0.35), bk)
-	var b2: Color = _mix_led(unlit, base, bk)
-	var b3: Color = _mix_led(unlit.lightened(0.05), dome, bk)
-	draw_circle(cc, r - 1, b1)
-	draw_circle(cc + Vector2(0, -1.5), r - 2, b2)
-	draw_circle(cc + Vector2(0, -3), r - 4, b3)
-	draw_circle(cc + Vector2(-r * 0.30, -r * 0.34), r * (0.22 if pressed else 0.27),
-		Color(1, 1, 1, (0.36 if not pressed else 0.22) * (0.25 + 0.75 * bk)))
-	draw_arc(cc, r - 4, PI * 0.2, PI * 0.8, 16, Color(1, 1, 1, 0.10 * bk), 3.0)
-
-func _pill(r: Rect2, label: String, sub: String, id: String, flash: Dictionary, ms: int) -> void:
-	var pressed: bool = flash.has(id) and ms - int(flash[id]) < 170
-	var y: float = r.position.y + (3.0 if pressed else 0.0)   # (C13) ça s'enfonce
-	draw_rect(Rect2(r.position.x + 2, r.end.y + 1, r.size.x, 5), Color(0, 0, 0, 0.5))
-	var pb := StyleBoxFlat.new()
-	pb.bg_color = Color(0.32, 0.38, 0.45) if pressed else Color(0.55, 0.64, 0.72)
-	pb.set_corner_radius_all(r.size.y / 2.0)
-	pb.border_color = Color(0.30, 0.88, 1.0)
-	pb.set_border_width_all(2)
-	draw_style_box(pb, Rect2(r.position.x, y, r.size.x, r.size.y))
-	draw_rect(Rect2(r.position.x + 9, y + 4, r.size.x - 18, 4), Color(1, 1, 1, 0.45 if not pressed else 0.15))
-	_txtp(Vector2(r.get_center().x, y + r.size.y / 2.0 - 1), label, 8, Color(0.08, 0.11, 0.14), HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(r.get_center().x, y + r.size.y / 2.0 + 10), sub, 6, Color(0.10, 0.16, 0.20, 0.8), HORIZONTAL_ALIGNMENT_CENTER)
-
-## l'intérieur du verre (console allumée) : score, vies, boss, chaîne —
-## les jauges de survie (coque/bombes/arme) vivent sur le bandeau LED coque
-func _draw_glass_lcd() -> void:
-	var TH: Dictionary = game.TH
-	var glass: Rect2 = Data.GLASS
-	var ink: Color = TH.livery[0]
-	var mid: Color = TH.livery[1]
-	var top: float = glass.position.y + 6.0
-	var sx: float = glass.position.x + 10.0
-	var rx: float = glass.end.x - 10.0
-	var W: float = glass.size.x
-	# modelé de la vitre (drawScreenGlass) : ombre haute/basse + reflet diagonal
-	var sh: Color = Color(0.098, 0.133, 0.071)
-	var y_a: float = glass.position.y + glass.size.y * 0.12
-	var y_b: float = glass.position.y + glass.size.y * 0.72
-	_quad(glass.position, Vector2(glass.end.x, y_a), Color(sh.r, sh.g, sh.b, 0.12), Color(sh.r, sh.g, sh.b, 0.0))
-	_quad(Vector2(glass.position.x, y_a), Vector2(glass.end.x, y_b), Color(sh.r, sh.g, sh.b, 0.0), Color(sh.r, sh.g, sh.b, 0.025))
-	_quad(Vector2(glass.position.x, y_b), glass.end, Color(sh.r, sh.g, sh.b, 0.025), Color(sh.r, sh.g, sh.b, 0.10))
-	var rf: Color = Color(0.957, 0.969, 0.875)
-	_quad(glass.position, Vector2(glass.end.x, glass.end.y), Color(rf.r, rf.g, rf.b, 0.08), Color(rf.r, rf.g, rf.b, 0.17), true)
-	# rangée 1 — dot-matrix, chiffres groupés comme l'original
-	_txtp(Vector2(sx, top + 15), "SC %s" % fmt_space(game.score), 8, ink)
-	_txtp(Vector2(glass.position.x + W / 2.0, top + 15), "VIES ×%d" % (int(game.first_player().get("lives", 0)) + 1), 8, ink, HORIZONTAL_ALIGNMENT_CENTER)
-	_txtp(Vector2(rx, top + 15), "COINS %s" % fmt_space(game.credits_run), 8, ink, HORIZONTAL_ALIGNMENT_RIGHT)
-	# l'épais trait qui ferme le HUD, comme sur la console
-	draw_rect(Rect2(sx - 2.0, top + 25, W - 16.0, 3.0), Color(ink.r, ink.g, ink.b, 0.8))
-	# barre de l'amiral, encre LCD
-	if not game.boss.is_empty() and not game.boss.enter:
-		var b: Dictionary = game.boss
-		var f: float = clampf(float(b.hp) / float(b.max_hp), 0, 1)
-		var bw3 := W - 60.0
-		draw_rect(Rect2(glass.position.x + 30, top + 36, bw3, 7), Color(mid.r, mid.g, mid.b, 0.30))
-		draw_rect(Rect2(glass.position.x + 30, top + 36, bw3 * f, 7), ink)
-		draw_rect(Rect2(glass.position.x + 30, top + 36, bw3, 7), ink, false, 1.0)
-		_txtp(Vector2(glass.position.x + W / 2.0, top + 58), b.name, 8, ink, HORIZONTAL_ALIGNMENT_CENTER)
-	if game.combo > 1:
-		_txt(Vector2(glass.position.x + W / 2.0, glass.end.y - 12.0), "CHAÎNE ×%.2f" % game.score_mult(), 11, mid, HORIZONTAL_ALIGNMENT_CENTER)

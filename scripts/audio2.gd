@@ -95,6 +95,21 @@ func play_track(name: String, loop := true) -> void:
 	music_player.play()
 	apply_volumes()
 
+func play_music(name: String, loop := true) -> void:
+	play_track(name, loop)
+
+func restart_track(name: String, loop := true) -> void:
+	var stream := _load_music(name)
+	if stream == null:
+		stop_music(); return
+	music_player.stop()
+	current_track = name
+	if stream is AudioStreamMP3:
+		stream.loop = loop
+	music_player.stream = stream
+	music_player.play(0.0)
+	apply_volumes()
+
 func stop_music() -> void:
 	current_track = ""
 	music_player.stop()

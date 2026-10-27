@@ -1,0 +1,52 @@
+{
+  "sfx": {
+    "sfx_catapult_launch": {
+      "duration": 2.6,
+      "path": "res://assets/intro/audio/sfx/sfx_catapult_launch.wav"
+    },
+    "sfx_cue_pilote": {
+      "duration": 0.22,
+      "path": "res://assets/intro/audio/sfx/sfx_cue_pilote.wav"
+    },
+    "sfx_cue_vesta": {
+      "duration": 0.38,
+      "path": "res://assets/intro/audio/sfx/sfx_cue_vesta.wav"
+    },
+    "sfx_cue_vorax": {
+      "duration": 0.52,
+      "path": "res://assets/intro/audio/sfx/sfx_cue_vorax.wav"
+    },
+    "sfx_glitch_burst": {
+      "duration": 0.55,
+      "path": "res://assets/intro/audio/sfx/sfx_glitch_burst.wav"
+    },
+    "sfx_hologram_materialize": {
+      "duration": 1.15,
+      "path": "res://assets/intro/audio/sfx/sfx_hologram_materialize.wav"
+    },
+    "sfx_logo_impact": {
+      "duration": 2.8,
+      "path": "res://assets/intro/audio/sfx/sfx_logo_impact.wav"
+    },
+    "sfx_manga_slash": {
+      "duration": 0.42,
+      "path": "res://assets/intro/audio/sfx/sfx_manga_slash.wav"
+    },
+    "sfx_neural_awaken": {
+      "duration": 1.1,
+      "path": "res://assets/intro/audio/sfx/sfx_neural_awaken.wav"
+    },
+    "sfx_reactor_charge": {
+      "duration": 3.2,
+      "path": "res://assets/intro/audio/sfx/sfx_reactor_charge.wav"
+    },
+    "sfx_vorax_dread_horn": {
+      "duration": 2.15,
+      "path": "res://assets/intro/audio/sfx/sfx_vorax_dread_horn.wav"
+    },
+    "sfx_world_card_tick": {
+      "duration": 0.26,
+      "path": "res://assets/intro/audio/sfx/sfx_world_card_tick.wav"
+    }
+  }
+}

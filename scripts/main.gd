@@ -8,24 +8,30 @@ extends Node
 const BriefScreen := preload("res://scripts/ui/brief_screen.gd")
 const PocketBaker := preload("res://scripts/sprites/pocket_baker.gd")
 const GuardianSprite := preload("res://scripts/sprites/guardian_sprite.gd")
+const IntroCinematic := preload("res://scripts/intro/intro_cinematic.gd")
+const IntroAssets := preload("res://scripts/intro/intro_assets.gd")
+const FanBoyScene := preload("res://scenes/FanBoy.tscn")
+const FanBoyScript := preload("res://scripts/fanboy.gd")
 
 var game: NVGame
 var viewport: SubViewport
 var touch_pilot_id := -1   # index du doigt pilote (-1 = aucun)
 var screen_layer: CanvasLayer
+var _boot_backdrop: ColorRect = null
 var tr: TextureRect
 var crt: Node2D
 var shell: CanvasItem = null
-const NVUi := preload("res://scripts/ui/hud_overlay.gd")   # (C11) zones console
+var fanboy: Control = null
+var fanboy_stage: Node2D = null
+var fanboy_lcd_hud: Node2D = null
+var fanboy_lcd_crt: Node2D = null
+var fanboy_booted_once := false
+const NVUi := preload("res://scripts/ui/hud_overlay.gd")
 var current_screen: Control
-var pause_screen: Control = null   # (C10) menu pause ouvert (bouton START)
-var shell_press := {}              # (C10) gâchettes coque appuyées -> msec
-var power_state := "off"           # (C11) off | boot | on | shutdown
-var boot_t := 0.0                  # (C11) chrono des séquences on/off
-var power_knob := 0.0              # (C11) position du curseur I/O (0..1)
-var power_drag_id := -1            # (C11) doigt sur le curseur
-var shell_stick_id := -1           # (C11) doigt pilote du stick
-var banked := 0                 # crédits déjà versés pour la mission en cours
+var pause_screen: Control = null   # menu pause ouvert (bouton START)
+var shell_press := {}
+var power_state := "on"            # on | off (piloté par l'interrupteur FanBoy)
+var banked := 0                    # crédits déjà versés pour la mission en cours
 var campaign_level := 1
 var daily_mode := false
 var daily_mods: Array = []
@@ -37,6 +43,8 @@ func _exit_tree() -> void:
 	BriefScreen._art_cache.clear()
 	PocketBaker._cache.clear()
 	GuardianSprite._cache.clear()
+	IntroAssets.clear_cache()
+	FanBoyScript.clear_static_cache()
 	## stopper toute lecture audio : les playbacks actifs au quit fuient sinon
 	Audio2.music_player.stop()
 	for p in Audio2._sfx_pool:
@@ -51,7 +59,14 @@ func _ready() -> void:
 	_attach_hud()
 	screen_layer = CanvasLayer.new()
 	add_child(screen_layer)
-	Audio2.start_title_music()
+	_boot_backdrop = ColorRect.new()
+	_boot_backdrop.color = Color("#04060e")
+	_boot_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_boot_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boot_backdrop.visible = false
+	screen_layer.add_child(_boot_backdrop)
+	if OS.get_environment("NV_TEST") != "":
+		Audio2.start_title_music()
 	_boot_flow()
 	if OS.get_environment("NV_TEST") == "1":
 		_run_smoke_test()
@@ -353,8 +368,8 @@ func _snap(path: String) -> void:
 
 # la pause est interceptée ici : le jeu vit dans un SubViewport qui ne
 # reçoit pas les événements d'entrée de la fenêtre racine
-func _process(delta: float) -> void:
-	_power_tick(delta)
+func _process(_delta: float) -> void:
+	_sync_fanboy_telemetry()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if game.state == "play" and current_screen == null and event.is_action_pressed("pause"):
@@ -363,8 +378,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	_touch_unhandled(event)
 
-# ---- tactile natif : main capte les doigts et les retransmet au jeu --------
-# (réplique de wirePointer() ; la barre de boutons de la coque est gérée ici)
+# ---- tactile natif : barre #touchui des secteurs 4–24 ; les secteurs 1–3
+#      utilisent la console interactive animée FanBoy (`scenes/FanBoy.tscn`) --
 const TOUCH_BTNS: Array[Rect2] = [
 	Rect2(14, 756, 74, 90),    # BOMBE
 	Rect2(98, 756, 56, 90),    # arme − (PRÉC)
@@ -373,107 +388,153 @@ const TOUCH_BTNS: Array[Rect2] = [
 	Rect2(392, 756, 74, 90),   # PAUSE
 ]
 
-# (C10) gâchettes matérielles de la coque NV-01 (secteurs FanBoy, ère 0) :
-# SELECT gèle/reprend la partie, START ouvre le menu en pause.
-const SHELL_SELECT := Rect2(60, 828, 85, 32)    # (C11) barre lumineuse
-const SHELL_START := Rect2(320, 828, 85, 32)
-const SHELL_POWER := Rect2(28, 792, 130, 32)     # curseur I/O (gauche)
-const POWER_TRACK_L := 48.0
-const POWER_TRACK_R := 138.0
+func _is_fanboy_mode_for_level(lv: int) -> bool:
+	return Data.is_fanboy_level(lv) and bool(Save.S.opts.get("frame", true))
 
-## (C11) la console NV-01 : stick, croix ARME, TIR, BOMBE, SELECT, START,
-## curseur POWER — tailles DualShock 4 (constantes dans hud_overlay.gd)
+func _is_fanboy_active_now() -> bool:
+	return game != null and game.state == "play" and _is_fanboy_mode_for_level(game.level) and fanboy != null and fanboy.console_active
+
+## Hit-test d'un point fenêtre 480×860 sur la console FanBoy (utilitaire / tests)
 func _shell_btn_at(pos: Vector2) -> String:
-	if game == null or game.state != "play":
+	if not _is_fanboy_active_now():
 		return ""
-	if game.era_idx != 0 or not bool(Save.S.opts.get("frame", true)):
-		return ""
-	if SHELL_SELECT.has_point(pos):
-		return "select"
-	if SHELL_START.has_point(pos):
-		return "start"
-	if SHELL_POWER.has_point(pos):
-		return "power"
-	if pos.distance_to(NVUi.STICK_C) <= NVUi.STICK_R:
-		return "stick"
-	if pos.distance_to(NVUi.DPAD_C) <= NVUi.DPAD_R:
-		return "wup" if pos.y < NVUi.DPAD_C.y else "wdn"
-	if pos.distance_to(NVUi.FIRE_C) <= NVUi.FIRE_R + 6.0:
-		return "fire"
-	if pos.distance_to(NVUi.BOMB_C) <= NVUi.BOMB_R + 6.0:
-		return "bomb"
+	var m_pt: Vector2 = fanboy.to_master(pos)
+	for candidate in ["power", "a", "b", "start", "select", "stick"]:
+		if fanboy.hit(candidate, m_pt):
+			return candidate
 	return ""
 
-func _shell_button(id: String) -> void:
-	shell_press[id] = Time.get_ticks_msec()   # feedback visuel (coque)
-	if id == "select":
-		Audio2.sfx("uiclick")
-		if pause_screen != null:
-			_resume_game()                 # SELECT : reprendre depuis le menu
-		else:
-			game.paused = not game.paused  # SELECT : geler / dégeler
-	elif id == "start":
-		Audio2.sfx("uiclick")
-		if pause_screen == null:
-			_on_pause()                    # START : le menu, jeu en pause
-	elif id == "wup":
-		game.touch_weapon(-1)
-	elif id == "wdn":
-		game.touch_weapon(1)
-	elif id == "bomb":
-		game.touch_bomb()
-	# "fire" est maintenu : géré par press/release (ci-dessous)
+func _on_fanboy_button(action: String, down: bool) -> void:
+	if down:
+		shell_press[action] = Time.get_ticks_msec()
+	if game == null or fanboy == null:
+		return
+	match action:
+		"a":
+			game.touch_fire_btn = down and game.state == "play" and current_screen == null and not game.paused and fanboy.powered
+		"b":
+			if down and game.state == "play" and current_screen == null and not game.paused and fanboy.powered:
+				game.touch_bomb()
+		"start":
+			if down and game.state == "play" and fanboy.powered:
+				if pause_screen != null:
+					_resume_game()
+				elif current_screen == null:
+					_on_pause()
+		"select":
+			if down and game.state == "play" and fanboy.powered:
+				if pause_screen != null:
+					_resume_game()
+				elif current_screen == null:
+					game.paused = not game.paused
 
-## (C11) POWER : glisser I/O — allume (boot) ou éteint (retour titre)
-func _power_slide_to(x: float) -> void:
-	power_knob = clampf((x - POWER_TRACK_L) / (POWER_TRACK_R - POWER_TRACK_L), 0.0, 1.0)
-	if power_state == "off" and power_knob >= 0.99:
-		_power_switch_on()
-	elif power_state == "on" and power_knob <= 0.01 and pause_screen == null:
-		_power_switch_off()
+func _on_fanboy_stick(value: Vector2) -> void:
+	if game == null or fanboy == null:
+		return
+	if game.state != "play" or current_screen != null or game.paused or not fanboy.powered or value.length_squared() <= 0.0001:
+		if game.touch_stick:
+			game.touch_stick = false
+			game.touch_axis_set(Vector2.ZERO)
+		return
+	shell_press["stick"] = Time.get_ticks_msec()
+	touch_pilot_id = -1
+	game.touch_down = false
+	game.touch_stick = true
+	game.touch_axis_set(value)
 
-func _power_switch_on() -> void:
-	power_state = "boot"
-	boot_t = 0.0
-	power_drag_id = -1
-	Audio2.sfx("power")
-	shell_press["power"] = Time.get_ticks_msec()
-
-func _power_switch_off() -> void:
-	power_state = "shutdown"
-	boot_t = 0.0
-	power_drag_id = -1
+func _on_fanboy_power(enabled: bool) -> void:
+	power_state = "on" if enabled else "off"
+	touch_pilot_id = -1
+	if game == null:
+		return
 	game.touch_release()
 	game.touch_fire_btn = false
-	Audio2.sfx("powerdown")
-	shell_press["power"] = Time.get_ticks_msec()
+	if not enabled:
+		if pause_screen != null:
+			_clear_screen()
+		game.paused = true
+		Audio2.music_player.stream_paused = true
+	else:
+		Audio2.music_player.stream_paused = false
+		if game.state == "play" and current_screen == null:
+			game.paused = false
 
-## l'avancement des séquences boot / shutdown (appelé depuis _process)
-func _power_tick(delta: float) -> void:
-	# (C11) l'overlay de chargement est SUR L'ÉCRAN de la console : caché
-	# éteinte (verre noir) comme pendant boot/shutdown (l'écran dessine
-	# ses propres séquences)
-	if load_overlay != null and is_instance_valid(load_overlay):
-		var par: Node = load_overlay.get_parent()
-		if par != null:
-			par.visible = power_state == "on"
-	if power_state == "boot":
-		boot_t += delta
-		if boot_t >= 1.15:
-			power_state = "on"
-			game.paused = false
-	elif power_state == "shutdown":
-		boot_t += delta
-		if boot_t >= 0.55:
-			power_state = "off"
-			game.paused = false
-			power_knob = 0.0
-			banked = 0
-			daily_mode = false
-			show_title()
+func _fanboy_vp_to_game(vp_pos: Vector2) -> Vector2:
+	return Vector2(vp_pos.x * Data.FW / 620.0, vp_pos.y * Data.FH / 890.0)
+
+func _on_fanboy_screen_touch(id: int, vp_pos: Vector2, down: bool) -> void:
+	if game == null or fanboy == null:
+		return
+	if down:
+		if game.state == "play" and current_screen == null and not game.paused and fanboy.powered:
+			var gp := _fanboy_vp_to_game(vp_pos)
+			if touch_pilot_id == -1 and not game.touch_stick:
+				touch_pilot_id = id
+				game.touch_press(gp)
+			elif touch_pilot_id != -1 and id != touch_pilot_id:
+				game.touch_press(gp)
+	else:
+		if id == touch_pilot_id:
+			touch_pilot_id = -1
+			game.touch_release()
+
+func _on_fanboy_screen_drag(id: int, vp_pos: Vector2, _rel: Vector2) -> void:
+	if game == null or fanboy == null:
+		return
+	if id == touch_pilot_id and game.state == "play" and current_screen == null and not game.paused and fanboy.powered:
+		game.touch_drag(_fanboy_vp_to_game(vp_pos))
+
+func _compute_fanboy_threat() -> float:
+	if game == null or game.state != "play":
+		return 0.0
+	if game.phase == NVGame.Phase.HARVEST or game.phase == NVGame.Phase.CLEAR:
+		return 0.08
+	if game.phase == NVGame.Phase.BOSS_WARN or game.phase == NVGame.Phase.BOSS:
+		return 0.88
+	var P: Dictionary = game.first_player()
+	var hull_danger := 0.0
+	if not P.is_empty() and float(P.get("max_hp", 1.0)) > 0.0:
+		var hr := clampf(float(P.get("hp", 1.0)) / float(P.get("max_hp", 1.0)), 0.0, 1.0)
+		if hr <= 0.34 or int(P.get("hp", 2)) <= 1:
+			hull_danger = 0.76
+		elif hr <= 0.65:
+			hull_danger = 0.42
+	var swarm := float(game.enemies.size()) * 0.065 + float(game.ebullets.size()) * 0.032
+	for en in game.enemies:
+		if bool(en.get("mini", false)) or bool(en.get("elite", false)):
+			swarm = maxf(swarm, 0.72)
+			break
+	var prog := game.sector_progress() * 0.52
+	return clampf(maxf(hull_danger, maxf(swarm, prog)), 0.0, 1.0)
+
+func _sync_fanboy_telemetry() -> void:
+	if fanboy == null or not fanboy.console_active or game == null:
+		return
+	if game.state != "play":
+		fanboy.set_hull_health(0.0, 0.0)
+		fanboy.set_boss_health(0.0, 0.0)
+		fanboy.set_telemetry(-1, -1, "")
+		fanboy.set_threat(0.0)
+		return
+	var P: Dictionary = game.first_player()
+	if not P.is_empty() and bool(P.get("alive", true)):
+		fanboy.set_hull_health(float(P.hp), float(P.max_hp))
+	else:
+		fanboy.set_hull_health(0.0, 0.0)
+	var boss_name_str := ""
+	if not game.boss.is_empty() and not bool(game.boss.get("dead", false)):
+		fanboy.set_boss_health(float(game.boss.hp), float(game.boss.max_hp))
+		boss_name_str = str(game.boss.get("name", ""))
+	else:
+		fanboy.set_boss_health(0.0, 0.0)
+		if game.phase == NVGame.Phase.BOSS_WARN:
+			boss_name_str = "ALERTE"
+	var lv_count := maxi(int(P.get("lives", 0)) + 1, 0) if not P.is_empty() else 0
+	var bm_count := maxi(int(P.get("bombs", 0)), 0) if not P.is_empty() else 0
+	fanboy.set_telemetry(lv_count, bm_count, boss_name_str)
+	fanboy.set_threat(_compute_fanboy_threat())
 
 func _touch_button_at(pos: Vector2) -> int:
-	# (correctif) la barre existe dans toutes les ères (#touchui du web)
 	if not bool(Save.S.opts.get("frame", true)):
 		return -1
 	for i in TOUCH_BTNS.size():
@@ -489,95 +550,33 @@ func _touch_button(i: int) -> void:
 		4: _on_pause()
 
 func _touch_unhandled(event: InputEvent) -> void:
+	# Secteurs 1–3 sur FanBoy : toutes les entrées passent par `fanboy._input`
+	if _is_fanboy_active_now():
+		return
 	if event is InputEventScreenTouch:
 		var st: InputEventScreenTouch = event
-		# (C13) fin du glisser du curseur I/O, même relâché hors de la piste
-		if not st.pressed and st.index == power_drag_id:
-			power_drag_id = -1
-			power_knob = 1.0 if power_state == "on" else 0.0
-			return
-		# (C11) console NV-01 (ère 0) : stick / croix / TIR / BOMBE /
-		# SELECT / START / curseur POWER — priorité sur tout le reste
-		var sb: String = _shell_btn_at(st.position)
-		if sb != "":
-			if st.pressed:
-				match sb:
-					"stick":
-						if shell_stick_id == -1 and power_state == "on" \
-								and current_screen == null and not game.paused:
-							shell_stick_id = st.index
-							shell_press["stick"] = Time.get_ticks_msec()
-							game.touch_press(st.position, true)   # mouvement seul
-							# (C13) inclinaison initiale = position du doigt
-							game.touch_axis_set((st.position - NVUi.STICK_C) / NVUi.STICK_R)
-					"fire":
-						if power_state == "on" and current_screen == null and not game.paused:
-							shell_press["fire"] = Time.get_ticks_msec()
-							game.touch_fire_btn = true
-					"power":
-						# (C13) toute la piste est saisissable (plus besoin de
-						# viser le bouton au pixel près)
-						if power_drag_id == -1 and (power_state == "off" or power_state == "on"):
-							power_drag_id = st.index
-							_power_slide_to(st.position.x)
-					_:
-						if power_state == "on" or sb == "select" or sb == "start":
-							_shell_button(sb)
-			else:
-				match sb:
-					"stick":
-						if st.index == shell_stick_id:
-							shell_stick_id = -1
-							game.touch_release()
-					"fire":
-						game.touch_fire_btn = false
-					"power":
-						if st.index == power_drag_id:
-							power_drag_id = -1
-							# magnétisme : le bouton revient sur sa position
-							power_knob = 1.0 if power_state == "on" else 0.0
-			return
 		if game.state == "play" and current_screen == null and not game.paused:
-			# barre tactile des ères 1+ uniquement (l'ère 0 a ses touches)
 			if game.era_idx != 0:
 				var btn := _touch_button_at(st.position)
 				if btn != -1:
 					if st.pressed:
 						_touch_button(btn)
 					return
-			if game.era_idx != 0:
-				if st.pressed:
-					if touch_pilot_id == -1:
-						touch_pilot_id = st.index
-					game.touch_press(st.position)
-				elif st.index == touch_pilot_id:
-					touch_pilot_id = -1
-					game.touch_release()
-			elif st.pressed and touch_pilot_id == -1 and shell_stick_id == -1 \
-					and Data.GLASS.has_point(st.position):
-				# ère 0 : le verre reste pilotable au doigt (mouvement + tir)
-				touch_pilot_id = st.index
+			if st.pressed:
+				if touch_pilot_id == -1:
+					touch_pilot_id = st.index
 				game.touch_press(st.position)
-			elif not st.pressed and st.index == touch_pilot_id:
+			elif st.index == touch_pilot_id:
 				touch_pilot_id = -1
 				game.touch_release()
-		elif not st.pressed and (st.index == touch_pilot_id or st.index == shell_stick_id):
-			if st.index == touch_pilot_id:
-				touch_pilot_id = -1
-			if st.index == shell_stick_id:
-				shell_stick_id = -1
+		elif not st.pressed and st.index == touch_pilot_id:
+			touch_pilot_id = -1
 			game.touch_release()
 			game.touch_fire_btn = false
 	elif event is InputEventScreenDrag:
 		var dg: InputEventScreenDrag = event
-		# (C13) le curseur I/O se glisse MÊME console éteinte (jeu en pause) :
-		# c'était la cause du « on galère pour le glisser »
-		if dg.index == power_drag_id:
-			_power_slide_to(dg.position.x)
-		elif game.state == "play" and current_screen == null and not game.paused:
-			if dg.index == shell_stick_id:
-				game.touch_axis_set((dg.position - NVUi.STICK_C) / NVUi.STICK_R)
-			elif dg.index == touch_pilot_id:
+		if game.state == "play" and current_screen == null and not game.paused:
+			if dg.index == touch_pilot_id:
 				game.touch_drag(dg.position)
 
 # test 2 : tous les écrans + fin de campagne (secteur 24 → ending)
@@ -644,18 +643,46 @@ func _build_game() -> void:
 	game.request_pause.connect(_on_pause)
 
 func _attach_hud() -> void:
-	# la coque de la console, SOUS le champ de jeu
-	shell = preload("res://scripts/ui/shell_layer.gd").new()
-	shell.main = self
-	add_child(shell)
-	move_child(shell, tr.get_index())
-	shell.visible = bool(Save.S.opts.get("frame", true))   # module 24 : cadre PC
-	# HUD pleine résolution par-dessus le champ rétro (comme le HUD HTML d'origine)
-	var hud := preload("res://scripts/ui/hud_overlay.gd").new()
+	# Console interactive animée FanBoy (Monde 1 : secteurs 1, 2 et 3)
+	fanboy = FanBoyScene.instantiate()
+	fanboy.position = Vector2.ZERO
+	fanboy.size = Vector2(Data.L_W, Data.L_H)
+	shell = fanboy
+	add_child(fanboy)
+	fanboy._fit()
+
+	fanboy_stage = Node2D.new()
+	fanboy_stage.name = "FanBoyStage"
+	fanboy_stage.scale = Vector2(620.0 / 480.0, 890.0 / Data.FANBOY_FH)
+	fanboy.game_viewport.add_child(fanboy_stage)
+
+	fanboy_lcd_hud = NVUi.new()
+	fanboy_lcd_hud.game = game
+	fanboy_lcd_hud.main = self
+	fanboy_lcd_hud.in_fanboy_viewport = true
+	fanboy_lcd_hud.z_index = 10
+	fanboy_stage.add_child(fanboy_lcd_hud)
+
+	fanboy_lcd_crt = preload("res://scripts/ui/scanlines.gd").new()
+	fanboy_lcd_crt.game = game
+	fanboy_lcd_crt.main_node = self
+	fanboy_lcd_crt.in_fanboy_viewport = true
+	fanboy_lcd_crt.z_index = 11
+	fanboy_stage.add_child(fanboy_lcd_crt)
+
+	fanboy.button_changed.connect(_on_fanboy_button)
+	fanboy.stick_changed.connect(_on_fanboy_stick)
+	fanboy.power_changed.connect(_on_fanboy_power)
+	fanboy.screen_touch.connect(_on_fanboy_screen_touch)
+	fanboy.screen_drag.connect(_on_fanboy_screen_drag)
+	fanboy.set_console_active(false)
+
+	# HUD pleine résolution par-dessus le champ rétro des secteurs 4–24
+	var hud := NVUi.new()
 	hud.game = game
 	hud.main = self
 	add_child(hud)
-	# scanlines CRT (option)
+	# scanlines CRT des secteurs 4–24
 	crt = preload("res://scripts/ui/scanlines.gd").new()
 	crt.game = game
 	crt.main_node = self
@@ -663,29 +690,55 @@ func _attach_hud() -> void:
 	_apply_smooth()
 
 func _apply_smooth() -> void:
-	# option « lissage » : filtre linéaire au lieu de pixels nets
+	var sm := bool(Save.S.opts.get("smooth", false))
 	if tr:
-		tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR if Save.S.opts.get("smooth", false) else CanvasItem.TEXTURE_FILTER_NEAREST
+		tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR if sm else CanvasItem.TEXTURE_FILTER_NEAREST
+	if fanboy != null:
+		fanboy.set_screen_smooth(sm)
 
-func _apply_era_viewport(lv: int = -1) -> void:
-	var ei: int = Data.era_of_level(lv if lv > 0 else game.level)
+func _deactivate_fanboy() -> void:
+	_clear_load_overlay()
+	Audio2.music_player.stream_paused = false
+	touch_pilot_id = -1
+	if game != null:
+		game.touch_release()
+		game.touch_fire_btn = false
+		if viewport != null and game.get_parent() != viewport:
+			game.reparent(viewport, false)
+	if fanboy != null:
+		fanboy.set_console_active(false)
+	if tr != null:
+		tr.visible = (_boot_backdrop == null or not _boot_backdrop.visible)
+
+func _apply_era_viewport(lv: int = -1, force_play_mount := false) -> void:
+	var target_lv: int = lv if lv > 0 else (game.level if game != null else 1)
+	var ei: int = Data.era_of_level(target_lv)
 	Data.FW = 480.0
-	if ei == 0:
-		# monde 4:3 de la Pocket, encastré dans le verre de la coque
-		Data.FH = 360.0
-		viewport.size = Vector2i(480, 360)
+	var mount_fanboy := _is_fanboy_mode_for_level(target_lv) and (force_play_mount or (game != null and game.state == "play"))
+	if mount_fanboy and fanboy != null and fanboy_stage != null:
+		Data.FH = Data.FANBOY_FH
+		fanboy_stage.scale = Vector2(620.0 / Data.FW, 890.0 / Data.FH)
+		if game.get_parent() != fanboy_stage:
+			game.reparent(fanboy_stage, false)
+			fanboy_stage.move_child(game, 0)
 		game.scale = Vector2.ONE
-		tr.position = Data.GLASS.position
-		tr.size = Data.GLASS.size
+		if tr != null:
+			tr.visible = false
+		fanboy.size = Vector2(Data.L_W, Data.L_H)
+		fanboy._fit()
+		fanboy.set_console_active(true)
 	else:
+		if fanboy != null:
+			fanboy.set_console_active(false)
+		if game != null and viewport != null and game.get_parent() != viewport:
+			game.reparent(viewport, false)
 		Data.FH = 860.0
-		var K: float = Data.ERAS[ei].K
+		var K: float = Data.ERAS[ei].K if ei > 0 else 1.0
 		viewport.size = Vector2i(int(Data.FW * K), int(Data.FH * K))
 		game.scale = Vector2(K, K)
 		tr.position = Vector2.ZERO
 		tr.size = Vector2(Data.FW, Data.FH)
-	if shell:
-		shell.queue_redraw()
+		tr.visible = (_boot_backdrop == null or not _boot_backdrop.visible)
 
 # =========================================================================
 #  ÉCONOMIE PERSISTANTE (bankRun du JS)
@@ -750,15 +803,27 @@ func _clear_screen() -> void:
 		current_screen = null
 
 func _set_screen(c: Control) -> void:
+	var keep_fanboy := (c == pause_screen and pause_screen != null)
 	_clear_screen()
+	if keep_fanboy:
+		pause_screen = c
+	else:
+		_deactivate_fanboy()
 	current_screen = c
 	# taille logique FIXE 480×860 : jamais la taille physique du viewport
 	c.position = Vector2.ZERO
 	c.size = Vector2(Data.L_W, Data.L_H)
 	screen_layer.add_child(c)
 
+func _set_boot_mask(active: bool) -> void:
+	if _boot_backdrop != null:
+		_boot_backdrop.visible = active
+	if tr != null and not _is_fanboy_active_now():
+		tr.visible = not active
+
 # ----------------------------------------------------------------- titre
 func show_title() -> void:
+	_set_boot_mask(false)
 	game.state = "menu"
 	banked = 0
 	daily_mode = false
@@ -797,6 +862,16 @@ func show_story() -> void:
 	# l'entrée « Histoire » rejoue le deck narratif illustré (prologue)
 	_show_story_deck("prologue")
 
+## cinématique d'ouverture animée manga/anime synchronisée sur title.mp3 (134 BPM)
+func show_intro_cinematic(on_end := Callable()) -> void:
+	_clear_screen()
+	var scr: Control = IntroCinematic.new()
+	if on_end.is_valid():
+		scr.setup(on_end)
+	else:
+		scr.setup(func(): show_title())
+	_set_screen(scr)
+
 ## module 30 : la boutique Neo-Vanguard FM (cassettes + walkman)
 func show_fm() -> void:
 	_clear_screen()
@@ -816,7 +891,7 @@ func show_credits() -> void:
 	scr.main = self
 	_set_screen(scr)
 
-## sélection de secteur (rejouer un secteur déjà atteint, p.ex. 2-4 GameBoy)
+## sélection de secteur (rejouer un secteur déjà atteint, p.ex. FanBoy)
 func show_sector_select() -> void:
 	var scr := preload("res://scripts/ui/sector_select.gd").new()
 	scr.main = self
@@ -879,21 +954,24 @@ func _show_brief() -> void:
 	_set_screen(scr)
 
 func launch_level() -> void:
+	_set_boot_mask(false)
 	_clear_screen()
-	_show_load_overlay()
-	_apply_era_viewport(campaign_level)
+	_clear_load_overlay()
+	Audio2.music_player.stream_paused = false
+	var use_fb := _is_fanboy_mode_for_level(campaign_level)
+	_apply_era_viewport(campaign_level, true)
 	game.begin_level(campaign_level, daily_mode, daily_mods)
-	# (C11) console NV-01 : un secteur FanBoy exige qu'elle soit allumée
-	# (curseur I/O) — éteinte, l'écran reste noir jusqu'au glissement.
-	if Data.era_of_level(campaign_level) == 0 and bool(Save.S.opts.get("frame", true)):
-		var nt := OS.get_environment("NV_TEST")
-		if nt != "" and nt != "16" and nt != "17":
-			power_state = "on"       # tests automatisés : console pré-allumée
-		if power_state != "on":
-			game.paused = true
+	if use_fb and fanboy != null:
+		var play_boot_click := not fanboy_booted_once and OS.get_environment("NV_TEST") == ""
+		fanboy_booted_once = true
+		fanboy.trigger_boot_glow(play_boot_click)
+		power_state = "on" if fanboy.powered else "off"
+		game.paused = not fanboy.powered
+		_sync_fanboy_telemetry()
 	else:
-		power_state = "on"           # ères 1+ : autre machine, toujours prête
+		power_state = "on"
 		game.paused = false
+	_show_load_overlay()
 
 func _on_sector_won(level: int, st: Dictionary) -> void:
 	bank_run(st)
@@ -958,8 +1036,8 @@ func _after_epilogue(st: Dictionary) -> void:
 	var ui := preload("res://scripts/ui/ui_kit.gd")
 	ui.dark_bg(scr)
 	var v := ui.vbox(scr, 16)
-	ui.title_label(v, "CAMPAIGNE TERMINÉE")
-	ui.label(v, "VORAX est tombé. Les cartouches sont rendues\naux mondes qui les avaient oubliées.", 15, Color("#eaf6ff"))
+	ui.title_label(v, "CAMPAGNE TERMINÉE")
+	ui.label(v, "VORAX est vaincu. Les huit consoles sacrées\nredonnent couleur et vie aux 24 secteurs.", 15, Color("#eaf6ff"))
 	ui.label(v, "Score final : %s" % ui.fmt(int(st.score)), 16, Color("#ffd166"))
 	ui.label(v, "Crédits récoltés : %s" % ui.fmt(int(st.credits)), 14, Color("#ffd166"))
 	ui.spacer(v, 20)
@@ -978,13 +1056,18 @@ func _on_pause() -> void:
 	ui.dark_bg(scr, 0.75)
 	var v := ui.vbox(scr, 14)
 	ui.title_label(v, "PAUSE")
-	ui.label(v, "Secteur %d · %s" % [game.level, Data.ERAS[Data.era_of_level(game.level)].name], 13, Color("#9fb0c2"))
+	var con_p: Dictionary = Data.console_of_level(game.level)
+	ui.label(v, "Secteur %d/24 · Monde %d (%s)" % [game.level, int(con_p.world), str(con_p.name)], 13, Color("#9fb0c2"))
 	ui.label(v, NVLang.t("START · menu — SELECT · reprendre"), 10, Color("#6d7f94"))
 	ui.spacer(v, 12)
 	ui.button(v, "▶ " + NVLang.t("Reprendre"), func(): _resume_game())
+	if (Save.S.owned.weapons as Array).size() > 1 or _owned_weapon_count() > 1:
+		ui.button(v, "⚔ Arme : %s (changer)" % String(game.stats.weapon.name).to_upper(), func():
+			game.touch_weapon(1)
+			_clear_screen()
+			_on_pause())
 	ui.button(v, "⌁ " + NVLang.t("Musique") + " : %s" % ("OUI" if not Audio2.muted else "NON"), func():
 		Audio2.set_muted(not Audio2.muted)
-		_on_pause()
 		_clear_screen()
 		_on_pause())
 	ui.button(v, "✖ " + NVLang.t("Abandonner la mission"), func():
@@ -1354,17 +1437,21 @@ func _run_touch_test() -> void:
 	print("=== TOUCH TEST TERMINE ===")
 	get_tree().quit(0)
 
-# ---- démarrage : avertissements (chaque lancement) → entrée → titre --------
+# ---- démarrage : avertissements → cinématique d'intro manga → entrée → titre
 func _boot_flow() -> void:
 	if OS.get_environment("NV_TEST") != "":
+		_set_boot_mask(false)
 		show_title()   # les tests automatisés gardent le chemin direct
 		return
+	_set_boot_mask(true)
 	var w := preload("res://scripts/ui/warning_screen.gd").new()
 	w.main = self
-	w.on_done = func(): _show_splash()
+	w.on_done = func(): show_intro_cinematic(func(): _show_splash())
 	_set_screen(w)
 
 func _show_splash() -> void:
+	_set_boot_mask(false)
+	Audio2.start_title_music()
 	var sp := preload("res://scripts/ui/splash_screen.gd").new()
 	sp.main = self
 	sp.on_done = func(): show_title()
@@ -1373,28 +1460,34 @@ func _show_splash() -> void:
 # ---- overlay de chargement de secteur (calibrage, réplique nvLoad) ---------
 var load_overlay: Control = null
 
-func _show_load_overlay() -> void:
+func _owned_weapon_count() -> int:
+	var n := 0
+	for w in Data.WEAPONS:
+		if int(w.price) == 0 or (Save.S.owned.weapons as Array).has(w.id):
+			n += 1
+	return n
+
+func _clear_load_overlay() -> void:
 	if load_overlay != null and is_instance_valid(load_overlay):
-		return
+		load_overlay.queue_free()
+	load_overlay = null
+
+func _show_load_overlay() -> void:
+	_clear_load_overlay()
 	load_overlay = preload("res://scripts/ui/load_sector_screen.gd").new()
 	load_overlay.level = campaign_level
-	var era: Dictionary = Data.ERAS[Data.era_of_level(campaign_level)]
-	load_overlay.machine = str(era.get("sys", "KFM"))
-	if Data.era_of_level(campaign_level) == 0:
-		# (C11) l'écran de la console = le verre : l'overlay de chargement
-		# est clippé dedans — rien ne déborde sur la coque
-		var clip := Control.new()
-		clip.position = Data.GLASS.position
-		clip.size = Data.GLASS.size
-		clip.clip_contents = true
-		clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		load_overlay.position = -Data.GLASS.position   # contenu en repère plein écran
-		clip.add_child(load_overlay)
-		screen_layer.add_child(clip)
+	var con_ld: Dictionary = Data.console_of_level(campaign_level)
+	load_overlay.machine = str(con_ld.get("name", "FanBoy"))
+	if _is_fanboy_mode_for_level(campaign_level) and fanboy != null and fanboy.game_viewport != null:
+		# Secteurs 1, 2 et 3 : le chargement/boot vit directement dans le
+		# GameViewport 620×890 de la FanBoy, encadré par la lunette de shell.png
+		load_overlay.in_fanboy = true
+		load_overlay.canvas_size = Vector2(620.0, 890.0)
+		fanboy.game_viewport.add_child(load_overlay)
 	else:
+		load_overlay.in_fanboy = false
+		load_overlay.canvas_size = Vector2(Data.L_W, Data.L_H)
 		screen_layer.add_child(load_overlay)
-	# comme l'overlay web (nvLoad) : purement visuel, il ne bloque ni le
-	# pilotage ni les entrées
 	var stack: Array[Node] = [load_overlay]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
@@ -1509,12 +1602,12 @@ func _run_fix_test() -> void:
 	get_tree().quit(0)
 
 # test 15 : bombes dans toutes les ères (barre tactile #touchui) + sélecteur
-# de secteur (rejouer 2-4 GameBoy)
+# de secteur (rejouer FanBoy secteurs 1–3 et mondes suivants)
 func _run_bar_test() -> void:
 	var dir := "/tmp/shots15"
 	DirAccess.make_dir_recursive_absolute(dir)
 	await get_tree().process_frame
-	print("BAR: ères 2/3/4 = ", Data.era_of_level(2), Data.era_of_level(3), Data.era_of_level(4), " (000 = GameBoy)")
+	print("BAR: ères 1/2/3/4 = ", Data.era_of_level(1), Data.era_of_level(2), Data.era_of_level(3), Data.era_of_level(4), " (0001 = FanBoy 1–3, FanBoy Adventure dès 4)")
 	# -- 1) barre tactile en ère 1 (secteur 5) : bouton BOMBE fonctionnel ------
 	var spath := ProjectSettings.globalize_path("user://neovanguard.save.v3.json")
 	DirAccess.remove_absolute(spath)
@@ -1564,9 +1657,11 @@ func _run_bar_test() -> void:
 	print("=== BAR TEST TERMINE ===")
 	get_tree().quit(0)
 
-# test 16 : coque NV-01 (secteurs FanBoy) — gâchettes SELECT/START, instruments
-# sur la coque, cadre LED de progression, dissipation des textes rouges de
-# dégât même gelé, titre à sections dépliantes
+func _fanboy_screen_pt(master_pt: Vector2) -> Vector2:
+	return fanboy.canvas.get_global_transform_with_canvas() * master_pt
+
+# test 16 : console FanBoy animée (secteurs 1, 2 et 3) — touches SELECT/START,
+# lancement des niveaux 1, 2 et 3 inclus, puis bascule plein écran au niveau 4
 func _run_shell_test() -> void:
 	var dir := "/tmp/shots16"
 	DirAccess.make_dir_recursive_absolute(dir)
@@ -1574,95 +1669,71 @@ func _run_shell_test() -> void:
 	var spath := ProjectSettings.globalize_path("user://neovanguard.save.v3.json")
 	if FileAccess.file_exists(spath):
 		DirAccess.remove_absolute(spath)
-	Save.S.max_level = 1
-	power_state = "on"   # (C11) TEST16 : console pré-allumée
-	# -- 1) coque ère 0 : verre en place, touches SELECT/START ---------------
-	begin_campaign(1)
-	await get_tree().create_timer(0.3).timeout
-	await _advance_to_play()
-	await get_tree().create_timer(1.4).timeout   # laisser l'intro se lever
-	await _snap(dir + "/1_coque_nv01_secteur1.png")
-	print("SHELL: verre tr=", tr.position, " x ", tr.size, " (attendu 20,122 / 440x330)")
-	var hit_sel: String = _shell_btn_at(Vector2(102, 843))
-	var hit_sta: String = _shell_btn_at(Vector2(362, 843))
-	var hit_glass: String = _shell_btn_at(Vector2(240, 400))
-	print("SHELL: hit-test SELECT(102,843)=", hit_sel, " START(362,843)=", hit_sta,
-		" verre(240,400)=", hit_glass, " (attendu select/start/)")
+	Save.S.max_level = 4
+
+	# -- 1) lancement des secteurs 1, 2 et 3 sur la console FanBoy ------------
+	var levels_ok := true
+	for lv_fb in [1, 2, 3]:
+		begin_campaign(lv_fb)
+		await get_tree().create_timer(0.25).timeout
+		await _advance_to_play()
+		await get_tree().create_timer(0.8).timeout
+		var ok_lv := fanboy.console_active and fanboy.visible and game.get_parent() == fanboy_stage and not tr.visible
+		levels_ok = levels_ok and ok_lv
+		print("FANBOY S%d: active=%s in_viewport=%s FH=%.0f" % [lv_fb, fanboy.console_active, game.get_parent() == fanboy_stage, Data.FH])
+		await _snap("%s/1_fanboy_secteur_%d.png" % [dir, lv_fb])
+
+	var pt_sel := _fanboy_screen_pt(fanboy.CENTERS.select)
+	var pt_sta := _fanboy_screen_pt(fanboy.CENTERS.start)
+	var pt_scr := _fanboy_screen_pt(Vector2(468.0, 732.0))
+	var hit_sel: String = _shell_btn_at(pt_sel)
+	var hit_sta: String = _shell_btn_at(pt_sta)
+	var hit_glass: String = _shell_btn_at(pt_scr)
+	print("SHELL: hit-test SELECT=", hit_sel, " START=", hit_sta, " verre=", hit_glass, " (attendu select/start/)")
+
 	# SELECT gèle la partie (sans menu)
-	_touch_synthetic(Vector2(102, 843), true, 0)
-	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(102, 843), false, 0)
-	await get_tree().create_timer(0.25).timeout
+	_touch_synthetic(pt_sel, true, 0)
+	await get_tree().create_timer(0.15).timeout
+	_touch_synthetic(pt_sel, false, 0)
+	await get_tree().create_timer(0.2).timeout
 	var frozen: bool = game.paused and current_screen == null and pause_screen == null
-	print("SHELL: SELECT fige paused=", game.paused, " menu=", pause_screen != null, " (attendu true/false)")
 	await _snap(dir + "/2_select_gele.png")
+
 	# SELECT dégèle
-	_touch_synthetic(Vector2(102, 843), true, 0)
-	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(102, 843), false, 0)
-	await get_tree().create_timer(0.25).timeout
-	print("SHELL: SELECT reprend paused=", game.paused, " (attendu false)")
+	_touch_synthetic(pt_sel, true, 0)
+	await get_tree().create_timer(0.15).timeout
+	_touch_synthetic(pt_sel, false, 0)
+	await get_tree().create_timer(0.2).timeout
+
 	# START ouvre le menu, jeu en pause
-	_touch_synthetic(Vector2(362, 843), true, 0)
-	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(362, 843), false, 0)
-	await get_tree().create_timer(0.3).timeout
+	_touch_synthetic(pt_sta, true, 0)
+	await get_tree().create_timer(0.2).timeout
+	_touch_synthetic(pt_sta, false, 0)
+	await get_tree().create_timer(0.25).timeout
 	var menu_ok: bool = pause_screen != null and game.paused
-	print("SHELL: START ouvre le menu menu=", pause_screen != null, " paused=", game.paused, " (attendu true/true)")
 	await _snap(dir + "/3_start_menu.png")
+
 	# SELECT depuis le menu = reprendre
-	_touch_synthetic(Vector2(102, 843), true, 0)
-	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(102, 843), false, 0)
-	await get_tree().create_timer(0.3).timeout
+	_touch_synthetic(pt_sel, true, 0)
+	await get_tree().create_timer(0.2).timeout
+	_touch_synthetic(pt_sel, false, 0)
+	await get_tree().create_timer(0.25).timeout
 	var resumed: bool = not game.paused and current_screen == null and pause_screen == null
-	print("SHELL: SELECT reprend depuis le menu paused=", game.paused, " screen=", current_screen != null, " (attendu false/false)")
-	# -- 2) texte rouge de dégât dissipé MÊME gelé (correctif C10) -----------
-	var P: Dictionary = game.first_player()
-	P.shield = 0
-	P.inv = 0.0
-	var hp0: int = int(P.hp)
-	game.hit_player(P, 1.0, true)
-	await get_tree().process_frame
-	var had_pop: bool = game.pops.size() > 0
-	_on_pause()   # geler immédiatement : les pops ne devaient plus se dissiper
-	await get_tree().create_timer(1.5).timeout
-	var pops_left: int = game.pops.size()
-	_resume_game()
-	print("SHELL: pop dégât apparu=", had_pop, " hp ", hp0, "->", int(P.hp),
-		" ; après 1,5 s GELÉ pops=", pops_left, " (attendu 0)")
-	# -- 3) cadre LED de progression -----------------------------------------
-	var pr: float = game.sector_progress()
-	print("SHELL: progression=%.2f (0..1) couleur(0)=%s couleur(1)=%s" % [pr, Data.progress_color(0.0), Data.progress_color(1.0)])
-	var pr_ok: bool = pr >= 0.0 and pr <= 1.0
-	# -- 4) titre à sections dépliantes ---------------------------------------
-	show_title()
-	await get_tree().create_timer(0.4).timeout
-	await _snap(dir + "/4_titre_accordeon.png")
-	var n_sec := 0
-	if current_screen != null and current_screen.get("sections") != null:
-		n_sec = (current_screen.sections as Array).size()
-		current_screen.call("toggle_section", 1)
-		current_screen.call("toggle_section", 2)
-		await get_tree().create_timer(0.3).timeout
-	await _snap(dir + "/5_titre_sections.png")
-	print("SHELL: sections titre=", n_sec, " (attendu 3)")
-	# -- 5) ère 1 : cadre LED sur la vue plein écran --------------------------
-	Save.S.max_level = 5
-	begin_campaign(5)
-	await get_tree().create_timer(0.3).timeout
+
+	# -- 2) secteur 4 (FanBoy Adventure) : FanBoy désactivée, vue plein écran --
+	begin_campaign(4)
+	await get_tree().create_timer(0.25).timeout
 	await _advance_to_play()
-	await get_tree().create_timer(1.4).timeout
-	await _snap(dir + "/6_ere1_cadre.png")
-	print("SHELL RESULT: gel=%s menu=%s reprise=%s pop_fix=%s/%d progression=%s sections=%s" % [
-		frozen, menu_ok, resumed, had_pop, pops_left, pr_ok, n_sec == 3])
+	await get_tree().create_timer(0.8).timeout
+	var s4_ok := (not fanboy.console_active) and tr.visible and game.get_parent() == viewport and game.era_idx == 1
+	await _snap(dir + "/4_secteur4_plein_ecran.png")
+	print("SHELL RESULT: s1_3=%s gel=%s menu=%s reprise=%s s4_fullscreen=%s" % [levels_ok, frozen, menu_ok, resumed, s4_ok])
 	print("=== SHELL TEST TERMINE ===")
 	if FileAccess.file_exists(spath):
 		DirAccess.remove_absolute(spath)
 	get_tree().quit(0)
 
-## (C10) assistant de test : avance à travers le prologue (deck → _next()),
-## le brief et l'intro jusqu'à l'état « play »
+## assistant de test : avance à travers le prologue, le brief et l'intro jusqu'à « play »
 func _advance_to_play() -> void:
 	var waited := 0
 	while game.state != "play" and waited < 20000:
@@ -1674,8 +1745,8 @@ func _advance_to_play() -> void:
 		await get_tree().create_timer(0.12).timeout
 		waited += 120
 
-# test 17 : console NV-01 (C11) — curseur POWER on/off, boot, stick, TIR,
-# croix ARME, BOMBE, bandeau HUD LED, retour titre à l'extinction
+# test 17 : console interactive FanBoy — interrupteur vertical ON/OFF, stick 360°,
+# A (tir), B (bombe), jauges COQUE/BOSS et rails lumineux de menace
 func _run_console_test() -> void:
 	var dir := "/tmp/shots17"
 	DirAccess.make_dir_recursive_absolute(dir)
@@ -1683,118 +1754,76 @@ func _run_console_test() -> void:
 	var spath := ProjectSettings.globalize_path("user://neovanguard.save.v3.json")
 	if FileAccess.file_exists(spath):
 		DirAccess.remove_absolute(spath)
-	Save.S.max_level = 1
-	# -- 1) écran éteint : la console attend le curseur I/O ------------------
-	power_state = "off"
-	power_knob = 0.0
+	Save.S.max_level = 3
 	begin_campaign(1)
 	await get_tree().create_timer(0.3).timeout
 	await _advance_to_play()
-	await get_tree().create_timer(0.4).timeout
-	print("CONSOLE: état=", power_state, " paused=", game.paused, " (attendu off/true)")
-	await _snap(dir + "/1_etegal_extinct.png")
-	# -- 2) glisser I/O → boot : saisi N'IMPORTE OÙ sur la piste -------------
-	_touch_synthetic(Vector2(60, 808), true, 0)     # piste gauche (pas le bouton)
-	await get_tree().create_timer(0.1).timeout
-	_touch_synthetic(Vector2(60, 808), true, 0, true)
-	await get_tree().create_timer(0.15).timeout
-	_touch_synthetic(Vector2(292, 808), true, 0, true)   # drag vers la droite
-	_touch_synthetic(Vector2(140, 808), true, 0, true)   # relâche dans la piste
-	await get_tree().create_timer(0.1).timeout
-	print("CONSOLE: après glisser=", power_state, " (attendu boot)")
-	# (C12) preuve de la montée PROGRESSIVE des LED : capture à 35 % puis 75 %
-	await get_tree().create_timer(0.40).timeout
-	await _snap(dir + "/2a_boot_led_35pct.png")
-	await get_tree().create_timer(0.45).timeout
-	await _snap(dir + "/2b_boot_led_75pct.png")
-	var waited := 0
-	while power_state == "boot" and waited < 4000:
-		await get_tree().create_timer(0.1).timeout
-		waited += 100
-	await _snap(dir + "/2c_boot_fini.png")
-	print("CONSOLE: allumée paused=", game.paused, " (attendu on/false)")
-	await get_tree().create_timer(1.0).timeout
-	await _snap(dir + "/3_console_allumee.png")
-	# -- 3) stick ANALOGIQUE : incliné à droite SANS bouger le doigt, le
-	#      vaisseau continue d'avancer ; au relâchement il s'arrête ----------
+	await get_tree().create_timer(0.6).timeout
+	await _snap(dir + "/1_fanboy_on_calme.png")
+
 	var g := game
 	var P: Dictionary = g.first_player()
 	P.shield = 0
+	var pt_stick := _fanboy_screen_pt(fanboy.CENTERS.stick + Vector2(64.0, 0.0))
+	var pt_a := _fanboy_screen_pt(fanboy.CENTERS.a)
+	var pt_b := _fanboy_screen_pt(fanboy.CENTERS.b)
+	var pt_pwr := _fanboy_screen_pt(fanboy.CENTERS.power)
+	var pt_pwr_down := _fanboy_screen_pt(fanboy.CENTERS.power + Vector2(0.0, 18.0))
+
+	# -- 1) stick 360° analogique ---------------------------------------------
 	var x0: float = P.x
-	_touch_synthetic(Vector2(135, 660), true, 0)   # doigt à droite du centre
-	await get_tree().create_timer(0.15).timeout
-	var dx_mid: float = P.x - x0
-	await get_tree().create_timer(0.75).timeout
+	_touch_synthetic(pt_stick, true, 0)
+	await get_tree().create_timer(0.55).timeout
 	var dx_full: float = P.x - x0
-	_touch_synthetic(Vector2(135, 660), false, 0)
-	await get_tree().create_timer(0.5).timeout
-	var dx_after: float = P.x - x0
-	print("CONSOLE: stick dérive 0,15s=%.1f 0,9s=%.1f (attendu croissant > 40) après=%.1f (stable)" % [dx_mid, dx_full, dx_after])
-	# -- 3b) TIR seul : le vaisseau ne bouge PAS (plus de secousse perçue) ----
+	_touch_synthetic(pt_stick, false, 0)
+	await get_tree().create_timer(0.25).timeout
+	print("CONSOLE: stick analogique dx=%.1f (attendu > 30)" % dx_full)
+
+	# -- 2) bouton A rouge (tir maintenu, sans dérive parasite) ---------------
 	var fx0: float = P.x
-	_touch_synthetic(Vector2(402, 588), true, 1)
-	await get_tree().create_timer(0.5).timeout
-	var fdx: float = absf(P.x - fx0)
-	_touch_synthetic(Vector2(402, 588), false, 1)
-	print("CONSOLE: dérive sur TIR =%.1f px (attendu < 4)" % fdx)
-	# -- 4) TIR maintenu : balles émises -------------------------------------
 	var b0: int = g.bullets.size()
-	_touch_synthetic(Vector2(402, 588), true, 1)
-	await get_tree().create_timer(0.5).timeout
+	_touch_synthetic(pt_a, true, 1)
+	await get_tree().create_timer(0.45).timeout
 	var fired: bool = g.touch_fire_btn and g.bullets.size() >= b0
-	_touch_synthetic(Vector2(402, 588), false, 1)
-	print("CONSOLE: TIR maintenu=", fired, " balles ", b0, "->", g.bullets.size())
-	# -- 5) croix ARME bas : l'arme change ------------------------------------
-	if not (Save.S.owned.weapons as Array).has("spread"):
-		(Save.S.owned.weapons as Array).append("spread")   # 2e arme pour le cycle
-	var w0: String = String(g.stats.weapon.id)
-	_touch_synthetic(Vector2(270, 715), true, 1)
-	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(270, 715), false, 1)
-	await get_tree().create_timer(0.25).timeout
-	var w1: String = String(g.stats.weapon.id)
-	print("CONSOLE: croix bas ", w0, " -> ", w1, " (attendu différent)")
-	# -- 6) BOMBE : compteur -1 ------------------------------------------------
+	var fdx: float = absf(P.x - fx0)
+	_touch_synthetic(pt_a, false, 1)
+	print("CONSOLE: bouton A tir=", fired, " dérive=%.1f px" % fdx)
+
+	# -- 3) bouton B doré (bombe) ---------------------------------------------
 	P.bombs = 5
 	var nb0: int = int(P.bombs)
-	_touch_synthetic(Vector2(354, 672), true, 1)
+	_touch_synthetic(pt_b, true, 1)
+	await get_tree().create_timer(0.2).timeout
+	_touch_synthetic(pt_b, false, 1)
+	await get_tree().create_timer(0.2).timeout
+	print("CONSOLE: bouton B bombe %d -> %d" % [nb0, int(P.bombs)])
+
+	# -- 4) menace critique + jauge boss --------------------------------------
+	g.boss = g.spawn_boss()
+	g.boss.enter = false
+	g.phase = NVGame.Phase.BOSS
+	await get_tree().create_timer(0.4).timeout
+	await _snap(dir + "/2_fanboy_boss_critique.png")
+	print("CONSOLE: boss_ratio=%.2f threat=%.2f" % [fanboy.boss_ratio, fanboy.threat])
+
+	# -- 5) glisser l'interrupteur ON/OFF vers le bas → extinction ------------
+	_touch_synthetic(pt_pwr, true, 2)
+	await get_tree().create_timer(0.08).timeout
+	_touch_synthetic(pt_pwr_down, true, 2, true)
+	await get_tree().create_timer(0.08).timeout
+	_touch_synthetic(pt_pwr_down, false, 2)
+	await get_tree().create_timer(0.25).timeout
+	print("CONSOLE: après OFF powered=", fanboy.powered, " paused=", g.paused)
+	await _snap(dir + "/3_fanboy_off.png")
+
+	# -- 6) tap sur l'interrupteur → rallumage --------------------------------
+	_touch_synthetic(pt_pwr, true, 2)
+	await get_tree().create_timer(0.08).timeout
+	_touch_synthetic(pt_pwr, false, 2)
 	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(354, 672), false, 1)
-	await get_tree().create_timer(0.3).timeout
-	print("CONSOLE: bombe ", nb0, " -> ", int(P.bombs), " (attendu -1)")
-	await _snap(dir + "/4_controles_ps4.png")
-	# -- 7) SELECT gelé / START menu (recap C10, nouvelles positions) ---------
-	_touch_synthetic(Vector2(102, 843), true, 1)
-	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(102, 843), false, 1)
-	await get_tree().create_timer(0.25).timeout
-	print("CONSOLE: SELECT fige paused=", game.paused, " menu=", pause_screen != null)
-	_touch_synthetic(Vector2(362, 843), true, 1)
-	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(362, 843), false, 1)
-	await get_tree().create_timer(0.25).timeout
-	print("CONSOLE: START menu=", pause_screen != null, " paused=", game.paused)
-	_touch_synthetic(Vector2(102, 843), true, 1)
-	await get_tree().create_timer(0.25).timeout
-	_touch_synthetic(Vector2(102, 843), false, 1)
-	await get_tree().create_timer(0.25).timeout
-	print("CONSOLE: SELECT reprend paused=", game.paused)
-	# -- 8) extinction : saisir le bouton (à droite de la piste) et glisser ---
-	_touch_synthetic(Vector2(138, 808), true, 1)
-	await get_tree().create_timer(0.15).timeout
-	_touch_synthetic(Vector2(44, 808), true, 1, true)   # drag vers la gauche
-	await get_tree().create_timer(0.3).timeout
-	_touch_synthetic(Vector2(44, 808), false, 1)
-	await get_tree().create_timer(0.1).timeout
-	print("CONSOLE: après glisser O=", power_state, " (attendu shutdown)")
-	waited = 0
-	while power_state == "shutdown" and waited < 3000:
-		await get_tree().create_timer(0.1).timeout
-		waited += 100
-	await get_tree().create_timer(0.3).timeout
-	print("CONSOLE: éteinte=", power_state, " titre=", current_screen != null and game.state == "menu",
-		" (attendu off/true)")
-	await _snap(dir + "/5_etegal_extinct_titre.png")
+	print("CONSOLE: après ON powered=", fanboy.powered, " paused=", g.paused)
+	await _snap(dir + "/4_fanboy_on_reprise.png")
+
 	if FileAccess.file_exists(spath):
 		DirAccess.remove_absolute(spath)
 	print("=== CONSOLE TEST TERMINE ===")

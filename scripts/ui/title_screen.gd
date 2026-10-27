@@ -52,7 +52,7 @@ func _ready() -> void:
 
 	# ---- entête --------------------------------------------------------------
 	var v := ui.vbox(self, 10, 20.0)
-	var kick := ui.label(v, NVLang.t("ÉDITION COLLECTOR · 24 SECTEURS · 6 GÉNÉRATIONS"), 10, ui.ACC)
+	var kick := ui.label(v, NVLang.t("ÉDITION COLLECTOR · 8 MONDES · 24 SECTEURS"), 10, ui.ACC)
 	kick.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	kick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ui.spacer(v, 2)
@@ -103,9 +103,9 @@ func _ready() -> void:
 		Save.save_game()
 		main.show_title())
 	bottom.add_child(bl)
-	var era: Dictionary = Data.ERAS[Data.era_of_level(int(Save.S.max_level))]
+	var con: Dictionary = Data.console_of_level(int(Save.S.max_level))
 	var et := Button.new()
-	et.text = " %s · %s " % [era.sys, era.name]
+	et.text = " M%d · %s " % [int(con.world), str(con.name)]
 	et.disabled = true
 	et.add_theme_font_size_override("font_size", 11)
 	bottom.add_child(et)
@@ -190,8 +190,10 @@ func _build_play(v: VBoxContainer) -> void:
 			func(): main.begin_campaign(int(Save.S.max_level)), true)
 		ui.button(v, "▤ " + NVLang.t("Choisir un secteur") + "\n     " + NVLang.t("Rejouer un secteur déjà atteint"),
 			func(): main.show_sector_select())
-	ui.button(v, "▶  " + NVLang.t("Commencer la campagne") + "\n     " + NVLang.t("24 secteurs, six générations de consoles · l'histoire d'abord"),
+	ui.button(v, "▶  " + NVLang.t("Commencer la campagne") + "\n     " + NVLang.t("8 mondes — 24 secteurs · 5 familles technologiques"),
 		func(): main.begin_campaign(1), true)
+	ui.button(v, "🎬  " + NVLang.t("Revoir la cinématique d'intro") + "\n     " + NVLang.t("Ouverture animée manga · 8 mondes — 24 secteurs"),
+		func(): main.show_intro_cinematic(func(): main.show_title()))
 	ui.button(v, "◈  " + NVLang.t("Défi du jour") + "\n     " + NVLang.t("Une seule tentative comptée par jour"), func():
 		if main.try_daily():
 			main.begin_campaign(1 + int(Save.S.max_level) / 2, true)
@@ -228,6 +230,7 @@ func _build_modes(v: VBoxContainer) -> void:
 			ui2_toast(NVLang.t("Débloqué dans la boutique musicale")))
 	_tile(gh, "▦ " + NVLang.t("Records"), NVLang.t("Classement, médailles, série"), func(): main.show_records())
 	_tile(gh, "▤ " + NVLang.t("L'histoire"), NVLang.t("Le récit complet, page par page"), func(): main.show_story())
+	_tile(gh, "🎬 " + NVLang.t("Cinématique"), NVLang.t("Ouverture manga 134 BPM"), func(): main.show_intro_cinematic(func(): main.show_title()))
 
 # ------------------------------------------------- section 3 : SYSTÈME
 func _build_system(v: VBoxContainer) -> void:

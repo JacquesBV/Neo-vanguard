@@ -23,9 +23,9 @@ var daily_mods: Array = []
 var two_p := false
 # ---- tactile : pilote au doigt (réplique wirePointer() de l'original) ------
 var touch_down := false           # un doigt pilote est posé
-var touch_stick := false          # (C11) stick coque NV-01 : mouvement SEUL, sans tir
-var touch_axis := Vector2.ZERO    # (C13) inclinaison du stick (-1..1) : vitesse analogique
-var touch_fire_btn := false       # (C11) bouton TIR de la coque NV-01 maintenu
+var touch_stick := false          # stick analogique 360° de la console FanBoy : mouvement SEUL, sans tir
+var touch_axis := Vector2.ZERO    # inclinaison du stick (-1..1) : vitesse analogique
+var touch_fire_btn := false       # bouton A (TIR) de la console FanBoy maintenu
 var touch_finger := Vector2.ZERO  # position courante du doigt
 var touch_base0 := Vector2.ZERO   # position du doigt à la pose
 var touch_grab := Vector2.ZERO    # position du vaisseau à la pose
@@ -167,7 +167,8 @@ func begin_level(lv: int, is_daily := false, mods: Array = []) -> void:
 	paused = false
 	_build_decor()
 	Audio2.start_music(era_idx, level)
-	Audio2.speak("Secteur %d. %s." % [level, Data.ERAS[era_idx].name])
+	var con_sp: Dictionary = Data.console_of_level(level)
+	Audio2.speak("Secteur %d. %s." % [level, str(con_sp.name)])
 	queue_redraw()
 
 func make_player(id: int) -> Dictionary:
@@ -403,9 +404,8 @@ func _axis(id: int) -> Vector2:
 	var jy := Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
 	if id == 1 and (absf(jx) > 0.24 or absf(jy) > 0.24):
 		v.x = clampf(v.x + jx, -1, 1); v.y = clampf(v.y + jy, -1, 1)
-	# (C13) PAS de pilotage souris sur la console NV-01 : sur mobile, chaque
-	# appui sur TIR/BOMBE émule la souris et le vaisseau « courait » vers le
-	# bouton (déplacement horizontal parasite signalé par le joueur).
+	# PAS de pilotage souris sur la console FanBoy : sur mobile ou PC, un appui
+	# sur A/B/SELECT/START/stick ne doit pas faire dériver le vaisseau vers le curseur.
 	if id == 1 and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not touch_down \
 			and not (era_idx == 0 and bool(Save.S.opts.get("frame", true))):
 		# pilotage à la souris : le vaisseau suit le curseur (comme l'original)
@@ -419,9 +419,11 @@ func _axis(id: int) -> Vector2:
 
 func _firing(P: Dictionary) -> bool:
 	if Save.S.opts.autofire: return true
-	# (C11) bouton TIR de la coque NV-01 maintenu
+	# Bouton A de la console FanBoy maintenu
 	if touch_fire_btn and P.id == 1: return true
 	if P.id == 1:
+		if era_idx == 0 and bool(Save.S.opts.get("frame", true)) and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			return touch_down   # sur FanBoy, clic souris hors écran/A (stick, B, ON/OFF) ne tire pas
 		return Input.is_action_pressed("fire") or touch_down   # le doigt tire (original)
 	return Input.is_action_pressed("fire2")
 
@@ -1977,8 +1979,8 @@ func update_parts(dt: float) -> void:
 func pop_text(x: float, y: float, text: String, col: Color, size: float) -> void:
 	pops.append({ "x": x, "y": y, "text": text, "col": col, "size": size, "t": 0.0, "life": 0.9 })
 
-## (C10) progression du secteur 0..1 — vagues puis boss. Pilote le cadre
-## lumineux de la coque NV-01 (vert au départ → rouge au moment du boss).
+## progression du secteur 0..1 — vagues puis boss. Pilote le cadre
+## lumineux (vert au départ → rouge au moment du boss).
 func sector_progress() -> float:
 	if plan.is_empty():
 		return 0.0
@@ -2630,14 +2632,15 @@ func _draw_banners() -> void:
 				var yy4: float = Data.FH * 0.44 * minf(phase_t / 1.2, 1.0)
 				_txt(Vector2(Data.FW / 2, yy4), "NEO VANGUARD", 16, TH.livery[0], HORIZONTAL_ALIGNMENT_CENTER)
 				if phase_t > 1.2:
-					_txt(Vector2(Data.FW / 2, yy4 + 22), "24 SECTEURS · 6 GÉNÉRATIONS", 10, TH.livery[1], HORIZONTAL_ALIGNMENT_CENTER)
+					_txt(Vector2(Data.FW / 2, yy4 + 22), "8 MONDES · 24 SECTEURS", 10, TH.livery[1], HORIZONTAL_ALIGNMENT_CENTER)
 				_txt(Vector2(Data.FW / 2, Data.FH - 60), "SECTEUR %d — PRÊT À DÉCOLLER" % level, 11, TH.livery[1], HORIZONTAL_ALIGNMENT_CENTER)
 			else:
 				var a := clampf(minf(phase_t / 0.4, (Data.INTRO_DUR - phase_t) / 0.5), 0, 1)
 				var c := Color(ink.r, ink.g, ink.b, a)
+				var con_in: Dictionary = Data.console_of_level(level)
 				_txt(Vector2(Data.FW / 2, Data.FH * 0.35), "SECTEUR %d" % level, 40, c, HORIZONTAL_ALIGNMENT_CENTER)
-				_txt(Vector2(Data.FW / 2, Data.FH * 0.35 + 34), Data.ERAS[era_idx].name, 18, Color(TH.acc.r, TH.acc.g, TH.acc.b, a), HORIZONTAL_ALIGNMENT_CENTER)
-				_txt(Vector2(Data.FW / 2, Data.FH * 0.35 + 56), Data.ERAS[era_idx].tag, 11, Color(ink.r, ink.g, ink.b, a * 0.7), HORIZONTAL_ALIGNMENT_CENTER)
+				_txt(Vector2(Data.FW / 2, Data.FH * 0.35 + 34), str(con_in.name).to_upper(), 18, Color(TH.acc.r, TH.acc.g, TH.acc.b, a), HORIZONTAL_ALIGNMENT_CENTER)
+				_txt(Vector2(Data.FW / 2, Data.FH * 0.35 + 56), "MONDE %d / 8  ·  %s" % [int(con_in.world), str(con_in.tag)], 11, Color(ink.r, ink.g, ink.b, a * 0.7), HORIZONTAL_ALIGNMENT_CENTER)
 		Phase.BOSS_WARN:
 			if level == Data.MAX_LEVEL and not sas.is_empty():
 				_draw_sas()
@@ -4194,8 +4197,8 @@ func _vtalk_update(dt: float) -> void:
 #  tap (<400 ms) = bombe, barre de commandes ignorée en secteur 1.
 # =========================================================================
 func touch_press(pos: Vector2, move_only := false) -> void:
-	# (C11) move_only=true : le STICK de la coque NV-01 déplace le vaisseau
-	# SANS déclencher le tir ni la bombe — le tir est le bouton TIR maintenu.
+	# move_only=true : le stick de la console FanBoy déplace le vaisseau
+	# SANS déclencher le tir ni la bombe — le tir est le bouton A maintenu.
 	touch_finger = pos
 	if state != "play" or paused or players.is_empty():
 		return

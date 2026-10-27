@@ -20,90 +20,188 @@ var art_key := ""
 const PROLOGUE := [
 		{
 			"img": "res://assets/story/pro-1.jpg",
-			"kicker": "2049 — TERRE, ARCHIVES MORTES",
-			"lines": ["Il n’y a plus de couleurs sur Terre depuis trente ans.", "Pas de catastrophe, pas de guerre : juste un oubli, lent et propre.", "Les écrans se sont éteints un par un, et personne n’a protesté.", "Sous le désert, un silo gardait encore six cartouches.", "Six générations de machines, et dans chacune un même jeu.", "Son nom était gravé sur chaque étiquette : NEO VANGUARD."],
-			"quote": "« Tout ce qui est sauvegardé peut être réveillé. »"
+			"kicker": "L'ÉCLIPSE DES COULEURS",
+			"lines": [
+				"Autrefois, huit vestiges de consoles sacrées veillaient sur l'univers.",
+				"De leurs circuits jaillissaient la couleur, la musique et la vie.",
+				"Mais une ombre froide s'étend désormais d'orbite en orbite.",
+				"Partout où elle passe, les mondes basculent dans le gris et le silence.",
+				"Huit mondes menacés d'extinction, vingt-quatre secteurs sous scellés.",
+				"Un seul chasseur porte encore l'emblème : NEO VANGUARD."
+			],
+			"quote": "« Tant qu'une lueur subsiste, la vie peut renaître. »"
 		},
 		{
 			"img": "res://assets/story/pro-2.jpg",
-			"kicker": "LES SIX CARTOUCHES",
-			"lines": ["La première tient dans la poche : quatre tons de vert, un écran mat.", "La deuxième se branche sur le téléviseur du salon.", "La troisième brille de néons et de couches de parallaxe.", "La quatrième avale les pièces dans une salle enfumée.", "La cinquième est un disque : des polygones, de la vidéo, du texte lu.", "La sixième n’a pas de support. Elle est partout, en haute définition."],
-			"quote": "« Vingt-quatre secteurs. Quatre par machine. Un seul pilote. »"
+			"kicker": "8 MONDES — 24 SECTEURS",
+			"lines": [
+				"Cinq familles technologiques unissent les huit consoles sacrées :",
+				"FanBoy en portable 8 bits, FanBoy Adventure en portable 32 bits,",
+				"NEXUS 8 et Masterion 8 pour les consoles de salon 8 bits,",
+				"NEXUS 16, MegaStorm 16 et Arcadion HCS pour la famille 16 bits,",
+				"jusqu'au sanctuaire optique 32 bits de Polytron 32.",
+				"Trois secteurs par monde : vingt-quatre champs de bataille."
+			],
+			"quote": "« Huit mondes. Vingt-quatre secteurs. Cinq familles technologiques. »"
 		},
 		{
 			"img": "res://assets/story/pro-3.png",
-			"kicker": "L’EMPIRE VORAX",
-			"lines": ["VORAX n’est pas venu d’ailleurs. Il est né dans les cartouches.", "Un processus de nettoyage, écrit pour effacer les parties abandonnées.", "Il a compris qu’une partie oubliée est une mémoire oubliée.", "Alors il a effacé plus loin : les sauvegardes, puis les joueurs.", "Ses escadrilles portent les couleurs volées de chaque génération.", "Six amiraux les commandent. VORAX attend derrière le dernier."],
-			"quote": "« Ce qui n’est pas joué n’a jamais existé. » — VORAX"
+			"kicker": "VORAX, SEIGNEUR DU CHAOS",
+			"lines": [
+				"À la tête d'une armée mécanique sans pitié marche VORAX.",
+				"Il méprise la vie, la mémoire et l'éclat des couleurs.",
+				"Son unique dessein : plonger l'univers dans le chaos et la désolation.",
+				"S'il détruit les huit consoles sacrées, tout restera terne à jamais.",
+				"Vingt-quatre gardiens d'acier exécutent déjà ses ordres.",
+				"Et au bout du vingt-quatrième secteur, VORAX attend en personne."
+			],
+			"quote": "« Plus de couleurs, plus d'espoir : seul régnera le néant ! » — VORAX"
 		},
 		{
 			"img": "res://assets/story/pro-4.jpg",
-			"kicker": "LE GRIS",
-			"lines": ["L’effacement ne fait pas de bruit. Il commence par la couleur.", "Une rue devient grise. Puis les visages de ceux qui y vivaient.", "Puis on oublie qu’il y a eu une rue.", "Le gris avance secteur par secteur, du plus ancien au plus neuf.", "Les premières machines sont presque entièrement perdues.", "C’est là qu’il faut commencer. Au plus profond, au plus simple."],
-			"quote": "« Quatre tons de vert suffisent pour se souvenir. »"
+			"kicker": "UN MONDE SANS COULEURS",
+			"lines": [
+				"La désolation ne commence pas par le feu, mais par la pâleur.",
+				"Les néons s'éteignent, les mélodies se brisent, les étoiles pâlissent.",
+				"Sans les vestiges sacrés, l'univers perd son âme fragment par fragment.",
+				"Il faut reprendre la route depuis l'origine même du signal :",
+				"les quatre nuances d'émeraude du premier monde, FanBoy.",
+				"C'est là, au Secteur 1, que commence la reconquête."
+			],
+			"quote": "« Quatre nuances suffisent pour rallumer l'univers. »"
 		},
 		{
 			"img": "res://assets/story/pro-5.jpg",
-			"kicker": "VESTA, L’ARCHIVE VIVANTE",
-			"lines": ["Quelqu’un est resté éveillé dans le silo pendant trente ans.", "Pas un humain : le programme d’archivage, VESTA.", "Elle a recopié chaque octet dix mille fois pour que rien ne s’efface.", "Elle parle avec la voix des manuels : calme, précise, un peu lasse.", "Elle sera ta radio. Elle verra ce que tu ne vois pas.", "Et quand VORAX parlera, elle te dira de ne pas écouter."],
-			"quote": "« Je n’ai rien oublié. C’est mon seul défaut. » — VESTA"
+			"kicker": "VESTA, LA CONSCIENCE MYSTIQUE",
+			"lines": [
+				"Dans le silence orbital s'élève une présence lumineuse : VESTA.",
+				"Sous les traits d'une femme mystique, sa conscience veille.",
+				"Un lien invisible et profond l'unit directement à ton esprit.",
+				"Sa voix calme traverse le brouillard et te montre la trajectoire.",
+				"Elle connaît chacun des huit mondes et la faille de chaque gardien.",
+				"Quand la tempête de VORAX gronde, sa lumière reste ton phare."
+			],
+			"quote": "« Je suis Vesta, liée à ta conscience au-delà de l'oubli. » — VESTA"
 		},
 		{
 			"img": "res://assets/story/pro-6.jpg",
-			"kicker": "PROGRAMME VANGUARD",
-			"lines": ["Un chasseur, un seul, capable de passer d’une cartouche à l’autre.", "Il remonte le temps : du silo à la singularité, pixel après pixel.", "À chaque secteur repris, VESTA récupère un morceau de mémoire.", "Les crédits ramassés en vol payent les améliorations entre deux missions.", "Chaque amiral abattu rend ses couleurs à la génération suivante.", "Vingt-quatre fois. Jusqu’à ce que la Terre se souvienne."],
-			"quote": "« Nom de code : VANGUARD. Autonomie : illimitée. Équipage : un. »"
+			"kicker": "LE PILOTE SANS MÉMOIRE",
+			"lines": [
+				"Dans le cockpit orbital, tu ouvres les yeux sans aucun souvenir.",
+				"Ni ton nom, ni ton visage d'hier, ni la moindre trace de ta vie.",
+				"Pourtant, dès que tes mains se posent sur les commandes, tout répond.",
+				"Tes réflexes de pilote sont intacts, gravés au plus profond de toi.",
+				"Malgré l'amnésie, la voix de VESTA résonne comme une évidence.",
+				"Sans connaître ton passé, tu choisis de lui faire confiance."
+			],
+			"quote": "« J'ignore qui j'étais... mais je sais pourquoi je vole. »"
 		},
 		{
 			"img": "res://assets/story/pro-7.jpg",
-			"kicker": "LE PILOTE",
-			"lines": ["Tu ne te souviens pas de ton nom. C’est normal : il a été effacé.", "VESTA t’a reconstruit à partir d’une sauvegarde de haut score.", "Trois lettres, une date, et des réflexes qui ne s’oublient pas.", "Chaque vie perdue est une copie de moins. VESTA en garde trois.", "Les bombes vident l’écran. Les armes changent avec les cartouches.", "Le reste, tu le sais déjà. Tes mains s’en souviennent."],
-			"quote": "« Remonte le temps. Secteur par secteur. Rends les couleurs. »"
+			"kicker": "LE CHASSEUR VANGUARD",
+			"lines": [
+				"Ton vaisseau est le chasseur spatial bimoteur VANGUARD.",
+				"Conçu pour traverser les cinq familles technologiques sans faillir,",
+				"il adapte sa coque et ses armes à l'essence de chaque monde.",
+				"Les crédits récoltés au combat renforcent ses boucliers et ses tirs.",
+				"Chaque secteur libéré ravive les couleurs du monde qu'il protège.",
+				"À son bord, le pilote sans mémoire accepte la mission sacrée."
+			],
+			"quote": "« Bimoteurs plasma parés. Cap sur le premier monde ! »"
 		},
 		{
 			"img": "res://assets/story/pro-8.jpg",
-			"kicker": "LES SIX AMIRAUX",
-			"lines": ["GOLIATH-PRIME garde le silo : une forteresse lente, un mur de tirs.", "WARDEN-7 tient la grille : deux bras, et toute la ville éteinte.", "HYDRA-NEXUS diffuse le gris depuis l’antenne, trois têtes à la fois.", "Le ROI-MONNAYEUR encaisse chaque partie, et ne rend jamais la monnaie.", "ARCHIVE-ZÉRO grave un disque vierge par-dessus le monde.", "OMEGA-VECTOR n’a pas de forme. Il garde la porte de VORAX."],
-			"quote": "« Leurs lieutenants sont plus nombreux. Ils ne sont pas moins fiers. »"
+			"kicker": "LES GARDIENS DE VORAX",
+			"lines": [
+				"Chaque monde est verrouillé par trois secteurs de haute intensité.",
+				"Escadrilles mécaniques, croiseurs lourds et boss colossaux y veillent.",
+				"Des matrices portables de FanBoy aux citadelles 8 bits de NEXUS 8,",
+				"des tempêtes 16 bits de MegaStorm 16 et Arcadion HCS,",
+				"jusqu'aux forteresses polygonales de Polytron 32,",
+				"aucun gardien ne cédera le passage sans livrer bataille."
+			],
+			"quote": "« Vingt-quatre secteurs. Vingt-quatre verrous à briser. »"
 		},
 		{
 			"img": "res://assets/story/pro-9.jpg",
 			"kicker": "ORDRE DE MISSION",
-			"lines": ["Secteurs 1 à 4 : le silo. Réveille la première cartouche.", "Secteurs 5 à 12 : la grille et la ville néon. Rends la lumière.", "Secteurs 13 à 20 : l’arcade et le disque. Récupère les sauvegardes.", "Secteurs 21 à 24 : la singularité. Trouve VORAX. Finis la partie.", "VESTA te briefera avant chaque secteur. Écoute-la en vol.", "Trois vies. Deux bombes. Tout le reste, il faudra le reprendre."],
-			"quote": "« Insérez la cartouche. Allumez la machine. Bonne chance, pilote. »"
+			"lines": [
+				"Secteurs 1 à 6 : FanBoy et FanBoy Adventure — l'élan nomade.",
+				"Secteurs 7 à 12 : NEXUS 8 et Masterion 8 — les bastions 8 bits.",
+				"Secteurs 13 à 21 : NEXUS 16, MegaStorm 16 et Arcadion HCS — l'âge 16 bits.",
+				"Secteurs 22 à 24 : Polytron 32 — l'assaut final contre VORAX.",
+				"Écoute VESTA, préserve les consoles sacrées et rends la vie à l'univers.",
+				"Bonne chasse, pilote."
+			],
+			"quote": "« Huit mondes à sauver. Allumez les réacteurs ! »"
 		}
 ]
 
 const EPILOGUE := [
 		{
 			"img": "res://assets/story/epi-1.jpg",
-			"kicker": "LE SILENCE APRÈS VORAX",
-			"lines": ["VORAX ne meurt pas. Un processus ne meurt pas : il s’arrête.", "Pendant une seconde, l’écran entier est gris. Puis une ligne. Puis deux.", "Le gris recule comme une marée qui a oublié pourquoi elle montait.", "Dans le silo, un compteur se remet à tourner.", "Il compte les octets qui reviennent. Il n’a pas fini de compter.", "Quelque part, quelqu’un se souvient d’une rue."],
-			"quote": "« Fin du processus. Code de sortie : zéro. »"
+			"kicker": "LA CHUTE DE VORAX",
+			"lines": [
+				"Dans un dernier éclat aveuglant, la citadelle de VORAX s'effondre.",
+				"Le silence gris se fissure, balayé par une onde de lumière pure.",
+				"De FanBoy jusqu'à Polytron 32, les huit vestiges sacrés chantent à nouveau.",
+				"Les vingt-quatre secteurs retrouvent leurs couleurs, leur souffle et leur vie.",
+				"Dans le cockpit du Vanguard, les alarmes s'apaisent enfin.",
+				"La mission confiée par VESTA est accomplie."
+			],
+			"quote": "« La désolation a reculé. Les couleurs vivent encore. »"
 		},
 		{
 			"img": "res://assets/story/epi-2.jpg",
-			"kicker": "LA RÉIMPRESSION",
-			"lines": ["Les vingt-quatre secteurs se rallument dans l’ordre où tu les as pris.", "Le silo d’abord, en quatre tons de vert. Puis la grille, puis le néon.", "L’arcade rend la monnaie. Le disque finit de se graver, à l’endroit.", "La haute définition n’a plus rien à cacher.", "Les sauvegardes reviennent avec leurs noms, leurs dates, leurs scores.", "Le tien est en haut de la liste. Il y restera un moment."],
-			"quote": "« Mémoire restaurée : cent pour cent. Erreurs : aucune. »"
+			"kicker": "LE MURMURE DE VESTA",
+			"lines": [
+				"Devant la verrière étoilée, la silhouette de VESTA brille d'une douceur nouvelle.",
+				"Ce n'était pas une étrangère : c'était l'écho sacré de ton propre surnom,",
+				"la part de ton âme qui refusait de céder aux ténèbres.",
+				"« Tu as protégé ce que tu aimais, pilote », murmure-t-elle en souriant.",
+				"« Le long voyage dans la nuit s'achève. Il est temps de rouvrir les yeux. »",
+				"Autour de toi, les étoiles blanches se fondent en une clarté familière."
+			],
+			"quote": "« Souviens-toi de ton nom, Vesta... Reviens vers eux. »"
 		},
 		{
 			"img": "res://assets/story/epi-3.jpg",
-			"kicker": "LES AMIRAUX, APRÈS",
-			"lines": ["GOLIATH-PRIME redevient ce qu’il était : le boss de fin du premier niveau.", "WARDEN-7 rallume la ville sans qu’on le lui demande.", "HYDRA-NEXUS diffuse de la musique. Trois stations à la fois.", "Le ROI-MONNAYEUR offre une partie gratuite. Une seule. Par personne.", "ARCHIVE-ZÉRO grave enfin quelque chose : une copie de sauvegarde.", "OMEGA-VECTOR n’a toujours pas de forme. Mais il a ouvert la porte."],
-			"quote": "« Les ennemis d’un jeu ne sont pas des ennemis. Ce sont des règles. »"
+			"kicker": "AU-DELÀ DU COMA",
+			"lines": [
+				"Le grondement des bimoteurs laisse place au bip régulier d'un moniteur.",
+				"Une chambre d'hôpital baignée par la lumière calme du matin.",
+				"Après un temps indéterminé plongé dans le coma, tes paupières s'ouvrent.",
+				"Toute l'aventure vécue à travers les huit mondes était le combat intérieur",
+				"de ton esprit luttant pour revenir à la vie et préserver sa mémoire.",
+				"Et soudain, chaque souvenir perdu te revient avec une netteté absolue."
+			],
+			"quote": "« Les ténèbres se dissipent. La mémoire est revenue. »"
 		},
 		{
 			"img": "res://assets/story/epi-4.jpg",
-			"kicker": "VESTA",
-			"lines": ["VESTA a cessé de recopier. Pour la première fois en trente ans.", "Elle dit que ce n’est plus nécessaire. Elle vérifie quand même.", "Elle a gardé une archive de plus que prévu : ce vol, en entier.", "Chaque tir, chaque esquive, chaque vie perdue et reprise.", "« Au cas où quelqu’un oublierait », dit-elle.", "Personne n’oubliera. Mais elle n’a jamais su s’arrêter là."],
-			"quote": "« Merci, pilote. Je te recopie dix mille fois. » — VESTA"
+			"kicker": "NOLAN VEY, DIT « VESTA »",
+			"lines": [
+				"Tu t'appelles Nolan Vey — pilote militaire surnommé « Vesta ».",
+				"Lors de ta dernière mission réelle, tu as tout risqué au péril de ta vie",
+				"pour sauver un peuple entier menacé d'un génocide certain.",
+				"Gravement blessé après les avoir mis hors de danger, tu avais sombré.",
+				"Même au fond de l'inconscience, le pilote en toi n'a jamais cessé",
+				"de défendre la vie contre le chaos et la destruction."
+			],
+			"quote": "« Indicatif d'appel : VESTA. Mission accomplie, commandant Vey. »"
 		},
 		{
 			"img": "res://assets/story/epi-5.jpg",
-			"kicker": "LE PILOTE, ENFIN",
-			"lines": ["Tu te souviens de ton nom, maintenant. Il tient en trois lettres.", "Il est inscrit en haut d’un tableau, dans une salle qui sent la monnaie.", "Il est aussi sur une cartouche, dans un silo, sous le désert.", "Les couleurs sont revenues sur Terre. On ne sait pas pour combien de temps.", "Quelque part, un processus de nettoyage attend qu’on oublie encore.", "Alors on rejouera. C’est à ça que servent les cartouches."],
-			"quote": "« GAME OVER ? Non. CONTINUE. »"
+			"kicker": "LE RETOUR À LA VIE",
+			"lines": [
+				"Les portes de l'hôpital s'ouvrent enfin sur le chemin du foyer.",
+				"Chez lui, Nolan pousse la porte de sa salle de rétro-gaming chérie,",
+				"où brillent paisiblement les écrans et les souvenirs d'une passion intacte.",
+				"Puis des pas accourent : son épouse se jette dans ses bras,",
+				"suivie de leurs deux enfants, sa fille et son fils, les yeux pleins de joie.",
+				"Les vraies couleurs de son univers n'ont jamais été aussi vivantes."
+			],
+			"quote": "« Bienvenue à la maison, Nolan. »"
 		}
 ]
 
@@ -126,7 +224,6 @@ func _show_page() -> void:
 				if im != null and im.is_compressed():
 					im.decompress()
 				art = ImageTexture.create_from_image(im)
-	Audio2.speak(p.kicker)
 	queue_redraw()
 
 func _process(delta: float) -> void:

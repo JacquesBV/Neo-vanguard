@@ -1,0 +1,138 @@
+[
+  {
+    "world": 1,
+    "slug": "01_fanboy",
+    "name": "FanBoy",
+    "sectors": [
+      1,
+      3
+    ],
+    "color": "#b4d642",
+    "accent": "#f2dfb6",
+    "sprite": "res://assets/intro/consoles/holo_01_fanboy.png",
+    "body": "Portable verticale beige/gris chaud. Aérations noires supérieures, lignes cyan/violet, blason ailé violet, commandes bleue/rouge/ambre; pas une coque bleue.",
+    "controls": "Intégrées : direction circulaire BLEUE, action A rouge et B ambre, deux touches SELECT et START au centre. Boutons gardent leurs couleurs malgré la coque beige.",
+    "cartridge": "Petite cartouche sombre insérée au sommet arrière. Si une nouvelle caméra cache naturellement le slot, ne pas inventer une cartouche devant la coque.",
+    "screen": "Quatre verts olive uniquement; gros pixels monochromes. HUD inférieur en deux rangées propres de jauges.",
+    "identity": "Blason ailé violet utilisateur, nom en haut."
+  },
+  {
+    "world": 2,
+    "slug": "02_fanboy_adventure",
+    "name": "FanBoy Adventure",
+    "sectors": [
+      4,
+      6
+    ],
+    "color": "#7b5cff",
+    "accent": "#d8caff",
+    "sprite": "res://assets/intro/consoles/holo_02_fanboy_adv.png",
+    "body": "Portable horizontale violet indigo, façade rigide et profondeur cohérente, poignées sombres; écran en léger retrait, pas une coque enfoncée.",
+    "controls": "Intégrées : direction grise gauche; DEUX actions RONDES anthracite à droite, pas de larges palettes oblongues; deux petites touches SELECT/START sous écran.",
+    "cartridge": "Petite cartouche violette insérée au sommet arrière; pas un gros bloc devant écran.",
+    "screen": "2D pixel art de portable couleur avancée.",
+    "identity": "Petit signe ailé violet/chevron sur bandeau supérieur."
+  },
+  {
+    "world": 3,
+    "slug": "03_nexus_8",
+    "name": "NEXUS 8",
+    "sectors": [
+      7,
+      9
+    ],
+    "color": "#f0485a",
+    "accent": "#e8edf5",
+    "sprite": "res://assets/intro/consoles/holo_03_nexus8.png",
+    "body": "Console compacte plus cubique et haute, gris clair/noir/rouge, façade carrée et cartouche supérieure; pas une large dalle.",
+    "controls": "Un pad sans fil plat en capsule gris/rouge : direction gauche, TROIS actions rondes rouges à droite, SELECT et START petits au centre. Pad moins large que console.",
+    "cartridge": "Cartouche gris/rouge rectangulaire approuvée, bas dans slot supérieur. Garder sa forme.",
+    "screen": "8 bits : gros pixels, tuiles et couleurs plates limitées.",
+    "identity": "Deux carrés imbriqués gris et rouge, face avant."
+  },
+  {
+    "world": 4,
+    "slug": "04_masterion_8",
+    "name": "Masterion 8",
+    "sectors": [
+      10,
+      12
+    ],
+    "color": "#ff5c38",
+    "accent": "#ffc8bc",
+    "sprite": "res://assets/intro/consoles/holo_04_masterion8.png",
+    "body": "Console noire et rouge en arche facettée, cartouche noire/rouge supérieure, manette RECTANGULAIRE et non en U.",
+    "controls": "Un pad sans fil RECTANGULAIRE noir à liserés rouges : direction gauche, TROIS actions rouges à droite, SELECT et START au centre. Sans poignées et sans stick analogique.",
+    "cartridge": "Cartouche noire rectangulaire à étiquette rouge approuvée, bas dans slot supérieur. Garder sa forme.",
+    "screen": "8 bits : palette et style distincts de NEXUS8, sans 3D.",
+    "identity": "Trois barres rouges en gradins, face avant noire."
+  },
+  {
+    "world": 5,
+    "slug": "05_nexus_16",
+    "name": "NEXUS 16",
+    "sectors": [
+      13,
+      15
+    ],
+    "color": "#6ea8ff",
+    "accent": "#e4f0ff",
+    "sprite": "res://assets/intro/consoles/holo_05_nexus16.png",
+    "body": "Console grise longitudinale avant-arrière, un peu élargie, façade moins large que sa profondeur; rails latéraux, accents multicolores; pas un boîtier large façon MegaStorm.",
+    "controls": "Un petit stick arcade gris séparé, taille réduite finale : UN levier à gauche, SIX actions rondes en 2×3 à droite (rouge/bleu/vert puis jaune/gris/gris), deux petites touches SELECT/START sur bande arrière.",
+    "cartridge": "Cartouche gris clair LARGE et BASSE à épaules arrondies et étiquette sombre; slot sombre explicite à guide fin autour de sa base.",
+    "screen": "16 bits 2D : sprites ombrés, décors en parallaxe et boss détaillé.",
+    "identity": "Petit signe multicolore de la planche validée, sur long flanc gris."
+  },
+  {
+    "world": 6,
+    "slug": "06_megastorm_16",
+    "name": "MegaStorm 16",
+    "sectors": [
+      16,
+      18
+    ],
+    "color": "#ff8c38",
+    "accent": "#ffe2b0",
+    "sprite": "res://assets/intro/consoles/holo_06_megastorm16.png",
+    "body": "Console noire large et basse, rouge en façade et doré aux coins externes. Dessus noir continu, slot simple encastré sans plateforme surélevée ni anneau lumineux autour.",
+    "controls": "Un pad noir ergonomique équilibré à poignées courtes, direction affleurante, CINQ actions RONDES à droite dans la planche finale validée, liserés rouges, SELECT/START centraux. Ni touches en croissant ni stick analogique.",
+    "cartridge": "Cartouche noire PLUS HAUTE à sommet bombé et flancs à rainures, étiquette rouge sombre; insérée directement dans fente du dessus noir continu.",
+    "screen": "16 bits 2D : sprites anguleux, action rapide, effets; pas de 3D polygonale.",
+    "identity": "Trois traits rouges inclinés, nom imprimé à plat sur plan supérieur avant."
+  },
+  {
+    "world": 7,
+    "slug": "07_arcadion_hcs",
+    "name": "Arcadion HCS",
+    "sectors": [
+      19,
+      21
+    ],
+    "color": "#ebc363",
+    "accent": "#fff1be",
+    "sprite": "res://assets/intro/consoles/holo_07_arcadion_hcs.png",
+    "body": "Unité centrale noire/dorée à grosse cartouche opaque et deux stations joueurs physiquement séparées. HCS = Holographic Control Station; jamais AES.",
+    "controls": "DEUX stations distinctes, chacune : SON LCD, UN joystick à boule noire, SIX actions NOIRES rondes en DEUX RANGÉES DE TROIS, plus DEUX petits SELECT/START noirs. Total 2 LCD, 2 joysticks, 12 actions, 4 touches système. Chaque base assez grande pour deux mains.",
+    "cartridge": "GROSSE cartouche noire/dorée à étiquette rouge étoilée OPAQUE, insérée verticalement dans slot sombre visible. Elle n’est PAS un troisième écran.",
+    "screen": "Arcade 2D riche en sprites : images cohérentes sur les deux LCD, pas de 3D HD.",
+    "identity": "Losange étoilé doré sur unité centrale et rappel sur modules; nom exact Arcadion HCS."
+  },
+  {
+    "world": 8,
+    "slug": "08_polytron_32",
+    "name": "Polytron 32",
+    "sectors": [
+      22,
+      24
+    ],
+    "color": "#38c8ff",
+    "accent": "#dcf7ff",
+    "sprite": "res://assets/intro/consoles/holo_08_polytron32.png",
+    "body": "Console la plus moderne : coque fine gris clair monocoque, bande sombre en retrait, écran transparent mince sur charnières, témoins subtils. Pas de cartouche; deux gros boutons sur le DESSUS.",
+    "controls": "UNE manette complète à deux poignées arrondies, surfaces fluides sans facettes, gris clair/grips anthracite, témoin bleu, direction gauche, QUATRE actions rondes bleue/rouge/verte/jaune à droite, SELECT/START au centre et épaulières. Ne pas la séparer en deux.",
+    "cartridge": "Système à disque : aucune cartouche. Gros bouton gauche = Marche/Arrêt (cercle ouvert + trait), gros bouton droit = Éjection (triangle sur barre).",
+    "screen": "Première 3D polygonale : faces visibles, textures simples. Matériel futuriste ne signifie pas jeu photoréaliste.",
+    "identity": "Petit cube multicolore sur coque et manette; nom appliqué à plat selon pente du panneau."
+  }
+]

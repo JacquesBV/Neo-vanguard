@@ -68,7 +68,7 @@ func prepare_era(era: int, ship: String, gb_hex: Array) -> Texture2D:
 	if img == null:
 		return base
 	img.convert(Image.FORMAT_RGBA8)
-	# applyGameBoyPalette du moteur : chaque pixel rejoint l'encre de
+	# Palette monochrome FanBoy du moteur : chaque pixel rejoint l'encre de
 	# luminance la plus proche — coques claires, contours sombres.
 	var tones: Array = []
 	for h in Data.INKS:
@@ -117,7 +117,7 @@ func prepare_era(era: int, ship: String, gb_hex: Array) -> Texture2D:
 # ---------------------------------------------------------------------------
 # Module 34 « rendu natif » : la coque HD r0-<id>.png réduite à la taille
 # réelle du vaisseau (72 px de coque, SPRITE_H), puis quantifiée sur les
-# 4 encres LCD (3 tons clairs + contour sombre, reprise d'applyGameBoyPalette).
+# 4 encres LCD (3 tons clairs + contour sombre, palette FanBoy).
 const NOZZLES := { "falcon": [0.503], "falconA": [0.364, 0.5, 0.642], "falconB": [0.508],
 	"viper": [0.399, 0.605], "titan": [0.381, 0.5, 0.619], "spectre": [0.407, 0.59],
 	"singularis": [0.402, 0.592] }

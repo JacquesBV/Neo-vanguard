@@ -1,9 +1,9 @@
 {
  "24 secteurs, six générations de consoles · l'histoire d'abord": [
-  "24 sectors, six console generations · story first",
-  "24 sectores, seis generaciones · primero la historia",
-  "24 setores, seis gerações · a história primeiro",
-  "24セクター、6世代のハード・まず物語から"
+  "8 worlds — 24 sectors · 5 technological families",
+  "8 mundos — 24 sectores · 5 familias tecnológicas",
+  "8 mundos — 24 setores · 5 famílias tecnológicas",
+  "8ワールド — 24セクター・5つの技術系統"
  ],
  "!! ALERTE VAISSEAU AMIRAL !!": [
   "!! ADMIRAL SHIP ALERT !!",
@@ -2652,10 +2652,10 @@
   "⬢ ショップ"
  ],
  "ÉDITION COLLECTOR · 24 SECTEURS · 6 GÉNÉRATIONS": [
-  "COLLECTOR EDITION · 24 SECTORS · 6 GENERATIONS",
-  "EDICIÓN COLECCIONISTA · 24 SECTORES · 6 GENERACIONES",
-  "EDIÇÃO DE COLECIONADOR · 24 SETORES · 6 GERAÇÕES",
-  "コレクターズエディション・24セクター・6世代"
+  "COLLECTOR EDITION · 8 WORLDS · 24 SECTORS",
+  "EDICIÓN COLECCIONISTA · 8 MUNDOS · 24 SECTORES",
+  "EDIÇÃO DE COLECIONADOR · 8 MUNDOS · 24 SETORES",
+  "コレクターズエディション・8ワールド・24セクター"
  ],
  "un shoot them up vertical à moteur graphique évolutif": [
   "a vertical top-down shoot 'em up with an evolving graphics engine",
@@ -2938,5 +2938,47 @@
   "⇕ CAMBIAR ARMA",
   "⇕ TROCAR ARMA",
   "⇕ 武器を切替"
+ ],
+ "ÉDITION COLLECTOR · 8 MONDES · 24 SECTEURS": [
+  "COLLECTOR EDITION · 8 WORLDS · 24 SECTORS",
+  "EDICIÓN COLECCIONISTA · 8 MUNDOS · 24 SECTORES",
+  "EDIÇÃO DE COLECIONADOR · 8 MUNDOS · 24 SETORES",
+  "コレクターズエディション・8ワールド・24セクター"
+ ],
+ "8 mondes — 24 secteurs · 5 familles technologiques": [
+  "8 worlds — 24 sectors · 5 technological families",
+  "8 mundos — 24 sectores · 5 familias tecnológicas",
+  "8 mundos — 24 setores · 5 famílias tecnológicas",
+  "8ワールド — 24セクター・5つの技術系統"
+ ],
+ "Revoir la cinématique d'intro": [
+  "Replay Intro Cinematic",
+  "Volver a ver la cinemática",
+  "Rever a cinemática de abertura",
+  "オープニングアニメを再生"
+ ],
+ "Ouverture animée manga · 8 mondes — 24 secteurs": [
+  "Animated manga opening · 8 worlds — 24 sectors",
+  "Apertura manga animada · 8 mundos — 24 sectores",
+  "Abertura mangá animada · 8 mundos — 24 setores",
+  "アニメオープニング・8ワールド — 24セクター"
+ ],
+ "Cinématique": [
+  "Cinematic",
+  "Cinemática",
+  "Cinemática",
+  "ムービー"
+ ],
+ "Ouverture manga 134 BPM": [
+  "134 BPM Manga Opening",
+  "Apertura manga 134 BPM",
+  "Abertura mangá 134 BPM",
+  "134 BPM アニメOP"
+ ],
+ "8 mondes — 24 secteurs · 3 par monde.": [
+  "8 worlds — 24 sectors · 3 per world.",
+  "8 mundos — 24 sectores · 3 por mundo.",
+  "8 mundos — 24 setores · 3 por mundo.",
+  "8ワールド — 24セクター・各ワールド3セクター。"
  ]
 }

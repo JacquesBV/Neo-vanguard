@@ -97,7 +97,7 @@ static func shadow_tex(n: int, i: int) -> Texture2D:
 ## dessin complet du boss du secteur `level`. Renvoie false si l'atlas manque.
 static func draw(g: CanvasItem, b: Dictionary, level: int) -> bool:
 	var n: int = clampi(level, 1, 24)
-	var era_idx: int = clampi((n - 1) / 4, 0, 5)
+	var era_idx: int = 0 if n <= 3 else clampi((n - 1) / 4, 1, 5)
 	if atlas(n) == null:
 		return false
 	var m: Dictionary = MetaAll.META[n]

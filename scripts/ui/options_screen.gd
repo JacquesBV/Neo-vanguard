@@ -82,12 +82,12 @@ func _ready() -> void:
 		cont_l.text = "CONTRASTE LCD : %s" % CONTRASTS[str(Save.S.opts.gb_contrast)]
 		Save.save_game())
 	var frame_l := ui.label(v, "CADRE DE CONSOLE (PC) : %s" % ("OUI" if Save.S.opts.get("frame", true) else "NON"), 14, UIKit.INK)
-	ui.button(v, NVLang.t("Console frame (PC)") + " — coque NV-01", func():
+	ui.button(v, NVLang.t("Console frame (PC)") + " — console FanBoy", func():
 		Save.S.opts["frame"] = not Save.S.opts.get("frame", true)
 		frame_l.text = "CADRE DE CONSOLE (PC) : %s" % ("OUI" if Save.S.opts.frame else "NON")
 		Save.save_game()
-		if main != null and main.get("shell") != null:
-			main.shell.visible = bool(Save.S.opts.frame))
+		if main != null and main.has_method("_apply_era_viewport"):
+			main._apply_era_viewport(main.game.level if main.game != null else 1))
 	ui.label(v, "TENEUR EN PIXELS : l'ère Pocket reste en 160×144,\nl'ère HD en rendu plein — comme les consoles d'origine.", 11, UIKit.DIM)
 	ui.spacer(v, 10)
 	ui.label(v, "Effacer la sauvegarde (crédits, achats, records) :", 12, Color("#ff5fa2"))

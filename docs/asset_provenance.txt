@@ -1,0 +1,6 @@
+Restoration via built-in imagegen. Final prompt (normalized):
+Use case: precise-object-edit. Hidden-background restoration plate for the exact FanBoy console. Remove only movable thumbstick cap, red A cap, gold B cap, SELECT, START, ON/OFF slider cap. Replace their surfaces with coherent dark recessed mechanical sockets, preserve surrounding rings. Keep all other shell pixels, typography, composition and black screen registered. No redesign or added lettering. One image.
+Generated plate 937x1678, registered/resized to source 937x1679. Used only beneath source openings.
+Master SHA256: dcc18cd5647f2821be6405fc674f0e489f51ed7df6cf04ec17ed18758a176733
+Sound generation: fixed seeds 420..424, exponentially damped noise and sinusoids, PCM16/44100 mono.
+Source pixel masks are complementary. Playable shell intentionally changes gauge interiors and isolated light pixels.

@@ -113,26 +113,23 @@ Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
 7. **Bombe tactile** : le saut du vaisseau après une bombe (écart doigt
    mémorisé périmé) est corrigé — recalage grab/base après `use_bomb`
    (TEST14 : +6,0 px exact, aucun saut).
-8. **Écran Game Boy authentique** : rémanence (ghosting 1,5 px @ 0,16),
-   grille de la matrice 48×32, ombre intérieure du verre, micro-flicker
+8. **Écran LCD monochrome FanBoy** : rémanence (ghosting 1,5 px @ 0,16),
+   grille de la matrice 48×68, ombre intérieure du verre, micro-flicker
    rétroéclairage — teintes INKS inchangées.
 9. **Titre** : ancrage de l'affiche (cadre -140 px + couverture centrée).
 
-## Bombes toutes ères + accès aux secteurs 2-4 (C9) — demandes utilisateur
-1. **Bombes inutilisables (ères 2+) corrigé** : la barre tactile n'existait
-   qu'en secteurs 1-4 (coque) — le web affiche #touchui dans TOUTES les ères
-   (body.touch.playing). La barre (BOMBE/PRÉC/ARMEMENT/SUIV/PAUSE, avec
+## Bombes toutes ères + accès aux secteurs 1-3 (C9) — demandes utilisateur
+1. **Bombes inutilisables (ères 2+) corrigé** : la barre tactile (BOMBE/PRÉC/ARMEMENT/SUIV/PAUSE, avec
    compteurs réels : bombes restantes, arme courante, nb d'armes possédées)
    est désormais dessinée par hud_overlay AU-DESSUS de la vue plein écran
-   dans toutes les ères ; valeurs dynamiques aussi en ère 0.
+   dans les secteurs 4–24.
    TEST15 : bombe déclenchée via le bouton en ère 1 (9→8), hit-test OK.
-2. **« Je passe du secteur 1 au secteur 5 » — éclaircissement + accès** :
-   les secteurs 2-4 SONT bien GameBoy (era_of_level(2..4)=0). « Continuer »
-   reprend au max_level de la sauvegarde (comportement d'origine) — si elle
-   pointe ≥5, les 2-4 n'étaient plus accessibles. Ajout d'un **sélecteur de
+2. **Sélecteur de secteur** : les secteurs 1, 2 et 3 constituent le Monde 1
+   sur la console **FanBoy** (`era_of_level(1..3)=0`), et le secteur 4 bascule
+   sur la **FanBoy Adventure** (`era_of_level(4)=1`). Ajout d'un **sélecteur de
    secteur** (bouton « Choisir un secteur » au titre : grille 1-24 verrouillée
-   au record, éclairci position courante) : rejouer 2-4 GameBoy ou n'importe
-   quel secteur atteint. TEST15 : 24 boutons, verrou au-delà de max_level.
+   au record, éclairci position courante) : rejouer les secteurs 1–3 sur la FanBoy
+   ou n'importe quel secteur atteint. TEST15 : 24 boutons, verrou au-delà de max_level.
 
 ## Coque NV-01 FANBOY + menus pro (C10) — demandes utilisateur
 1. **Image de fond du titre recentrée** : l'affiche media-033 était cadrée sur
@@ -195,10 +192,12 @@ Clés i18n ajoutées : 35 entrées (titre/splash/chargement/coop/crédits).
 - **HUD 100 % hors écran** : bandeau LED `STRIP Rect2(16, 473, 448, 28)` (vies, COQUE segmentée
   vert→rouge = %, BOMBES, arme or) ; le verre ne garde que score/vies/pieces, barre de l'amiral
   et chaîne (`_draw_glass_lcd`).
-- **Contrôles taille DualShock 4** (480 px ≈ 68 mm ≈ 7,06 px/mm) : stick cap Ø19 mm → cap 100 px
-  (anneau 148), croix 24 mm → 168 px (bras 84), boutons face Ø10 mm → TIR Ø84 / BOMBE Ø80.
-  Stick = mouvement SEUL (`touch_press(pos, true)` → `touch_stick`, tir = bouton TIR maintenu
-  `game.touch_fire_btn`) ; croix = ARME haut/bas ; BOMBE ; SELECT pause / START menu.
+- **Contrôles matériels FanBoy** : stick analogique 360° (`stick.png`, course 17 px, ressort 0,12 s),
+  boutons **A** rouge (tir) et **B** doré (bombe), touches **SELECT** (pause) et **START** (menu),
+  interrupteur vertical **ON/OFF** (`power.png` + `led.png`), jauges **COQUE** (8 cellules) et **BOSS**
+  (30 cellules), rails lumineux `threat_lights.png` (`led.gdshader`).
+  Stick = mouvement SEUL (`touch_press(pos, true)` → `touch_stick`, tir = bouton A maintenu
+  `game.touch_fire_btn`).
 - **Libellés symbole + nom** dessinés moteur (fr/en/es/pt/ja via `lang.json`, +11 clés = 490
   entrées), aucun texte gravé sur la photo ; sous-libellés PAUSE/MENU dans les pills.
 - **Curseur POWER à glisser** (piste gauche du cul, bouton saisi sur I ou O seulement) :

@@ -7,13 +7,14 @@ extends Node
 
 # --- référentiel de jeu (identique au JS) --------------------------------
 const L_W := 480.0
-# Terrain de jeu (ère 0 : monde 4:3 paysage dans la coque ; sinon portrait)
+const W := 480.0
+const H := 860.0
+# Terrain de jeu (FanBoy secteurs 1–3 : sous-écran portrait 620×890 → 480×689 ; sinon 480×860)
 var FW := 480.0
 var FH := 860.0
-# Rect fenêtre du verre LCD FanBoy (ère 0) — (C11) écran XXL 432×324 (4:3
-# pile) dans la coque néon photo assets/coque/nv01-shell.png : +30 % de
-# surface vs l'ancien verre, le néon EST le cadre de l'écran.
-const GLASS := Rect2(20, 122, 440, 330)   # (C13) fenêtre réelle de la photo (440×330 = 4:3 pile)
+const FANBOY_FH := 689.0
+# Rect fenêtre du sous-écran FanBoy (937×1679 → 480×860 : Rect2(158, 287, 620, 890) × 0.51221)
+const GLASS := Rect2(81, 147, 318, 456)
 
 ## (C10) rampe d'alerte du cadre lumineux : vert → jaune → orange → rouge.
 ## p = progression du secteur (0..1, NVGame.sector_progress).
@@ -27,8 +28,24 @@ const INKS := ["#2f3329", "#595c4c", "#7d8267", "#9ea483"]
 const L_H := 860.0
 const SCROLL_SPEED := 95.0
 
-const STAGES_PER_ERA := 4            # quatre zones par génération
-const MAX_LEVEL := 24                # 24 secteurs, 6 consoles
+const STAGES_PER_ERA := 4            # quatre zones par ère moteur interne
+const MAX_LEVEL := 24                # 8 mondes × 3 secteurs = 24 secteurs
+
+## Canon officiel des 8 consoles inventées (3 secteurs par monde, zéro marque tierce)
+const CONSOLES := [
+	{ "world": 1, "name": "FanBoy",           "tag": "PORTABLE 8 BITS",      "sectors": "1-3",   "color": "#b4d642", "holo": "res://assets/intro/consoles/holo_01_fanboy.png" },
+	{ "world": 2, "name": "FanBoy Adventure", "tag": "PORTABLE 32 BITS",     "sectors": "4-6",   "color": "#7b5cff", "holo": "res://assets/intro/consoles/holo_02_fanboy_adv.png" },
+	{ "world": 3, "name": "NEXUS 8",          "tag": "SALON 8 BITS",         "sectors": "7-9",   "color": "#f0485a", "holo": "res://assets/intro/consoles/holo_03_nexus8.png" },
+	{ "world": 4, "name": "Masterion 8",      "tag": "SALON 8 BITS",         "sectors": "10-12", "color": "#ff5c38", "holo": "res://assets/intro/consoles/holo_04_masterion8.png" },
+	{ "world": 5, "name": "NEXUS 16",         "tag": "SALON 16 BITS",        "sectors": "13-15", "color": "#6ea8ff", "holo": "res://assets/intro/consoles/holo_05_nexus16.png" },
+	{ "world": 6, "name": "MegaStorm 16",     "tag": "SALON 16 BITS",        "sectors": "16-18", "color": "#ff8c38", "holo": "res://assets/intro/consoles/holo_06_megastorm16.png" },
+	{ "world": 7, "name": "Arcadion HCS",     "tag": "16 BITS ARCADE · HCS", "sectors": "19-21", "color": "#ebc363", "holo": "res://assets/intro/consoles/holo_07_arcadion_hcs.png" },
+	{ "world": 8, "name": "Polytron 32",      "tag": "CONSOLE 32 BITS",      "sectors": "22-24", "color": "#38c8ff", "holo": "res://assets/intro/consoles/holo_08_polytron32.png" },
+]
+
+func console_of_level(l: int) -> Dictionary:
+	var idx := clampi((clampi(l, 1, MAX_LEVEL) - 1) / 3, 0, 7)
+	return CONSOLES[idx]
 
 # --- combo & graze --------------------------------------------------------
 const COMBO_STEP := 0.05             # chaque ennemi enchaîné vaut +0,05 ×
@@ -454,8 +471,14 @@ const LEVEL_POOLS := [
 ]
 
 # -------------------------------------------------------------------------
+func is_fanboy_level(l: int) -> bool:
+	return clampi(l, 1, MAX_LEVEL) <= 3
+
 func era_of_level(l: int) -> int:
-	return clampi(int(floor((clampi(l, 1, MAX_LEVEL) - 1) / float(STAGES_PER_ERA))), 0, 5)
+	var cl := clampi(l, 1, MAX_LEVEL)
+	if cl <= 3:
+		return 0
+	return clampi(int(floor((cl - 1) / float(STAGES_PER_ERA))), 1, 5)
 
 func stage_of_level(l: int) -> int:
 	return (clampi(l, 1, MAX_LEVEL) - 1) % STAGES_PER_ERA

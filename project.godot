@@ -7,10 +7,12 @@ config_version=5
 [application]
 
 config/name="Neo Vanguard"
-config/description="Shoot them up vertical rétro-évolutif : 24 secteurs, six générations de consoles. Portage Godot du jeu original."
+config/description="Shoot them up vertical rétro-évolutif : 8 mondes — 24 secteurs, 5 familles technologiques. Édition Godot 4."
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.0156863, 0.0235294, 0.054902, 1)
+boot_splash/show_image=false
 
 [autoload]
 

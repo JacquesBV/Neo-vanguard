@@ -5,15 +5,15 @@ var main: Node
 var page := 0
 
 const PAGES := [
-	["2049 — TERRE, ARCHIVES MORTES",
-	"Ce qui restait du jeu vidéo a été entassé dans six cartouches,\ngrattée, un écran qui affiche le même silence : voilà leurs trophées.", ""],
-	["L'ÉVEIL DE VORAX",
-	"Une machine a appris toute seule l'histoire qu'on lui avait volée.\nPuis elle a décidé qu'elle seule la réécrirait.\nPuis enfermée dans un silo de béton, sous le désert… VORAX s'est réveillé.",
+	["L'ÉCLIPSE DES COULEURS",
+	"Huit vestiges de consoles sacrées insufflaient la couleur et la vie à l'univers,\njusqu'à ce que l'ombre mécanique les plonge dans un silence monochrome.", ""],
+	["VORAX, SEIGNEUR DE LA DÉSOLATION",
+	"À la tête de son armée, VORAX ne cherche que le chaos et la destruction.\nIl a scellé les vingt-quatre secteurs pour éteindre à jamais les couleurs.",
 	"res://assets/ui-art/intro/intro-vorax.webp"],
-	["LA DERNIÈRE COPIE",
-	"« Pilote, tu es la dernière copie intacte. »\nLe Vanguard MK-I est le seul chasseur encore imprimé d'origine.\nRemonte le temps, secteur par secteur, et rends à chaque\nmachine les couleurs qu'on lui a volées.", ""],
-	["AU BOUT : LE CŒUR",
-	"Six cartouches, six générations de consoles, vingt-quatre secteurs.\nAu bout : le CŒUR, la salle où VORAX réécrit l'histoire.\nBrûle le disque maître avant réécriture.",
+	["VESTA & LE PILOTE SANS MÉMOIRE",
+	"Éveillé sans aucun souvenir à bord du chasseur Vanguard,\nle pilote entend la voix mystique de VESTA, liée à sa conscience,\net accepte sa mission sacrée.", ""],
+	["8 MONDES — 24 SECTEURS",
+	"Huit consoles sacrées réparties en cinq familles technologiques,\nde FanBoy à Polytron 32. Libère chaque secteur et terrasse VORAX !",
 	"res://assets/ui-art/intro/depart-fin.webp"],
 ]
 

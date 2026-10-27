@@ -54,24 +54,18 @@ func _draw() -> void:
 		draw_texture_rect(art, Rect2(16, ay, aw, ah), false)
 		draw_rect(Rect2(16, ay, aw, ah), Color(acc.r, acc.g, acc.b, 0.28), false, 1.0)
 
-	# ---------- la machine de l'ère + son support ----------
-	# 78_box_art.js : la boîte et son support en photo produit officielle
-	# (BOX_IMG : pk, hs, s16, arc, ncd, hd) — dessin procédural en repli.
-	var sy2 := 408.0
-	draw_string(_font(), Vector2(0, sy2 - 14), String(Data.ERAS[era].sys).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 480, 12, Color("#8d9ec2"))
-	var box_path: String = "res://assets/story/box-%s.jpg" % ["pk", "hs", "s16", "arc", "ncd", "hd"][era]
-	var box_tex: Texture2D = null
-	if _art_cache.has("box" + str(era)):
-		box_tex = _art_cache["box" + str(era)]
-	elif ResourceLoader.exists(box_path):
-		box_tex = load(box_path)
-		_art_cache["box" + str(era)] = box_tex
-	if box_tex != null:
-		var bw := 320.0
-		var bh := bw * box_tex.get_height() / box_tex.get_width()
-		var bx := (480.0 - bw) / 2.0
-		draw_texture_rect(box_tex, Rect2(bx, sy2, bw, bh), false)
-		draw_rect(Rect2(bx, sy2, bw, bh), Color(acc.r, acc.g, acc.b, 0.35), false, 1.0)
+	# ---------- l'hologramme de la console inventée du monde ----------
+	var con: Dictionary = Data.console_of_level(level)
+	var con_col := Color(str(con.color))
+	var sy2 := 396.0
+	var hdr_txt := "MONDE %d / 8  ·  %s  —  %s" % [int(con.world), str(con.name).to_upper(), str(con.tag)]
+	draw_string(_font(), Vector2(0, sy2 - 10), hdr_txt, HORIZONTAL_ALIGNMENT_CENTER, 480, 12, con_col)
+	var holo_tex := NVIntroAssets.tex(str(con.holo))
+	if holo_tex != null:
+		var h_sz := 184.0
+		var hx := (480.0 - h_sz) * 0.5
+		draw_circle(Vector2(240.0, sy2 + h_sz * 0.48), h_sz * 0.34, Color(con_col.r, con_col.g, con_col.b, 0.12))
+		draw_texture_rect(holo_tex, Rect2(hx, sy2, h_sz, h_sz), false)
 	elif era <= 3:
 		draw_rect(Rect2(180, sy2, 120, 46), Color("#2a3040"))
 		draw_rect(Rect2(180, sy2, 120, 46), Color("#3d465c"), false, 2.0)
@@ -86,4 +80,4 @@ func _draw() -> void:
 
 	# ---------- bouton ----------
 	if t > 0.9 and fmod(t, 0.9) < 0.55:
-		draw_string(_font(), Vector2(0, 560), "TIR / ENTRÉE : décoller", HORIZONTAL_ALIGNMENT_CENTER, 480, 14, Color("#eaf6ff"))
+		draw_string(_font(), Vector2(0, 608), "TIR / ENTRÉE : décoller", HORIZONTAL_ALIGNMENT_CENTER, 480, 14, Color("#eaf6ff"))
